@@ -8,8 +8,8 @@ const users: any[] = [
     id: 'USER1',
     fullName: 'Test User',
     email: 'test@example.com',
-    // This is a pre-hashed password for 'password123'
-    password: '$2a$10$XOPbrlUPQdwdJUpSrIF6X.LbE14qD0vxH0kF9krJ9Z9N9pXh5qK6',
+    // This is a fresh hash for 'password123'
+    password: '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
     createdAt: new Date().toISOString()
   }
 ];
@@ -18,6 +18,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
+
+    console.log('Login attempt:', { email }); // Log login attempt (without password)
 
     // Validate input
     if (!email || !password) {
@@ -30,6 +32,7 @@ export async function POST(request: Request) {
     // Find user
     const user = users.find(user => user.email === email);
     if (!user) {
+      console.log('User not found:', email); // Log when user is not found
       return NextResponse.json(
         { message: 'Invalid credentials' },
         { status: 401 }
@@ -38,6 +41,8 @@ export async function POST(request: Request) {
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
+    console.log('Password verification:', { isValid: isValidPassword }); // Log password verification result
+
     if (!isValidPassword) {
       return NextResponse.json(
         { message: 'Invalid credentials' },
