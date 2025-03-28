@@ -74,15 +74,7 @@ export default function Navbar() {
               Home
             </Link>
           </li>
-          <li>
-            <Link 
-              href="/services" 
-              className={pathname === '/services' ? 'active' : ''}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Services
-            </Link>
-          </li>
+          
           <li>
             <Link 
               href="/training" 
@@ -161,15 +153,15 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <li>
+              {!isClientAuthenticated && <li>
                 <Link 
                   href="/auth/login" 
                   className={pathname === '/auth/login' ? 'active' : ''}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Login / Sign Up
+                  Login/SignUp
                 </Link>
-              </li>
+              </li>}
               <li>
                 <Link 
                   href="/admin/login" 
