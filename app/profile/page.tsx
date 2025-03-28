@@ -7,9 +7,9 @@ import Image from 'next/image';
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 234 567 8900',
+    name: 'Ahbideen Yusuf',
+    email: 'ahbideeny@gmail.com',
+    phone: '+234 810 300 3000',
     bio: 'Creative professional interested in 3D modeling and UI/UX design.',
     profileImage: '/images/profile-placeholder.jpg'
   });
