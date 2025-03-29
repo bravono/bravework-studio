@@ -104,7 +104,7 @@ export default function Navbar() {
           </li>
           {isAdminAuthenticated ? (
             <>
-              <li>
+              {/* <li>
                 <Link 
                   href="/admin/dashboard" 
                   className={pathname === '/admin/dashboard' ? 'active' : ''}
@@ -120,11 +120,11 @@ export default function Navbar() {
                 >
                   Admin Logout
                 </button>
-              </li>
+              </li> */}
             </>
           ) : isClientAuthenticated ? (
             <>
-              <li>
+              {/* <li>
                 <Link 
                   href="/dashboard" 
                   className={pathname === '/dashboard' ? 'active' : ''}
@@ -149,11 +149,11 @@ export default function Navbar() {
                 >
                   Logout
                 </button>
-              </li>
+              </li> */}
             </>
           ) : (
             <>
-              {!isClientAuthenticated && <li>
+              {/* {!isClientAuthenticated && <li>
                 <Link 
                   href="/auth/login" 
                   className={pathname === '/auth/login' ? 'active' : ''}
@@ -170,7 +170,7 @@ export default function Navbar() {
                 >
                   Admin
                 </Link>
-              </li>
+              </li> */}
             </>
           )}
         </ul>
