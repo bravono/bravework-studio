@@ -23,6 +23,12 @@ export default function Footer() {
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-linkedin"></i>
               </a>
+              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">
+                <i className="fab fa-tiktok"></i>
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+                <i className="fab fa-youtube"></i>
+              </a>
             </div>
           </div>
 
