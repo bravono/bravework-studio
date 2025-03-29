@@ -2981,3 +2981,298 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* Project Card Styles */
+.project-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.project-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.budget {
+  background: #f0f9ff;
+  color: #0369a1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.project-info {
+  margin-bottom: 24px;
+}
+
+.info-group {
+  margin-bottom: 12px;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.info-group span {
+  display: block;
+  color: #333;
+  font-weight: 500;
+}
+
+.sub-text {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: normal;
+}
+
+.project-todos {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.project-todos h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.project-todos ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.project-todos li {
+  padding: 8px 0;
+  color: #666;
+  position: relative;
+  padding-left: 24px;
+}
+
+.project-todos li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  color: #999;
+}
+
+.project-todos li.completed {
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Projects Page Styles */
+.projects-page {
+  padding: 100px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .projects-page {
+    padding: 80px 10px;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+}
+
+/* Portfolio Detail Page Styles */
+.portfolio-detail-section {
+  padding: 4rem 1rem;
+  background-color: var(--background-color);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: var(--primary-light);
+}
+
+.portfolio-detail {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.portfolio-detail-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.portfolio-detail-header h1 {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  margin: 1rem 0;
+}
+
+.portfolio-description {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.portfolio-detail-image {
+  margin-bottom: 3rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.portfolio-detail-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.portfolio-detail-content {
+  display: grid;
+  gap: 3rem;
+}
+
+.project-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 1rem;
+}
+
+.info-item h3 {
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.info-item p {
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tool-tag {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+}
+
+.project-description,
+.project-challenges,
+.project-solutions {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.project-description h2,
+.project-challenges h2,
+.project-solutions h2 {
+  color: var(--text-color);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.project-description p {
+  color: var(--text-color);
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.project-challenges ul,
+.project-solutions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.project-challenges li,
+.project-solutions li {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.project-challenges li::before,
+.project-solutions li::before {
+  content: "•";
+  color: var(--primary-color);
+  position: absolute;
+  left: 0;
+}
+
+@media (max-width: 768px) {
+  .portfolio-detail-header h1 {
+    font-size: 2rem;
+  }
+
+  .portfolio-description {
+    font-size: 1.1rem;
+  }
+
+  .project-info {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+}
