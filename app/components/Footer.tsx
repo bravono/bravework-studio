@@ -35,15 +35,20 @@ export default function Footer() {
           {/* Quick Links */}
           <div className="footer-section">
             <h3>Quick Links</h3>
-            <ul>
-              <li><Link href="/services">Services</Link></li>
-              <li><Link href="/training">Digital Education</Link></li>
-              <li><Link href="/portfolio">Portfolio</Link></li>
-              <li><Link href="/projects" >Ongoing Projects</Link></li>
-              <li><Link href="/jobs" >Jobs</Link></li>
-              <li><Link href="/about" >About</Link></li>
-              <li><Link href="/contact">Contact</Link></li>
-            </ul>
+            <div className="footer-links">
+              <ul>
+                <li><Link href="/about">About Us</Link></li>
+                <li><Link href="/services">Services</Link></li>
+                <li><Link href="/projects">Projects</Link></li>
+                <li><Link href="/contact">Contact</Link></li>
+              </ul>
+              <ul>
+                <li><Link href="/blog">Blog</Link></li>
+                <li><Link href="/jobs">Careers</Link></li>
+                <li><Link href="/training">Training</Link></li>
+                <li><Link href="/faq">FAQ</Link></li>
+              </ul>
+            </div>
           </div>
 
           {/* Services */}
