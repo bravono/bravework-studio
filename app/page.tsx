@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Navbar from './components/Navbar';
 import Hero3D from '../components/Hero3D';
 import TestimonialCarousel from './components/TestimonialCarousel';
+import ProjectCarousel from './components/ProjectCarousel';
 
 // Dynamically import the 3D component to avoid SSR issues
 const Hero3DComponent = dynamic(() => import('../components/Hero3D'), { ssr: false });
@@ -103,6 +104,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <ProjectCarousel />
     </main>
   );
 } 
