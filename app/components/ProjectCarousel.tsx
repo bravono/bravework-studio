@@ -16,6 +16,7 @@ interface Project {
   tasks: Task[];
   startDate: string;
   endDate: string;
+  status: 'active' | 'done' | 'pending';
 }
 
 const projects: Project[] = [
@@ -32,7 +33,8 @@ const projects: Project[] = [
       { id: '6', title: 'Final Review', completed: false }
     ],
     startDate: '2024-03-01',
-    endDate: '2025-05-15'
+    endDate: '2025-05-15',
+    status: 'active'
   },
   {
     id: 'ecommerce-website',
@@ -46,7 +48,8 @@ const projects: Project[] = [
       { id: '5', title: 'Testing', completed: false }
     ],
     startDate: '2024-03-15',
-    endDate: '2024-03-30'
+    endDate: '2024-03-30',
+    status: 'done'
   },
   {
     id: 'mobile-app-ui',
@@ -59,7 +62,8 @@ const projects: Project[] = [
       { id: '4', title: 'Prototype', completed: false }
     ],
     startDate: '2024-04-01',
-    endDate: '2024-07-15'
+    endDate: '2024-07-15',
+    status: 'pending'
   },
   {
     id: 'architectural-visualization',
@@ -67,7 +71,8 @@ const projects: Project[] = [
     owner: 'Modern Architects Co.',
     tasks: [],
     startDate: '2024-04-15',
-    endDate: '2024-08-01'
+    endDate: '2024-08-01',
+    status: 'pending'
   },
   {
     id: 'corporate-website',
@@ -75,7 +80,8 @@ const projects: Project[] = [
     owner: 'Global Enterprises Ltd.',
     tasks: [],
     startDate: '2024-05-01',
-    endDate: '2024-08-15'
+    endDate: '2024-08-15',
+    status: 'pending'
   },
   {
     id: 'brand-identity',
@@ -83,7 +89,8 @@ const projects: Project[] = [
     owner: 'StartupX',
     tasks: [],
     startDate: '2024-05-15',
-    endDate: '2024-09-01'
+    endDate: '2024-09-01',
+    status: 'pending'
   }
 ];
 

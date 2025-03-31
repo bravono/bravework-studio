@@ -3008,6 +3008,52 @@ main {
   font-size: 1.5rem;
 }
 
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: #f8f9fa;
+  color: #666;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-indicator.done {
+  background-color: #28a745;
+}
+
+.status-indicator.active {
+  background-color: #007bff;
+}
+
+.status-indicator.pending {
+  background-color: #ffc107;
+}
+
+.status-badge.done {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
 .budget {
   background: #f0f9ff;
   color: #0369a1;
