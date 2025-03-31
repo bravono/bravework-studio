@@ -37,7 +37,7 @@ export default function Footer() {
             <h3>Quick Links</h3>
             <ul>
               <li><Link href="/services">Services</Link></li>
-              <li><Link href="/training">Training</Link></li>
+              <li><Link href="/training">Digital Education</Link></li>
               <li><Link href="/portfolio">Portfolio</Link></li>
               <li><Link href="/projects" >Ongoing Projects</Link></li>
               <li><Link href="/jobs" >Jobs</Link></li>

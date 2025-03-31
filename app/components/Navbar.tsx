@@ -74,16 +74,6 @@ export default function Navbar() {
               Home
             </Link>
           </li>
-          
-          <li>
-            <Link 
-              href="/training" 
-              className={pathname === '/training' ? 'active' : ''}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Training
-            </Link>
-          </li>
           <li>
             <Link 
               href="/portfolio" 
