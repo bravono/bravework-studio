@@ -3772,3 +3772,121 @@ main {
 .footer-links a:hover {
   color: var(--primary-color);
 }
+
+/* Testimonials Page Styles */
+.testimonials-page {
+  padding: 8rem 1rem 5rem;
+  background-color: var(--background-color);
+}
+
+.testimonials-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testimonials-page .page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.testimonials-page .page-header h1 {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.testimonials-page .page-header p {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.testimonial-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+}
+
+.testimonial-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.testimonial-image {
+  flex-shrink: 0;
+}
+
+.testimonial-info h3 {
+  color: var(--text-color);
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial-info .role {
+  color: var(--primary-color);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial-info .company {
+  color: var(--text-color);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.testimonial-content {
+  color: var(--text-color);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.rating {
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.rating .star {
+  margin-right: 0.25rem;
+}
+
+.date {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .testimonials-page {
+    padding: 6rem 1rem 3rem;
+  }
+
+  .testimonials-page .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    padding: 0.5rem;
+  }
+
+  .testimonial-card {
+    padding: 1.5rem;
+  }
+}

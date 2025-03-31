@@ -1,182 +1,127 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import Navbar from '../components/Navbar';
 
-export default function Testimonials() {
-  const [formData, setFormData] = useState({
-    favoritePart: '',
-    impact: '',
-    recommendation: '',
-    name: '',
-    companyName: '',
-    email: '',
-    linkedin: '',
-    profilePicture: null as File | null,
-  });
+interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  image: string;
+  content: string;
+  rating: number;
+  date: string;
+}
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const testimonials: Testimonial[] = [
+  {
+    id: '1',
+    name: 'John Smith',
+    role: 'CEO',
+    company: 'Tech Solutions Inc.',
+    image: '/testimonials/john-smith.jpg',
+    content: 'Bravework Studio transformed our digital presence. Their expertise in web development and UI/UX design helped us create a stunning website that perfectly represents our brand.',
+    rating: 5,
+    date: '2024-03-15'
+  },
+  {
+    id: '2',
+    name: 'Sarah Johnson',
+    role: 'Marketing Director',
+    company: 'Creative Minds Agency',
+    image: '/testimonials/sarah-johnson.jpg',
+    content: 'The 3D modeling and animation services provided by Bravework Studio exceeded our expectations. Their attention to detail and creative approach brought our vision to life.',
+    rating: 5,
+    date: '2024-03-10'
+  },
+  {
+    id: '3',
+    name: 'Michael Chen',
+    role: 'Product Manager',
+    company: 'Innovation Labs',
+    image: '/testimonials/michael-chen.jpg',
+    content: 'Working with Bravework Studio was a game-changer for our project. Their team\'s technical expertise and collaborative approach made the development process smooth and efficient.',
+    rating: 5,
+    date: '2024-03-05'
+  },
+  {
+    id: '4',
+    name: 'Emily Rodriguez',
+    role: 'Design Director',
+    company: 'Design Co.',
+    image: '/testimonials/emily-rodriguez.jpg',
+    content: 'The UI/UX design work by Bravework Studio was exceptional. They understood our brand identity perfectly and created an intuitive, beautiful interface for our users.',
+    rating: 5,
+    date: '2024-02-28'
+  },
+  {
+    id: '5',
+    name: 'David Kim',
+    role: 'CTO',
+    company: 'StartupX',
+    image: '/testimonials/david-kim.jpg',
+    content: 'Bravework Studio\'s training programs are top-notch. Their instructors are knowledgeable and passionate about teaching, making complex topics easy to understand.',
+    rating: 5,
+    date: '2024-02-20'
+  },
+  {
+    id: '6',
+    name: 'Lisa Thompson',
+    role: 'Project Manager',
+    company: 'Digital Solutions',
+    image: '/testimonials/lisa-thompson.jpg',
+    content: 'The corporate training sessions conducted by Bravework Studio were engaging and informative. Our team learned valuable skills that have improved our workflow significantly.',
+    rating: 5,
+    date: '2024-02-15'
+  }
+];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        profilePicture: file
-      }));
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData);
-  };
-
+export default function TestimonialsPage() {
   return (
-    <main>
-      <Navbar />
-      <section className="testimonials-section">
-        <div className="container">
-          <h1 className="section-title">Share Your Experience</h1>
-          <p className="section-subtitle">We value your feedback and would love to hear about your experience working with us.</p>
-          
-          <form onSubmit={handleSubmit} className="testimonial-form">
-            <div className="form-group">
-              <label htmlFor="favoritePart">What was your favorite part of working with us?</label>
-              <textarea
-                id="favoritePart"
-                name="favoritePart"
-                value={formData.favoritePart}
-                onChange={handleInputChange}
-                required
-                rows={4}
-                placeholder="Tell us what you enjoyed most..."
-              />
-            </div>
+    <div className="testimonials-page">
+      <div className="container">
+        <div className="page-header">
+          <h1>Client Testimonials</h1>
+          <p>Read what our clients have to say about their experience with Bravework Studio</p>
+        </div>
 
-            <div className="form-group">
-              <label htmlFor="impact">How did working with us impact your business/life?</label>
-              <textarea
-                id="impact"
-                name="impact"
-                value={formData.impact}
-                onChange={handleInputChange}
-                required
-                rows={4}
-                placeholder="Share the impact we had..."
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="recommendation">Would you recommend us to others? Why or why not?</label>
-              <textarea
-                id="recommendation"
-                name="recommendation"
-                value={formData.recommendation}
-                onChange={handleInputChange}
-                required
-                rows={4}
-                placeholder="Share your thoughts about recommending us..."
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="name">Your Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter your full name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="companyName">Company Name</label>
-              <input
-                type="text"
-                id="companyName"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleInputChange}
-                placeholder="Enter your company name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="email">Business Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your business email"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="linkedin">LinkedIn Profile</label>
-              <input
-                type="url"
-                id="linkedin"
-                name="linkedin"
-                value={formData.linkedin}
-                onChange={handleInputChange}
-                placeholder="Enter your LinkedIn profile URL"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="profilePicture">Profile Picture</label>
-              <div className="file-upload">
-                <input
-                  type="file"
-                  id="profilePicture"
-                  name="profilePicture"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  required
-                />
-                {previewUrl && (
-                  <div className="image-preview">
-                    <Image
-                      src={previewUrl}
-                      alt="Profile preview"
-                      width={100}
-                      height={100}
-                      style={{ objectFit: 'cover', borderRadius: '50%' }}
-                    />
-                  </div>
-                )}
+        <div className="testimonials-grid">
+          {testimonials.map((testimonial) => (
+            <div key={testimonial.id} className="testimonial-card">
+              <div className="testimonial-header">
+                <div className="testimonial-image">
+                  <Image
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    width={80}
+                    height={80}
+                    className="rounded-full"
+                  />
+                </div>
+                <div className="testimonial-info">
+                  <h3>{testimonial.name}</h3>
+                  <p className="role">{testimonial.role}</p>
+                  <p className="company">{testimonial.company}</p>
+                </div>
+              </div>
+              <div className="testimonial-content">
+                <p>{testimonial.content}</p>
+                <div className="rating">
+                  {[...Array(testimonial.rating)].map((_, index) => (
+                    <span key={index} className="star">★</span>
+                  ))}
+                </div>
+                <p className="date">{new Date(testimonial.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}</p>
               </div>
             </div>
-
-            <button type="submit" className="submit-button">
-              Submit Testimonial
-            </button>
-          </form>
+          ))}
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 } 
