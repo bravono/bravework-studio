@@ -104,6 +104,15 @@ export default function Navbar() {
           </li>
           <li>
             <Link 
+              href="/jobs" 
+              className={pathname === '/jobs' ? 'active' : ''}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Jobs
+            </Link>
+          </li>
+          <li>
+            <Link 
               href="/about" 
               className={pathname === '/about' ? 'active' : ''}
               onClick={() => setIsMenuOpen(false)}
