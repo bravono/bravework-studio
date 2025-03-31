@@ -66,8 +66,8 @@ export default function Footer() {
                 <span>Abuja, Nigeria</span>
               </li>
               <li>
-                <i className="fas fa-phone"></i>
-                <span>+234 816-278-5602</span>
+                <i className="fab fa-whatsapp"></i>
+                <span>+234 902-322-4596</span>
               </li>
               <li>
                 <i className="fas fa-envelope"></i>

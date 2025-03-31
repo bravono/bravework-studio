@@ -41,8 +41,8 @@ export default function Contact() {
                   <p>info@braveworkstudio.com</p>
                 </div>
                 <div className="contact-item">
-                  <h3>Phone</h3>
-                  <p>+234 816 278 5602</p>
+                  <h3>Phone / WhatsApp</h3>
+                  <p>+234 902-322-4596</p>
                 </div>
                 <div className="contact-item">
                   <h3>Address</h3>
