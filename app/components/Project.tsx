@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 interface Todo {
   id: string;
@@ -17,7 +18,7 @@ interface ProjectProps {
   todos: Todo[];
 }
 
-export default function Project({ id, title, owner, budget, startDate, endDate, status, todos }: ProjectProps) {
+export default function Project({ id, title, owner, budget, startDate, endDate, status = 'pending', todos }: ProjectProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -58,6 +59,13 @@ export default function Project({ id, title, owner, budget, startDate, endDate, 
             </li>
           ))}
         </ul>
+      </div>
+      <div className="project-actions">
+        {status === 'done' && (
+          <Link href="/testimonials" className="action-button">
+            View Testimonial
+          </Link>
+        )}
       </div>
     </div>
   );
