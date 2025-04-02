@@ -11,22 +11,22 @@ export default function Footer() {
             <h3>Bravework Studio</h3>
             <p>Empowering creativity through technology education and digital solutions.</p>
             <div className="social-links">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-facebook"></i>
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://x.com/YAhbideen" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-twitter"></i>
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.linkedin.com/in/ahbideen-yusuf-74a232179" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-linkedin"></i>
               </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://tiktok.com/@techtalestudio" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-tiktok"></i>
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://youtube.com/@AY-TechTaleStudio" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-youtube"></i>
               </a>
             </div>
@@ -72,8 +72,10 @@ export default function Footer() {
                 <span>Abuja, Nigeria</span>
               </li>
               <li>
+                <Link href="https://wa.me/2349023224596" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-whatsapp"></i>
                 <span>+234 902-322-4596</span>
+                </Link>
               </li>
               <li>
                 <i className="fas fa-envelope"></i>
