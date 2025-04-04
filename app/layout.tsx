@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Bravework Studio',
-  description: 'Empowering creativity through technology education and digital solutions.',
+  description: 'We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless web development.',
 };
 
 export default function RootLayout({
