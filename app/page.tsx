@@ -72,7 +72,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="hero-subtitle"
           >
-            Bringing Your Vision to Life with 3D & Web Solutions
+            Vitalizing Your Vision With 3D Animation and Web Solutions
           </motion.p>
           <div className="hero-buttons">
             <a href="/order" className="hero-cta">Get Started</a>
