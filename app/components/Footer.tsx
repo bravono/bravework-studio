@@ -20,7 +20,7 @@ export default function Footer() {
               <a href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="https://www.linkedin.com/in/ahbideen-yusuf-74a232179" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.linkedin.com/in/ahbideen-y-74a232179?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-linkedin"></i>
               </a>
               <a href="https://tiktok.com/@techtalestudio" target="_blank" rel="noopener noreferrer">
