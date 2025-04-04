@@ -36,13 +36,11 @@
   }
   
   .testimonial-card {
-    border: 3px solid red;
     background: white;
     border-radius: 1rem;
     padding: 1rem;
     box-shadow: 0 4px 6px var(--shadow-color);
     transition: transform 0.3s ease;
-    margin: 10rem;
   }
   
   .testimonial-card:hover {
