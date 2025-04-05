@@ -39,6 +39,11 @@ const services = [
     title: 'Voice-Over Services',
     description: 'Professional voice-over services for your videos, games, and multimedia projects.',
     icon: '🎙️'
+  },
+  {
+    title: '3D Training Services',
+    description: 'Your kids will love to learn 3D modeling and animation with our simple and easy to understand training services.',
+    icon: '🤼‍♂️'
   }
 ];
 
