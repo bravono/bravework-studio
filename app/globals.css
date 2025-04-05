@@ -640,7 +640,7 @@ main {
 }
 
 .testimonial-content {
-  max-width: 600px;
+  max-width: 100%;
 }
 
 .testimonial-content h3 {
