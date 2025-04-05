@@ -3,43 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import {testimonials} from '../services/localDataService';
 
-interface Testimonial {
-  id: number;
-  image: string;
-  heading: string;
-  body: string;
-  companyName: string;
-  email: string;
-}
-
-// Sample testimonials data - replace with your actual testimonials
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    image: '/Bravework_Studio-Logo_black-Transparent-bg.png',
-    heading: 'Outstanding 3D Work',
-    body: 'The team at Bravework Studio delivered exceptional 3D models that perfectly captured our vision. Their attention to detail and professional approach made the entire process smooth and enjoyable.',
-    companyName: 'Tech Innovations Inc.',
-    email: 'john@techinnovations.com'
-  },
-  {
-    id: 2,
-    image: '/Bravework_Studio-Logo_black-Transparent-bg.png',
-    heading: 'Web Development Excellence',
-    body: 'Working with Bravework Studio on our web development project was a game-changer. They created a modern, responsive website that exceeded our expectations.',
-    companyName: 'Digital Solutions Ltd.',
-    email: 'sarah@digitalsolutions.com'
-  },
-  {
-    id: 3,
-    image: '/Bravework_Studio-Logo_black-Transparent-bg.png',
-    heading: 'Creative Design Solutions',
-    body: 'The creative solutions provided by Bravework Studio helped us stand out in a crowded market. Their innovative approach to design and development is truly impressive.',
-    companyName: 'Creative Minds Co.',
-    email: 'mike@creativeminds.com'
-  }
-];
 
 export default function TestimonialCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,7 +15,7 @@ export default function TestimonialCarousel() {
     const timer = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-    }, 5000); // Change testimonial every 5 seconds
+    }, 15000); // Change testimonial every 5 seconds
 
     return () => clearInterval(timer);
   }, []);
@@ -133,7 +98,7 @@ export default function TestimonialCarousel() {
             </motion.div>
           </AnimatePresence>
           
-          <div className="carousel-dots">
+          {/* <div className="carousel-dots">
             {testimonials.map((_, index) => (
               <button
                 key={index}
@@ -145,7 +110,7 @@ export default function TestimonialCarousel() {
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </section>
