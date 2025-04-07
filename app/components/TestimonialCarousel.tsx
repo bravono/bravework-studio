@@ -15,7 +15,7 @@ export default function TestimonialCarousel() {
     const timer = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-    }, 15000); // Change testimonial every 5 seconds
+    }, 15000); 
 
     return () => clearInterval(timer);
   }, []);
@@ -88,17 +88,20 @@ export default function TestimonialCarousel() {
                 />
               </div>
               <div className="testimonial-content">
-                <h3>{testimonials[currentIndex].heading}</h3>
-                <p>{testimonials[currentIndex].body}</p>
+                <div className='testimonial-body'>
+                  <h3>{testimonials[currentIndex].heading}</h3>
+                  <p>{testimonials[currentIndex].body}</p>
+                </div>
                 <div className="testimonial-info">
                   <span className="company-name">{testimonials[currentIndex].companyName}</span>
                   <span className="email">{testimonials[currentIndex].email}</span>
                 </div>
+                <a href='/testimonials' className='read-more'>Read Their Story</a>
               </div>
             </motion.div>
           </AnimatePresence>
           
-          {/* <div className="carousel-dots">
+          <div className="carousel-dots">
             {testimonials.map((_, index) => (
               <button
                 key={index}
@@ -110,7 +113,7 @@ export default function TestimonialCarousel() {
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
-          </div> */}
+          </div>
         </div>
       </div>
     </section>
