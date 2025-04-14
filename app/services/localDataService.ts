@@ -98,7 +98,7 @@ const portfolios: Portfolio[] = [
     id: 1,
     title: "Advertisement",
     category: "3D Services",
-    image: "/services/rabbit.png",
+    image: "/services/rabbit.webp",
     description: "Fun and engaging 3D animation advertisement",
     details: {
       client: "Medihoppr",
@@ -122,7 +122,7 @@ const portfolios: Portfolio[] = [
     id: 2,
     title: "Intro Animation",
     category: "3D Services",
-    image: "/services/intro_football.png",
+    image: "/services/intro_football.webp",
     description: "3D intro animation for content creators",
     details: {
       client: "JC",
@@ -146,7 +146,7 @@ const portfolios: Portfolio[] = [
     id: 3,
     title: "Children Animation",
     category: "3D Services",
-    image: "/services/if_you're_happy.png",
+    image: "/services/if_youre_happy.webp",
     description: "Entertaining animation for children",
     details: {
       client: "Lucas Mirera",
@@ -170,7 +170,7 @@ const portfolios: Portfolio[] = [
     id: 5,
     title: "Children Educational Animation",
     category: "3D Services",
-    image: "/services/abcd_english.png",
+    image: "/services/abcd_english.webp",
     description: "Engaging animation for children education",
     details: {
       client: "Q4 WhateverItTakes",
@@ -194,7 +194,7 @@ const portfolios: Portfolio[] = [
     id: 6,
     title: "Game Animation",
     category: "3D Services",
-    image: "/services/sir_pallinore.png",
+    image: "/services/sir_pallinore.webp",
     description:
       "Ready to use animation for your Unity and Unreal Engine games",
     details: {
@@ -219,7 +219,7 @@ const portfolios: Portfolio[] = [
     id: 7,
     title: "Game Assets",
     category: "3D Services",
-    image: "/services/aircraft.png",
+    image: "/services/aircraft.webp",
     description: "Drag and drop ready made assests for your games",
     details: {
       client: "Random",
@@ -243,7 +243,7 @@ const portfolios: Portfolio[] = [
     id: 8,
     title: "Hummanoid Characters",
     category: "3D Services",
-    image: "/services/india_man.png",
+    image: "/services/india_man.webp",
     description: "Realistic character design for serious animation",
     details: {
       client: "Random",
@@ -291,7 +291,7 @@ const portfolios: Portfolio[] = [
     id: 10,
     title: "Product Visualization",
     category: "3D Services",
-    image: "/services/bravono_energy_drink.jpg",
+    image: "/services/bravono_energy_drink.webp",
     description: "Professional product presentation for attention",
     details: {
       client: "Compilation",
@@ -315,7 +315,7 @@ const portfolios: Portfolio[] = [
     id: 11,
     title: "Stylized Characters",
     category: "3D Services",
-    image: "/services/masquerade_character.png",
+    image: "/services/masquerade_character.webp",
     description: "Imaginary characters for imaginary stories",
     details: {
       client: "Compilation",
@@ -339,7 +339,7 @@ const portfolios: Portfolio[] = [
     id: 12,
     title: "Corporate Website",
     category: "Web Development",
-    image: "/services/bravework_website.png",
+    image: "/services/bravework_website.webp",
     description: "The current website you're using",
     details: {
       client: "Bravework Studio",
@@ -373,8 +373,8 @@ const portfolios: Portfolio[] = [
     id: 13,
     title: "SaaS Application",
     category: "Web Development",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
-    description: "A web application for bot detection",
+    image: "/services/confidential_green.webp",
+    description: "Bot Detector: Staying ahead of the bots",
     details: {
       client: "BuyFacts Inc.",
       year: "2025",
@@ -401,8 +401,8 @@ const portfolios: Portfolio[] = [
     id: 15,
     title: "SaaS Application",
     category: "Web Development",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
-    description: "A web application that gamifies survey taking",
+    image: "/services/confidential_yellow.webp",
+    description: "Gamified Survey: Taking surveys should be fun",
     details: {
       client: "BuyFacts Inc.",
       year: "2025",
@@ -453,7 +453,7 @@ const portfolios: Portfolio[] = [
     id: 14,
     title: "3D Printing",
     category: "3D Services",
-    image: "/services/wall_pattern.png",
+    image: "/services/wall_pattern.webp",
     description: "Realistic 3D visualization of a modern building",
     details: {
       client: "Compilation",
