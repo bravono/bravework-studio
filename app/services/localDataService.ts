@@ -98,7 +98,7 @@ const portfolios: Portfolio[] = [
     id: 1,
     title: "Advertisement",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/rabbit.png",
     description: "Fun and engaging 3D animation advertisement",
     details: {
       client: "Medihoppr",
@@ -122,7 +122,7 @@ const portfolios: Portfolio[] = [
     id: 2,
     title: "Intro Animation",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/intro_football.png",
     description: "3D intro animation for content creators",
     details: {
       client: "JC",
@@ -146,7 +146,7 @@ const portfolios: Portfolio[] = [
     id: 3,
     title: "Children Animation",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/if_you're_happy.png",
     description: "Entertaining animation for children",
     details: {
       client: "Lucas Mirera",
@@ -170,7 +170,7 @@ const portfolios: Portfolio[] = [
     id: 5,
     title: "Children Educational Animation",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/abcd_english.png",
     description: "Engaging animation for children education",
     details: {
       client: "Q4 WhateverItTakes",
@@ -194,7 +194,7 @@ const portfolios: Portfolio[] = [
     id: 6,
     title: "Game Animation",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/sir_pallinore.png",
     description:
       "Ready to use animation for your Unity and Unreal Engine games",
     details: {
@@ -219,7 +219,7 @@ const portfolios: Portfolio[] = [
     id: 7,
     title: "Game Assets",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/aircraft.png",
     description: "Drag and drop ready made assests for your games",
     details: {
       client: "Random",
@@ -243,7 +243,7 @@ const portfolios: Portfolio[] = [
     id: 8,
     title: "Hummanoid Characters",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/india_man.png",
     description: "Realistic character design for serious animation",
     details: {
       client: "Random",
@@ -270,7 +270,7 @@ const portfolios: Portfolio[] = [
     image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
     description: "Religious educational animation for children",
     details: {
-      client: "Game Studio X",
+      client: "Islam Village",
       year: "2024",
       tools: ["Blender", "Davinci Resolve", "SheepIt"],
       description:
@@ -291,7 +291,7 @@ const portfolios: Portfolio[] = [
     id: 10,
     title: "Product Visualization",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/bravono_energy_drink.jpg",
     description: "Professional product presentation for attention",
     details: {
       client: "Compilation",
@@ -315,12 +315,12 @@ const portfolios: Portfolio[] = [
     id: 11,
     title: "Stylized Characters",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/masquerade_character.png",
     description: "Imaginary characters for imaginary stories",
     details: {
       client: "Compilation",
       year: "2024",
-      tools: ["Blender"],
+      tools: ["Blender", "Photoshop"],
       description:
         "Designed detailed 3D characters for short film production, balancing appealing stylized aesthetics with realistic proportions to support expressive, narrative-driven animation.",
       challenges: [
@@ -339,7 +339,7 @@ const portfolios: Portfolio[] = [
     id: 12,
     title: "Corporate Website",
     category: "Web Development",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/bravework_website.png",
     description: "The current website you're using",
     details: {
       client: "Bravework Studio",
@@ -453,7 +453,7 @@ const portfolios: Portfolio[] = [
     id: 14,
     title: "3D Printing",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "/services/wall_pattern.png",
     description: "Realistic 3D visualization of a modern building",
     details: {
       client: "Compilation",
