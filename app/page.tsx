@@ -63,8 +63,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <TestimonialCarousel />
+      <ProjectCarousel />
 
       {/* Services Section */}
       <section id="services" className="services-section">
@@ -87,7 +86,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <ProjectCarousel />
+      {/* Testimonials Section */}
+      <TestimonialCarousel />
     </main>
   );
 }
