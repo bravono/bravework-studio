@@ -1,24 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface ProjectProps {
-  id: string;
-  title: string;
-  owner: string;
-  budget: string;
-  startDate: string;
-  endDate: string;
-  status?: 'done' | 'active' | 'pending';
-  todos: Todo[];
-}
-
-export default function Project({ id, title, owner, budget, startDate, endDate, status = 'pending', todos }: ProjectProps) {
+export default function Project({ id, title, owner, budget, startDate, endDate, status, todos }) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
