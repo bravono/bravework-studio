@@ -1,5 +1,5 @@
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -9,24 +9,51 @@ export default function Footer() {
           {/* Company Info */}
           <div className="footer-section">
             <h3>Bravework Studio</h3>
-            <p>Empowering creativity through technology education and digital solutions.</p>
+            <p>
+              Empowering creativity through technology education and digital
+              solutions.
+            </p>
             <div className="social-links">
-              <a href="https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-facebook"></i>
               </a>
-              <a href="https://x.com/YAhbideen" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://x.com/YAhbideen"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-twitter"></i>
               </a>
-              <a href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="https://www.linkedin.com/in/ahbideen-y-74a232179?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://www.linkedin.com/in/ahbideen-y-74a232179?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-linkedin"></i>
               </a>
-              <a href="https://tiktok.com/@techtalestudio" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://tiktok.com/@techtalestudio"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-tiktok"></i>
               </a>
-              <a href="https://youtube.com/@AY-TechTaleStudio" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://youtube.com/@AY-TechTaleStudio"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-youtube"></i>
               </a>
             </div>
@@ -37,16 +64,32 @@ export default function Footer() {
             <h3>Quick Links</h3>
             <div className="footer-links">
               <ul>
-                <li><Link href="/about">About Us</Link></li>
-                <li><Link href="/services">Services</Link></li>
-                <li><Link href="/projects">Projects</Link></li>
-                <li><Link href="/contact">Contact</Link></li>
+                <li>
+                  <Link href="/about">About Us</Link>
+                </li>
+                <li>
+                  <Link href="/services">Services</Link>
+                </li>
+                <li>
+                  <Link href="/projects">Projects</Link>
+                </li>
+                <li>
+                  <Link href="/contact">Contact</Link>
+                </li>
               </ul>
               <ul>
-                <li><Link href="/blog">Blog</Link></li>
-                <li><Link href="/jobs">Careers</Link></li>
-                <li><Link href="/training">Training</Link></li>
-                <li><Link href="/faq">FAQ</Link></li>
+                <li>
+                  <Link href="/blog">Blog</Link>
+                </li>
+                <li>
+                  <Link href="/jobs">Careers</Link>
+                </li>
+                <li>
+                  <Link href="/training">Training</Link>
+                </li>
+                <li>
+                  <Link href="/faq">FAQ</Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -72,9 +115,13 @@ export default function Footer() {
                 <span>Abuja, Nigeria</span>
               </li>
               <li>
-                <Link href="https://wa.me/2349023224596" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-whatsapp"></i>
-                <span>+234 902-322-4596</span>
+                <Link
+                  href="https://wa.me/2349023224596"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i className="fab fa-whatsapp"></i>&nbsp;&nbsp;
+                  <span>+234 902-322-4596</span>
                 </Link>
               </li>
               <li>
@@ -92,7 +139,10 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="footer-bottom">
           <div className="footer-bottom-content">
-            <p>&copy; {new Date().getFullYear()} Bravework Studio. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} Bravework Studio. All rights
+              reserved.
+            </p>
             <div className="footer-bottom-links">
               <Link href="/privacy-policy">Privacy Policy</Link>
               <Link href="/terms-of-service">Terms of Service</Link>
@@ -103,4 +153,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}
