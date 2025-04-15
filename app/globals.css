@@ -33,6 +33,7 @@ body {
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   height: 70px;
+  width: 100vw;
 }
 
 .navbar.scrolled {
@@ -47,7 +48,7 @@ body {
 }
 
 .navbar-container {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
