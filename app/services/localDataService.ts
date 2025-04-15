@@ -25,6 +25,12 @@ interface Portfolio {
   details?: PortfolioDetails;
 }
 
+interface Services {
+  title: string;
+  description: string;
+  icon: string;
+}
+
 // Sample testimonials data - replace with your actual testimonials
 const testimonials: Testimonial[] = [
   {
@@ -475,4 +481,41 @@ const portfolios: Portfolio[] = [
   },
 ];
 
-export { testimonials, portfolios };
+const services: Services[] =  [
+  {
+    title: "3D Modeling & Animation",
+    description:
+      "Professional 3D modeling, animation, and visualization services for your projects.",
+    icon: "🎨",
+  },
+  {
+    title: "Web Development",
+    description:
+      "Custom web applications and websites built with modern technologies.",
+    icon: "🌐",
+  },
+  {
+    title: "UI/UX Design",
+    description: "User-centered design solutions that enhance user experience.",
+    icon: "✨",
+  },
+  {
+    title: "Game Development",
+    description: "Engaging game development services for various platforms.",
+    icon: "🎮",
+  },
+  {
+    title: "Voice-Over Services",
+    description:
+      "Professional voice-over services for your videos, games, and multimedia projects.",
+    icon: "🎙️",
+  },
+  {
+    title: "3D Training Services",
+    description:
+      "Your kids will love to learn 3D modeling and animation with our simple and easy to understand training services.",
+    icon: "🤼‍♂️",
+  },
+];
+
+export { testimonials, portfolios, services };
