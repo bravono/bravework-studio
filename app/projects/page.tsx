@@ -9,7 +9,7 @@ export default function ProjectsPage() {
   return (
     <div className="projects-page">
       <div className="page-header">
-        <h1>Our Projects</h1>
+        <h1>Projects History</h1>
         <p>Explore our ongoing and completed projects</p>
       </div>
 

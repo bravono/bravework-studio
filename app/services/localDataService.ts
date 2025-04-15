@@ -45,7 +45,7 @@ interface Project {
   todos: Todo[];
   startDate: string;
   endDate: string;
-  status: 'active' | 'done' | 'pending';
+  status: "active" | "done" | "pending";
 }
 
 // Sample testimonials data - replace with your actual testimonials
@@ -498,7 +498,7 @@ const portfolios: Portfolio[] = [
   },
 ];
 
-const services: Services[] =  [
+const services: Services[] = [
   {
     title: "3D Modeling & Animation",
     description:
@@ -538,52 +538,52 @@ const services: Services[] =  [
 const projects: Project[] = [
   {
     id: 1,
-    title: 'Backend Integration',
-    owner: 'Bravework Studio',
-    budget: '$5000',
+    title: "Backend Integration",
+    owner: "Bravework Studio",
+    budget: "$5000",
     todos: [
-      { id: '1', title: 'Concept Design', completed: true },
-      { id: '2', title: 'Modeling', completed: true },
-      { id: '3', title: 'Texturing', completed: false },
-      { id: '4', title: 'Rigging', completed: false },
-      { id: '5', title: 'Animation', completed: false },
-      { id: '6', title: 'Final Review', completed: false }
+      { id: "1", title: "Concept Design", completed: true },
+      { id: "2", title: "Modeling", completed: true },
+      { id: "3", title: "Texturing", completed: false },
+      { id: "4", title: "Rigging", completed: false },
+      { id: "5", title: "Animation", completed: false },
+      { id: "6", title: "Final Review", completed: false },
     ],
-    startDate: '2024-03-01',
-    endDate: '2025-05-15',
-    status: 'active'
+    startDate: "2024-03-01",
+    endDate: "2025-05-15",
+    status: "active",
   },
   {
     id: 3,
-    title: 'Intro Animation',
-    owner: 'TechTale Studio',
-    budget: '$5000',
+    title: "Intro Animation",
+    owner: "TechTale Studio",
+    budget: "$5000",
     todos: [
-      { id: '1', title: 'Design Mockups', completed: true },
-      { id: '2', title: 'Frontend Development', completed: true },
-      { id: '3', title: 'Backend Integration', completed: false },
-      { id: '4', title: 'Payment Gateway', completed: false },
-      { id: '5', title: 'Testing', completed: false }
+      { id: "1", title: "Design Mockups", completed: true },
+      { id: "2", title: "Frontend Development", completed: true },
+      { id: "3", title: "Backend Integration", completed: false },
+      { id: "4", title: "Payment Gateway", completed: false },
+      { id: "5", title: "Testing", completed: false },
     ],
-    startDate: '2024-03-15',
-    endDate: '2024-03-30',
-    status: 'pending'
+    startDate: "2024-03-15",
+    endDate: "2024-03-30",
+    status: "pending",
   },
   {
     id: 2,
-    title: 'Full Stack Development (Vidly)',
-    owner: 'Bravework Studio',
-    budget: '$5000',
+    title: "Full Stack Development",
+    owner: "Bravework Studio",
+    budget: "$5000",
     todos: [
-      { id: '1', title: 'Design Mockups', completed: true },
-      { id: '2', title: 'Frontend Development', completed: true },
-      { id: '3', title: 'Backend Integration', completed: false },
-      { id: '4', title: 'Payment Gateway', completed: false },
-      { id: '5', title: 'Testing', completed: false }
+      { id: "1", title: "Design Mockups", completed: true },
+      { id: "2", title: "Frontend Development", completed: true },
+      { id: "3", title: "Backend Integration", completed: false },
+      { id: "4", title: "Payment Gateway", completed: false },
+      { id: "5", title: "Testing", completed: false },
     ],
-    startDate: '2024-03-15',
-    endDate: '2024-03-30',
-    status: 'pending'
+    startDate: "2024-03-15",
+    endDate: "2024-03-30",
+    status: "pending",
   },
 ];
 

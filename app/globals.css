@@ -3009,9 +3009,6 @@ main {
 }
 
 .project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
 }
 
@@ -3249,7 +3246,7 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 2rem;
   padding: 2rem;
-  background: #f8f9fa;
+  background: #d4e3f1;
   border-radius: 1rem;
 }
 

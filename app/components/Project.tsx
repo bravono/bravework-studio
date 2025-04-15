@@ -14,10 +14,6 @@ export default function Project({ id, title, owner, budget, startDate, endDate, 
     <div className="project-card">
       <div className="project-header">
         <h2>{title}</h2>
-        <div className={`status-badge ${status}`}>
-          <span className={`status-indicator ${status}`}></span>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </div>
       </div>
       <div className="project-info">
         <div className="info-group">
@@ -36,6 +32,10 @@ export default function Project({ id, title, owner, budget, startDate, endDate, 
       <div className="project-todos">
         <h3>Tasks</h3>
         <ul>
+        <div className={`status-badge ${status}`}>
+          <span className={`status-indicator ${status}`}></span>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </div>
           {todos.map((todo) => (
             <li key={todo.id} className={todo.completed ? 'completed' : ''}>
               {todo.text}
