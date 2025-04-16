@@ -42,6 +42,8 @@ interface Project {
   title: string;
   owner: string;
   budget: string;
+  category: string;
+  description: string;
   todos: Todo[];
   startDate: string;
   endDate: string;
@@ -541,15 +543,25 @@ const projects: Project[] = [
     title: "Backend Integration",
     owner: "Bravework Studio",
     budget: "$5000",
+    category: "Web Development",
+    description:
+      "Develop a robust backend system for the corporate website to enable key e-commerce functionalities, including user order tracking, automated update notifications, and personalized discounts based on purchase history.",
     todos: [
-      { id: "1", title: "Concept Design", completed: true },
-      { id: "2", title: "Modeling", completed: true },
-      { id: "3", title: "Texturing", completed: false },
-      { id: "4", title: "Rigging", completed: false },
-      { id: "5", title: "Animation", completed: false },
-      { id: "6", title: "Final Review", completed: false },
+      { id: "1", title: "Define backend architecture", completed: false },
+      { id: "2", title: "Implement secure user auth & auth", completed: false },
+      { id: "3", title: "Develop API endpoints", completed: false },
+      {
+        id: "4",
+        title: "Implement comprehensive unit tests and integration tests",
+        completed: false,
+      },
+      {
+        id: "5",
+        title: "Create clear and detailed API documentation",
+        completed: false,
+      },
     ],
-    startDate: "2024-03-01",
+    startDate: "2025-04-15",
     endDate: "2025-05-15",
     status: "active",
   },
@@ -558,15 +570,41 @@ const projects: Project[] = [
     title: "Intro Animation",
     owner: "TechTale Studio",
     budget: "$5000",
+    category: "3D Service",
+    description:
+      "This project involves creating an introductory animation for TechTale Studio, our subsidiary company. This animation will serve as an engaging opener for all of TechTale Studio's video content.",
     todos: [
-      { id: "1", title: "Design Mockups", completed: true },
-      { id: "2", title: "Frontend Development", completed: true },
-      { id: "3", title: "Backend Integration", completed: false },
-      { id: "4", title: "Payment Gateway", completed: false },
-      { id: "5", title: "Testing", completed: false },
+      {
+        id: "1",
+        title: "Define Animation Style and Concept",
+        completed: false,
+      },
+      { id: "2", title: "Develop Storyboard/Animatic", completed: false },
+      {
+        id: "3",
+        title: "Design Visual Assets (Characters, Backgrounds, etc.)",
+        completed: false,
+      },
+      { id: "4", title: "Create Initial Animation Draft", completed: false },
+      {
+        id: "5",
+        title: "Gather and Integrate Sound Effects and Music",
+        completed: false,
+      },
+      {
+        id: "6",
+        title: "Refine Animation and Add Transitions",
+        completed: false,
+      },
+      { id: "7", title: "Review Animation", completed: false },
+      {
+        id: "9",
+        title: "Final Render and Export in Required Formats",
+        completed: false,
+      },
     ],
-    startDate: "2024-03-15",
-    endDate: "2024-03-30",
+    startDate: "2025-03-1",
+    endDate: "2025-04-30",
     status: "pending",
   },
   {
@@ -574,15 +612,41 @@ const projects: Project[] = [
     title: "Full Stack Development",
     owner: "Bravework Studio",
     budget: "$5000",
+    category: "Web Development",
+    description:
+      "This project focuses on modernizing an existing website by migrating the existing React website to a Next.js framework. This transition will unify the frontend and backend within a single codebase, streamlining maintenance and deployment processes.",
     todos: [
-      { id: "1", title: "Design Mockups", completed: true },
-      { id: "2", title: "Frontend Development", completed: true },
-      { id: "3", title: "Backend Integration", completed: false },
-      { id: "4", title: "Payment Gateway", completed: false },
-      { id: "5", title: "Testing", completed: false },
+      { id: "1", title: "Set up New Next.js Project", completed: false },
+      {
+        id: "2",
+        title: "Migrate Existing React Components to Next.js",
+        completed: false,
+      },
+      { id: "3", title: "Implement Next.js Routing", completed: false },
+      {
+        id: "4",
+        title: "Configure Data Fetching (SSR, SSG, CSR)",
+        completed: false,
+      },
+      {
+        id: "5",
+        title: "Integrate Backend Logic (API Routes or Custom Server)",
+        completed: false,
+      },
+      {
+        id: "8",
+        title: "Thoroughly Test All Functionality and Performance",
+        completed: false,
+      },
+      {
+        id: "9",
+        title: "Update Documentation with Next.js Specifics",
+        completed: false,
+      },
+      { id: "10", title: "Deploy the New Next.js Website", completed: false },
     ],
-    startDate: "2024-03-15",
-    endDate: "2024-03-30",
+    startDate: "2025-04-30",
+    endDate: "2025-05-30",
     status: "pending",
   },
 ];
