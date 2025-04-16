@@ -1332,6 +1332,7 @@ main {
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
+  margin: 0 10px;
 }
 
 .status-badge.active {
