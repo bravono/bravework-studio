@@ -1,12 +1,21 @@
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
-export default function Project({ id, title, owner, budget, startDate, endDate, status, todos }) {
+export default function Project({
+  id,
+  title,
+  owner,
+  budget,
+  startDate,
+  endDate,
+  status,
+  todos,
+}) {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -26,25 +35,29 @@ export default function Project({ id, title, owner, budget, startDate, endDate, 
         </div>
         <div className="info-group">
           <label>Timeline</label>
-          <span>{formatDate(startDate)} - {formatDate(endDate)}</span>
+          <span>
+            {formatDate(startDate)} - {formatDate(endDate)}
+          </span>
         </div>
       </div>
       <div className="project-todos">
-        <h3>Tasks</h3>
-        <ul>
-        <div className={`status-badge ${status}`}>
-          <span className={`status-indicator ${status}`}></span>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+        <div className="project-status">
+          <h3>Tasks</h3>
+          <div className={`status-badge ${status}`}>
+            <span className={`status-indicator ${status}`}></span>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </div>
         </div>
+        <ul>
           {todos.map((todo) => (
-            <li key={todo.id} className={todo.completed ? 'completed' : ''}>
-              {todo.text}
+            <li key={todo.id} className={todo.completed ? "completed" : ""}>
+              {todo.title}
             </li>
           ))}
         </ul>
       </div>
       <div className="project-actions">
-        {status === 'done' && (
+        {status === "done" && (
           <Link href="/testimonials" className="action-button">
             View Testimonial
           </Link>
@@ -52,4 +65,4 @@ export default function Project({ id, title, owner, budget, startDate, endDate, 
       </div>
     </div>
   );
-} 
+}
