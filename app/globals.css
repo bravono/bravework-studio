@@ -3099,6 +3099,14 @@ main {
   font-weight: normal;
 }
 
+.project-overview {
+  display: flex;
+  justify-content: space-between;
+  background: #d4e3f1;
+  border-radius: 20px;
+  padding: 20px;
+}
+
 .project-todos {
   border-top: 1px solid #eee;
   padding-top: 20px;
@@ -3133,6 +3141,17 @@ main {
 .project-todos li.completed {
   color: #999;
   text-decoration: line-through;
+}
+
+.active-project-description {
+  max-width: 50%;
+  padding-top: 20px;
+}
+
+.project-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Projects Page Styles */
@@ -3410,7 +3429,11 @@ main {
   box-shadow: 0 4px 6px var(--shadow-color);
   text-align: center;
   max-width: 600px;
-  width: 100%;
+}
+
+#project-card {
+  max-width: 100%;
+  text-align: left;
 }
 
 .project-title {
