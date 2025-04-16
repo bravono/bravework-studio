@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { projects } from "../services/localDataService"; // Assuming you have a local data service to fetch projects
 
@@ -47,11 +47,10 @@ export default function ProjectCarousel() {
       day: "numeric",
     });
   };
-
   return (
     <section className="project-carousel-section">
       <div className="container">
-        <h2 className="section-title">Current Projects</h2>
+        <h2 className="section-title">Active Projects</h2>
         <div className="project-carousel">
           <button className="carousel-arrow prev" onClick={prevProject}>
             <span className="arrow-icon">←</span>
@@ -139,10 +138,7 @@ export default function ProjectCarousel() {
               </div>
             </div>
 
-            <Link
-              href={`/projects?highlight=${currentProject.id}`}
-              className="view-project-link"
-            >
+            <Link href={`/projects/${currentProject.id}`} className="view-project-link">
               View Project Details
             </Link>
           </div>
