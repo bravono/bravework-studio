@@ -89,7 +89,7 @@ export default function Navbar() {
               className={pathname === '/projects' ? 'active' : ''}
               onClick={() => setIsMenuOpen(false)}
             >
-              Ongoing Projects
+              Project History
             </Link>
           </li>
           <li>
