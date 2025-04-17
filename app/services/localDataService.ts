@@ -50,7 +50,25 @@ interface Project {
   status: "active" | "done" | "pending";
 }
 
-// Sample testimonials data - replace with your actual testimonials
+interface BudgetRanges {
+  value: string;
+  label: string;
+}
+
+interface Timelines {
+  value: string;
+  label: string;
+}
+
+interface Order {
+  title: string;
+  description: string;
+  icon: string;
+  acceptedFiles: string;
+  budgetRanges: BudgetRanges[];
+  timelines: Timelines[];
+}
+
 const testimonials: Testimonial[] = [
   {
     id: 1,
@@ -651,4 +669,98 @@ const projects: Project[] = [
   },
 ];
 
-export { testimonials, portfolios, services, projects };
+const orders: Order[] = [
+  {
+    title: "3D Modeling & Animation",
+    description:
+      "Professional 3D modeling, animation, and visualization services for your projects.",
+    icon: "🎨",
+    acceptedFiles: ".fbx,.obj,.blend,.3ds,.max,.dae,.glb,.stl",
+    budgetRanges: [
+      { value: "500-1000", label: "$500 - $1,000" },
+      { value: "1000-2000", label: "$1,000 - $2,000" },
+      { value: "2000-3000", label: "$2,000 - $3,000" },
+      { value: "3000+", label: "$3000+" },
+    ],
+    timelines: [
+      { value: "1-2months", label: "1-2 months" },
+      { value: "2-3months", label: "2-3 months" },
+      { value: "3-6months", label: "3-6 months" },
+    ],
+  },
+  {
+    title: "Web Development",
+    description:
+      "Custom web applications and websites built with modern technologies.",
+    icon: "🌐",
+    acceptedFiles: ".zip,.rar,.pdf,.doc,.docx,.txt.,ai,.psd,.fig,.png,.jpg",
+    budgetRanges: [
+      { value: "200-500", label: "$200 - $500" },
+      { value: "500-1000", label: "$500 - $1000" },
+      { value: "1000-3000", label: "$1000 - $3000" },
+      { value: "3000+", label: "$3000+" },
+    ],
+    timelines: [
+      { value: "2-4weeks", label: "2-4 weeks" },
+      { value: "1-2months", label: "1-2 months" },
+      { value: "2-4months", label: "2-4 months" },
+      { value: "4months+", label: "4 months+" },
+    ],
+  },
+  {
+    title: "UI/UX Design",
+    description: "User-centered design solutions that enhance user experience.",
+    icon: "✨",
+    acceptedFiles: ".psd,.ai,.sketch,.fig,.xd,.pdf,.png,.jpg",
+    budgetRanges: [
+      { value: "100-500", label: "$100 - $500" },
+      { value: "500-1000", label: "$500 - $1000" },
+      { value: "1000-2000", label: "$1000 - $2000" },
+      { value: "2000+", label: "$2000+" },
+    ],
+    timelines: [
+      { value: "2-4weeks", label: "2-4 weeks" },
+      { value: "1-2months", label: "1-2 months" },
+      { value: "2-4months", label: "2-4 months" },
+      { value: "4months+", label: "4 months+" },
+    ],
+  },
+  {
+    title: "Game Development",
+    description: "Engaging game development services for various platforms.",
+    icon: "🎮",
+    acceptedFiles: ".unity,.uproject,.fbx,.obj,.blend,.pdf,.zip,.rar,.docx",
+    budgetRanges: [
+      { value: "1000-2000", label: "$1,000 - $2,000" },
+      { value: "2000-4000", label: "$2000 - $4000" },
+      { value: "4000-8000", label: "$4000 - $8000" },
+      { value: "8000+", label: "$8000+" },
+    ],
+    timelines: [
+      { value: "3-6months", label: "3-6 months" },
+      { value: "6-12months", label: "6-12 months" },
+      { value: "12months+", label: "12 months+" },
+    ],
+  },
+  {
+    title: "Voice-Over Services",
+    description:
+      "Professional voice-over services for your videos, games, and multimedia projects.",
+    icon: "🎙️",
+    acceptedFiles: ".mp3,.wav,.ogg,.aac,.m4a,.pdf,.docx,.txt,.png,.jpg",
+    budgetRanges: [
+      { value: "20-50", label: "$20 - $50" },
+      { value: "50-100", label: "$50 - $100" },
+      { value: "100-500", label: "$100 - $500" },
+      { value: "500+", label: "$500+" },
+    ],
+    timelines: [
+      { value: "1-2days", label: "1-2 days" },
+      { value: "2-5days", label: "2-5 days" },
+      { value: "5-10days", label: "5-10 days" },
+      { value: "10days+", label: "10 days+" },
+    ],
+  },
+];
+
+export { testimonials, portfolios, services, projects, orders };
