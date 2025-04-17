@@ -38,7 +38,7 @@ export default function OrderPage() {
       formDataToSend.append(`file_${index}`, file);
     });
 
-    fetch("https://formspree.io/f/mnnpkaez", {
+    fetch("https://formspree.io/f/mqapvkby", {
       method: "POST",
       body: formDataToSend,
       headers: {
