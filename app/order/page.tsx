@@ -29,9 +29,32 @@ export default function OrderPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Handle form submission here
-    console.log("Form submitted:", { selectedService, ...formData, files });
-    
+    const formDataToSend = new FormData();
+    formDataToSend.append("service", selectedService);
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+    files.forEach((file, index) => {
+      formDataToSend.append(`file_${index}`, file);
+    });
+
+    fetch("https://formspree.io/f/mnnpkaez", {
+      method: "POST",
+      body: formDataToSend,
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert("Order submitted successfully!");
+        } else {
+          alert("Failed to submit the order. Please try again.");
+        }
+      })
+      .catch(() => {
+        alert("An error occurred. Please try again.");
+      });
   };
 
   const handleInputChange = (
