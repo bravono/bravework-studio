@@ -102,7 +102,8 @@ export default function Footer() {
               <li>Web Development</li>
               <li>UI/UX Design</li>
               <li>Kids Training Programs</li>
-              <li>Corporate Training</li>
+              <li>Game Development</li>
+              <li>Voice-Over Services</li>
             </ul>
           </div>
 
@@ -126,7 +127,7 @@ export default function Footer() {
               </li>
               <li>
                 <i className="fas fa-envelope"></i>
-                <span>info@braveworkstudio.com</span>
+                <span>support@braveworkstudio.com</span>
               </li>
               <li>
                 <i className="fas fa-clock"></i>
