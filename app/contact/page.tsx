@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
+import React, { useState } from "react";
+import Navbar from "../components/Navbar";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-   
+
     const formDataToSend = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       formDataToSend.append(key, value);
@@ -28,7 +28,9 @@ export default function Contact() {
     })
       .then((response) => {
         if (response.ok) {
-          alert("Order submitted successfully!");
+          alert(
+            "We have received your message! We will get back to in less than 24 hours."
+          );
         } else {
           alert("Failed to submit the order. Please try again.");
         }
@@ -36,13 +38,24 @@ export default function Contact() {
       .catch(() => {
         alert("An error occurred. Please try again.");
       });
+
+    setFormData({
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -129,4 +142,4 @@ export default function Contact() {
       </section>
     </main>
   );
-} 
+}

@@ -55,6 +55,18 @@ export default function OrderPage() {
       .catch(() => {
         alert("An error occurred. Please try again.");
       });
+
+      // Reset form data and files after submission
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        projectDetails: "",
+        budget: "",
+        timeline: "",
+      });
+      setFiles([]);
+      setFilePreviews([]);
   };
 
   const handleInputChange = (
