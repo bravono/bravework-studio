@@ -82,6 +82,12 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
                     <li key={index}>{solution}</li>
                   ))}
                 </ul>
+                <a
+                  href={`/order?service=${encodeURIComponent(portfolio.category)}`}
+                  className="order-service-btn"
+                >
+                  Order Service
+                </a>
               </div>
             </div>
           </div>
