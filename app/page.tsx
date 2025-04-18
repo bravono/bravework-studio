@@ -5,9 +5,6 @@ import { Canvas } from "@react-three/fiber";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { OrbitControls } from "@react-three/drei";
-import Link from "next/link";
-import Navbar from "./components/Navbar";
-import Hero3D from "../components/Hero3D";
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import ProjectCarousel from "./components/ProjectCarousel";
 import { services } from "./services/localDataService";
@@ -46,19 +43,19 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="hero-subtitle"
           >
-            Vitalizing Your Vision With 3D Animation and Web Solutions
+            Vitalizing Your Vision With 3D and Web Solutions
           </motion.p>
           <div className="hero-buttons">
             <a href="/order" className="hero-cta">
               Get Started
             </a>
-            <a
+            {/* <a
               href="/payment?service=3D%20Modeling&amount=50000"
               className="hero-cta"
               style={{ marginLeft: "1rem" }}
             >
               Test Payment
-            </a>
+            </a> */}
           </div>
         </div>
       </section>
