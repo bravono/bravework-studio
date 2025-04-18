@@ -13,8 +13,29 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+   
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+
+    fetch("https://formspree.io/f/mldjyabg", {
+      method: "POST",
+      body: formDataToSend,
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert("Order submitted successfully!");
+        } else {
+          alert("Failed to submit the order. Please try again.");
+        }
+      })
+      .catch(() => {
+        alert("An error occurred. Please try again.");
+      });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -38,7 +59,7 @@ export default function Contact() {
               <div className="contact-details">
                 <div className="contact-item">
                   <h3>Email</h3>
-                  <p>info@braveworkstudio.com</p>
+                  <p>support@braveworkstudio.com</p>
                 </div>
                 <div className="contact-item">
                   <h3>Phone / WhatsApp</h3>
