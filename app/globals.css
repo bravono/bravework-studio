@@ -1945,7 +1945,7 @@ main {
 }
 
 .info-item span {
-  color: var(--text-color);
+  /* color: var(--text-color); */
   font-weight: 500;
 }
 
@@ -3335,6 +3335,21 @@ main {
   color: var(--primary-color);
   position: absolute;
   left: 0;
+}
+
+.project-more-samples {
+  margin-bottom: 2rem;
+}
+
+.order-service-btn {
+  width: 100%;
+  text-align: center;
+}
+
+iframe {
+  border-radius: 15px;
+  border: 1px solid #ccc;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {

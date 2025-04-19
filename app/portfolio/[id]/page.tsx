@@ -1,15 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Navbar from '../../components/Navbar';
-import Link from 'next/link';
-import { portfolios } from '../../services/localDataService';
-
-
+import React from "react";
+import Navbar from "../../components/Navbar";
+import Link from "next/link";
+import { portfolios } from "../../services/localDataService";
 
 export default function PortfolioItem({ params }: { params: { id: number } }) {
-  const portfolio = portfolios.find(p => p.id == params.id);
-
+  const portfolio = portfolios.find((p) => p.id == params.id);
 
   if (!portfolio) {
     return (
@@ -17,7 +14,9 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
         <Navbar />
         <div className="container">
           <h1>Project not found</h1>
-          <Link href="/portfolio" className="btn-primary">Back to Portfolio</Link>
+          <Link href="/portfolio" className="btn-primary">
+            Back to Portfolio
+          </Link>
         </div>
       </main>
     );
@@ -28,8 +27,10 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
       <Navbar />
       <section className="portfolio-detail-section">
         <div className="container">
-          <Link href="/portfolio" className="back-link">← Back to Portfolio</Link>
-          
+          <Link href="/portfolio" className="back-link">
+            ← Back to Portfolio
+          </Link>
+
           <div className="portfolio-detail">
             <div className="portfolio-detail-header">
               <span className="portfolio-category">{portfolio.category}</span>
@@ -55,12 +56,17 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
                   <h3>Tools Used</h3>
                   <div className="tools-list">
                     {portfolio.details.tools.map((tool, index) => (
-                      <span key={index} className="tool-tag">{tool}</span>
+                      <span key={index} className="tool-tag">
+                        {tool}
+                      </span>
                     ))}
                   </div>
                 </div>
               </div>
-
+              <div>
+                <h2>Project Video</h2>
+                <div dangerouslySetInnerHTML={{ __html: portfolio.iFrame }} />
+              </div>
               <div className="project-description">
                 <h2>Project Overview</h2>
                 <p>{portfolio.details.description}</p>
@@ -82,15 +88,40 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
                     <li key={index}>{solution}</li>
                   ))}
                 </ul>
-                <a
-                  href={`/order?service=${encodeURIComponent(portfolio.category)}`}
-                  className="order-service-btn"
-                >
-                  Order Service
-                </a>
               </div>
+              {portfolio.otherSamples.length ? (
+                <div className="project-more-samples">
+                  <h2>More Samples</h2>
+                  <ol>
+                    {portfolio.otherSamples.map((sample, index) => (
+                      <li key={index}>
+                        <Link
+                          href={sample}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {portfolio.sampleNames[index]}
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+            </div>
+            <div className="order-service-btn-container">
+              <a
+                href={`/order?service=${encodeURIComponent(
+                  portfolio.category
+                )}`}
+                className="order-service-btn"
+              >
+                Order Service
+              </a>
             </div>
           </div>
+          <Link href="/portfolio" className="back-link">
+            ← Back to Portfolio
+          </Link>
         </div>
       </section>
     </main>

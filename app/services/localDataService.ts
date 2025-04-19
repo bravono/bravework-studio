@@ -23,6 +23,9 @@ interface Portfolio {
   image: string;
   description: string;
   details?: PortfolioDetails;
+  iFrame?: string;
+  otherSamples?: string[];
+  sampleNames?: string[];
 }
 
 interface Services {
@@ -143,6 +146,9 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/rabbit.webp",
     description: "Fun and engaging 3D animation advertisement",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/-7xgbFEkMRY?si=2AD_tXTBDua3nD_C" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/zpmH4x-kRu4?si=c9wh4vsvtwPH-lLP"],
+    sampleNames: ["Dog Food"],
     details: {
       client: "Medihoppr",
       year: "2022",
@@ -165,8 +171,11 @@ const portfolios: Portfolio[] = [
     id: 2,
     title: "Intro Animation",
     category: "3D Services",
-    image: "/services/intro_football.webp",
+    image: "/services/intro_american-football.webp",
     description: "3D intro animation for content creators",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/q0NoYvYiOvc?si=6P-CYKtjhgi8ndYQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: [],
+    sampleNames: [],
     details: {
       client: "JC",
       year: "2022",
@@ -191,6 +200,9 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/if_youre_happy.webp",
     description: "Entertaining animation for children",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/2y9viIBGYk4?si=Wm7_3G9Kzrpkhmxo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/IhhhFlz_Fno"],
+    sampleNames: ["Happy Home"],
     details: {
       client: "Lucas Mirera",
       year: "2023",
@@ -215,6 +227,9 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/abcd_english.webp",
     description: "Engaging animation for children education",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/o5HukmvQD1w?si=fVKDlwNcZFY06VkH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/AIm-vg3NlA4?si=oDtBpiwImEAmSGjZ"],
+    sampleNames: ["Spanish Alphabet"],
     details: {
       client: "Q4 WhateverItTakes",
       year: "2023",
@@ -240,6 +255,9 @@ const portfolios: Portfolio[] = [
     image: "/services/sir_pallinore.webp",
     description:
       "Ready to use animation for your Unity and Unreal Engine games",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/ahxYTHPuAhk?si=Dl9sqBHk2DMkGyaH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/QSjkVq0hG5k"],
+    sampleNames: ["Aircraft"],
     details: {
       client: "Antonio Peassoto",
       year: "2022",
@@ -264,6 +282,8 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/aircraft.webp",
     description: "Drag and drop ready made assests for your games",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/QSjkVq0hG5k?si=Sqju0lOxNznTxRAT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: [],
     details: {
       client: "Random",
       year: "2025",
@@ -288,6 +308,8 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/india_man.webp",
     description: "Realistic character design for serious animation",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/kM8qd793-r8?si=FawcbpsByMw6uU9G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: [],
     details: {
       client: "Random",
       year: "2025",
@@ -310,8 +332,11 @@ const portfolios: Portfolio[] = [
     id: 9,
     title: "Islamic Educational Animation",
     category: "3D Services",
-    image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
+    image: "services/palestine.webp",
     description: "Religious educational animation for children",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/4-czn9YWKHs?si=O6uN9Mo7Dzl4ZnYi" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/FYhgLz3kK2w"],
+    sampleNames: ["Billal and Asmaa"],
     details: {
       client: "Islam Village",
       year: "2024",
@@ -336,6 +361,8 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/bravono_energy_drink.webp",
     description: "Professional product presentation for attention",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/kM8qd793-r8?si=FawcbpsByMw6uU9G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: [],
     details: {
       client: "Compilation",
       year: "2024",
@@ -360,6 +387,8 @@ const portfolios: Portfolio[] = [
     category: "3D Services",
     image: "/services/masquerade_character.webp",
     description: "Imaginary characters for imaginary stories",
+    iFrame: ``,
+    otherSamples: [],
     details: {
       client: "Compilation",
       year: "2024",
@@ -384,6 +413,8 @@ const portfolios: Portfolio[] = [
     category: "Web Development",
     image: "/services/bravework_website.webp",
     description: "The current website you're using",
+    iFrame: ``,
+    otherSamples: [],
     details: {
       client: "Bravework Studio",
       year: "2025",
@@ -418,6 +449,8 @@ const portfolios: Portfolio[] = [
     category: "Web Development",
     image: "/services/confidential_green.webp",
     description: "Bot Detector: Staying ahead of the bots",
+    iFrame: ``,
+    otherSamples: [],
     details: {
       client: "BuyFacts Inc.",
       year: "2025",
@@ -446,6 +479,8 @@ const portfolios: Portfolio[] = [
     category: "Web Development",
     image: "/services/confidential_yellow.webp",
     description: "Gamified Survey: Taking surveys should be fun",
+    iFrame: ``,
+    otherSamples: [],
     details: {
       client: "BuyFacts Inc.",
       year: "2025",
@@ -468,36 +503,40 @@ const portfolios: Portfolio[] = [
       ],
     },
   },
-  // {
-  //   id: 13,
-  //   title: "Mobile App UI",
-  //   category: "UI/UX Design",
-  //   image: "/Bravework_Studio-Logo_black-Transparent-bg.png",
-  //   description: "User interface design for a fitness tracking app",
-  //   details: {
-  //     client: "FitLife Technologies",
-  //     year: "2024",
-  //     tools: ["Figma"],
-  //     description:
-  //       "A modern and intuitive mobile app interface design focusing on user engagement and seamless navigation for fitness tracking and workout planning.",
-  //     challenges: [
-  //       "Creating an engaging onboarding experience",
-  //       "Designing intuitive workout tracking interface",
-  //       "Ensuring accessibility for all users",
-  //     ],
-  //     solutions: [
-  //       "Developed interactive onboarding tutorials",
-  //       "Created customizable workout dashboard",
-  //       "Implemented comprehensive accessibility features",
-  //     ],
-  //   },
-  // },
+  {
+    id: 13,
+    title: "Mobile App UI",
+    category: "UI/UX Design",
+    image: "services/hot_sauce.webp",
+    description: "User interface design for a fitness tracking app",
+    iFrame: ``,
+    otherSamples: [],
+    details: {
+      client: "Bravework Studio",
+      year: "2024",
+      tools: ["Figma"],
+      description:
+        "A modern and intuitive mobile app interface design focusing on user engagement and seamless navigation for fitness tracking and workout planning.",
+      challenges: [
+        "Creating an engaging onboarding experience",
+        "Designing intuitive workout trackinj0nmg interface",
+        "Ensuring accessibility for all users",
+      ],
+      solutions: [
+        "Developed interactive onboarding tutorials",
+        "Created customizable workout dashboard",
+        "Implemented comprehensive accessibility features",
+      ],
+    },
+  },
   {
     id: 14,
     title: "3D Printing",
     category: "3D Services",
     image: "/services/wall_pattern.webp",
     description: "Realistic 3D visualization of a modern building",
+    iFrame: ``,
+    otherSamples: [],
     details: {
       client: "Compilation",
       year: "2025",
@@ -513,6 +552,33 @@ const portfolios: Portfolio[] = [
         "Adjusted angles where feasible and strategically sectioned the model for optimal print orientation",
         "Employed mesh diagnostic tools and performed manual cleanup to guarantee a solid, error-free model",
         "Designed interlocking keys or registration marks to facilitate accurate assembly of printed parts",
+      ],
+    },
+  },
+  {
+    id: 16,
+    title: "Voice Acting",
+    category: "Voice Services",
+    image: "/services/mokola_store.webp",
+    description: "Vocice acting for your games, books, ad and videos",
+    iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/7XQ85fFNZA4?si=0T1UJuvuV1hY-EBP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+    otherSamples: ["https://youtu.be/3fvzNV5YodA?si=qJ-9oDxhlgKGssno"],
+    sampleNames: ["Mokola Store"],
+    details: {
+      client: "Portfolio",
+      year: "2021",
+      tools: ["Primer Pro", "Audacity"],
+      description:
+        "Provided professional voice-over services for various projects, including video games, audiobooks, and promotional content, ensuring high-quality audio and engaging delivery.",
+      challenges: [
+        "Delivering a wide range of character voices and styles to suit different projects.",
+        "Maintaining consistent audio quality and clarity across various recording environments.",
+        "Ensuring timely delivery of voice recordings while meeting project deadlines.",
+      ],
+      solutions: [
+        "Utilized professional recording equipment and techniques to achieve high-quality audio.",
+        "Employed soundproofing and acoustic treatment to minimize background noise and echo.",
+        "Collaborated closely with clients to understand their vision and provide tailored voice performances.",
       ],
     },
   },
