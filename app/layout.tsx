@@ -14,6 +14,16 @@ export const metadata: Metadata = {
   title: "Bravework Studio",
   description:
     "We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless web development.",
+  openGraph: {
+    images: [
+      {
+        url: "/DOF0160.png",
+        width: 800,
+        height: 600,
+        alt: "Bravework Studio Logo",
+      },
+    ],
+  },
 };
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
