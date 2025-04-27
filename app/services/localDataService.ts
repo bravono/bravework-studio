@@ -504,10 +504,10 @@ const portfolios: Portfolio[] = [
     },
   },
   {
-    id: 13,
+    id: 17,
     title: "Mobile App UI",
     category: "UI/UX Design",
-    image: "services/hot_sauce.webp",
+    image: "/services/hot_sauce.webp",
     description: "User interface design for a fitness tracking app",
     iFrame: ``,
     otherSamples: [],
