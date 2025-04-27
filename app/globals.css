@@ -114,12 +114,17 @@ body {
   padding: 4px;
 }
 
+
 .navbar-toggle span {
   display: block;
   width: 25px;
   height: 2px;
   background: white;
   transition: all 0.3s ease;
+}
+
+.navbar-toggle-scrolled span {
+  background: var(--primary-color);
 }
 
 @media (max-width: 768px) {

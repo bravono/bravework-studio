@@ -35,7 +35,9 @@ export default function Navbar() {
         </Link>
 
         <button
-          className={`navbar-toggle ${isMenuOpen ? "active" : ""}`}
+          className={` navbar-toggle  ${isMenuOpen && "active"} ${
+            isScrolled && "navbar-toggle-scrolled"
+          }`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <span></span>
