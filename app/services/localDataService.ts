@@ -560,7 +560,7 @@ const portfolios: Portfolio[] = [
     title: "Voice Acting",
     category: "Voice Services",
     image: "/services/mokola_store.webp",
-    description: "Vocice acting for your games, books, ad and videos",
+    description: "Voice acting for your games, books, ads and videos",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/7XQ85fFNZA4?si=0T1UJuvuV1hY-EBP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
     otherSamples: ["https://youtu.be/3fvzNV5YodA?si=qJ-9oDxhlgKGssno"],
     sampleNames: ["Mokola Store"],
