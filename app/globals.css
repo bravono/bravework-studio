@@ -181,6 +181,7 @@ main {
   width: 50%;
 }
 
+
 .hero-content {
   position: relative;
   z-index: 10;
@@ -229,6 +230,26 @@ main {
 .hero-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 135, 81, 0.4);
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    height: calc(100vh - 70px);
+    padding: 2rem;
+    flex-direction: column;
+  }
+
+  .hero-section .absolute {
+    width: 100%;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+  }
 }
 
 /* Buttons */
