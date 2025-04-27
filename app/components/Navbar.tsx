@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import LogoWhite from "../../public/assets/BWS-White.svg";
+import LogoColor from "../../public/assets/BWS-Color.svg";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isClientAuthenticated, setIsClientAuthenticated] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -16,47 +17,25 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 50);
     };
 
-    const checkAuth = () => {
-      const clientToken = localStorage.getItem('clientAuth');
-      const adminAuth = localStorage.getItem('adminAuth');
-      const adminExpiry = localStorage.getItem('adminAuthExpiry');
-      
-      setIsClientAuthenticated(!!clientToken);
-      
-      if (adminAuth && adminExpiry) {
-        const expiryTime = parseInt(adminExpiry);
-        setIsAdminAuthenticated(Date.now() < expiryTime);
-      } else {
-        setIsAdminAuthenticated(false);
-      }
-    };
+    window.addEventListener("scroll", handleScroll);
 
-    window.addEventListener('scroll', handleScroll);
-    checkAuth();
-
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    if (isAdminAuthenticated) {
-      localStorage.removeItem('adminAuth');
-      localStorage.removeItem('adminAuthExpiry');
-      setIsAdminAuthenticated(false);
-    } else {
-      localStorage.removeItem('clientAuth');
-      setIsClientAuthenticated(false);
-    }
-  };
-
   return (
-    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">
         <Link href="/" className="navbar-logo">
-          Bravework Studio
+          <Image
+            src={isScrolled ? LogoColor : LogoWhite}
+            alt="BWS Logo"
+            width={70}
+            height={70}
+          />
         </Link>
 
         <button
-          className={`navbar-toggle ${isMenuOpen ? 'active' : ''}`}
+          className={`navbar-toggle ${isMenuOpen ? "active" : ""}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <span></span>
@@ -64,134 +43,63 @@ export default function Navbar() {
           <span></span>
         </button>
 
-        <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
+        <ul className={`navbar-menu ${isMenuOpen ? "active" : ""}`}>
           <li>
-            <Link 
-              href="/" 
-              className={pathname === '/' ? 'active' : ''}
+            <Link
+              href="/"
+              className={pathname === "/" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Home
             </Link>
           </li>
           <li>
-            <Link 
-              href="/portfolio" 
-              className={pathname === '/portfolio' ? 'active' : ''}
+            <Link
+              href="/portfolio"
+              className={pathname === "/portfolio" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Portfolio
             </Link>
           </li>
           <li>
-            <Link 
-              href="/projects" 
-              className={pathname === '/projects' ? 'active' : ''}
+            <Link
+              href="/projects"
+              className={pathname === "/projects" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Project History
             </Link>
           </li>
           <li>
-            <Link 
-              href="/jobs" 
-              className={pathname === '/jobs' ? 'active' : ''}
+            <Link
+              href="/jobs"
+              className={pathname === "/jobs" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Jobs
             </Link>
           </li>
           <li>
-            <Link 
-              href="/about" 
-              className={pathname === '/about' ? 'active' : ''}
+            <Link
+              href="/about"
+              className={pathname === "/about" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               About
             </Link>
           </li>
           <li>
-            <Link 
-              href="/contact" 
-              className={pathname === '/contact' ? 'active' : ''}
+            <Link
+              href="/contact"
+              className={pathname === "/contact" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Contact
             </Link>
           </li>
-          {isAdminAuthenticated ? (
-            <>
-              {/* <li>
-                <Link 
-                  href="/admin/dashboard" 
-                  className={pathname === '/admin/dashboard' ? 'active' : ''}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Admin Dashboard
-                </Link>
-              </li>
-              <li>
-                <button 
-                  onClick={handleLogout}
-                  className="logout-button"
-                >
-                  Admin Logout
-                </button>
-              </li> */}
-            </>
-          ) : isClientAuthenticated ? (
-            <>
-              {/* <li>
-                <Link 
-                  href="/dashboard" 
-                  className={pathname === '/dashboard' ? 'active' : ''}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="/profile" 
-                  className={pathname === '/profile' ? 'active' : ''}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Profile
-                </Link>
-              </li>
-              <li>
-                <button 
-                  onClick={handleLogout}
-                  className="logout-button"
-                >
-                  Logout
-                </button>
-              </li> */}
-            </>
-          ) : (
-            <>
-              {/* {!isClientAuthenticated && <li>
-                <Link 
-                  href="/auth/login" 
-                  className={pathname === '/auth/login' ? 'active' : ''}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login/SignUp
-                </Link>
-              </li>}
-              <li>
-                <Link 
-                  href="/admin/login" 
-                  className={pathname === '/admin/login' ? 'active' : ''}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Admin
-                </Link>
-              </li> */}
-            </>
-          )}
         </ul>
       </div>
     </nav>
   );
-} 
+}

@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Mesh } from 'three';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Mesh } from "three";
+import { useGLTF } from "@react-three/drei";
 
 export default function Hero3D() {
   const meshRef = useRef<Mesh>(null);
@@ -15,15 +16,11 @@ export default function Hero3D() {
   });
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[5, 5, 5]} />
-      <meshStandardMaterial 
-        color="#008751"
-        metalness={0.7}
-        roughness={0.2}
-        emissive="#008751"
-        emissiveIntensity={0.2}
-      />
-    </mesh>
+    <primitive
+      object={useGLTF("assets/Isometric-Office.glb").scene}
+      scale={2.5}
+      position={[1, -1.3, 5]}
+      rotation={[0, -0.55, 0]}
+    />
   );
-} 
+}
