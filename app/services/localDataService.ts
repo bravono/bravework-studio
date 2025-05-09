@@ -412,7 +412,7 @@ const portfolios: Portfolio[] = [
     title: "Corporate Website",
     category: "Web Development",
     image: "/services/bravework_website.webp",
-    description: "The current website you're using",
+    description: "The current website you're on right now",
     iFrame: ``,
     otherSamples: [],
     details: {
@@ -427,7 +427,8 @@ const portfolios: Portfolio[] = [
         "Next.js",
         "Node.js",
         "Express.js",
-        "MongoDB",
+        "SQL",
+        "MySQL",
       ],
       description:
         "Developed a professional corporate website with a modern design, built in-house to establish an online presence, showcase our company's skills and portfolio, and integrate seamlessly with essential business tools.",
@@ -614,7 +615,7 @@ const services: Services[] = [
     icon: "🎙️",
   },
   {
-    title: "3D Training Services",
+    title: "Training Services",
     description:
       "Your kids will love to learn 3D modeling and animation with our simple and easy to understand training services.",
     icon: "🤼‍♂️",
