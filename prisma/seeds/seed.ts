@@ -1,7 +1,7 @@
 // prisma/seed.ts
 import { PrismaClient } from "@prisma/client";
 import { seedRoles } from "./static/roles";
-import { seedProductCategories } from "./static/product_categories";
+import { seedProductCategories } from "./static/categories";
 import { seedProducts } from "./static/products";
 import { seedTools } from "./static/tools";
 import { seedCoupons } from "./static/coupons";

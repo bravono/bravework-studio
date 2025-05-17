@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -15,6 +16,16 @@ model challenges {
   solutions    solutions[]
 
   @@index([project_Id], map: "fk_challenges_projects1_idx")
+}
+
+model coupons {
+  coupon_Id       Int             @id @default(autoincrement())
+  coupon_code     String          @db.VarChar(45)
+  discount_amount Decimal         @db.Decimal(5, 2)
+  created_date    DateTime        @db.DateTime(0)
+  expiration_date DateTime        @db.DateTime(0)
+  usage_limit     Int
+  order_coupons   order_coupons[]
 }
 
 model course_enrollment {
@@ -71,7 +82,7 @@ model invoices {
 model order_coupons {
   order_Id  Int
   coupon_Id Int
-  coupon    coupons @relation(fields: [coupon_Id], references: [coupon_Id], onDelete: NoAction, map: "fk_orderCoupons_coupon1")
+  coupons   coupons @relation(fields: [coupon_Id], references: [coupon_Id], onDelete: NoAction, map: "fk_orderCoupons_coupon1")
   orders    orders  @relation(fields: [order_Id], references: [orders_Id], onDelete: NoAction, map: "fk_orderCoupons_orders1")
 
   @@id([order_Id, coupon_Id])
@@ -114,6 +125,13 @@ model orders {
   @@index([user_Id], map: "fk_roles_users1_idx")
 }
 
+model product_categories {
+  category_Id   Int        @id @default(autoincrement())
+  category_name String     @db.VarChar(45)
+  products      products[]
+  projects      projects[]
+}
+
 model product_orders {
   order_Id   Int
   product_Id Int
@@ -126,13 +144,13 @@ model product_orders {
 }
 
 model products {
-  product_Id       Int                @id @default(autoincrement())
-  category_Id      Int
-  name             String             @unique(map: "name_UNIQUE") @db.VarChar(45)
-  description      String             @db.VarChar(255)
-  price            Decimal            @db.Decimal(5, 2)
-  product_orders   product_orders[]
-  product_category product_categories @relation(fields: [category_Id], references: [category_Id], onDelete: NoAction, map: "fk_products_category1")
+  product_Id         Int                @id @default(autoincrement())
+  category_Id        Int
+  name               String             @unique(map: "name_UNIQUE") @db.VarChar(45)
+  description        String             @db.VarChar(255)
+  price              Decimal            @db.Decimal(5, 2)
+  product_orders     product_orders[]
+  product_categories product_categories @relation(fields: [category_Id], references: [category_Id], onDelete: NoAction, map: "fk_products_category1")
 
   @@index([category_Id], map: "fk_products_category1_idx")
 }
@@ -189,7 +207,7 @@ model projects {
   project_status_status project_status_status[]
   project_tools         project_tools[]
   users                 users                   @relation(fields: [user_Id], references: [user_Id], onDelete: NoAction, map: "fk_projects_admins")
-  product_category      product_categories      @relation(fields: [category_Id], references: [category_Id], onDelete: NoAction, map: "fk_projects_category1")
+  product_categories    product_categories      @relation(fields: [category_Id], references: [category_Id], onDelete: NoAction, map: "fk_projects_category1")
   todos                 todos[]
 
   @@index([user_Id], map: "fk_projects_admins_idx")
@@ -266,21 +284,4 @@ model users {
   projects            projects[]
   testimonials        testimonials[]
   user_roles          user_roles[]
-}
-
-model product_categories {
-  category_Id   Int        @id @default(autoincrement())
-  category_name String     @db.VarChar(45)
-  products      products[]
-  projects      projects[]
-}
-
-model coupons {
-  coupon_Id       Int             @id @default(autoincrement())
-  coupon_code     String          @db.VarChar(45)
-  discount_amount Decimal         @db.Decimal(5, 2)
-  created_date    DateTime        @db.DateTime(0)
-  expiration_date DateTime        @db.DateTime(0)
-  usage_limit     Int
-  order_coupons   order_coupons[]
 }
