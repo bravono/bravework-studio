@@ -651,48 +651,6 @@ const projects: Project[] = [
     status: "active",
   },
   {
-    id: 3,
-    title: "Intro Animation",
-    owner: "TechTale Studio",
-    budget: "$5000",
-    category: "3D Service",
-    description:
-      "This project involves creating an introductory animation for TechTale Studio, our subsidiary company. This animation will serve as an engaging opener for all of TechTale Studio's video content.",
-    todos: [
-      {
-        id: "1",
-        title: "Define Animation Style and Concept",
-        completed: false,
-      },
-      { id: "2", title: "Develop Storyboard/Animatic", completed: false },
-      {
-        id: "3",
-        title: "Design Visual Assets (Characters, Backgrounds, etc.)",
-        completed: false,
-      },
-      { id: "4", title: "Create Initial Animation Draft", completed: false },
-      {
-        id: "5",
-        title: "Gather and Integrate Sound Effects and Music",
-        completed: false,
-      },
-      {
-        id: "6",
-        title: "Refine Animation and Add Transitions",
-        completed: false,
-      },
-      { id: "7", title: "Review Animation", completed: false },
-      {
-        id: "9",
-        title: "Final Render and Export in Required Formats",
-        completed: false,
-      },
-    ],
-    startDate: "2025-03-1",
-    endDate: "2025-04-30",
-    status: "pending",
-  },
-  {
     id: 2,
     title: "Full Stack Development",
     owner: "Bravework Studio",
@@ -726,7 +684,7 @@ const projects: Project[] = [
       {
         id: "9",
         title: "Update Documentation with Next.js Specifics",
-        completed: false,
+        completed: true,
       },
       { id: "10", title: "Deploy the New Next.js Website", completed: false },
     ],
