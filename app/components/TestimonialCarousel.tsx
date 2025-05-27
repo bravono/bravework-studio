@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import {testimonials} from '../services/localDataService';
-
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { testimonials } from "../services/localDataService";
 
 export default function TestimonialCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -12,29 +11,31 @@ export default function TestimonialCarousel() {
 
   // Auto-advance testimonials
   useEffect(() => {
-    const timer = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-    }, 15000); 
-
-    return () => clearInterval(timer);
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+      const timer = setInterval(() => {
+        setDirection(1);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
   }, []);
 
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 1000 : -1000,
-      opacity: 0
+      opacity: 0,
     }),
     center: {
       zIndex: 1,
       x: 0,
-      opacity: 1
+      opacity: 1,
     },
     exit: (direction: number) => ({
       zIndex: 0,
       x: direction < 0 ? 1000 : -1000,
-      opacity: 0
-    })
+      opacity: 0,
+    }),
   };
 
   const swipeConfidenceThreshold = 10000;
@@ -44,7 +45,10 @@ export default function TestimonialCarousel() {
 
   const paginate = (newDirection: number) => {
     setDirection(newDirection);
-    setCurrentIndex((prevIndex) => (prevIndex + newDirection + testimonials.length) % testimonials.length);
+    setCurrentIndex(
+      (prevIndex) =>
+        (prevIndex + newDirection + testimonials.length) % testimonials.length
+    );
   };
 
   return (
@@ -62,7 +66,7 @@ export default function TestimonialCarousel() {
               exit="exit"
               transition={{
                 x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
+                opacity: { duration: 0.5 },
               }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
@@ -84,28 +88,34 @@ export default function TestimonialCarousel() {
                   alt={testimonials[currentIndex].heading}
                   width={120}
                   height={120}
-                  style={{ objectFit: 'cover', borderRadius: '50%' }}
+                  style={{ objectFit: "cover", borderRadius: "50%" }}
                 />
               </div>
               <div className="testimonial-content">
-                <div className='testimonial-body'>
+                <div className="testimonial-body">
                   <h3>{testimonials[currentIndex].heading}</h3>
                   <p>{testimonials[currentIndex].body}</p>
                 </div>
                 <div className="testimonial-info">
-                  <span className="company-name">{testimonials[currentIndex].companyName}</span>
-                  <span className="email">{testimonials[currentIndex].email}</span>
+                  <span className="company-name">
+                    {testimonials[currentIndex].companyName}
+                  </span>
+                  <span className="email">
+                    {testimonials[currentIndex].email}
+                  </span>
                 </div>
-                <a href='/testimonials' className='read-more'>Read Their Story</a>
+                <a href="/testimonials" className="read-more">
+                  Read Their Story
+                </a>
               </div>
             </motion.div>
           </AnimatePresence>
-          
+
           <div className="carousel-dots">
             {testimonials.map((_, index) => (
               <button
                 key={index}
-                className={`dot ${index === currentIndex ? 'active' : ''}`}
+                className={`dot ${index === currentIndex ? "active" : ""}`}
                 onClick={() => {
                   setDirection(index > currentIndex ? 1 : -1);
                   setCurrentIndex(index);
@@ -118,4 +128,4 @@ export default function TestimonialCarousel() {
       </div>
     </section>
   );
-} 
+}
