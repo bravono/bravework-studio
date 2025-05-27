@@ -6,16 +6,21 @@ import { orders } from "../services/localDataService"; // Assuming you have a da
 
 export default function OrderPage() {
   const [selectedService, setSelectedService] = useState("");
+  const [uploadUrls, setUploadUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
+    companyName: "",
     email: "",
     phone: "",
-    projectDetails: "",
+    projectDescription: "",
     budget: "",
     timeline: "",
+    projectFiles: "",
   });
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Get the service from URL parameters
   useEffect(() => {
@@ -26,7 +31,66 @@ export default function OrderPage() {
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const uploaded: string[] = [];
+    const errors: string[] = [];
+
+    const newFiles = Array.from(files);
+    const selectedServiceData = orders.find((s) => s.title === selectedService);
+
+    // Filter files based on accepted extensions
+    const validFiles = newFiles.filter((file) => {
+      const extension = "." + file.name.split(".").pop()?.toLowerCase();
+      return selectedServiceData?.acceptedFiles.split(",").includes(extension);
+    });
+    setFiles((prev) => [...prev, ...validFiles]);
+
+    // Create previews for valid files
+    validFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          uploaded.push(data.url);
+        } else {
+          const errorData = await response.json();
+          errors.push(
+            `Error uploading ${file.name}: ${errorData.error || "Failed"}`
+          );
+        }
+      } catch (err: any) {
+        errors.push(
+          `Network error uploading ${file.name}: ${err.message || "Unknown"}`
+        );
+      }
+    }
+
+    setUploadUrls(uploaded);
+    setError(errors.length > 0 ? errors.join(", ") : null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formDataToSend = new FormData();
@@ -38,35 +102,38 @@ export default function OrderPage() {
       formDataToSend.append(`file_${index}`, file);
     });
 
-    fetch("https://formspree.io/f/mqapvkby", {
-      method: "POST",
-      body: formDataToSend,
-      headers: {
-        Accept: "application/json",
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          alert("Order submitted successfully!");
-        } else {
-          alert("Failed to submit the order. Please try again.");
-        }
-      })
-      .catch(() => {
-        alert("An error occurred. Please try again.");
+    try {
+      const response = await fetch("/api/order", {
+        method: "POST",
+        body: formDataToSend,
       });
 
-      // Reset form data and files after submission
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        projectDetails: "",
-        budget: "",
-        timeline: "",
-      });
-      setFiles([]);
-      setFilePreviews([]);
+      if (response.ok) {
+        const data = await response.json();
+
+        setError(null);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Could not submit order");
+      }
+    } catch (error) {
+      alert("An error occurred. Please try again.");
+    }
+
+    // Reset form data and files after submission
+    setFormData({
+      firstName: "",
+      lastName: "",
+      companyName: "",
+      email: "",
+      phone: "",
+      projectDescription: "",
+      budget: "",
+      timeline: "",
+      projectFiles: "",
+    });
+    setFiles([]);
+    setFilePreviews([]);
   };
 
   const handleInputChange = (
@@ -81,39 +148,10 @@ export default function OrderPage() {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      const selectedServiceData = orders.find(
-        (s) => s.title === selectedService
-      );
-
-      // Filter files based on accepted extensions
-      const validFiles = newFiles.filter((file) => {
-        const extension = "." + file.name.split(".").pop()?.toLowerCase();
-        return selectedServiceData?.acceptedFiles
-          .split(",")
-          .includes(extension);
-      });
-
-      setFiles((prev) => [...prev, ...validFiles]);
-
-      // Create previews for valid files
-      validFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setFilePreviews((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setFilePreviews((prev) => prev.filter((_, i) => i !== index));
   };
-
   const getSelectedService = () => {
     return orders.find((service) => service.title === selectedService);
   };
@@ -160,12 +198,34 @@ export default function OrderPage() {
 
             <form onSubmit={handleSubmit} className="order-form">
               <div className="form-group">
-                <label htmlFor="name">Full Name</label>
+                <label htmlFor="name">First Name</label>
                 <input
                   type="text"
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="name">Last Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="name">Company Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.companyName}
                   onChange={handleInputChange}
                   required
                 />
@@ -192,18 +252,6 @@ export default function OrderPage() {
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="projectDetails">Project Details</label>
-                <textarea
-                  id="projectDetails"
-                  name="projectDetails"
-                  value={formData.projectDetails}
-                  onChange={handleInputChange}
-                  required
-                  rows={5}
                 />
               </div>
 
@@ -244,14 +292,24 @@ export default function OrderPage() {
                   ))}
                 </select>
               </div>
-
-              {/* <div className="form-group file-upload-group">
+              <div className="form-group">
+                <label htmlFor="projectDetails">Project Description</label>
+                <textarea
+                  id="projectDetails"
+                  name="projectDetails"
+                  value={formData.projectDescription}
+                  onChange={handleInputChange}
+                  required
+                  rows={2}
+                />
+              </div>
+              <div className="form-group file-upload-group">
                 <label>Project Files</label>
                 <div className="file-upload-container">
                   <input
                     type="file"
                     multiple
-                    onChange={handleFileChange}
+                    onChange={handleFileUpload}
                     accept={getSelectedService()?.acceptedFiles}
                     className="file-input"
                     disabled={!selectedService}
@@ -287,7 +345,7 @@ export default function OrderPage() {
                     </div>
                   </div>
                 )}
-              </div> */}
+              </div>
 
               <button
                 type="submit"
