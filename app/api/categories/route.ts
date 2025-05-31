@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
-import { queryDatabase } from "../../../lib/db"; 
+import { queryDatabase } from "../../../lib/db";
 
 export async function GET(request) {
   try {
-    const categories = await queryDatabase("SELECT * FROM product_categories");
+    const categories = await queryDatabase(
+      `SELECT 
+      pc.*, 
+      COALESCE(
+        json_agg(DISTINCT br) FILTER (WHERE br.product_category_id IS NOT NULL), 
+        '[]'
+      ) AS budget_ranges,
+      COALESCE(
+        json_agg(DISTINCT tl) FILTER (WHERE tl.product_category_id IS NOT NULL), 
+        '[]'
+      ) AS timelines
+      FROM product_categories pc
+      LEFT JOIN budget_ranges br ON br.product_category_id = pc.category_id
+      LEFT JOIN timelines tl ON tl.product_category_id = pc.category_id
+      GROUP BY pc.category_id
+      `
+    );
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     console.error("Error fetching categories:", error);

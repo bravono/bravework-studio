@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import { orders } from "../services/localDataService"; // Assuming you have a data file with service details
+import { toast, ToastContainer } from "react-toastify";
 
 export default function OrderPage() {
   const [selectedService, setSelectedService] = useState("");
@@ -16,11 +16,16 @@ export default function OrderPage() {
     projectDescription: "",
     budget: "",
     timeline: "",
-    projectFiles: "",
+    files: "",
   });
+  const [productCategories, setProductCategories] = useState<any[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [fileInfos, setFileInfos] = useState<
+    { fileName: string; fileSize: string; fileUrl: string }[]
+  >([]);
+  const icons = ["🎨", "🌐", "📱", "✨", "🎮", "🎙️", "🤼‍♂️"];
 
   // Get the service from URL parameters
   useEffect(() => {
@@ -31,22 +36,40 @@ export default function OrderPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const response = await fetch("/api/categories");
+      const categories = await response.json();
+      setProductCategories(categories);
+      const ids = [];
+    };
+    fetchCategories();
+  }, []);
+
+
+  const getSelectedService = () => {
+    return productCategories.find(
+      (product) => product.category_name === selectedService
+    );
+  };
+
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const uploaded: string[] = [];
     const errors: string[] = [];
 
     const newFiles = Array.from(files);
-    const selectedServiceData = orders.find((s) => s.title === selectedService);
+    const selectedServiceData = productCategories.find(
+      (p) => p.category_name === selectedService
+    );
 
     // Filter files based on accepted extensions
     const validFiles = newFiles.filter((file) => {
       const extension = "." + file.name.split(".").pop()?.toLowerCase();
-      return selectedServiceData?.acceptedFiles.split(",").includes(extension);
+      return selectedServiceData?.accepted_files.split(",").includes(extension);
     });
     setFiles((prev) => [...prev, ...validFiles]);
 
@@ -71,22 +94,43 @@ export default function OrderPage() {
         });
 
         if (response.ok) {
-          const data = await response.json();
-          uploaded.push(data.url);
+          const blobDataRaw = await response.json();
+          const blobData = {
+            url: blobDataRaw.url,
+            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+            size: blobDataRaw.size || files[i].size,
+          };
+          setFileInfos((prev) => [
+            ...prev,
+            {
+              fileUrl: blobData.url,
+              fileName: blobData.pathname,
+              fileSize: String(blobData.size),
+            },
+          ]);
+          setUploadUrls((prev) => [...prev, blobData.url]);
+          toast(`File ${file.name} uploaded successfully!`);
         } else {
           const errorData = await response.json();
           errors.push(
             `Error uploading ${file.name}: ${errorData.error || "Failed"}`
+          );
+          toast(
+            `Error uploading ${file.name}: ${
+              errorData.error.message || "Failed"
+            }`
           );
         }
       } catch (err: any) {
         errors.push(
           `Network error uploading ${file.name}: ${err.message || "Unknown"}`
         );
+        toast(
+          `Network error uploading ${file.name}: ${err.message || "Unknown"}`
+        );
       }
     }
 
-    setUploadUrls(uploaded);
     setError(errors.length > 0 ? errors.join(", ") : null);
   };
 
@@ -94,46 +138,50 @@ export default function OrderPage() {
     e.preventDefault();
 
     const formDataToSend = new FormData();
-    formDataToSend.append("service", selectedService);
-    Object.entries(formData).forEach(([key, value]) => {
+    formDataToSend.forEach((value, key) => {
+      console.log(`FormData Key Before: ${key}, Value: ${value}`);
+    });
+
+    // We need the Id of the selected service not name
+    const selectedServiceData = productCategories.find(
+      (product) => product.category_name === selectedService
+    );
+    if (selectedServiceData) {
+      formDataToSend.append("serviceId", selectedServiceData.category_id);
+    }
+    const entries = Object.entries(formData);
+    entries.slice(0, -1).forEach(([key, value]) => {
       formDataToSend.append(key, value);
     });
-    files.forEach((file, index) => {
-      formDataToSend.append(`file_${index}`, file);
+
+    formDataToSend.append("files", JSON.stringify(fileInfos));
+
+    formDataToSend.forEach((value, key) => {
+      console.log(`FormData Key After: ${key}, Value: ${value}`);
     });
 
     try {
-      const response = await fetch("/api/order", {
+      const response = await fetch("/api/orders", {
         method: "POST",
         body: formDataToSend,
       });
 
       if (response.ok) {
         const data = await response.json();
-
-        setError(null);
+        toast(`Order submitted successfully!`);
+        setError(null); // Clear any previous errors
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Could not submit order");
+        toast(
+          `Error submitting order: ${
+            errorData.message || "Could not submit order"
+          }`
+        );
+        setError(errorData.error);
       }
     } catch (error) {
-      alert("An error occurred. Please try again.");
+      toast("An error occurred. Please try again.");
     }
-
-    // Reset form data and files after submission
-    setFormData({
-      firstName: "",
-      lastName: "",
-      companyName: "",
-      email: "",
-      phone: "",
-      projectDescription: "",
-      budget: "",
-      timeline: "",
-      projectFiles: "",
-    });
-    setFiles([]);
-    setFilePreviews([]);
   };
 
   const handleInputChange = (
@@ -141,6 +189,7 @@ export default function OrderPage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
+    console.log("Input changed:", e.target.name, e.target.value);
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -152,12 +201,10 @@ export default function OrderPage() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setFilePreviews((prev) => prev.filter((_, i) => i !== index));
   };
-  const getSelectedService = () => {
-    return orders.find((service) => service.title === selectedService);
-  };
 
   return (
     <main>
+      <ToastContainer />
       <Navbar />
       <section className="order-section">
         <div className="container">
@@ -170,26 +217,30 @@ export default function OrderPage() {
             <div className="service-selection">
               <h2>Select a Service</h2>
               <div className="service-options">
-                {orders.map((service, index) => (
+                {productCategories.map((product, index) => (
                   <div
                     key={index}
                     className={`service-option ${
-                      selectedService === service.title ? "selected" : ""
+                      selectedService === product.category_name
+                        ? "selected"
+                        : ""
                     }`}
                     onClick={() => {
-                      setSelectedService(service.title);
+                      setSelectedService(product.category_name);
                       window.history.pushState(
                         null,
                         "",
-                        `/order?service=${encodeURIComponent(service.title)}`
+                        `/order?service=${encodeURIComponent(
+                          product.category_name
+                        )}`
                       );
                     }}
                   >
-                    <div className="service-option-icon">{service.icon}</div>
-                    <h3>{service.title}</h3>
-                    <p>{service.description}</p>
+                    <div className="service-option-icon">{icons[index]}</div>
+                    <h3>{product.category_name}</h3>
+                    <p>{product.category_description}</p>
                     <div className="accepted-files">
-                      <small>Accepted files: {service.acceptedFiles}</small>
+                      <small>Accepted files: {product.accepted_files}</small>
                     </div>
                   </div>
                 ))}
@@ -201,8 +252,8 @@ export default function OrderPage() {
                 <label htmlFor="name">First Name</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
+                  id="firstName"
+                  name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
                   required
@@ -212,8 +263,8 @@ export default function OrderPage() {
                 <label htmlFor="name">Last Name</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
+                  id="lastName"
+                  name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
@@ -223,8 +274,8 @@ export default function OrderPage() {
                 <label htmlFor="name">Company Name</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
+                  id="companyName"
+                  name="companyName"
                   value={formData.companyName}
                   onChange={handleInputChange}
                   required
@@ -266,9 +317,9 @@ export default function OrderPage() {
                   disabled={!selectedService}
                 >
                   <option value="">Select a budget range</option>
-                  {getSelectedService()?.budgetRanges.map((range, index) => (
-                    <option key={index} value={range.value}>
-                      {range.label}
+                  {getSelectedService()?.budget_ranges.map((range, index) => (
+                    <option key={index} value={range.range_value}>
+                      {range.range_label}
                     </option>
                   ))}
                 </select>
@@ -286,17 +337,17 @@ export default function OrderPage() {
                 >
                   <option value="">Select a timeline</option>
                   {getSelectedService()?.timelines.map((timeline, index) => (
-                    <option key={index} value={timeline.value}>
-                      {timeline.label}
+                    <option key={index} value={timeline.timeline_value}>
+                      {timeline.timeline_label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="projectDetails">Project Description</label>
+                <label htmlFor="projectDescription">Project Description</label>
                 <textarea
-                  id="projectDetails"
-                  name="projectDetails"
+                  id="projectDescription"
+                  name="projectDescription"
                   value={formData.projectDescription}
                   onChange={handleInputChange}
                   required
@@ -310,7 +361,7 @@ export default function OrderPage() {
                     type="file"
                     multiple
                     onChange={handleFileUpload}
-                    accept={getSelectedService()?.acceptedFiles}
+                    accept={getSelectedService()?.accepted_files}
                     className="file-input"
                     disabled={!selectedService}
                   />
@@ -318,11 +369,15 @@ export default function OrderPage() {
                     <span className="upload-icon">📁</span>
                     <p>Drag and drop files here or click to browse</p>
                     <small>
-                      Accepted formats: {getSelectedService()?.acceptedFiles}
+                      Accepted formats: {getSelectedService()?.accepted_files}
                     </small>
                   </div>
                 </div>
-
+                {files.length > 0 && (
+                  <div className="uploading-indicator">
+                    <span>Uploading files...</span>
+                  </div>
+                )}
                 {files.length > 0 && (
                   <div className="uploaded-files">
                     <h4>Uploaded Files:</h4>
