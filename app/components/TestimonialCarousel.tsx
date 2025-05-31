@@ -16,7 +16,7 @@ export default function TestimonialCarousel() {
       const timer = setInterval(() => {
         setDirection(1);
         setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-      }, 1000);
+      }, 15000);
       return () => clearInterval(timer);
     }
   }, []);
