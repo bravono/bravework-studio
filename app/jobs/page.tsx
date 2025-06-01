@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
+import Link from "next/link";
+import Progress from "../components/Progress";
 
 interface JobApplication {
   role: string;
@@ -31,6 +32,7 @@ export default function JobsPage() {
     file: "",
   });
 
+  const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
@@ -41,13 +43,55 @@ export default function JobsPage() {
     fileUrl: string;
   } | null>(null);
 
-
-  
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus("idle");
+
+    // Prepare file upload if a file is selected
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const blobDataRaw = await response.json();
+          const blobData = {
+            url: blobDataRaw.url,
+            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+            size: blobDataRaw.size || file.size,
+          };
+
+          setFileInfo({
+            fileName: file.name,
+            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+            fileUrl: blobData.url,
+          });
+          setApplication((prev) => ({
+            ...prev,
+            file: JSON.stringify({
+              fileName: file.name,
+              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+              fileUrl: blobData.url,
+            }),
+          }));
+
+          toast(`File ${file.name} uploaded successfully!`);
+        } else {
+          const errorData = await response.json();
+          toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
+          setSubmitStatus("error");
+        }
+      } catch (err) {
+        toast("Error uploading file:", err);
+        setSubmitStatus("error");
+      }
+    }
 
     const formDataToSend = new FormData();
 
@@ -55,11 +99,6 @@ export default function JobsPage() {
     entries.slice(0, -1).forEach(([key, value]) => {
       formDataToSend.append(key, value);
     });
-
-
-    formDataToSend.forEach((value, key) => {
-      console.log(`FormDataToSend key: ${key}, value: ${value}`)
-    })
 
     try {
       const response = await fetch("/api/jobs", {
@@ -88,69 +127,24 @@ export default function JobsPage() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    const selectedFile =
+      e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    setFile(selectedFile);
 
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      formData.forEach((value, key) => {
-      console.log(`FormDataToSend key: ${key}, value: ${value}`)
-    })
-
-      try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (response.ok) {
-          const blobDataRaw = await response.json();
-          const blobData = {
-            url: blobDataRaw.url,
-            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
-            size: blobDataRaw.size || file.size,
-          };
-
-            setFileInfo({
-            fileName: file.name,
-            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-            fileUrl: blobData.url,
-            });
-            setApplication((prev) => ({
-              ...prev,
-              file: JSON.stringify({
-              fileName: file.name,
-              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-              fileUrl: blobData.url,
-              }),
-            }));
-
-
-          toast(`File ${file.name} uploaded successfully!`);
-        } else {
-          const errorData = await response.json();
-          toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
-          setSubmitStatus("error");
-        }
-      } catch (err) {
-        toast("Error uploading file:", err);
-        setSubmitStatus("error");
-      }
-    }
+    if (!selectedFile) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target && typeof event.target.result === "string") {
         setFileInfo({
-          fileName: file.name,
-          fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+          fileName: selectedFile.name,
+          fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
           fileUrl: event.target.result,
         });
-        toast(`Preview ready for ${file.name}`);
+        toast(`Preview ready for ${selectedFile.name}`);
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(selectedFile);
   };
 
   return (
@@ -385,7 +379,17 @@ export default function JobsPage() {
                 </div>
               </div>
             </div>
-
+            {file && isSubmitting && !fileInfo ? (
+              <div className="uploading-indicator">
+                <span>Uploading file...</span>
+                <Progress value={0} />
+              </div>
+            ) : file && isSubmitting && fileInfo ? (
+              <div className="uploading-indicator">
+                <span>File Uploaded</span>
+                <Progress value={100} />
+              </div>
+            ) : null}
             <div className="form-group">
               <label htmlFor="message">Cover Letter</label>
               <textarea

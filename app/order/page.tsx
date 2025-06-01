@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
 import { toast, ToastContainer } from "react-toastify";
+import Navbar from "../components/Navbar";
+import Progress from "../components/Progress";
 
 export default function OrderPage() {
   const [submitStatus, setSubmitStatus] = useState<
@@ -48,6 +49,11 @@ export default function OrderPage() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    console.log("File Infos:", fileInfos);
+    console.log("Files:", files);
+  }, [files, fileInfos]);
+
   const getSelectedService = () => {
     return productCategories.find(
       (product) => product.category_name === selectedService
@@ -82,7 +88,14 @@ export default function OrderPage() {
       };
       reader.readAsDataURL(file);
     });
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+
+    // Upload files first
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const formData = new FormData();
@@ -112,9 +125,7 @@ export default function OrderPage() {
           toast(`File ${file.name} uploaded successfully!`);
         } else {
           const errorData = await response.json();
-          errors.push(
-            `Error uploading ${file.name}: ${errorData.error || "Failed"}`
-          );
+
           toast(
             `Error uploading ${file.name}: ${
               errorData.error.message || "Failed"
@@ -123,23 +134,12 @@ export default function OrderPage() {
           setSubmitStatus("error");
         }
       } catch (err: any) {
-        errors.push(
-          `Network error uploading ${file.name}: ${err.message || "Unknown"}`
-        );
         toast(
           `Network error uploading ${file.name}: ${err.message || "Unknown"}`
         );
         setSubmitStatus("error");
       }
     }
-
-    setError(errors.length > 0 ? errors.join(", ") : null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
 
     const formDataToSend = new FormData();
 
@@ -157,32 +157,32 @@ export default function OrderPage() {
 
     formDataToSend.append("files", JSON.stringify(fileInfos));
 
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        body: formDataToSend,
-      });
+      try {
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          body: formDataToSend,
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        toast(`Order submitted successfully!`);
-        setSubmitStatus("success");
-        setError(null); // Clear any previous errors
-      } else {
-        const errorData = await response.json();
-        toast(
-          `Error submitting order: ${
-            errorData.message || "Could not submit order"
-          }`
-        );
-        setError(errorData.error);
-        setSubmitStatus("error");
+        if (response.ok) {
+          const data = await response.json();
+          toast(`Order submitted successfully!`);
+          setSubmitStatus("success");
+          setError(null); // Clear any previous errors
+        } else {
+          const errorData = await response.json();
+          toast(
+            `Error submitting order: ${
+              errorData.message || "Could not submit order"
+            }`
+          );
+          setError(errorData.error);
+          setSubmitStatus("error");
+        }
+      } catch (error) {
+        toast("An error occurred. Please try again.");
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      toast("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleInputChange = (
@@ -374,14 +374,28 @@ export default function OrderPage() {
                     </small>
                   </div>
                 </div>
-                {files.length > 0 && (
+                {files.length > 0 &&
+                isSubmitting &&
+                files.length > fileInfos.length ? (
                   <div className="uploading-indicator">
                     <span>Uploading files...</span>
+                    <Progress
+                      value={Math.round(
+                        (fileInfos.length / files.length) * 100
+                      )}
+                    />
                   </div>
-                )}
+                ) : files.length > 0 &&
+                  isSubmitting &&
+                  files.length === fileInfos.length ? (
+                  <div className="uploading-indicator">
+                    <span>File Uploaded</span>
+                    <Progress value={100} />
+                  </div>
+                ) : null}
                 {files.length > 0 && (
                   <div className="uploaded-files">
-                    <h4>Uploaded Files:</h4>
+                    <h4>Files To Upload:</h4>
                     <div className="file-list">
                       {files.map((file, index) => (
                         <div key={index} className="file-item">
@@ -405,21 +419,21 @@ export default function OrderPage() {
 
               <button
                 type="submit"
-                className="submit-order-btn"
+                className="submit-button"
                 disabled={!selectedService || isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : " Submit Order"}
               </button>
               {submitStatus === "success" && (
                 <div className="success-message">
-                  Thank you for your application! We'll review it and get back
-                  to you soon.
+                  Thank you for your order! We'll review it and get back
+                  to you via email.
                 </div>
               )}
 
               {submitStatus === "error" && (
                 <div className="error-message">
-                  There was an error submitting your application. Please try
+                  There was an error submitting your order. Please try
                   again.
                 </div>
               )}
