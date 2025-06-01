@@ -5,8 +5,11 @@ import Navbar from "../components/Navbar";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function OrderPage() {
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState("");
-  const [uploadUrls, setUploadUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -41,11 +44,9 @@ export default function OrderPage() {
       const response = await fetch("/api/categories");
       const categories = await response.json();
       setProductCategories(categories);
-      const ids = [];
     };
     fetchCategories();
   }, []);
-
 
   const getSelectedService = () => {
     return productCategories.find(
@@ -108,7 +109,6 @@ export default function OrderPage() {
               fileSize: String(blobData.size),
             },
           ]);
-          setUploadUrls((prev) => [...prev, blobData.url]);
           toast(`File ${file.name} uploaded successfully!`);
         } else {
           const errorData = await response.json();
@@ -120,6 +120,7 @@ export default function OrderPage() {
               errorData.error.message || "Failed"
             }`
           );
+          setSubmitStatus("error");
         }
       } catch (err: any) {
         errors.push(
@@ -128,6 +129,7 @@ export default function OrderPage() {
         toast(
           `Network error uploading ${file.name}: ${err.message || "Unknown"}`
         );
+        setSubmitStatus("error");
       }
     }
 
@@ -136,11 +138,10 @@ export default function OrderPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
 
     const formDataToSend = new FormData();
-    formDataToSend.forEach((value, key) => {
-      console.log(`FormData Key Before: ${key}, Value: ${value}`);
-    });
 
     // We need the Id of the selected service not name
     const selectedServiceData = productCategories.find(
@@ -156,10 +157,6 @@ export default function OrderPage() {
 
     formDataToSend.append("files", JSON.stringify(fileInfos));
 
-    formDataToSend.forEach((value, key) => {
-      console.log(`FormData Key After: ${key}, Value: ${value}`);
-    });
-
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -169,6 +166,7 @@ export default function OrderPage() {
       if (response.ok) {
         const data = await response.json();
         toast(`Order submitted successfully!`);
+        setSubmitStatus("success");
         setError(null); // Clear any previous errors
       } else {
         const errorData = await response.json();
@@ -178,9 +176,12 @@ export default function OrderPage() {
           }`
         );
         setError(errorData.error);
+        setSubmitStatus("error");
       }
     } catch (error) {
       toast("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -405,10 +406,23 @@ export default function OrderPage() {
               <button
                 type="submit"
                 className="submit-order-btn"
-                disabled={!selectedService}
+                disabled={!selectedService || isSubmitting}
               >
-                Submit Order
+                {isSubmitting ? "Submitting..." : " Submit Order"}
               </button>
+              {submitStatus === "success" && (
+                <div className="success-message">
+                  Thank you for your application! We'll review it and get back
+                  to you soon.
+                </div>
+              )}
+
+              {submitStatus === "error" && (
+                <div className="error-message">
+                  There was an error submitting your application. Please try
+                  again.
+                </div>
+              )}
             </form>
           </div>
         </div>
