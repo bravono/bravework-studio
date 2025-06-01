@@ -6,7 +6,9 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
 import { Suspense } from "react";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
