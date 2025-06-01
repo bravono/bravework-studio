@@ -1,71 +1,177 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { toast, ToastContainer } from "react-toastify";
 
 interface JobApplication {
   role: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   portfolio: string;
   experience: string;
   availability: string;
   message: string;
-  resume: File | null;
+  file: string;
 }
 
 export default function JobsPage() {
   const [application, setApplication] = useState<JobApplication>({
-    role: '',
-    name: '',
-    email: '',
-    phone: '',
-    portfolio: '',
-    experience: '',
-    availability: '',
-    message: '',
-    resume: null
+    role: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    portfolio: "",
+    experience: "",
+    availability: "",
+    message: "",
+    file: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const [fileInfo, setFileInfo] = useState<{
+    fileName: string;
+    fileSize: string;
+    fileUrl: string;
+  } | null>(null);
+
+
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitStatus('idle');
+    setSubmitStatus("idle");
+
+    const formDataToSend = new FormData();
+
+    const entries = Object.entries(application);
+    entries.slice(0, -1).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+
+
+    formDataToSend.forEach((value, key) => {
+      console.log(`FormDataToSend key: ${key}, value: ${value}`)
+    })
 
     try {
-      // Here you would typically send the application to your backend
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      setSubmitStatus('success');
+      const response = await fetch("/api/jobs", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast(`Application submitted successfully!`);
+        setSubmitStatus("success");
+      } else {
+        const errorData = await response.json();
+        toast(
+          `Error submitting application: ${
+            errorData.message || "Could not submit application"
+          }`
+        );
+        setSubmitStatus("error");
+      }
     } catch (error) {
-      setSubmitStatus('error');
+      toast(`An error occurred: ${error.message || "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setApplication(prev => ({ ...prev, resume: e.target.files![0] }));
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      formData.forEach((value, key) => {
+      console.log(`FormDataToSend key: ${key}, value: ${value}`)
+    })
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const blobDataRaw = await response.json();
+          const blobData = {
+            url: blobDataRaw.url,
+            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+            size: blobDataRaw.size || file.size,
+          };
+
+            setFileInfo({
+            fileName: file.name,
+            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+            fileUrl: blobData.url,
+            });
+            setApplication((prev) => ({
+              ...prev,
+              file: JSON.stringify({
+              fileName: file.name,
+              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+              fileUrl: blobData.url,
+              }),
+            }));
+
+
+          toast(`File ${file.name} uploaded successfully!`);
+        } else {
+          const errorData = await response.json();
+          toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
+          setSubmitStatus("error");
+        }
+      } catch (err) {
+        toast("Error uploading file:", err);
+        setSubmitStatus("error");
+      }
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target && typeof event.target.result === "string") {
+        setFileInfo({
+          fileName: file.name,
+          fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+          fileUrl: event.target.result,
+        });
+        toast(`Preview ready for ${file.name}`);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
     <div className="jobs-page">
+      <ToastContainer />
       <div className="container">
         <div className="page-header">
           <h1>Join Our Team</h1>
-          <p>We're always looking for talented professionals to join our creative team</p>
+          <p>
+            We're always looking for talented professionals to join our creative
+            team
+          </p>
         </div>
 
         <div className="roles-grid">
           <div className="role-card">
             <div className="role-icon">💻</div>
             <h3>Web Developer</h3>
-            <p>Join us in creating cutting-edge web applications and experiences</p>
+            <p>
+              Join us in creating cutting-edge web applications and experiences
+            </p>
             <ul>
               <li>React/Next.js expertise</li>
               <li>TypeScript proficiency</li>
@@ -119,11 +225,17 @@ export default function JobsPage() {
               <select
                 id="role"
                 value={application.role}
-                onChange={(e) => setApplication(prev => ({ ...prev, role: e.target.value }))}
+                onChange={(e) =>
+                  setApplication((prev) => ({ ...prev, role: e.target.value }))
+                }
                 required
               >
                 <option value="">Select a role</option>
-                <option value="web-developer">Web Developer</option>
+                <option value="frontend-developer">Frontend Developer</option>
+                <option value="backend-developer">Backend Developer</option>
+                <option value="full-stack-developer">
+                  Full Stack Developer
+                </option>
                 <option value="ui-ux-designer">UI/UX Designer</option>
                 <option value="3d-artist">3D Artist</option>
                 <option value="game-developer">Game Developer</option>
@@ -132,12 +244,32 @@ export default function JobsPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="name">Full Name</label>
+                <label htmlFor="firstName">First Name</label>
                 <input
                   type="text"
-                  id="name"
-                  value={application.name}
-                  onChange={(e) => setApplication(prev => ({ ...prev, name: e.target.value }))}
+                  id="firstName"
+                  value={application.firstName}
+                  onChange={(e) =>
+                    setApplication((prev) => ({
+                      ...prev,
+                      firstName: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={application.lastName}
+                  onChange={(e) =>
+                    setApplication((prev) => ({
+                      ...prev,
+                      lastName: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -148,7 +280,12 @@ export default function JobsPage() {
                   type="email"
                   id="email"
                   value={application.email}
-                  onChange={(e) => setApplication(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) =>
+                    setApplication((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -161,7 +298,12 @@ export default function JobsPage() {
                   type="tel"
                   id="phone"
                   value={application.phone}
-                  onChange={(e) => setApplication(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setApplication((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -172,7 +314,12 @@ export default function JobsPage() {
                   type="url"
                   id="portfolio"
                   value={application.portfolio}
-                  onChange={(e) => setApplication(prev => ({ ...prev, portfolio: e.target.value }))}
+                  onChange={(e) =>
+                    setApplication((prev) => ({
+                      ...prev,
+                      portfolio: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -183,7 +330,12 @@ export default function JobsPage() {
               <select
                 id="experience"
                 value={application.experience}
-                onChange={(e) => setApplication(prev => ({ ...prev, experience: e.target.value }))}
+                onChange={(e) =>
+                  setApplication((prev) => ({
+                    ...prev,
+                    experience: e.target.value,
+                  }))
+                }
                 required
               >
                 <option value="">Select experience level</option>
@@ -199,7 +351,12 @@ export default function JobsPage() {
               <select
                 id="availability"
                 value={application.availability}
-                onChange={(e) => setApplication(prev => ({ ...prev, availability: e.target.value }))}
+                onChange={(e) =>
+                  setApplication((prev) => ({
+                    ...prev,
+                    availability: e.target.value,
+                  }))
+                }
                 required
               >
                 <option value="">Select availability</option>
@@ -234,7 +391,12 @@ export default function JobsPage() {
               <textarea
                 id="message"
                 value={application.message}
-                onChange={(e) => setApplication(prev => ({ ...prev, message: e.target.value }))}
+                onChange={(e) =>
+                  setApplication((prev) => ({
+                    ...prev,
+                    message: e.target.value,
+                  }))
+                }
                 rows={5}
                 required
               />
@@ -246,19 +408,21 @@ export default function JobsPage() {
                 className="submit-button"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {isSubmitting ? "Submitting..." : "Submit Application"}
               </button>
             </div>
 
-            {submitStatus === 'success' && (
+            {submitStatus === "success" && (
               <div className="success-message">
-                Thank you for your application! We'll review it and get back to you soon.
+                Thank you for your application! We'll review it and get back to
+                you soon.
               </div>
             )}
 
-            {submitStatus === 'error' && (
+            {submitStatus === "error" && (
               <div className="error-message">
-                There was an error submitting your application. Please try again.
+                There was an error submitting your application. Please try
+                again.
               </div>
             )}
           </form>
@@ -266,4 +430,4 @@ export default function JobsPage() {
       </div>
     </div>
   );
-} 
+}
