@@ -1,6 +1,6 @@
 interface Testimonial {
   id: number;
-  image: string;
+  avatar: string;
   heading: string;
   body: string;
   companyName: string;
@@ -53,29 +53,10 @@ interface Project {
   status: "active" | "done" | "pending";
 }
 
-interface BudgetRanges {
-  value: string;
-  label: string;
-}
-
-interface Timelines {
-  value: string;
-  label: string;
-}
-
-interface Order {
-  title: string;
-  description: string;
-  icon: string;
-  acceptedFiles: string;
-  budgetRanges: BudgetRanges[];
-  timelines: Timelines[];
-}
-
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Hans.jpg",
     heading: "What made you choose to work with us?",
     body: "I chose to work with Bravework Studio because of his impressive portfolio and expertise in 3D modeling and game development. I first found him in 2020 on Guru.com when I needed training services in Blender for an employee. His professionalism and deep knowledge made a lasting impression, so I continued working with him on multiple projects. His ability to bring historical elements to life in Unreal Engine 5, such as the Eschenheimer Tor and the Irminsul for my game Die Franken, showcased his exceptional talent and attention to detail.",
     companyName: "Visual Stirytelling GmbH",
@@ -83,7 +64,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 2,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Hans.jpg",
     heading: "What was your favorite part of working with us?",
     body: "My favorite part of working with Bravework Studio was his outstanding ability to transform historical concepts into stunning 3D models with incredible accuracy and detail. Whether it was the Eschenheimer Tor for my Wilddieb Hans Winkelsee video or the Irminsul and Saxony battle map for my game Die Franken, he consistently exceeded my expectations. His professionalism, creativity, and deep understanding of Unreal Engine 5 made every collaboration smooth and enjoyable. I also appreciated his clear communication and dedication to delivering top-quality work on time.",
     companyName: "Visual Stirytelling GmbH",
@@ -91,7 +72,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 3,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Hans.jpg",
     heading: "How did working with us impact your business/life?",
     body: "Working with Bravework Studio had a significant impact on my projects, helping me bring historical accuracy and immersive realism to my work. His expertise in 3D modeling and Unreal Engine 5 allowed me to enhance my video content and improve the visual quality of my game Die Franken. The Eschenheimer Tor added historical depth to my video about Wilddieb Hans Winkelsee, while the Irminsul and Saxony battle map elevated the authenticity of my game. His contributions not only saved me time but also ensured that I could deliver a higher-quality experience to my audience. Collaborating with Bravework Studio was an investment that truly paid off!",
     companyName: "Visual Stirytelling GmbH",
@@ -99,7 +80,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 4,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Hans.jpg",
     heading: "Would you recommend us to others? Why or why not?",
     body: 'Absolutely! I would highly recommend Bravework Studio to anyone in need of "high-quality 3D modeling, Unreal Engine assets, or game development services". His attention to detail, deep understanding of historical accuracy, and technical expertise make him a standout professional. Whether it was training in Blender, creating the "Eschenheimer Tor" for my video, or designing the "Irminsul" and "Saxony battle map" for my game *Die Franken*, he consistently delivered "exceptional results on time". His professionalism, clear communication, and dedication to quality make him a fantastic partner for any project. I would work with him again in a heartbeat!',
     companyName: "Visual Stirytelling GmbH",
@@ -107,7 +88,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 5,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Bravework_Studio-Logo-Color.png",
     heading: "What made you choose to work with us?",
     body: "Was sort of a shot in the dark.  The price was good and worth the risk of working with someone I didn't know",
     companyName: "Parker Van Lawrence",
@@ -115,7 +96,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 6,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Bravework_Studio-Logo-Color.png",
     heading: "What was your favorite part of working with us?",
     body: "Your should superhuman levels of patience.",
     companyName: "Parker Van Lawrence",
@@ -123,7 +104,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 7,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Bravework_Studio-Logo-Color.png",
     heading: "How did working with us impact your business/life?",
     body: "It has completely changed my son's life and launched him into a profession 10 years earlier than he could have otherwise hoped.",
     companyName: "Parker Van Lawrence",
@@ -131,7 +112,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 8,
-    image: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: "/assets/Bravework_Studio-Logo-Color.png",
     heading: "Would you recommend us to others? Why or why not?",
     body: "I frequently do.",
     companyName: "Parker Van Lawrence",
@@ -694,98 +675,4 @@ const projects: Project[] = [
   },
 ];
 
-const orders: Order[] = [
-  {
-    title: "3D Modeling & Animation",
-    description:
-      "Professional 3D modeling, animation, and visualization services for your projects.",
-    icon: "🎨",
-    acceptedFiles: ".fbx,.obj,.blend,.3ds,.max,.dae,.glb,.stl",
-    budgetRanges: [
-      { value: "500-1000", label: "$500 - $1,000" },
-      { value: "1000-2000", label: "$1,000 - $2,000" },
-      { value: "2000-3000", label: "$2,000 - $3,000" },
-      { value: "3000+", label: "$3000+" },
-    ],
-    timelines: [
-      { value: "1-2months", label: "1-2 months" },
-      { value: "2-3months", label: "2-3 months" },
-      { value: "3-6months", label: "3-6 months" },
-    ],
-  },
-  {
-    title: "Web Development",
-    description:
-      "Custom web applications and websites built with modern technologies.",
-    icon: "🌐",
-    acceptedFiles: ".zip,.rar,.pdf,.doc,.docx,.txt.,ai,.psd,.fig,.png,.jpg",
-    budgetRanges: [
-      { value: "200-500", label: "$200 - $500" },
-      { value: "500-1000", label: "$500 - $1000" },
-      { value: "1000-3000", label: "$1000 - $3000" },
-      { value: "3000+", label: "$3000+" },
-    ],
-    timelines: [
-      { value: "2-4weeks", label: "2-4 weeks" },
-      { value: "1-2months", label: "1-2 months" },
-      { value: "2-4months", label: "2-4 months" },
-      { value: "4months+", label: "4 months+" },
-    ],
-  },
-  {
-    title: "UI/UX Design",
-    description: "User-centered design solutions that enhance user experience.",
-    icon: "✨",
-    acceptedFiles: ".psd,.ai,.sketch,.fig,.xd,.pdf,.png,.jpg",
-    budgetRanges: [
-      { value: "100-500", label: "$100 - $500" },
-      { value: "500-1000", label: "$500 - $1000" },
-      { value: "1000-2000", label: "$1000 - $2000" },
-      { value: "2000+", label: "$2000+" },
-    ],
-    timelines: [
-      { value: "2-4weeks", label: "2-4 weeks" },
-      { value: "1-2months", label: "1-2 months" },
-      { value: "2-4months", label: "2-4 months" },
-      { value: "4months+", label: "4 months+" },
-    ],
-  },
-  {
-    title: "Game Development",
-    description: "Engaging game development services for various platforms.",
-    icon: "🎮",
-    acceptedFiles: ".unity,.uproject,.fbx,.obj,.blend,.pdf,.zip,.rar,.docx",
-    budgetRanges: [
-      { value: "1000-2000", label: "$1,000 - $2,000" },
-      { value: "2000-4000", label: "$2000 - $4000" },
-      { value: "4000-8000", label: "$4000 - $8000" },
-      { value: "8000+", label: "$8000+" },
-    ],
-    timelines: [
-      { value: "3-6months", label: "3-6 months" },
-      { value: "6-12months", label: "6-12 months" },
-      { value: "12months+", label: "12 months+" },
-    ],
-  },
-  {
-    title: "Voice-Over Services",
-    description:
-      "Professional voice-over services for your videos, games, and multimedia projects.",
-    icon: "🎙️",
-    acceptedFiles: ".mp3,.wav,.ogg,.aac,.m4a,.pdf,.docx,.txt,.png,.jpg",
-    budgetRanges: [
-      { value: "20-50", label: "$20 - $50" },
-      { value: "50-100", label: "$50 - $100" },
-      { value: "100-500", label: "$100 - $500" },
-      { value: "500+", label: "$500+" },
-    ],
-    timelines: [
-      { value: "1-2days", label: "1-2 days" },
-      { value: "2-5days", label: "2-5 days" },
-      { value: "5-10days", label: "5-10 days" },
-      { value: "10days+", label: "10 days+" },
-    ],
-  },
-];
-
-export { testimonials, portfolios, services, projects, orders };
+export { testimonials, portfolios, services, projects };

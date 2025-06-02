@@ -84,11 +84,11 @@ export default function TestimonialCarousel() {
             >
               <div className="testimonial-image">
                 <Image
-                  src={testimonials[currentIndex].image}
+                  src={testimonials[currentIndex].avatar}
                   alt={testimonials[currentIndex].heading}
                   width={120}
                   height={120}
-                  style={{ objectFit: "cover", borderRadius: "50%" }}
+                  style={{ objectFit: "cover" }}
                 />
               </div>
               <div className="testimonial-content">
@@ -104,7 +104,10 @@ export default function TestimonialCarousel() {
                     {testimonials[currentIndex].email}
                   </span>
                 </div>
-                <a href="/testimonials" className="read-more">
+                <a
+                  href={`/testimonial/${testimonials[currentIndex].id}`}
+                  className="read-more"
+                >
                   Read Their Story
                 </a>
               </div>
