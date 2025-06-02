@@ -85,6 +85,11 @@ export default function Home() {
       </section>
       {/* Testimonials Section */}
       <TestimonialCarousel />
+      <div className="hero-buttons">
+        <a href="/order" className="hero-cta">
+          Get Started
+        </a>
+      </div>
     </main>
   );
 }

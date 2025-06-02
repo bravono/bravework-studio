@@ -218,6 +218,12 @@ main {
   opacity: 0.9;
 }
 
+.hero-buttons {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
 .hero-cta {
   display: inline-block;
   padding: 1rem 2rem;
@@ -666,8 +672,6 @@ main {
 
 .testimonial-image {
   margin-bottom: 1.5rem;
-  border: 3px solid var(--primary-color);
-  border-radius: 50%;
   padding: 0.5rem;
 }
 
