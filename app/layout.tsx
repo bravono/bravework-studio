@@ -9,7 +9,6 @@ import { Suspense } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -62,6 +61,36 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
+        {/* SEO Schema.org JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Bravework Studio",
+              url: "https://braveworkstudio.com",
+              logo: "https://braveworkstudio.com/Bravework_Studio-Logo-Color.png",
+              description:
+                "We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless web development.",
+              sameAs: [
+                "https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL",
+                "https://www.instagram.com/https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4",
+                "https://www.linkedin.com/https://www.linkedin.com/in/ahbideen-yusuf-74a232179",
+              ],
+              contactPoint: [
+                {
+                  "@type": "ContactPoint",
+                  whatsapp: "+234-902-322-4596",
+                  contactType: "customer service",
+                  areaServed: "Worldwide",
+                  availableLanguage: ["English"],
+                },
+              ],
+            }),
+          }}
+        />
+        {/* End SEO Schema.org JSON-LD */}
       </head>
       <body className={inter.className}>
         {/* Google Tag Manager (noscript) (immediately after body tag) */}
