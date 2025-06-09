@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: "/DOF0160.png",
+        url: "/assets/DOF0160.png",
         width: 800,
         height: 600,
         alt: "Bravework Studio Logo",
