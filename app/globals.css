@@ -1420,6 +1420,7 @@ main {
   min-height: 100vh;
   background-color: #f8f9fa;
   padding: 2rem;
+  margin-top: 50px;
 }
 
 .payment-container {
