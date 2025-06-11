@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react"; // Import Suspense
 import { useSearchParams } from "next/navigation";
-import PaystackPop from "@paystack/inline-js"; // Ensure you have Paystack SDK installed
 import { toast } from "react-toastify";
 
 // Mock exchange rates - replace with actual API calls
@@ -13,7 +12,8 @@ const mockRates = {
   USDC: 1,
 };
 
-export default function PaymentPage() {
+// Create a separate component that uses useSearchParams
+function PaymentContent() {
   const searchParams = useSearchParams();
   const service = searchParams.get("service");
   const amount = searchParams.get("amount");
@@ -24,6 +24,16 @@ export default function PaymentPage() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [cryptoAddress, setCryptoAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [PaystackPop, setPaystackPop] = useState(null); // State to hold the dynamically imported module
+
+  // Effect to dynamically import PaystackPop only on the client
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      import("@paystack/inline-js")
+        .then((module) => setPaystackPop(() => module.default))
+        .catch((error) => console.error("Failed to load PaystackPop:", error));
+    }
+  }, []);
 
   useEffect(() => {
     if (amount) {
@@ -44,6 +54,13 @@ export default function PaymentPage() {
 
     if (!publicKey) {
       toast("Payment gateway not configured. Please contact support.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!PaystackPop) {
+      toast("Payment gateway is still loading. Please try again in a moment.");
+      setIsLoading(false);
       return;
     }
 
@@ -51,7 +68,6 @@ export default function PaymentPage() {
     const handler = new PaystackPop();
 
     try {
-      // Initialize Paystack payment
       handler.newTransaction({
         key: publicKey,
         email: "ahbideeny@gmail.com",
@@ -59,18 +75,18 @@ export default function PaymentPage() {
         currency: "NGN",
         ref: reference,
         callback: function (response: any) {
-          // Handle successful payment
           console.log("Payment successful:", response);
           setIsLoading(false);
+          toast("Payment has been successful");
         },
         onClose: function () {
           setIsLoading(false);
+          toast("Payment window closed.");
         },
       });
-      handler.openIframe();
-      toast("Payment has been successful");
     } catch (error) {
-      toast("Payment error:", error);
+      console.error("Payment error:", error);
+      toast("Payment error: " + (error as Error).message);
       setIsLoading(false);
     }
   };
@@ -78,18 +94,17 @@ export default function PaymentPage() {
   const handleCryptoPayment = async () => {
     setIsLoading(true);
     try {
-      // Generate crypto payment address
       const address = await generateCryptoAddress();
       setCryptoAddress(address);
       setIsLoading(false);
     } catch (error) {
       console.error("Crypto payment error:", error);
+      toast("Crypto payment error: " + (error as Error).message);
       setIsLoading(false);
     }
   };
 
   const generateCryptoAddress = async () => {
-    // Mock function - replace with actual crypto payment gateway integration
     return "0x1234...5678";
   };
 
@@ -159,9 +174,13 @@ export default function PaymentPage() {
               <button
                 className="pay-btn"
                 onClick={handlePaystackPayment}
-                disabled={isLoading}
+                disabled={isLoading || !PaystackPop}
               >
-                {isLoading ? "Processing..." : "Pay with Paystack"}
+                {isLoading
+                  ? "Processing..."
+                  : !PaystackPop
+                  ? "Loading Payment..."
+                  : "Pay with Paystack"}
               </button>
             ) : (
               <div className="crypto-payment">
@@ -187,5 +206,14 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// The main export for the page, wrapped with Suspense
+export default function PaymentPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading payment details...</div>}>
+      <PaymentContent />
+    </Suspense>
   );
 }
