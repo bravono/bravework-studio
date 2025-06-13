@@ -64,7 +64,7 @@ export default function Navbar() {
               Portfolio
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
               href="/projects"
               className={pathname === "/projects" ? "active" : ""}
@@ -72,7 +72,7 @@ export default function Navbar() {
             >
               Project History
             </Link>
-          </li>
+          </li> */}
           <li>
             <Link
               href="/jobs"
