@@ -8,6 +8,12 @@ import { OrbitControls } from "@react-three/drei";
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import ProjectCarousel from "./components/ProjectCarousel";
 import { services } from "./services/localDataService";
+import { Nosifer } from "next/font/google";
+
+const nosifer = Nosifer({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 // Dynamically import the 3D component to avoid SSR issues
 const Hero3DComponent = dynamic(() => import("../components/Hero3D"), {
@@ -33,7 +39,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="hero-title"
+            className={`hero-title ${nosifer.className}`}
           >
             Bravework Studio
           </motion.h1>
@@ -65,7 +71,7 @@ export default function Home() {
       {/* Services Section */}
       <section id="services" className="services-section">
         <div className="container">
-          <h2 className="section-title">Our Services</h2>
+          <h2 className={`section-title ${nosifer.className}`}>Our Services</h2>
           <div className="services-grid">
             {services.map((service, index) => (
               <div key={index} className="service-card">

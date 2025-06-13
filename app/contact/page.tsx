@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
+import { Nosifer } from "next/font/google";
+
+const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -64,7 +67,7 @@ export default function Contact() {
       <Navbar />
       <section className="contact-section">
         <div className="container">
-          <h1 className="section-title">Contact Us</h1>
+          <h1 className={`section-title ${nosifer.className}`}>Contact Us</h1>
           <div className="contact-content">
             <div className="contact-info">
               <h2>Get in Touch</h2>

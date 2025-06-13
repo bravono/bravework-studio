@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import Link from "next/link";
 import Progress from "../components/Progress";
+import { Nosifer } from "next/font/google";
+
+const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
 interface JobApplication {
   role: string;
@@ -152,7 +155,7 @@ export default function JobsPage() {
       <ToastContainer />
       <div className="container">
         <div className="page-header">
-          <h1>Join Our Team</h1>
+          <h1 className={`section-title ${nosifer.className}`}>Join Our Team</h1>
           <p>
             We're always looking for talented professionals to join our creative
             team

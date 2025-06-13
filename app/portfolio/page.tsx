@@ -4,6 +4,9 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import Link from 'next/link';
 import { portfolios } from '../services/localDataService';
+import { Nosifer } from "next/font/google";
+
+const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
 export default function Portfolio() {
   return (
@@ -11,7 +14,7 @@ export default function Portfolio() {
       <Navbar />
       <section className="portfolio-section">
         <div className="container">
-          <h1 className="section-title">Our Portfolio</h1>
+          <h1 className={`section-title ${nosifer.className}`}>Our Portfolio</h1>
           <div className="portfolio-grid">
             {portfolios.map((portfolio) => (
               <Link href={`/portfolio/${portfolio.id}`} key={portfolio.id} className="portfolio-item">

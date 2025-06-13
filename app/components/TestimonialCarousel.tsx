@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "../services/localDataService";
+import { Nosifer } from "next/font/google";
+
+const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
 export default function TestimonialCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,7 +57,7 @@ export default function TestimonialCarousel() {
   return (
     <section className="testimonials-carousel">
       <div className="container">
-        <h2 className="section-title">What Our Clients Say</h2>
+        <h2 className={`section-title ${nosifer.className}`}>What Our Clients Say</h2>
         <div className="carousel-container">
           <AnimatePresence initial={false} custom={direction}>
             <motion.div

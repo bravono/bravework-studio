@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Inter } from "next/font/google";
+import { Inter, Nosifer, DM_Sans } from "next/font/google";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
@@ -9,7 +9,7 @@ import { Suspense } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400"] });
 
 export const metadata: Metadata = {
   title: "Bravework Studio",
@@ -92,7 +92,7 @@ export default function RootLayout({
         />
         {/* End SEO Schema.org JSON-LD */}
       </head>
-      <body className={inter.className}>
+      <body className={dmSans.className}>
         {/* Google Tag Manager (noscript) (immediately after body tag) */}
         {GTM_ID && (
           <noscript
