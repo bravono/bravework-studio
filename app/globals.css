@@ -3035,6 +3035,7 @@ main {
   transition: transform 0.2s ease;
   border: 1px solid var(--primary-dark);
   border-top: none;
+  width: 50%;
 }
 
 .project-card:hover {

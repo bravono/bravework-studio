@@ -53,13 +53,24 @@ export default function ProjectCarousel() {
   return (
     <section className="project-carousel-section">
       <div className="container">
-        <h2 className={`section-title ${nosifer.className}`}>Active Projects</h2>
+        <h2 className={`section-title ${nosifer.className}`}>
+          Active Projects
+        </h2>
         <div className="project-carousel">
           <button className="carousel-arrow prev" onClick={prevProject}>
-            <span className="arrow-icon">←</span>
+            <i className="fa fa-arrow-left arrow-icon" aria-hidden="true"></i>
           </button>
 
-          <div className="project-card">
+            <div
+            className="project-card"
+            key={currentProject.id}
+            style={{
+              transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s cubic-bezier(0.4,0,0.2,1)",
+              transform: "translateX(0)",
+              opacity: 1,
+            }}
+            data-animate
+            >
             <div className="project-counter">
               {currentIndex + 1} of {projects.length}
             </div>
@@ -128,13 +139,13 @@ export default function ProjectCarousel() {
 
             <div className="project-dates">
               <div className="date">
-                <span className="date-label">Start</span>
+                <span className="date-label">Start At</span>
                 <span className="date-value">
                   {formatDate(currentProject.startDate)}
                 </span>
               </div>
               <div className="date">
-                <span className="date-label">End</span>
+                <span className="date-label">End At</span>
                 <span className="date-value">
                   {formatDate(currentProject.endDate)}
                 </span>
@@ -150,7 +161,7 @@ export default function ProjectCarousel() {
           </div>
 
           <button className="carousel-arrow next" onClick={nextProject}>
-            <span className="arrow-icon">→</span>
+            <i className="fa fa-arrow-right arrow-icon" aria-hidden="true"></i>
           </button>
         </div>
       </div>
