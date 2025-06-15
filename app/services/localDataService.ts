@@ -124,7 +124,7 @@ const portfolios: Portfolio[] = [
   {
     id: 1,
     title: "Advertisement",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/rabbit.webp",
     description: "Fun and engaging 3D animation advertisement",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/-7xgbFEkMRY?si=2AD_tXTBDua3nD_C" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -151,7 +151,7 @@ const portfolios: Portfolio[] = [
   {
     id: 2,
     title: "Intro Animation",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/intro_american-football.webp",
     description: "3D intro animation for content creators",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/q0NoYvYiOvc?si=6P-CYKtjhgi8ndYQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -178,7 +178,7 @@ const portfolios: Portfolio[] = [
   {
     id: 3,
     title: "Children Animation",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/if_youre_happy.webp",
     description: "Entertaining animation for children",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/2y9viIBGYk4?si=Wm7_3G9Kzrpkhmxo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -205,7 +205,7 @@ const portfolios: Portfolio[] = [
   {
     id: 5,
     title: "Children Educational Animation",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/abcd_english.webp",
     description: "Engaging animation for children education",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/o5HukmvQD1w?si=fVKDlwNcZFY06VkH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -232,7 +232,7 @@ const portfolios: Portfolio[] = [
   {
     id: 6,
     title: "Game Animation",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/sir_pallinore.webp",
     description:
       "Ready to use animation for your Unity and Unreal Engine games",
@@ -260,7 +260,7 @@ const portfolios: Portfolio[] = [
   {
     id: 7,
     title: "Game Assets",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/aircraft.webp",
     description: "Drag and drop ready made assests for your games",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/QSjkVq0hG5k?si=Sqju0lOxNznTxRAT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -286,7 +286,7 @@ const portfolios: Portfolio[] = [
   {
     id: 8,
     title: "Hummanoid Characters",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/india_man.webp",
     description: "Realistic character design for serious animation",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/kM8qd793-r8?si=FawcbpsByMw6uU9G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -312,7 +312,7 @@ const portfolios: Portfolio[] = [
   {
     id: 9,
     title: "Islamic Educational Animation",
-    category: "3D Services",
+    category: "3D Service",
     image: "services/palestine.webp",
     description: "Religious educational animation for children",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/4-czn9YWKHs?si=O6uN9Mo7Dzl4ZnYi" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -339,7 +339,7 @@ const portfolios: Portfolio[] = [
   {
     id: 10,
     title: "Product Visualization",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/bravono_energy_drink.webp",
     description: "Professional product presentation for attention",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/kM8qd793-r8?si=FawcbpsByMw6uU9G" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -365,7 +365,7 @@ const portfolios: Portfolio[] = [
   {
     id: 11,
     title: "Stylized Characters",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/masquerade_character.webp",
     description: "Imaginary characters for imaginary stories",
     iFrame: ``,
@@ -514,7 +514,7 @@ const portfolios: Portfolio[] = [
   {
     id: 14,
     title: "3D Printing",
-    category: "3D Services",
+    category: "3D Service",
     image: "/services/wall_pattern.webp",
     description: "Realistic 3D visualization of a modern building",
     iFrame: ``,
@@ -540,7 +540,7 @@ const portfolios: Portfolio[] = [
   {
     id: 16,
     title: "Voice Acting",
-    category: "Voice Services",
+    category: "Voice Service",
     image: "/services/mokola_store.webp",
     description: "Voice acting for your games, books, ads and videos",
     iFrame: `<iframe width="100%" height="500" src="https://www.youtube.com/embed/7XQ85fFNZA4?si=0T1UJuvuV1hY-EBP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
@@ -606,16 +606,16 @@ const services: Services[] = [
 const projects: Project[] = [
   {
     id: 1,
-    title: "Backend Integration",
+    title: "Backend Integration (Braveworkstudio.com)",
     owner: "Bravework Studio",
-    budget: "$5000",
+    budget: "$2000",
     category: "Web Development",
     description:
       "Develop a robust backend system for the corporate website to enable key e-commerce functionalities, including user order tracking, automated update notifications, and personalized discounts based on purchase history.",
     todos: [
-      { id: "1", title: "Define backend architecture", completed: false },
+      { id: "1", title: "Define backend architecture", completed: true },
       { id: "2", title: "Implement secure user auth & auth", completed: false },
-      { id: "3", title: "Develop API endpoints", completed: false },
+      { id: "3", title: "Develop API endpoints", completed: true },
       {
         id: "4",
         title: "Implement comprehensive unit tests and integration tests",
@@ -633,29 +633,29 @@ const projects: Project[] = [
   },
   {
     id: 2,
-    title: "Full Stack Development",
+    title: "Full Stack Development (Vidlify)",
     owner: "Bravework Studio",
-    budget: "$5000",
+    budget: "$1000",
     category: "Web Development",
     description:
       "This project focuses on modernizing an existing website by migrating the existing React website to a Next.js framework. This transition will unify the frontend and backend within a single codebase, streamlining maintenance and deployment processes.",
     todos: [
-      { id: "1", title: "Set up New Next.js Project", completed: false },
+      { id: "1", title: "Set up New Next.js Project", completed: true },
       {
         id: "2",
         title: "Migrate Existing React Components to Next.js",
-        completed: false,
+        completed: true,
       },
-      { id: "3", title: "Implement Next.js Routing", completed: false },
+      { id: "3", title: "Implement Next.js Routing", completed: true },
       {
         id: "4",
         title: "Configure Data Fetching (SSR, SSG, CSR)",
-        completed: false,
+        completed: true,
       },
       {
         id: "5",
         title: "Integrate Backend Logic (API Routes or Custom Server)",
-        completed: false,
+        completed: true,
       },
       {
         id: "8",
@@ -667,11 +667,52 @@ const projects: Project[] = [
         title: "Update Documentation with Next.js Specifics",
         completed: true,
       },
-      { id: "10", title: "Deploy the New Next.js Website", completed: false },
+      { id: "10", title: "Deploy the New Next.js Website", completed: true },
     ],
     startDate: "2025-04-30",
     endDate: "2025-05-30",
-    status: "pending",
+    status: "active",
+  },
+  {
+    id: 2,
+    title: "Software Development (FindIt)",
+    owner: "Bravework Studio",
+    budget: "$5000",
+    category: "Web Development",
+    description:
+      "This project is about building an application that connect landlords and tenant together without the need for a middle man that charge outrageous agent fee",
+    todos: [
+      { id: "1", title: "User Management", completed: false },
+      {
+        id: "2",
+        title: "Flat Rentals",
+        completed: false,
+      },
+      { id: "3", title: "Flatmate Finder", completed: false },
+      {
+        id: "4",
+        title: "Used Item Marketplace",
+        completed: false,
+      },
+      {
+        id: "5",
+        title: "Pay To Stay",
+        completed: false,
+      },
+      {
+        id: "8",
+        title: "Travel Companion",
+        completed: false,
+      },
+      {
+        id: "9",
+        title: "Chores",
+        completed: false,
+      },
+    ],
+    startDate: "2025-04-20",
+    endDate: "2025-09-30",
+    status: "active",
   },
 ];
 
