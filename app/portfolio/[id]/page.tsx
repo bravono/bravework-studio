@@ -15,6 +15,7 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
         <div className="container">
           <h1>Project not found</h1>
           <Link href="/portfolio" className="btn-primary">
+            <i className="fa fa-arrow-left arrow-icon" aria-hidden="true"></i>{" "}
             Back to Portfolio
           </Link>
         </div>
@@ -28,7 +29,8 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
       <section className="portfolio-detail-section">
         <div className="container">
           <Link href="/portfolio" className="back-link">
-            ← Back to Portfolio
+            <i className="fa fa-arrow-left arrow-icon" aria-hidden="true"></i>{" "}
+            Back to Portfolio
           </Link>
 
           <div className="portfolio-detail">
@@ -120,7 +122,8 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
             </div>
           </div>
           <Link href="/portfolio" className="back-link">
-            ← Back to Portfolio
+            <i className="fa fa-arrow-left arrow-icon" aria-hidden="true"></i>{" "}
+            Back to Portfolio
           </Link>
         </div>
       </section>
