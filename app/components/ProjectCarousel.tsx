@@ -61,16 +61,17 @@ export default function ProjectCarousel() {
             <i className="fa fa-arrow-left arrow-icon" aria-hidden="true"></i>
           </button>
 
-            <div
+          <div
             className="project-card"
             key={currentProject.id}
             style={{
-              transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s cubic-bezier(0.4,0,0.2,1)",
+              transition:
+                "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s cubic-bezier(0.4,0,0.2,1)",
               transform: "translateX(0)",
               opacity: 1,
             }}
             data-animate
-            >
+          >
             <div className="project-counter">
               {currentIndex + 1} of {projects.length}
             </div>
