@@ -628,7 +628,7 @@ const projects: Project[] = [
       },
     ],
     startDate: "2025-04-15",
-    endDate: "2025-05-15",
+    endDate: "2025-07-15",
     status: "active",
   },
   {
@@ -670,7 +670,7 @@ const projects: Project[] = [
       { id: "10", title: "Deploy the New Next.js Website", completed: true },
     ],
     startDate: "2025-04-30",
-    endDate: "2025-05-30",
+    endDate: "2025-06-30",
     status: "active",
   },
   {
