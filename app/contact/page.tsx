@@ -22,32 +22,15 @@ export default function Contact() {
       formDataToSend.append(key, value);
     });
 
-    fetch("https://formspree.io/f/mldjyabg", {
-      method: "POST",
-      body: formDataToSend,
-      headers: {
-        Accept: "application/json",
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          alert(
-            "We have received your message! We will get back to in less than 24 hours."
-          );
-        } else {
-          alert("Failed to submit the order. Please try again.");
-        }
-      })
-      .catch(() => {
-        alert("An error occurred. Please try again.");
+    try {
+      fetch("https://formspree.io/f/mldjyabg", {
+        method: "POST",
+        body: formDataToSend,
+        headers: {
+          Accept: "application/json",
+        },
       });
-
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    } catch (err) {}
   };
 
   const handleChange = (

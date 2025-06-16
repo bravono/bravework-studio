@@ -127,6 +127,47 @@ export default function JobsPage() {
     } finally {
       setIsSubmitting(false);
     }
+
+    try {
+      const formspreeData = {
+        role: application.role,
+        firstName: application.firstName,
+        lastName: application.lastName,
+        email: application.email,
+        phone: application.phone,
+        portfolio: application.portfolio,
+        experience: application.experience,
+        availability: application.availability,
+        message: application.message,
+        // Do not include file
+      };
+
+      await fetch("https://formspree.io/f/meokkjyz", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formspreeData),
+      });
+    } catch (error) {
+      // Optionally handle Formspree error
+    }
+
+    setApplication({
+      role: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      portfolio: "",
+      experience: "",
+      availability: "",
+      message: "",
+      file: "",
+    });
+    setFile(null);
+    setFileInfo(null);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

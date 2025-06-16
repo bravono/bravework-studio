@@ -182,7 +182,33 @@ export default function OrderPage() {
         toast("An error occurred. Please try again.");
       } finally {
         setIsSubmitting(false);
-      }
+    }
+    
+    try {
+      // Prepare data for Formspree (exclude files)
+      const formspreeData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        companyName: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        projectDescription: formData.projectDescription,
+        budget: formData.budget,
+        timeline: formData.timeline,
+        service: selectedService,
+      };
+
+      await fetch("https://formspree.io/f/your-form-id", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formspreeData),
+      });
+    } catch (err) {
+      // Optionally handle Formspree errors
+    }
   };
 
   const handleInputChange = (
