@@ -57,42 +57,45 @@ export default function JobsPage() {
       formData.append("file", file);
 
       try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Rename-Duplicate": "true",
+        },
+      });
+
+      if (response.ok) {
+        const blobDataRaw = await response.json();
+        const blobData = {
+        url: blobDataRaw.url,
+        pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+        size: blobDataRaw.size || file.size,
+        };
+
+        setFileInfo({
+        fileName: file.name,
+        fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+        fileUrl: blobData.url,
         });
+        setApplication((prev) => ({
+        ...prev,
+        file: JSON.stringify({
+          fileName: file.name,
+          fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+          fileUrl: blobData.url,
+        }),
+        }));
 
-        if (response.ok) {
-          const blobDataRaw = await response.json();
-          const blobData = {
-            url: blobDataRaw.url,
-            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
-            size: blobDataRaw.size || file.size,
-          };
-
-          setFileInfo({
-            fileName: file.name,
-            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-            fileUrl: blobData.url,
-          });
-          setApplication((prev) => ({
-            ...prev,
-            file: JSON.stringify({
-              fileName: file.name,
-              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-              fileUrl: blobData.url,
-            }),
-          }));
-
-          toast(`File ${file.name} uploaded successfully!`);
-        } else {
-          const errorData = await response.json();
-          toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
-          setSubmitStatus("error");
-        }
-      } catch (err) {
-        toast("Error uploading file:", err);
+        toast(`File ${file.name} uploaded successfully!`);
+      } else {
+        const errorData = await response.json();
+        toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
         setSubmitStatus("error");
+      }
+      } catch (err) {
+      toast("Error uploading file:", err);
+      setSubmitStatus("error");
       }
     }
 
