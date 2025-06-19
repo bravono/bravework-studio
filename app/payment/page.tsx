@@ -49,7 +49,6 @@ function PaymentContent() {
   };
 
   const handlePaystackPayment = async () => {
-    console.log("Button Clicked");
     setIsLoading(true);
 
     if (!publicKey) {
@@ -68,26 +67,23 @@ function PaymentContent() {
     const handler = new PaystackPop();
 
     try {
-      handler.newTransaction({
-        key: publicKey,
-        email: "ahbideeny@gmail.com",
-        amount: convertedAmount * 100, // Convert to kobo
-        currency: "NGN",
-        ref: reference,
-        callback: function (response: any) {
-          console.log("Payment successful:", response);
-          setIsLoading(false);
-          toast("Payment has been successful");
-        },
-        onClose: function () {
-          setIsLoading(false);
-          toast("Payment window closed.");
-        },
+      const res = await fetch("/api/paystack-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference }),
       });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Payment confirmed and service granted!");
+        // Redirect user to success page or show success message
+        // router.push('/success-page'); // Assuming you have Next.js router
+      } else {
+        toast.error("Payment could not be confirmed. Please contact support.");
+        console.error("Backend verification failed:", data.message);
+      }
     } catch (error) {
-      console.error("Payment error:", error);
-      toast("Payment error: " + (error as Error).message);
-      setIsLoading(false);
+      toast.error("Error during payment confirmation. Please contact support.");
+      console.error("Error calling backend verification:", error);
     }
   };
 
