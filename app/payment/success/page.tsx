@@ -1,38 +1,21 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import "../../payment-status.css";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference"); // Get reference from URL if passed
-  const [orderId, setOrderId] = useState<string | null>(null); // State for actual order ID if verified
+  const reference = searchParams.get("reference");
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (reference) {
-      // Optional: Fetch more order details from your backend using the reference
-      // This ensures the order is genuinely confirmed before displaying details.
       const fetchOrderDetails = async () => {
         try {
-          // This is a mock verification / fetch; in a real app,
-          // you'd rely on your webhook for actual fulfillment and might
-          // fetch customer-facing order details from your database here.
-          console.log(
-            `Thank You Page: Attempting to fetch details for reference: ${reference}`
-          );
-          // Example: const res = await fetch(`/api/order-details?ref=${reference}`);
-          // const data = await res.json();
-          // if (data.order && data.order.status === 'paid') {
-          //   setOrderId(data.order.id);
-          //   toast.success('Your payment was successfully confirmed!');
-          // } else {
-          //   toast.error('Payment confirmation pending or failed. Please check your email.');
-          // }
-
-          // For demonstration, just set a mock order ID
+          // Simulate fetching order details
           setOrderId(`BW-ORD-${reference.substring(reference.length - 6)}`);
           toast.success("Your payment was successfully processed!");
         } catch (error) {
@@ -42,13 +25,9 @@ export default function PaymentSuccessPage() {
           );
         }
       };
-
       fetchOrderDetails();
     } else {
-      // If no reference in URL, perhaps redirect to home or general orders page
-      // or show a generic success message
       toast.info("Payment successful. Thank you!");
-      // Example: router.replace('/'); // Redirect if direct access or missing info
     }
   }, [reference, router]);
 
@@ -96,5 +75,13 @@ export default function PaymentSuccessPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

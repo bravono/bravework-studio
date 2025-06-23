@@ -1,29 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import "../../payment-status.css";
 
-export default function PaymentFailurePage() {
+function PaymentFailureContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const errorCode = searchParams.get("code"); // Optional: Get error code from URL
-  const errorMessage = searchParams.get("message"); // Optional: Get error message from URL
-
-  // State to hold a more user-friendly message based on the error
+  const errorCode = searchParams.get("code");
+  const errorMessage = searchParams.get("message");
   const [displayMessage, setDisplayMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Log any error details for debugging
     console.error("Payment Failure Page Loaded.", { errorCode, errorMessage });
 
-    // Set a user-friendly message
     if (errorMessage) {
       setDisplayMessage(
-        `Payment failed: ${decodeURIComponent(
-          errorMessage
-        )}. Please try again or contact support.`
+        `Payment failed: ${decodeURIComponent(errorMessage)}. Please try again or contact support.`
       );
     } else if (errorCode === "cancelled") {
       setDisplayMessage(
@@ -35,7 +29,6 @@ export default function PaymentFailurePage() {
       );
     }
 
-    // Optionally show a toast notification
     toast.error(displayMessage || "Payment failed. Please try again.");
   }, [errorCode, errorMessage, displayMessage]);
 
@@ -43,7 +36,7 @@ export default function PaymentFailurePage() {
     <div className="payment-status-container">
       <div className="payment-status-card">
         <svg
-          className="payment-status-icon payment-status-success"
+          className="payment-status-icon payment-status-failure"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -59,7 +52,7 @@ export default function PaymentFailurePage() {
         <h1 className="payment-status-title">Payment Failed</h1>
         <p className="payment-status-message">{displayMessage}</p>
 
-        <div className="payment-status-info payment-status-info-success">
+        <div className="payment-status-info payment-status-info-failure">
           <p className="payment-status-message">What went wrong?</p>
           <p className="payment-status-message">
             {errorCode && `Error Code: ${errorCode}. `}
@@ -76,18 +69,26 @@ export default function PaymentFailurePage() {
         <div className="payment-status-actions">
           <button
             onClick={() => router.push("/payment")}
-            className="payment-status-btn payment-status-btn-success"
+            className="payment-status-btn payment-status-btn-failure"
           >
             Retry Payment
           </button>
           <button
             onClick={() => router.push("/contact")}
-            className="payment-status-btn payment-status-btn-success"
+            className="payment-status-btn payment-status-btn-secondary"
           >
             Contact Support
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentFailurePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentFailureContent />
+    </Suspense>
   );
 }
