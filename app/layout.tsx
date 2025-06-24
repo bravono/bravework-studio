@@ -6,6 +6,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
 import { Suspense } from "react";
+import { SessionProvider } from "next-auth/react";
+import { auth } from "./api/auth/[...nextauth]/route"; 
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -29,11 +31,13 @@ export const metadata: Metadata = {
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+  }) {
+  
+  const session = await auth(); // Get session on the server
   return (
     <html lang="en">
       {/* Google Tag Manager Script (in Head) */}
@@ -106,7 +110,7 @@ export default function RootLayout({
         )}
         {/* End Google Tag Manager (noscript) */}
         <Navbar />
-        {children}
+        <SessionProvider session={session}>{children}</SessionProvider>
         <Footer />
         <Suspense fallback={null}>
           <GtmEventHandler />
