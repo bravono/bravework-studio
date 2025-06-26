@@ -106,6 +106,8 @@ export default function JobsPage() {
       formDataToSend.append(key, value);
     });
 
+    formDataToSend.append("category", "job-application");
+
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
