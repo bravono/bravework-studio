@@ -8,7 +8,6 @@ const signupSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(7).max(100).required(),
-  bio: Joi.string().max(500),
   companyName: Joi.string().max(100).optional(),
   phone: Joi.string().optional(),
 });
@@ -26,64 +25,42 @@ export async function POST(req: Request) {
       );
     }
 
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      bio,
-      companyName,
-      phone,
-    } = body;
+    const { firstName, lastName, email, password, companyName, phone } = body;
 
     // Check if user already exists
     const existingUserResult = await queryDatabase(
-      "SELECT id FROM users WHERE email = $1",
+      "SELECT user_id FROM users WHERE email = $1",
       [email]
     );
-    if (existingUserResult.rows.length > 0) {
+    if (existingUserResult.length > 0) {
       return NextResponse.json(
         { message: "User already exists with that email." },
         { status: 422 }
       );
     }
 
-    // Get the id of the 'guest' role from user_roles table
-    const guestRoleResult = await queryDatabase(
-      "SELECT id FROM user_roles WHERE role_name = $1 LIMIT 1",
-      ["guest"]
-    );
-    if (guestRoleResult.rows.length === 0) {
-      return NextResponse.json(
-        { message: "Guest role not found in user_roles table." },
-        { status: 500 }
-      );
-    }
-    const guestRoleId = guestRoleResult.rows[0].id;
-
     const hashedPassword = await hash(password, 12); // Hash password
 
     // Insert new user with guest role
     const insertUserResult = await queryDatabase(
       `INSERT INTO users 
-        (first_name, last_name, email, password, bio, profile_picture, company_name, phone, role_id) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+        (first_name, last_name, email, password, company_name, phone, role_id) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
       [
         firstName,
         lastName,
         email,
         hashedPassword,
-        bio || null,
         companyName || null,
         phone || null,
-        guestRoleId,
+        6, // Assuming 6 is the ID for the guest role
       ]
     );
 
-    const newUser = insertUserResult.rows[0];
+    const newUser = insertUserResult[0];
 
     return NextResponse.json(
-      { message: "User created successfully!", userId: newUser.id },
+      { message: "User created successfully!", userId: newUser.user_id },
       { status: 201 }
     );
   } catch (error) {
