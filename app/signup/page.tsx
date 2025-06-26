@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Joi from "joi";
+import "../css/auth.css";
 
 const signupSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -13,7 +14,6 @@ const signupSchema = Joi.object({
     .required()
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
-  bio: Joi.string().max(500).allow("").label("Bio"),
   companyName: Joi.string().max(100).allow("").label("Company Name"),
   phone: Joi.string().allow("").label("Phone"),
 });
@@ -25,7 +25,6 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    bio: "",
     companyName: "",
     phone: "",
   });
@@ -59,7 +58,6 @@ export default function Signup() {
           lastName: form.lastName,
           email: form.email,
           password: form.password,
-          bio: form.bio,
           companyName: form.companyName,
           phone: form.phone,
         }),
@@ -75,7 +73,6 @@ export default function Signup() {
           email: "",
           password: "",
           confirmPassword: "",
-          bio: "",
           companyName: "",
           phone: "",
         });
@@ -90,17 +87,7 @@ export default function Signup() {
   };
 
   return (
-    <div
-      className="signup-container"
-      style={{
-        maxWidth: 400,
-        margin: "60px auto",
-        background: "#fff",
-        borderRadius: 12,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
-        padding: 32,
-      }}
-    >
+    <div className="auth-container">
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 16 }}>
@@ -223,30 +210,7 @@ export default function Signup() {
             required
           />
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="bio"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
-            Bio
-          </label>
-          <textarea
-            id="bio"
-            name="bio"
-            value={form.bio}
-            onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-              minHeight: 60,
-              resize: "vertical",
-            }}
-            maxLength={500}
-          />
-        </div>
+
         <div style={{ marginBottom: 16 }}>
           <label
             htmlFor="companyName"

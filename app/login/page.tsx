@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import "../css/auth.css";
 
 export default function Login() {
   const [form, setForm] = useState({
@@ -37,17 +38,7 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="login-container"
-      style={{
-        maxWidth: 400,
-        margin: "60px auto",
-        background: "#fff",
-        borderRadius: 12,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
-        padding: 32,
-      }}
-    >
+    <div className="auth-container">
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>Login</h2>
 
       <form onSubmit={handleSubmit}>
