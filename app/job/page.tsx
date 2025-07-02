@@ -57,45 +57,47 @@ export default function JobsPage() {
       formData.append("file", file);
 
       try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-Rename-Duplicate": "true",
-        },
-      });
+        formData.append("category", "job_application");
 
-      if (response.ok) {
-        const blobDataRaw = await response.json();
-        const blobData = {
-        url: blobDataRaw.url,
-        pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
-        size: blobDataRaw.size || file.size,
-        };
-
-        setFileInfo({
-        fileName: file.name,
-        fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-        fileUrl: blobData.url,
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Rename-Duplicate": "true",
+          },
         });
-        setApplication((prev) => ({
-        ...prev,
-        file: JSON.stringify({
-          fileName: file.name,
-          fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-          fileUrl: blobData.url,
-        }),
-        }));
 
-        toast(`File ${file.name} uploaded successfully!`);
-      } else {
-        const errorData = await response.json();
-        toast(`Error uploading ${file.name}: ${errorData.error || "Failed"}`);
-        setSubmitStatus("error");
-      }
+        if (response.ok) {
+          const blobDataRaw = await response.json();
+          const blobData = {
+            url: blobDataRaw.url,
+            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+            size: blobDataRaw.size || file.size,
+          };
+
+          setFileInfo({
+            fileName: file.name,
+            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+            fileUrl: blobData.url,
+          });
+          setApplication((prev) => ({
+            ...prev,
+            file: JSON.stringify({
+              fileName: file.name,
+              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+              fileUrl: blobData.url,
+            }),
+          }));
+
+          toast.success(`File ${file.name} uploaded successfully!`);
+        } else {
+          const errorData = await response.json();
+          toast(`Error uploading ${file.name}`);
+          setSubmitStatus("error");
+        }
       } catch (err) {
-      toast("Error uploading file:", err);
-      setSubmitStatus("error");
+        toast("Error uploading file:", err);
+        setSubmitStatus("error");
       }
     }
 
@@ -106,8 +108,6 @@ export default function JobsPage() {
       formDataToSend.append(key, value);
     });
 
-    formDataToSend.append("category", "job-application");
-
     try {
       const response = await fetch("/api/jobs", {
         method: "POST",
@@ -116,11 +116,11 @@ export default function JobsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        toast(`Application submitted successfully!`);
+        toast.success(`Application submitted successfully!`);
         setSubmitStatus("success");
       } else {
         const errorData = await response.json();
-        toast(
+        toast.error(
           `Error submitting application: ${
             errorData.message || "Could not submit application"
           }`
@@ -128,7 +128,7 @@ export default function JobsPage() {
         setSubmitStatus("error");
       }
     } catch (error) {
-      toast(`An error occurred: ${error.message || "Unknown error"}`);
+      toast.error(`An error occurred: ${error.message || "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +150,7 @@ export default function JobsPage() {
       await fetch("https://formspree.io/f/meokkjyz", {
         method: "POST",
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formspreeData),
@@ -190,7 +190,7 @@ export default function JobsPage() {
           fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
           fileUrl: event.target.result,
         });
-        toast(`Preview ready for ${selectedFile.name}`);
+        toast.success(`File ${selectedFile.name} has been attached!`);
       }
     };
     reader.readAsDataURL(selectedFile);
@@ -201,7 +201,9 @@ export default function JobsPage() {
       <ToastContainer />
       <div className="container">
         <div className="page-header">
-          <h1 className={`section-title ${nosifer.className}`}>Join Our Team</h1>
+          <h1 className={`section-title ${nosifer.className}`}>
+            Join Our Team
+          </h1>
           <p>
             We're always looking for talented professionals to join our creative
             team

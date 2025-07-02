@@ -98,6 +98,7 @@ export default function OrderPage() {
       formData.append("file", file);
 
       try {
+        formData.append("category", "orders");
         const response = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -118,21 +119,15 @@ export default function OrderPage() {
               fileSize: String(blobData.size),
             },
           ]);
-          toast(`File ${file.name} uploaded successfully!`);
+          toast.success(`File ${file.name} uploaded successfully!`);
         } else {
           const errorData = await response.json();
 
-          toast(
-            `Error uploading ${file.name}: ${
-              errorData.error.message || "Failed"
-            }`
-          );
+          toast.error(`Error uploading ${file.name}`);
           setSubmitStatus("error");
         }
       } catch (err: any) {
-        toast(
-          `Network error uploading ${file.name}: ${err.message || "Unknown"}`
-        );
+        toast.error(`Network error uploading ${file.name}`);
         setSubmitStatus("error");
       }
     }
@@ -152,36 +147,34 @@ export default function OrderPage() {
     });
 
     formDataToSend.append("files", JSON.stringify(fileInfos));
-    formDataToSend.append("category", "orders");
 
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        body: formDataToSend,
+      });
 
-      try {
-        const response = await fetch("/api/orders", {
-          method: "POST",
-          body: formDataToSend,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          toast(`Order submitted successfully!`);
-          setSubmitStatus("success");
-          setError(null); // Clear any previous errors
-        } else {
-          const errorData = await response.json();
-          toast(
-            `Error submitting order: ${
-              errorData.message || "Could not submit order"
-            }`
-          );
-          setError(errorData.error);
-          setSubmitStatus("error");
-        }
-      } catch (error) {
-        toast("An error occurred. Please try again.");
-      } finally {
-        setIsSubmitting(false);
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(`Your order has been submitted!`);
+        setSubmitStatus("success");
+        setError(null); // Clear any previous errors
+      } else {
+        const errorData = await response.json();
+        toast(
+          `Error submitting order: ${
+            errorData.message || "Could not submit order"
+          }`
+        );
+        setError(errorData.error);
+        setSubmitStatus("error");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    
+
     try {
       // Prepare data for Formspree (exclude files)
       const formspreeData = {
@@ -199,7 +192,7 @@ export default function OrderPage() {
       await fetch("https://formspree.io/f/mblykjkv", {
         method: "POST",
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formspreeData),
@@ -433,15 +426,14 @@ export default function OrderPage() {
               </button>
               {submitStatus === "success" && (
                 <div className="success-message">
-                  Thank you for your order! We'll review it and get back
-                  to you via email.
+                  Thank you for your order! We'll review it and get back to you
+                  via email.
                 </div>
               )}
 
               {submitStatus === "error" && (
                 <div className="error-message">
-                  There was an error submitting your order. Please try
-                  again.
+                  There was an error submitting your order. Please try again.
                 </div>
               )}
             </form>
