@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Progress from "../components/Progress";
+import FilesToUpload from "../components/FilesToUpload";
 
 export default function OrderPage() {
   const [submitStatus, setSubmitStatus] = useState<
@@ -48,11 +49,6 @@ export default function OrderPage() {
     };
     fetchCategories();
   }, []);
-
-  useEffect(() => {
-    console.log("File Infos:", fileInfos);
-    console.log("Files:", files);
-  }, [files, fileInfos]);
 
   const getSelectedService = () => {
     return productCategories.find(
@@ -422,26 +418,9 @@ export default function OrderPage() {
                   </div>
                 ) : null}
                 {files.length > 0 && (
-                  <div className="uploaded-files">
-                    <h4>Files To Upload:</h4>
-                    <div className="file-list">
-                      {files.map((file, index) => (
-                        <div key={index} className="file-item">
-                          <span className="file-name">{file.name}</span>
-                          <span className="file-size">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </span>
-                          <button
-                            type="button"
-                            className="remove-file"
-                            onClick={() => removeFile(index)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <FilesToUpload
+                    files={files}
+                    removeFile={removeFile}/>
                 )}
               </div>
 

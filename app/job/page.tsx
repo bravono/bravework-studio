@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import Link from "next/link";
-import Progress from "../components/Progress";
 import { Nosifer } from "next/font/google";
+import Progress from "../components/Progress";
+import FilesToUpload from "../components/FilesToUpload";
 
 const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
@@ -439,6 +439,15 @@ export default function JobsPage() {
                 <Progress value={100} />
               </div>
             ) : null}
+            {file && (
+              <FilesToUpload
+                files={file}
+                removeFile={() => {
+                  setFile(null);
+                  setFileInfo(null);
+                }}
+              />
+            )}
             <div className="form-group">
               <label htmlFor="message">Cover Letter</label>
               <textarea
