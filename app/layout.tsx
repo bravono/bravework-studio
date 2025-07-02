@@ -54,8 +54,8 @@ export default function RootLayout({
         <link
           rel="icon"
           type="image/png"
-          sizes="50x50"
-          href="/Bravework_Studio-Logo-Color.png"
+          sizes="500x500"
+          href="/assets/Bravework_Studio-Logo-White.png"
         ></link>
         <link
           rel="stylesheet"
