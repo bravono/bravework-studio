@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "../../../../lib/db";
 import { hash } from "bcryptjs";
+import { v4 as uuidv4 } from "uuid"; // For generating verification tokens
+import { sendVerificationEmail } from "../../../../lib/mailer"; // Import your mailer utility
 import Joi from "joi";
 
 const signupSchema = Joi.object({
@@ -44,8 +46,8 @@ export async function POST(req: Request) {
     // Insert new user with guest role
     const insertUserResult = await queryDatabase(
       `INSERT INTO users 
-        (first_name, last_name, email, password, company_name, phone, role_id) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
+        (first_name, last_name, email, password, company_name, phone, role_id, email_verified) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING user_id`,
       [
         firstName,
         lastName,
@@ -54,10 +56,27 @@ export async function POST(req: Request) {
         companyName || null,
         phone || null,
         6, // Assuming 6 is the ID for the guest role
+        null, // email_verified is null initially
       ]
     );
 
     const newUser = insertUserResult[0];
+    const newUserId = newUser.user_id;
+
+    // Generate a verification token
+    const verificationToken = uuidv4();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 24); // Token valid for 24 hours
+
+    // Store the verification token in the database
+    await queryDatabase(
+      'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+      [newUserId, verificationToken, expires, 'email_verification']
+    );
+
+    // Send the verification email (non-blocking)
+    const name = `${firstName} ${lastName}`;
+    sendVerificationEmail(email, verificationToken, name);
 
     return NextResponse.json(
       { message: "User created successfully!", userId: newUser.user_id },

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Joi from "joi";
-import "../css/auth.css";
+import "../../css/auth.css";
 
 const signupSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -30,6 +31,7 @@ export default function Signup() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -64,9 +66,8 @@ export default function Signup() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage(
-          "Signup successful! Please check your email to verify your account."
-        );
+        router.push("/auth/verify-email");
+
         setForm({
           firstName: "",
           lastName: "",
@@ -91,181 +92,116 @@ export default function Signup() {
       <h2 style={{ textAlign: "center", marginBottom: 24 }}>Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="firstName"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="firstName" className="auth-label">
             First Name *
           </label>
           <input
             type="text"
             id="firstName"
             name="firstName"
+            className="auth-input"
             value={form.firstName}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="given-name"
             required
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="lastName"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="lastName" className="auth-label">
             Last Name *
           </label>
           <input
             type="text"
             id="lastName"
             name="lastName"
+            className="auth-input"
             value={form.lastName}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="family-name"
             required
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="email"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="email" className="auth-label">
             Email *
           </label>
           <input
             type="email"
             id="email"
             name="email"
+            className="auth-input"
             value={form.email}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="email"
             required
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="password"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="password" className="auth-label">
             Password *
           </label>
           <input
             type="password"
             id="password"
             name="password"
+            className="auth-input"
             value={form.password}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="new-password"
             required
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="confirmPassword"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="confirmPassword" className="auth-label">
             Confirm Password *
           </label>
           <input
             type="password"
             id="confirmPassword"
             name="confirmPassword"
+            className="auth-input"
             value={form.confirmPassword}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="new-password"
             required
           />
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="companyName"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="companyName" className="auth-label">
             Company Name
           </label>
           <input
             type="text"
             id="companyName"
             name="companyName"
+            className="auth-input"
             value={form.companyName}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             maxLength={100}
           />
         </div>
         <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="phone"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="phone" className="auth-label">
             Phone
           </label>
           <input
             type="tel"
             id="phone"
             name="phone"
+            className="auth-input"
             value={form.phone}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="tel"
           />
         </div>
         {message && (
           <div
+            className="auth-message"
             style={{
-              marginBottom: 16,
               color: message.startsWith("Signup successful")
                 ? "#22c55e"
                 : "#ef4444",
-              textAlign: "center",
-              fontWeight: 500,
             }}
           >
             {message}
@@ -274,18 +210,9 @@ export default function Signup() {
         <button
           type="submit"
           disabled={loading}
+          className="auth-button"
           style={{
-            width: "100%",
-            padding: "12px 0",
-            borderRadius: 8,
-            background: "#4f46e5",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 18,
-            border: "none",
             cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: "0 2px 8px rgba(79,70,229,0.10)",
-            transition: "background 0.2s",
           }}
         >
           {loading ? "Signing up..." : "Sign Up"}
@@ -293,7 +220,7 @@ export default function Signup() {
       </form>
       <div style={{ marginTop: 18, textAlign: "center", fontSize: 15 }}>
         Already have an account?{" "}
-        <a href="/login" style={{ color: "#4f46e5", fontWeight: 600 }}>
+        <a href="/auth/login" className="auth-link">
           Log in
         </a>
       </div>

@@ -103,7 +103,7 @@ export default function Navbar() {
           <li>
             <Link
               href="/login"
-              className={pathname === "/login" ? "active" : ""}
+              className={pathname === "/auth/login" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Login/Signup

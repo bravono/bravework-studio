@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import "../css/auth.css";
+import React, { useState, useEffect } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify"; // Optional: For better user feedback
+import "../../css/auth.css";
 
 export default function Login() {
   const [form, setForm] = useState({
@@ -10,6 +13,15 @@ export default function Login() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get("verified");
+
+  useEffect(() => {
+    if (verified === "true") {
+      toast.success("Email successfully verified! You can now log in."); // Or display a nicer message
+    }
+  }, [verified]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,22 +31,32 @@ export default function Login() {
     e.preventDefault();
     setMessage(null);
 
-    if (!form.email || !form.password) {
-      setMessage("Both fields are required.");
-      return;
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
+
+    if (result?.error) {
+      if (result.error === "Please verify your email first.") {
+        setMessage(
+          "Your email address is not verified. Please check your inbox for a verification link."
+        );
+      } else {
+        setMessage(result.error);
+      }
+    } else {
+      // Login successful, now attempt to claim guest orders
+      try {
+        await fetch("/api/auth/claim-guest-orders", { method: "POST" });
+        console.log("Attempted to claim guest orders.");
+      } catch (claimError) {
+        console.error("Failed to claim guest orders:", claimError);
+      }
+      router.push("/");
     }
 
     setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise((res) => setTimeout(res, 1000));
-      setMessage("Login successful!");
-      setForm({ email: "", password: "" });
-    } catch (error) {
-      setMessage("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -43,60 +65,40 @@ export default function Login() {
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="email"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="email" className="auth-label">
             Email
           </label>
           <input
             type="email"
             id="email"
             name="email"
+            className="auth-input"
             value={form.email}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="email"
             required
           />
         </div>
         <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="password"
-            style={{ display: "block", marginBottom: 6, fontWeight: 500 }}
-          >
+          <label htmlFor="password" className="auth-label">
             Password
           </label>
           <input
             type="password"
             id="password"
             name="password"
+            className="auth-input"
             value={form.password}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 6,
-              border: "1px solid #e5e7eb",
-              fontSize: 16,
-            }}
             autoComplete="current-password"
             required
           />
         </div>
         {message && (
           <div
+            className="auth-message"
             style={{
-              marginBottom: 16,
               color: message === "Login successful!" ? "#22c55e" : "#ef4444",
-              textAlign: "center",
-              fontWeight: 500,
             }}
           >
             {message}
@@ -105,18 +107,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
+          className="auth-button"
           style={{
-            width: "100%",
-            padding: "12px 0",
-            borderRadius: 8,
-            background: "#4f46e5",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 18,
-            border: "none",
             cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: "0 2px 8px rgba(79,70,229,0.10)",
-            transition: "background 0.2s",
           }}
         >
           {loading ? "Logging in..." : "Login"}
@@ -124,7 +117,7 @@ export default function Login() {
       </form>
       <div style={{ marginTop: 18, textAlign: "center", fontSize: 15 }}>
         Don't have an account?{" "}
-        <a href="/signup" style={{ color: "#4f46e5", fontWeight: 600 }}>
+        <a href="/auth/signup" className="auth-link">
           Sign up
         </a>
       </div>

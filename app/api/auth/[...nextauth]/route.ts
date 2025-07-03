@@ -6,7 +6,7 @@ import type { User as NextAuthUser } from "next-auth"; // Import NextAuth's User
 // Dynamic import for bcryptjs, as it's a server-only module
 import { default as bcrypt } from "bcryptjs";
 
-// Extend NextAuth's User type to include 'id' 
+// Extend NextAuth's User type to include 'id'
 declare module "next-auth" {
   interface User {
     id: number; // Ensure the ID is a number, matching your PG serial type
@@ -20,7 +20,7 @@ declare module "next-auth" {
       name?: string | null;
       email: string;
       image?: string | null;
-    }
+    };
   }
 }
 
@@ -30,7 +30,6 @@ declare module "next-auth" {
     id?: string;
   }
 }
-
 
 export const authOptions = {
   providers: [
@@ -45,22 +44,33 @@ export const authOptions = {
           return null;
         }
 
-        // 1. Find the user by email in PostgreSQL
-        const result = await queryDatabase('SELECT user_id, first_name, last_name, email, password FROM users WHERE email = $1', [credentials.email]);
-        const user = result.rows[0];
+        // Find the user by email in PostgreSQL
+        const result = await queryDatabase(
+          "SELECT user_id, first_name, last_name, email, password FROM users WHERE email = $1",
+          [credentials.email]
+        );
+        const user = result[0];
 
         if (!user) {
           throw new Error("No user found with that email.");
         }
 
-        // 2. Verify password (use bcryptjs for hashing and comparing)
-        const isValid = await bcrypt.compare(credentials.password as string, user.password as string);
+        // Check email verification status
+        if (!user.email_verified) {
+          throw new Error("Please verify your email first.");
+        }
+
+        // Verify password (use bcryptjs for hashing and comparing)
+        const isValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password as string
+        );
 
         if (!isValid) {
           throw new Error("Incorrect password.");
         }
 
-        // 3. Return user object. NextAuth.js will serialize this into the JWT.
+        // Return user object. NextAuth.js will serialize this into the JWT.
         return {
           id: user.user_id,
           email: user.email,
@@ -97,8 +107,8 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: "/auth/signin", // Custom sign-in page path
-    error: "/auth/error",   // Custom error page
+    signIn: "/auth/login", // Custom sign-in page path
+    error: "/auth/error", // Custom error page
   },
   secret: process.env.AUTH_SECRET,
 };
