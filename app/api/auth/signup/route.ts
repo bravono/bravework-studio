@@ -1,70 +1,104 @@
-import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from "next/server";
+import { queryDatabase } from "../../../../lib/db";
+import { hash } from "bcryptjs";
+import { v4 as uuidv4 } from "uuid"; // For generating verification tokens
+import { sendVerificationEmail } from "../../../../lib/mailer"; // Import your mailer utility
+import Joi from "joi";
 
-// Mock database - replace with your actual database
-const users: any[] = [];
+const signupSchema = Joi.object({
+  firstName: Joi.string().min(2).max(50).required(),
+  lastName: Joi.string().min(2).max(50).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(7).max(100).required(),
+  companyName: Joi.string().max(100).optional(),
+  phone: Joi.string().optional(),
+});
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    const { fullName, email, password } = body;
+    const body = await req.json();
 
-    // Validate input
-    if (!fullName || !email || !password) {
+    // Joi validation
+    const { error } = signupSchema.validate(body);
+    if (error) {
       return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
+        { message: error.details[0].message },
+        { status: 422 }
       );
     }
+
+    const { firstName, lastName, email, password, companyName, phone } = body;
 
     // Check if user already exists
-    if (users.find(user => user.email === email)) {
+    const existingUserResult = await queryDatabase(
+      "SELECT user_id FROM users WHERE email = $1",
+      [email]
+    );
+    if (existingUserResult.length > 0) {
       return NextResponse.json(
-        { message: 'User already exists' },
-        { status: 400 }
+        { message: "User already exists with that email." },
+        { status: 422 }
       );
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await hash(password, 12); // Hash password
 
-    // Create new user
-    const newUser = {
-      id: `USER${Date.now()}`,
-      fullName,
-      email,
-      password: hashedPassword,
-      createdAt: new Date().toISOString()
-    };
-
-    // Add to mock database
-    users.push(newUser);
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: newUser.id, email: newUser.email },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+    // Insert new user with guest role
+    const insertUserResult = await queryDatabase(
+      `INSERT INTO users 
+        (first_name, last_name, email, password, company_name, phone, role_id, email_verified) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING user_id`,
+      [
+        firstName,
+        lastName,
+        email,
+        hashedPassword,
+        companyName || null,
+        phone || null,
+        6, // Assuming 6 is the ID for the guest role
+        null, // email_verified is null initially
+      ]
     );
 
-    // Return success response with token
-    return NextResponse.json({
-      message: 'User created successfully',
-      token,
-      user: {
-        id: newUser.id,
-        fullName: newUser.fullName,
-        email: newUser.email
-      }
-    }, { status: 201 });
+    const newUser = insertUserResult[0];
+    const newUserId = newUser.user_id;
 
-  } catch (error) {
-    console.error('Signup error:', error);
+    // Generate a verification token
+    const verificationToken = uuidv4();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 24); // Token valid for 24 hours
+
+    // Store the verification token in the database
+    await queryDatabase(
+      'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+      [newUserId, verificationToken, expires, 'email_verification']
+    );
+
+    // Send the verification email (non-blocking)
+    const name = `${firstName} ${lastName}`;
+    sendVerificationEmail(email, verificationToken, name);
+
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "User created successfully!", userId: newUser.user_id },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error during signup:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("duplicate key value violates unique constraint")
+    ) {
+      return NextResponse.json(
+        { message: "A user with this email already exists." },
+        { status: 422 }
+      );
+    }
+    return NextResponse.json(
+      {
+        message: "Failed to create user.",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
-} 
+}

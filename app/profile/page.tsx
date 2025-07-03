@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import '../css/profile.css'; 
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [user, setUser] = useState({
     name: 'Ahbideen Yusuf',
     email: 'ahbideeny@gmail.com',
@@ -17,13 +17,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(user);
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('clientAuth');
-    if (!token) {
-      router.push('/auth/login');
-    }
-  }, [router]);
+ 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
