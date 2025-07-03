@@ -7,7 +7,7 @@ import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
-import { auth } from "./api/auth/[...nextauth]/route"; 
+import { getServerSession } from "next-auth";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -35,9 +35,9 @@ export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-  }) {
-  
-  const session = await auth(); // Get session on the server
+}) {
+  const session = await getServerSession();
+
   return (
     <html lang="en">
       {/* Google Tag Manager Script (in Head) */}
