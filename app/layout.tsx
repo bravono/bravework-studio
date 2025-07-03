@@ -8,6 +8,7 @@ import GtmEventHandler from "./components/GtmEventHandler";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { getServerSession } from "next-auth";
+import SessionProviderWrapper from "./components/SessionProiderWrapper";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -58,8 +59,8 @@ export default async function RootLayout({
         <link
           rel="icon"
           type="image/png"
-          sizes="500x500"
-          href="/assets/Bravework_Studio-Logo-White.png"
+          sizes="50x50"
+          href="/Bravework_Studio-Logo-White.png"
         ></link>
         <link
           rel="stylesheet"
@@ -110,7 +111,9 @@ export default async function RootLayout({
         )}
         {/* End Google Tag Manager (noscript) */}
         <Navbar />
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProviderWrapper session={session}>
+          {children}
+        </SessionProviderWrapper>
         <Footer />
         <Suspense fallback={null}>
           <GtmEventHandler />
