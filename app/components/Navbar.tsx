@@ -100,15 +100,15 @@ export default function Navbar() {
               Contact
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
-              href="/login"
+              href="/auth/login"
               className={pathname === "/auth/login" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
               Login/Signup
             </Link>
-          </li>
+          </li> */}
         </ul>
       </div>
     </nav>
