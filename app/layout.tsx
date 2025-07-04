@@ -60,7 +60,7 @@ export default async function RootLayout({
           rel="icon"
           type="image/png"
           sizes="50x50"
-          href="/Bravework_Studio-Logo-White.png"
+          href="assets/Bravework_Studio-Logo-White.png"
         ></link>
         <link
           rel="stylesheet"
