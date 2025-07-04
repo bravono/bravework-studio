@@ -55,13 +55,13 @@ export default function Home() {
             <a href="/order" className="hero-cta">
               Get Started
             </a>
-            {/* <a
+            <a
               href="/payment?service=3D%20Modeling&amount=100"
               className="hero-cta"
               style={{ marginLeft: "1rem" }}
             >
               Test Payment
-            </a> */}
+            </a>
           </div>
         </div>
       </section>
