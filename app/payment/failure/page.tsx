@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import "../../payment-status.css";
+import "../../css/payment-status.css";
 
 function PaymentFailureContent() {
   const router = useRouter();
@@ -17,7 +17,9 @@ function PaymentFailureContent() {
 
     if (errorMessage) {
       setDisplayMessage(
-        `Payment failed: ${decodeURIComponent(errorMessage)}. Please try again or contact support.`
+        `Payment failed: ${decodeURIComponent(
+          errorMessage
+        )}. Please try again or contact support.`
       );
     } else if (errorCode === "cancelled") {
       setDisplayMessage(
