@@ -99,6 +99,7 @@ export default function OrderPage() {
 
       try {
         formData.append("category", "orders");
+
         const response = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -147,8 +148,6 @@ export default function OrderPage() {
     });
 
     formDataToSend.append("files", JSON.stringify(fileInfos));
-    formDataToSend.append("category", "orders");
-
 
     try {
       const response = await fetch("/api/orders", {
