@@ -44,47 +44,35 @@ export async function POST(request: Request) {
 
     // Parse resume if it's a stringified JSON, otherwise keep as is
     let file: unknown = fileRaw;
-    try {
-      if (typeof fileRaw === "string") {
+    if (typeof fileRaw === "string") {
+      try {
         file = JSON.parse(fileRaw);
+      } catch {
+        // If parsing fails, keep resume as the original string
+        file = fileRaw;
       }
-    } catch {
-      // If parsing fails, keep resume as the original string
-      file = fileRaw;
     }
-
-    console.log("Received application:", role, firstName, lastName, email, phone, portfolio, experience, availability, message, file);
 
     // Here you would typically save the application to your database
     await withTransaction(async (client) => {
-      // Check if user with the given email already exists
-      const existingUserApplication = await client.query(
-        "SELECT application_id FROM applications WHERE email = $1",
-        [email]
+      let appId: number;
+
+      const applicationResult = await client.query(
+        "INSERT INTO applications (role, first_name, last_name, email, phone, portfolio, experience, availability, cover_letter) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING application_id",
+        [
+          role,
+          firstName,
+          lastName,
+          email,
+          phone,
+          portfolio,
+          experience,
+          availability,
+          message,
+        ]
       );
 
-      let appId: number;
-      if (existingUserApplication.rows.length > 0) {
-        // User application, use their id
-        appId = existingUserApplication.rows[0].user_id;
-      } else {
-        const applicationResult = await client.query(
-          "INSERT INTO applications (role, first_name, last_name, email, phone, portfolio, experience, availability, cover_letter) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING application_id",
-          [
-            role,
-            firstName,
-            lastName,
-            email,
-            phone,
-            portfolio,
-            experience,
-            availability,
-            message,
-          ]
-        );
-
-        appId = applicationResult.rows[0].application_id;
-      }
+      appId = applicationResult.rows[0].application_id;
 
       if (
         file &&
@@ -94,7 +82,7 @@ export async function POST(request: Request) {
         "fileUrl" in file
       ) {
         await client.query(
-          "INSERT INTO application_files (application_id, file_name, file_size, file_u rl) VALUES ($1, $2, $3, $4)",
+          "INSERT INTO application_files (application_id, file_name, file_size, file_url) VALUES ($1, $2, $3, $4)",
           [appId, file.fileName, file.fileSize, file.fileUrl]
         );
       }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Nosifer } from "next/font/google";
+
 import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 
@@ -18,7 +19,6 @@ interface JobApplication {
   experience: string;
   availability: string;
   message: string;
-  file: string;
 }
 
 export default function JobsPage() {
@@ -32,7 +32,6 @@ export default function JobsPage() {
     experience: "",
     availability: "",
     message: "",
-    file: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -46,6 +45,10 @@ export default function JobsPage() {
     fileUrl: string;
   } | null>(null);
 
+  useEffect(() => {
+    console.log("Selected file:", file);
+  }, [file]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -55,7 +58,6 @@ export default function JobsPage() {
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
-
       try {
         formData.append("category", "job_application");
 
@@ -80,14 +82,6 @@ export default function JobsPage() {
             fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
             fileUrl: blobData.url,
           });
-          setApplication((prev) => ({
-            ...prev,
-            file: JSON.stringify({
-              fileName: file.name,
-              fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-              fileUrl: blobData.url,
-            }),
-          }));
 
           toast.success(`File ${file.name} uploaded successfully!`);
         } else {
@@ -108,7 +102,8 @@ export default function JobsPage() {
       formDataToSend.append(key, value);
     });
 
-    formDataToSend.append("category", "job-application");
+    console.log("File info to send:", fileInfo);
+    formDataToSend.append("file", JSON.stringify(fileInfo));
 
     try {
       const response = await fetch("/api/jobs", {
@@ -161,20 +156,19 @@ export default function JobsPage() {
       // Optionally handle Formspree error
     }
 
-    setApplication({
-      role: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      portfolio: "",
-      experience: "",
-      availability: "",
-      message: "",
-      file: "",
-    });
-    setFile(null);
-    setFileInfo(null);
+    // setApplication({
+    //   role: "",
+    //   firstName: "",
+    //   lastName: "",
+    //   email: "",
+    //   phone: "",
+    //   portfolio: "",
+    //   experience: "",
+    //   availability: "",
+    //   message: "",
+    // });
+    // setFile(null);
+    // setFileInfo(null);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
