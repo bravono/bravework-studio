@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:staging": "env-cmd -f .env.staging.local next dev"
   },
   "dependencies": {
     "@paystack/inline-js": "^2.22.6",
@@ -39,6 +40,7 @@
     "@types/react-dom": "^18.2.18",
     "@types/three": "^0.161.2",
     "autoprefixer": "^10.4.21",
+    "env-cmd": "^10.1.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "postcss": "^8.5.3",
