@@ -100,7 +100,7 @@ export default function Navbar() {
               Contact
             </Link>
           </li>
-          {/* <li>
+          <li>
             <Link
               href="/auth/login"
               className={pathname === "/auth/login" ? "active" : ""}
@@ -108,7 +108,7 @@ export default function Navbar() {
             >
               Login/Signup
             </Link>
-          </li> */}
+          </li>
         </ul>
       </div>
     </nav>
