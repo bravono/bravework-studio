@@ -4,6 +4,19 @@ import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Mesh, AnimationMixer } from "three";
 import { useGLTF } from "@react-three/drei";
+import Experience from "../app/Experience/Experience.js";
+import "./style.css";
+
+// Add experience to window for debugging purposes
+declare global {
+  interface Window {
+    experience: Experience;
+  }
+}
+
+window.experience = new Experience({
+  targetElement: document.querySelector(".experience"),
+});
 
 export default function Hero3D() {
   const meshRef = useRef<Mesh>(null);
@@ -17,7 +30,7 @@ export default function Hero3D() {
 
   const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
-  const { scene, animations } = useGLTF("assets/Isometric-Office.glb");
+  const { scene, animations } = useGLTF("assets/roomModel.glb");
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
 
   useEffect(() => {
