@@ -10,11 +10,10 @@ async function initializeTransporter() {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    // Production: Use a dedicated email service (e.g., SendGrid, Mailgun)
     transporter = nodemailer.createTransport({
       host: process.env.ZUSTOM_MAIL_HOST,
       port: parseInt(process.env.ZUSTOM_MAIL_PORT || '587', 10),
-      secure: process.env.ZUSTOM_MAIL_PORT === '587', 
+      secure: process.env.ZUSTOM_MAIL_PORT === '465', // true for 465, false for other ports
       auth: {
         user: process.env.ZUSTOM_MAIL_USER,
         pass: process.env.ZUSTOM_MAIL_PASS,
