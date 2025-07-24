@@ -12,12 +12,12 @@ async function initializeTransporter() {
   if (process.env.NODE_ENV === 'production') {
     // Production: Use a dedicated email service (e.g., SendGrid, Mailgun)
     transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net', // Or your email service's SMTP host
-      port: 587,
-      secure: false, // Use TLS
+      host: process.env.ZUSTOM_MAIL_HOST,
+      port: parseInt(process.env.ZUSTOM_MAIL_PORT || '587', 10),
+      secure: process.env.ZUSTOM_MAIL_PORT === '587', 
       auth: {
-        user: 'apikey', // For SendGrid
-        pass: process.env.SENDGRID_API_KEY,
+        user: process.env.ZUSTOM_MAIL_USER,
+        pass: process.env.ZUSTOM_MAIL_PASS,
       },
     });
   } else {
@@ -61,7 +61,7 @@ export async function sendVerificationEmail(toEmail: string, token: string, user
   const verificationLink = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || 'no-reply@your-services.com',
+    from: process.env.EMAIL_FROM || 'support@braveworkstudio.com',
     to: toEmail,
     subject: 'Verify Your Email Address for Our Services',
     html: `
