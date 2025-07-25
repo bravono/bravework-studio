@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import LogoWhite from "../../public/assets/BWS-White.svg";
 import LogoColor from "../../public/assets/BWS-Color.svg";
@@ -10,7 +11,21 @@ import LogoColor from "../../public/assets/BWS-Color.svg";
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState({
+    name: "Guest",
+    email: "",
+  });
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      setUser({
+        name: session.user.name || "Guest",
+        email: session.user.email || "",
+      });
+    }
+  }, [session]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,7 +35,7 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [session]);
 
   return (
     <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
@@ -64,15 +79,7 @@ export default function Navbar() {
               Portfolio
             </Link>
           </li>
-          {/* <li>
-            <Link
-              href="/projects"
-              className={pathname === "/projects" ? "active" : ""}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Project History
-            </Link>
-          </li> */}
+
           <li>
             <Link
               href="/job"
@@ -102,11 +109,11 @@ export default function Navbar() {
           </li>
           <li>
             <Link
-              href="/auth/login"
+              href={user.name ? "/dashboard" : "/auth/login"}
               className={pathname === "/auth/login" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
-              Login/Signup
+              {user.name ? <i className="fas fa-user"></i> : "Sign In/Up"}
             </Link>
           </li>
         </ul>

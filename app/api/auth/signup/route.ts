@@ -76,6 +76,7 @@ export async function POST(req: Request) {
 
     // Send the verification email (non-blocking)
     const name = `${firstName} ${lastName}`;
+    console.log(`Sending verification email to ${email} with token ${verificationToken}`);
     sendVerificationEmail(email, verificationToken, name);
 
     return NextResponse.json(

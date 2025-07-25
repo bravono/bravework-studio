@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Inter, Nosifer, DM_Sans } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
 import { Suspense } from "react";
-import { SessionProvider } from "next-auth/react";
-import { getServerSession } from "next-auth";
-import SessionProviderWrapper from "./components/SessionProiderWrapper";
+import NextAuthSessionProvider from "./components/SessionProider";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -37,8 +35,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-
   return (
     <html lang="en">
       {/* Google Tag Manager Script (in Head) */}
@@ -110,10 +106,10 @@ export default async function RootLayout({
           />
         )}
         {/* End Google Tag Manager (noscript) */}
-        <Navbar />
-        <SessionProviderWrapper session={session}>
+        <NextAuthSessionProvider>
+          <Navbar />
           {children}
-        </SessionProviderWrapper>
+        </NextAuthSessionProvider>
         <Footer />
         <Suspense fallback={null}>
           <GtmEventHandler />

@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import type Mail from 'nodemailer/lib/mailer'; // Import Mail type for transporter
+import nodemailer from "nodemailer";
+import type Mail from "nodemailer/lib/mailer"; // Import Mail type for transporter
 
 let transporter: Mail | null = null; // Use Mail type for better type inference
 
@@ -9,11 +9,11 @@ async function initializeTransporter() {
     return transporter;
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     transporter = nodemailer.createTransport({
       host: process.env.ZUSTOM_MAIL_HOST,
-      port: parseInt(process.env.ZUSTOM_MAIL_PORT || '587', 10),
-      secure: process.env.ZUSTOM_MAIL_PORT === '465', // true for 465, false for other ports
+      port: parseInt(process.env.ZUSTOM_MAIL_PORT || "587", 10),
+      secure: process.env.ZUSTOM_MAIL_PORT === "465", // true for 465, false for other ports
       auth: {
         user: process.env.ZUSTOM_MAIL_USER,
         pass: process.env.ZUSTOM_MAIL_PASS,
@@ -23,10 +23,13 @@ async function initializeTransporter() {
     // Development: Use Ethereal.email for testing without real emails
     try {
       const account = await nodemailer.createTestAccount();
-      console.log('--- Ethereal.email Credentials ---');
-      console.log('User: ' + account.user);
-      console.log('Pass: ' + account.pass);
-      console.log('--- Access your test emails at: %s ---', nodemailer.getTestMessageUrl(null)); // Placeholder for base URL
+      console.log("--- Ethereal.email Credentials ---");
+      console.log("User: " + account.user);
+      console.log("Pass: " + account.pass);
+      console.log(
+        "--- Access your test emails at: %s ---",
+        nodemailer.getTestMessageUrl(null)
+      ); // Placeholder for base URL
       transporter = nodemailer.createTransport({
         host: account.smtp.host,
         port: account.smtp.port,
@@ -39,7 +42,9 @@ async function initializeTransporter() {
       // Capture the preview URL from the account object for later use if needed
       // Note: The specific preview URL for an email is returned by sendMail
     } catch (err) {
-      console.error('Failed to create a testing account for Ethereal.email. ' + err.message);
+      console.error(
+        "Failed to create a testing account for Ethereal.email. " + err.message
+      );
       // Fallback or exit if essential for development
     }
   }
@@ -49,20 +54,25 @@ async function initializeTransporter() {
 // Call this once on server start (e.g., in an entry point or immediately here)
 initializeTransporter();
 
+export async function sendVerificationEmail(
+  toEmail: string,
+  token: string,
+  userName: string
+) {
+  console.log(`Verification token for ${userName}: ${token}`);
 
-export async function sendVerificationEmail(toEmail: string, token: string, userName: string) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
     console.error("Email transporter not initialized! Cannot send email.");
     return;
   }
 
-  const verificationLink = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
+  const verificationLink = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || 'support@braveworkstudio.com',
+    from: process.env.EMAIL_FROM || "support@braveworkstudio.com",
     to: toEmail,
-    subject: 'Verify Your Email Address for Our Services',
+    subject: "Verify Your Email Address for Our Services",
     html: `
       <p>Hello ${userName},</p>
       <p>Thank you for signing up for our services! Please verify your email address by clicking the link below:</p>
@@ -76,11 +86,11 @@ export async function sendVerificationEmail(toEmail: string, token: string, user
 
   try {
     const info = await currentTransporter.sendMail(mailOptions);
-    console.log('Email sent: %s', info.messageId);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info)); // This gives the specific email's preview URL
+    console.log("Email sent: %s", info.messageId);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info)); // This gives the specific email's preview URL
     }
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error("Error sending verification email:", error);
   }
 }
