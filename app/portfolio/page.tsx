@@ -21,7 +21,6 @@ export default function Portfolio() {
 
   return (
     <main>
-      <Navbar />
       <section className="portfolio-section">
         <div className="container">
           <h1 className={`section-title ${nosifer.className}`}>Our Portfolio</h1>

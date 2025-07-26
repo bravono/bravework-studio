@@ -9,7 +9,6 @@ const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 export default function About() {
   return (
     <main>
-      <Navbar />
       <section className="about-section">
         <div className="container">
           <h1 className={`section-title ${nosifer.className}`}>

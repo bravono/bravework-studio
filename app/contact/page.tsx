@@ -47,7 +47,6 @@ export default function Contact() {
 
   return (
     <main>
-      <Navbar />
       <section className="contact-section">
         <div className="container">
           <h1 className={`section-title ${nosifer.className}`}>Contact Us</h1>
