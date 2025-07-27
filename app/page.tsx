@@ -2,15 +2,22 @@
 
 import React from "react";
 import { Canvas } from "@react-three/fiber";
-import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import { OrbitControls } from "@react-three/drei";
+import { motion } from "framer-motion";
+
+import dynamic from "next/dynamic";
+import { Nosifer, Inter } from "next/font/google";
+import { useSession } from "next-auth/react";
+
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import ProjectCarousel from "./components/ProjectCarousel";
 import { services } from "./services/localDataService";
-import { Nosifer } from "next/font/google";
 
 const nosifer = Nosifer({
+  subsets: ["latin"],
+  weight: "400",
+});
+const inter = Inter({
   subsets: ["latin"],
   weight: "400",
 });
@@ -21,6 +28,8 @@ const Hero3DComponent = dynamic(() => import("../components/Hero3D"), {
 });
 
 export default function Home() {
+  const { data: session } = useSession();
+  
   return (
     <main>
       {/* Hero Section */}
@@ -35,6 +44,14 @@ export default function Home() {
         </div>
 
         <div className="hero-content">
+          {session?.user && <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className={` ${inter.className}`}
+          >
+            {`${session?.user?.name.split(' ')[0]}, welcome to`}
+          </motion.h1>}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
