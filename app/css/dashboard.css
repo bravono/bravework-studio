@@ -1,0 +1,557 @@
+
+
+/* Main Dashboard Page Container */
+.dashboard-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: var(--background-color);
+  min-height: 100vh;
+  margin: 20px;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 1.5rem;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 1rem; /* Space between items */
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin: 0;
+}
+
+.profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-image-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.profile-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease-in-out;
+}
+
+.profile-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 1.5rem;
+}
+
+/* General Card Styles */
+.dashboard-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card h2 {
+  font-size: 1.75rem;
+  color: var(--primary-dark);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 0.75rem;
+}
+
+/* Overview Card Specifics */
+.overview .overview-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: auto; /* Push stats to bottom if card height varies */
+}
+
+.overview .stat-item {
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: rgba(0, 135, 81, 0.05); /* Light primary background */
+}
+
+.overview .stat-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.overview .stat-label {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Profile Details Card */
+.profile-details {
+  grid-column: span 2; /* Span two columns on larger screens */
+}
+
+@media (max-width: 768px) {
+  .profile-details {
+    grid-column: span 1; /* Back to single column on smaller screens */
+  }
+}
+
+.profile-info-grid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap; /* Allow wrapping */
+}
+
+.profile-image-container {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.profile-image-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-color);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.profile-fields {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-fields p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.profile-fields label {
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.profile-fields input[type="text"],
+.profile-fields input[type="email"],
+.profile-fields textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-color);
+  background-color: #f8fafc;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.profile-fields input:focus,
+.profile-fields textarea:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(0, 135, 81, 0.2);
+  outline: none;
+}
+
+.profile-fields textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Buttons */
+button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+  margin-top: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 135, 81, 0.2);
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 135, 81, 0.3);
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.change-password-button,
+.change-email-link {
+  display: inline-block; /* For Link component */
+  background-color: #64748b; /* Gray for secondary actions */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 0.5rem; /* Adjust margin */
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.2);
+}
+
+.change-password-button:hover,
+.change-email-link:hover {
+  background-color: #475569;
+}
+
+
+/* Lists (Orders, Courses, Invoices) */
+.orders-list,
+.courses-list,
+.invoices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.order-item,
+.course-item,
+.invoice-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: #f8fafc; /* Light background for list items */
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: 0.75rem;
+}
+
+.order-info, .course-info, .invoice-info {
+  flex-grow: 1;
+}
+
+.order-info h3, .course-info h3, .invoice-info h3 {
+  font-size: 1.15rem;
+  color: var(--primary-dark);
+  margin: 0 0 0.25rem 0;
+}
+
+.order-info p, .course-info p, .invoice-info p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.order-status, .invoice-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* Status specific colors */
+.status-badge.in-progress,
+.status-badge.pending,
+.status-badge.pending-payment {
+  background-color: var(--warning-color);
+}
+
+.status-badge.completed,
+.status-badge.paid {
+  background-color: var(--success-color);
+}
+
+.status-badge.cancelled,
+.status-badge.overdue {
+  background-color: var(--danger-color);
+}
+
+.order-amount, .invoice-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+/* Progress Bar for Courses */
+.progress-bar {
+  width: 100px; /* Fixed width for the bar */
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+/* Action Buttons within lists */
+.track-button,
+.explore-button,
+.pay-button {
+  background-color: var(--primary-light);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none; /* For Link components */
+  transition: background-color 0.2s ease-in-out;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.track-button:hover,
+.explore-button:hover,
+.pay-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.view-all {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease-in-out;
+}
+
+.view-all:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Referrals & Coupons */
+.referrals-coupons .referrals-info,
+.referrals-coupons .coupons-info {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.referrals-coupons .coupons-info:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.referrals-coupons p {
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.referrals-coupons ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+.referrals-coupons li {
+  background-color: rgba(0, 135, 81, 0.05);
+  border: 1px dashed var(--primary-light);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--primary-dark);
+}
+
+/* Quick Actions */
+.quick-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.action-button {
+  background-color: var(--info-color);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+}
+
+.action-button:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Loading and Error States */
+.loading-state,
+.unauthenticated-state,
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  font-size: 1.5rem;
+  color: #666;
+  text-align: center;
+}
+
+.error-state {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Single column layout on small screens */
+  }
+
+  .profile-details {
+    grid-column: span 1; /* Ensure it's single column */
+  }
+
+  .overview .stat-item {
+    min-width: unset; /* Allow items to shrink */
+    flex-basis: 48%; /* Two items per row */
+  }
+
+  .profile-info-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .profile-fields {
+    width: 100%;
+    text-align: center;
+  }
+
+  .profile-fields button,
+  .change-password-button,
+  .change-email-link {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .order-item,
+  .course-item,
+  .invoice-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-status, .invoice-status {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+
+  .track-button,
+  .explore-button,
+  .pay-button {
+    width: 100%;
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dashboard-header h1 {
+    font-size: 1.75rem;
+  }
+  .profile-summary {
+    width: 100%;
+    justify-content: center;
+  }
+}
