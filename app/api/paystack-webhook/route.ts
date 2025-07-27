@@ -34,7 +34,7 @@ async function loadOrderStatusMap() {
   try {
     console.log("Loading order statuses into cache...");
     const { rows } = await queryDatabase(
-      "SELECT order_status_id, name FROM order_status"
+      "SELECT order_status_id, name FROM order_statuses"
     );
     rows.forEach((row: { id: number; name: string }) => {
       orderStatusMap[row.name] = row.id;
