@@ -4,28 +4,20 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Image from "next/image";
 import LogoWhite from "../../public/assets/BWS-White.svg";
 import LogoColor from "../../public/assets/BWS-Color.svg";
+import "../css/navbar.css";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState({
-    name: "Guest",
-    email: "",
-  });
+  const [showDropdown, setShowDropdown] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      setUser({
-        name: session.user.name || "Guest",
-        email: session.user.email || "",
-      });
-    }
-  }, [session]);
+ 
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,14 +99,50 @@ export default function Navbar() {
               Contact
             </Link>
           </li>
-          <li>
+          <li
+            className="navbar-user"
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={() => setShowDropdown(false)}
+          >
             <Link
-              href={user.name ? "/dashboard" : "/auth/login"}
+              href={status === "authenticated" && session.user.name ? "/dashboard" : "/auth/login"}
               className={pathname === "/auth/login" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
-              {user.name ? <i className="fas fa-user"></i> : "Sign In/Up"}
+              {status === "authenticated" && session.user.name ? <i className="fas fa-user"></i> : "Sign In/Up"}
             </Link>
+            {status === "authenticated" && session.user.name && showDropdown && (
+              <div className="navbar-dropdown">
+                <Link
+                  href="/dashboard"
+                  className="dropdown-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/profile"
+                  className="dropdown-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Account
+                </Link>
+                <button
+                  className="dropdown-link"
+                  style={{
+                    border: "none",
+                    background: "red",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    signOut({ callbackUrl: "/auth/login" }); // Redirect to login page after logout
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </li>
         </ul>
       </div>
