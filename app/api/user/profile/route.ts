@@ -1,7 +1,7 @@
 // app/api/user/profile/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next"; // Import getServerSession
-import { authOptions } from "../../auth/[...nextauth]/route"; // Import your authOptions
+import { authOptions } from "../../../../lib/auth-options";
 import { queryDatabase } from "../../../../lib/db"; // Assuming this path is correct for your db utility
 
 export async function GET(request: Request) {
@@ -22,12 +22,15 @@ export async function GET(request: Request) {
 
     // 3. Use the user's ID from the session to fetch their profile
     // Assuming you've added 'id' to your session object via NextAuth.js callbacks
-    const userId = (session.user as any).id; 
+    const userId = (session.user as any).id;
 
     if (!userId) {
       // This case should ideally not happen if session is properly configured
       console.error("Session user ID is missing.");
-      return NextResponse.json({ error: "User ID not found in session" }, { status: 400 });
+      return NextResponse.json(
+        { error: "User ID not found in session" },
+        { status: 400 }
+      );
     }
 
     // 4. Fetch user profile from the database using the user ID
@@ -51,15 +54,20 @@ export async function GET(request: Request) {
     const result = await queryDatabase(queryText, params);
 
     if (result.length === 0) {
-      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User profile not found" },
+        { status: 404 }
+      );
     }
 
     // Return the first (and only) row of the profile data
     return NextResponse.json(result[0]);
-
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -75,7 +83,10 @@ export async function PATCH(request: Request) {
     const userId = (session.user as any).id;
     if (!userId) {
       console.error("Session user ID is missing for PATCH.");
-      return NextResponse.json({ error: "User ID not found in session" }, { status: 400 });
+      return NextResponse.json(
+        { error: "User ID not found in session" },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -106,14 +117,17 @@ export async function PATCH(request: Request) {
     // Add other fields like profile_image if you implement upload
 
     if (updateFields.length === 0) {
-      return NextResponse.json({ message: "No fields to update" }, { status: 200 });
+      return NextResponse.json(
+        { message: "No fields to update" },
+        { status: 200 }
+      );
     }
 
     updateParams.push(userId); // Add userId as the last parameter
 
     const updateQueryText = `
       UPDATE users 
-      SET ${updateFields.join(', ')} 
+      SET ${updateFields.join(", ")} 
       WHERE id = $${paramIndex} 
       RETURNING 
         user_id, 
@@ -131,13 +145,18 @@ export async function PATCH(request: Request) {
     const updatedResult = await queryDatabase(updateQueryText, updateParams);
 
     if (updatedResult.length === 0) {
-      return NextResponse.json({ error: "User not found or no update performed" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User not found or no update performed" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(updatedResult[0]);
-
   } catch (error) {
     console.error("Error updating user profile:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

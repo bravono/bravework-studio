@@ -1,8 +1,8 @@
 // app/api/user/orders/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route"; // Adjusted path as per your update
-import { queryDatabase } from "../../../../lib/db"; // Adjust path as needed
+import {authOptions} from "../../../../lib/auth-options"; 
+import { queryDatabase } from "../../../../lib/db";
 
 export async function GET(request: Request) {
   try {
