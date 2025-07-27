@@ -6,6 +6,11 @@
   --background-color: #ffffff;
   --card-background: #ffffff;
   --shadow-color: rgba(0, 0, 0, 0.1);
+  --border-color: #e2e8f0; /* Light gray for borders */
+  --success-color: #22c55e; /* Green for success status */
+  --warning-color: #f59e0b; /* Orange for in progress/pending */
+  --danger-color: #ef4444; /* Red for cancelled/overdue */
+  --info-color: #3b82f6; /* Blue for general info */
 }
 
 * {
