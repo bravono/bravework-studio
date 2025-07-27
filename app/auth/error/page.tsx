@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function ErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
-  const errorMessage = searchParams.get("message") || "An unknown error occurred.";
+  const errorMessage =
+    searchParams.get("message") || "An unknown error occurred.";
 
   return (
     <div>
@@ -17,5 +19,13 @@ export default function ErrorPage() {
         <a href="/auth/signup">Go to Sign Up</a>
       </p>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ErrorContent />
+    </Suspense>
   );
 }

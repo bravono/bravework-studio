@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify"; // Optional: For better user feedback
+import { toast } from "react-toastify";
 import "../../css/auth.css";
 
-export default function Login() {
+function LoginForm() {
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -19,7 +19,7 @@ export default function Login() {
 
   useEffect(() => {
     if (verified === "true") {
-      toast.success("Email successfully verified! You can now log in."); // Or display a nicer message
+      toast.success("Email successfully verified! You can now log in.");
     }
   }, [verified]);
 
@@ -122,5 +122,13 @@ export default function Login() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
