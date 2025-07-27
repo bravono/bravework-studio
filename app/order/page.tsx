@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { toast, ToastContainer } from "react-toastify";
+
+import { useSession } from "next-auth/react";
+
 import Navbar from "../components/Navbar";
 import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 
 export default function OrderPage() {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
@@ -135,19 +141,26 @@ export default function OrderPage() {
 
     const formDataToSend = new FormData();
 
-    // We need the Id of the selected service not name
     const selectedServiceData = productCategories.find(
       (product) => product.category_name === selectedService
     );
     if (selectedServiceData) {
       formDataToSend.append("serviceId", selectedServiceData.category_id);
     }
-    const entries = Object.entries(formData);
-    entries.slice(0, -1).forEach(([key, value]) => {
-      formDataToSend.append(key, value);
-    });
 
-    formDataToSend.append("files", JSON.stringify(fileInfos));
+    if (user) {
+      // Only append fields for logged-in users
+      formDataToSend.append("budget", formData.budget);
+      formDataToSend.append("timeline", formData.timeline);
+      formDataToSend.append("projectDescription", formData.projectDescription);
+      formDataToSend.append("files", JSON.stringify(fileInfos));
+    } else {
+      // Append all fields for guests
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+      formDataToSend.append("files", JSON.stringify(fileInfos));
+    }
 
     try {
       const response = await fetch("/api/orders", {
@@ -267,156 +280,225 @@ export default function OrderPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="order-form">
-              <div className="form-group">
-                <label htmlFor="name">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="name">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="name">Company Name</label>
-                <input
-                  type="text"
-                  id="companyName"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="budget">Budget Range</label>
-                <select
-                  id="budget"
-                  name="budget"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  required
-                  disabled={!selectedService}
-                >
-                  <option value="">Select a budget range</option>
-                  {getSelectedService()?.budget_ranges.map((range, index) => (
-                    <option key={index} value={range.range_value}>
-                      {range.range_label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="timeline">Project Timeline</label>
-                <select
-                  id="timeline"
-                  name="timeline"
-                  value={formData.timeline}
-                  onChange={handleInputChange}
-                  required
-                  disabled={!selectedService}
-                >
-                  <option value="">Select a timeline</option>
-                  {getSelectedService()?.timelines.map((timeline, index) => (
-                    <option key={index} value={timeline.timeline_value}>
-                      {timeline.timeline_label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="projectDescription">Project Description</label>
-                <textarea
-                  id="projectDescription"
-                  name="projectDescription"
-                  value={formData.projectDescription}
-                  onChange={handleInputChange}
-                  required
-                  rows={2}
-                />
-              </div>
-              <div className="form-group file-upload-group">
-                <label>Project Files</label>
-                <div className="file-upload-container">
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileUpload}
-                    accept={getSelectedService()?.accepted_files}
-                    className="file-input"
-                    disabled={!selectedService}
-                  />
-                  <div className="file-upload-prompt">
-                    <span className="upload-icon">📁</span>
-                    <p>Drag and drop files here or click to browse</p>
-                    <small>
-                      Accepted formats: {getSelectedService()?.accepted_files}
-                    </small>
-                  </div>
-                </div>
-                {files.length > 0 &&
-                isSubmitting &&
-                files.length > fileInfos.length ? (
-                  <div className="uploading-indicator">
-                    <span>Uploading files...</span>
-                    <Progress
-                      value={Math.round(
-                        (fileInfos.length / files.length) * 100
-                      )}
+              {!user ? (
+                <>
+                  {/* All fields for guests */}
+                  <div className="form-group">
+                    <label htmlFor="firstName">First Name</label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
                     />
                   </div>
-                ) : files.length > 0 &&
-                  isSubmitting &&
-                  files.length === fileInfos.length ? (
-                  <div className="uploading-indicator">
-                    <span>File Uploaded</span>
-                    <Progress value={100} />
+                  <div className="form-group">
+                    <label htmlFor="lastName">Last Name</label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
-                ) : null}
-                {files.length > 0 && (
-                  <FilesToUpload
-                    files={files}
-                    removeFile={removeFile}/>
-                )}
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="companyName">Company Name</label>
+                    <input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="email">Email Address</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="phone">Phone Number</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  {/* The 4 fields below are also shown for guests */}
+                  <div className="form-group">
+                    <label htmlFor="budget">Budget Range</label>
+                    <select
+                      id="budget"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!selectedService}
+                    >
+                      <option value="">Select a budget range</option>
+                      {getSelectedService()?.budget_ranges.map(
+                        (range, index) => (
+                          <option key={index} value={range.range_value}>
+                            {range.range_label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="timeline">Project Timeline</label>
+                    <select
+                      id="timeline"
+                      name="timeline"
+                      value={formData.timeline}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!selectedService}
+                    >
+                      <option value="">Select a timeline</option>
+                      {getSelectedService()?.timelines.map(
+                        (timeline, index) => (
+                          <option key={index} value={timeline.timeline_value}>
+                            {timeline.timeline_label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="projectDescription">
+                      Project Description
+                    </label>
+                    <textarea
+                      id="projectDescription"
+                      name="projectDescription"
+                      value={formData.projectDescription}
+                      onChange={handleInputChange}
+                      required
+                      rows={2}
+                    />
+                  </div>
+                  <div className="form-group file-upload-group">
+                    <label>Project Files</label>
+                    <div className="file-upload-container">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        accept={getSelectedService()?.accepted_files}
+                        className="file-input"
+                        disabled={!selectedService}
+                      />
+                      <div className="file-upload-prompt">
+                        <span className="upload-icon">📁</span>
+                        <p>Drag and drop files here or click to browse</p>
+                        <small>
+                          Accepted formats:{" "}
+                          {getSelectedService()?.accepted_files}
+                        </small>
+                      </div>
+                    </div>
+                    {files.length > 0 && (
+                      <FilesToUpload files={files} removeFile={removeFile} />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Only these 4 fields for logged-in users */}
+                  <div className="form-group">
+                    <label htmlFor="budget">Budget Range</label>
+                    <select
+                      id="budget"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!selectedService}
+                    >
+                      <option value="">Select a budget range</option>
+                      {getSelectedService()?.budget_ranges.map(
+                        (range, index) => (
+                          <option key={index} value={range.range_value}>
+                            {range.range_label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="timeline">Project Timeline</label>
+                    <select
+                      id="timeline"
+                      name="timeline"
+                      value={formData.timeline}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!selectedService}
+                    >
+                      <option value="">Select a timeline</option>
+                      {getSelectedService()?.timelines.map(
+                        (timeline, index) => (
+                          <option key={index} value={timeline.timeline_value}>
+                            {timeline.timeline_label}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="projectDescription">
+                      Project Description
+                    </label>
+                    <textarea
+                      id="projectDescription"
+                      name="projectDescription"
+                      value={formData.projectDescription}
+                      onChange={handleInputChange}
+                      required
+                      rows={2}
+                    />
+                  </div>
+                  <div className="form-group file-upload-group">
+                    <label>Project Files</label>
+                    <div className="file-upload-container">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        accept={getSelectedService()?.accepted_files}
+                        className="file-input"
+                        disabled={!selectedService}
+                      />
+                      <div className="file-upload-prompt">
+                        <span className="upload-icon">📁</span>
+                        <p>Drag and drop files here or click to browse</p>
+                        <small>
+                          Accepted formats:{" "}
+                          {getSelectedService()?.accepted_files}
+                        </small>
+                      </div>
+                    </div>
+                    {files.length > 0 && (
+                      <FilesToUpload files={files} removeFile={removeFile} />
+                    )}
+                  </div>
+                </>
+              )}
 
               <button
                 type="submit"
