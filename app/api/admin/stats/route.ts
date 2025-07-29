@@ -1,8 +1,7 @@
 // app/api/admin/stats/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth-options";
 import { queryDatabase } from "../../../../lib/db";
+import { verifyAdmin } from "../../../../lib/admin-auth-guard";
 
 // Define the expected structure of the statistics
 interface AdminStats {
@@ -16,24 +15,9 @@ interface AdminStats {
 
 export async function GET(request: Request) {
   try {
-    // 1. Get the session to authenticate the user
-    const session = await getServerSession(authOptions);
+    const guardResponse = await verifyAdmin(request);
+  if (guardResponse) return guardResponse;
 
-    // 2. Check if the user is authenticated
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // 3. Authorization: Check if the user has the 'admin' role
-    const userRoles = (session.user as any).roles.map((role: string) =>
-      role.toLowerCase()
-    );
-    if (!userRoles.includes("admin")) {
-      return NextResponse.json(
-        { message: "Forbidden: Insufficient permissions" },
-        { status: 403 }
-      );
-    }
 
     // 4. Fetch aggregated statistics from the database
     const stats: AdminStats = {

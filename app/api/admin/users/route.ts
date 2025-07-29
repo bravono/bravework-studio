@@ -1,26 +1,13 @@
 // app/api/admin/users/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth-options";
 import { queryDatabase } from "../../../../lib/db";
+import { verifyAdmin } from "../../../../lib/admin-auth-guard";
+
 
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions);
+   const guardResponse = await verifyAdmin(request);
+  if (guardResponse) return guardResponse;
 
-  // 1. Check if authenticated
-  if (!session || !session.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  // 2. Check for specific role (Authorization)
-  const userRoles = (session.user as any).roles;
-
-  if (!userRoles?.some((role: string) => role.toLowerCase() === "admin")) {
-    return NextResponse.json(
-      { message: "Forbidden: Insufficient permissions" },
-      { status: 403 }
-    );
-  }
 
   try {
     // If user is admin, fetch all users (example)
