@@ -1,5 +1,5 @@
 // app/admin/dashboard/AdminDashboardClient.tsx
-'use client';
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -7,111 +7,39 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import '../css/dashboard.css'; // Your dashboard CSS
+import "../css/dashboard.css"; // Your dashboard CSS
+
+import {
+  AdminProfile,
+  Order,
+  User,
+  JobApplication,
+  CustomOffer,
+  Invoice,
+  AdminStats,
+} from "../types/models";
 
 // Import sub-components (will be created below)
-import AdminOrdersSection from './AdminOrdersSection';
-import AdminUsersSection from './AdminUsersSection';
-import AdminJobApplicationsSection from './AdminJobApplicationsSection';
-import AdminInvoicesSection from './AdminInvoicesSection';
-
-// --- Interfaces (moved here for self-containment, but ideally in a shared types file) ---
-interface AdminProfile {
-  id: string;
-  fullName: string;
-  email: string;
-  bio?: string;
-  profileImage?: string;
-  companyName?: string;
-  phone?: string;
-  memberSince: string;
-  referrals?: number;
-  coupons?: string[];
-  role?: string;
-}
-
-interface Order {
-  id: string;
-  service: string;
-  date: string;
-  dateStarted?: string;
-  dateCompleted?: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Payment';
-  amount: number;
-  amountPaid: number;
-  trackingId?: string;
-  clientName?: string;
-  clientId: string;
-  isPortfolio?: boolean;
-  description?: string;
-}
-
-interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  role: string;
-  emailVerified: boolean;
-  createdAt: string;
-}
-
-interface JobApplication {
-  id: string;
-  applicantName: string;
-  applicantEmail: string;
-  roleApplied: string;
-  status: 'Pending' | 'Reviewed' | 'Interviewing' | 'Rejected' | 'Hired';
-  appliedDate: string;
-  resumeUrl?: string;
-  coverLetter?: string;
-}
-
-interface CustomOffer {
-  id: string;
-  orderId: string;
-  userId: string;
-  offerAmount: number;
-  description: string;
-  createdAt: string;
-  status: 'Pending' | 'Accepted' | 'Rejected' | 'Expired';
-}
-
-interface Invoice {
-  id: string;
-  orderId?: string;
-  userId: string;
-  clientName?: string;
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  amountPaid: number;
-  status: 'Paid' | 'Pending' | 'Overdue' | 'Cancelled';
-  paymentLink?: string;
-}
-
-interface AdminStats {
-  totalOrders: number;
-  totalRevenue: number;
-  pendingOrders: number;
-  activeCoupons: number;
-  totalUsers: number;
-  pendingJobApplications: number;
-}
-// --- End of Interfaces ---
+import AdminOrdersSection from "./AdminOrdersSection";
+import AdminUsersSection from "./AdminUsersSection";
+import AdminJobApplicationsSection from "./AdminJobApplicationsSection";
+import AdminInvoicesSection from "./AdminInvoicesSection";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
 }
 
-export default function AdminDashboardClient({ initialSession }: AdminDashboardClientProps) {
+export default function AdminDashboardClient({
+  initialSession,
+}: AdminDashboardClientProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const [activeTab, setActiveTab] = useState<string>('overview'); // State to manage active tab
+  const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
 
   // Admin Profile state (for display, not directly editable here)
   const [adminProfile, setAdminProfile] = useState<AdminProfile>({
-    id: (initialSession.user as any)?.id || '',
+    id: (initialSession.user as any)?.id || "",
     fullName: initialSession.user?.name || "Admin User",
     email: initialSession.user?.email || "",
     memberSince: "N/A", // Will be fetched from backend
@@ -135,8 +63,8 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
     setLoadingData(true);
     setDataError(null);
     try {
-      const res = await fetch('/api/admin/stats'); // NEW API ROUTE
-      if (!res.ok) throw new Error('Failed to fetch admin stats.');
+      const res = await fetch("/api/admin/stats"); // NEW API ROUTE
+      if (!res.ok) throw new Error("Failed to fetch admin stats.");
       const data: AdminStats = await res.json();
       setStats(data);
     } catch (err: any) {
@@ -153,12 +81,14 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
 
   // Handle password change (redirect or open modal)
   const handleChangePassword = () => {
-    router.push('/auth/change-password');
+    router.push("/auth/change-password");
   };
 
   // Render loading/error states for the main dashboard
   if (loadingData) {
-    return <div className="loading-state">Loading admin dashboard overview...</div>;
+    return (
+      <div className="loading-state">Loading admin dashboard overview...</div>
+    );
   }
 
   if (dataError) {
@@ -177,12 +107,15 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
           <h1>Welcome, {adminProfile.fullName}! (Admin)</h1>
           <div className="profile-summary">
             <img
-              src={adminProfile.profileImage || "/default-profile.png"}
+              src={
+                adminProfile.profileImage ||
+                "/assets/Braveword_Studio-Logo-Color.png"
+              }
               alt="Profile"
               className="profile-image-thumbnail"
             />
             <Link href="/profile" className="profile-link">
-              <span>View/Edit Admin Profile</span>
+              <span>Edit Profile</span>
             </Link>
           </div>
         </div>
@@ -190,39 +123,51 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
         {/* Admin Dashboard Navigation Tabs */}
         <div className="admin-tabs">
           <button
-            className={`admin-tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            className={`admin-tab-button ${
+              activeTab === "overview" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("overview")}
           >
             Overview
           </button>
           <button
-            className={`admin-tab-button ${activeTab === 'orders' ? 'active' : ''}`}
-            onClick={() => setActiveTab('orders')}
+            className={`admin-tab-button ${
+              activeTab === "orders" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("orders")}
           >
             Orders & Projects
           </button>
           <button
-            className={`admin-tab-button ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
+            className={`admin-tab-button ${
+              activeTab === "users" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("users")}
           >
             Users
           </button>
           <button
-            className={`admin-tab-button ${activeTab === 'jobApplications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('jobApplications')}
+            className={`admin-tab-button ${
+              activeTab === "jobApplications" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("jobApplications")}
           >
             Job Applications
           </button>
           <button
-            className={`admin-tab-button ${activeTab === 'invoices' ? 'active' : ''}`}
-            onClick={() => setActiveTab('invoices')}
+            className={`admin-tab-button ${
+              activeTab === "invoices" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("invoices")}
           >
             Invoices & Payments
           </button>
           {/* Good to have: Settings, Reports, Discounts */}
           <button
-            className={`admin-tab-button ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
+            className={`admin-tab-button ${
+              activeTab === "settings" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("settings")}
           >
             Settings
           </button>
@@ -230,7 +175,7 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
 
         {/* Render content based on active tab */}
         <div className="dashboard-content">
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <div className="dashboard-grid">
               {/* Overview Cards */}
               <div className="dashboard-card overview">
@@ -259,7 +204,9 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
                     <span className="stat-label">Total Users</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">{stats.pendingJobApplications}</span>
+                    <span className="stat-value">
+                      {stats.pendingJobApplications}
+                    </span>
                     <span className="stat-label">Pending Job Apps</span>
                   </div>
                 </div>
@@ -269,16 +216,28 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
               <div className="dashboard-card admin-management">
                 <h2>Management Tools</h2>
                 <div className="quick-actions-list">
-                  <button className="action-button" onClick={() => setActiveTab('orders')}>
+                  <button
+                    className="action-button"
+                    onClick={() => setActiveTab("orders")}
+                  >
                     Manage Orders
                   </button>
-                  <button className="action-button" onClick={() => setActiveTab('users')}>
+                  <button
+                    className="action-button"
+                    onClick={() => setActiveTab("users")}
+                  >
                     Manage Users
                   </button>
-                  <button className="action-button" onClick={() => setActiveTab('jobApplications')}>
+                  <button
+                    className="action-button"
+                    onClick={() => setActiveTab("jobApplications")}
+                  >
                     Manage Job Apps
                   </button>
-                  <button className="action-button" onClick={() => setActiveTab('invoices')}>
+                  <button
+                    className="action-button"
+                    onClick={() => setActiveTab("invoices")}
+                  >
                     Manage Invoices
                   </button>
                   <Link href="/admin/reports" className="action-button">
@@ -293,7 +252,9 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
               {/* Placeholder for other admin-specific content */}
               <div className="dashboard-card reports">
                 <h2>System Health</h2>
-                <p>Monitor server status, API performance, and database health.</p>
+                <p>
+                  Monitor server status, API performance, and database health.
+                </p>
                 <Link href="/admin/system-health" className="view-all">
                   View System Health
                 </Link>
@@ -301,15 +262,20 @@ export default function AdminDashboardClient({ initialSession }: AdminDashboardC
             </div>
           )}
 
-          {activeTab === 'orders' && <AdminOrdersSection />}
-          {activeTab === 'users' && <AdminUsersSection />}
-          {activeTab === 'jobApplications' && <AdminJobApplicationsSection />}
-          {activeTab === 'invoices' && <AdminInvoicesSection />}
-          {activeTab === 'settings' && (
+          {activeTab === "orders" && <AdminOrdersSection />}
+          {activeTab === "users" && <AdminUsersSection />}
+          {activeTab === "jobApplications" && <AdminJobApplicationsSection />}
+          {activeTab === "invoices" && <AdminInvoicesSection />}
+          {activeTab === "settings" && (
             <div className="dashboard-card">
               <h2>Admin Settings</h2>
               <p>General application settings, integrations, etc.</p>
-              <button onClick={handleChangePassword} className="change-password-button">Change Admin Password</button>
+              <button
+                onClick={handleChangePassword}
+                className="change-password-button"
+              >
+                Change Admin Password
+              </button>
               {/* Other settings forms */}
             </div>
           )}
