@@ -46,8 +46,8 @@ export async function POST(req: Request) {
     // Insert new user with guest role
     const insertUserResult = await queryDatabase(
       `INSERT INTO users 
-        (first_name, last_name, email, password, company_name, phone, role_id, email_verified) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING user_id`,
+        (first_name, last_name, email, password, company_name, phone, email_verified) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
       [
         firstName,
         lastName,
@@ -55,13 +55,18 @@ export async function POST(req: Request) {
         hashedPassword,
         companyName || null,
         phone || null,
-        6, // Assuming 6 is the ID for the guest role
         null, // email_verified is null initially
       ]
     );
 
     const newUser = insertUserResult[0];
     const newUserId = newUser.user_id;
+
+    // Insert user role into user_roles table
+    await queryDatabase(
+      "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
+      [newUserId, 6] // Assuming 6 is the ID for the guest role
+    );
 
     // Generate a verification token
     const verificationToken = uuidv4();
@@ -71,12 +76,14 @@ export async function POST(req: Request) {
     // Store the verification token in the database
     await queryDatabase(
       'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
-      [newUserId, verificationToken, expires, 'email_verification']
+      [newUserId, verificationToken, expires, "email_verification"]
     );
 
     // Send the verification email (non-blocking)
     const name = `${firstName} ${lastName}`;
-    console.log(`Sending verification email to ${email} with token ${verificationToken}`);
+    console.log(
+      `Sending verification email to ${email} with token ${verificationToken}`
+    );
     sendVerificationEmail(email, verificationToken, name);
 
     return NextResponse.json(

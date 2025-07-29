@@ -1,7 +1,9 @@
 import NextAuth from "next-auth";
 import {authOptions} from "../../../../lib/auth-options"; 
 
-
+// Explicitly set the runtime for this Route Handler to Node.js
+// This ensures that Node.js-specific modules like 'pg' can be used.
+export const runtime = 'nodejs';
 
 // Extend NextAuth's User type to include 'id'
 declare module "next-auth" {

@@ -67,6 +67,23 @@ export const authOptions = {
         token.id = user.id; // User.id is number, so token.id should be number
         token.email = user.email;
         token.name = user.name;
+        // Fetch all roles for the user from user_roles table
+        const rolesResult = await queryDatabase(
+          "SELECT role_id FROM user_roles WHERE user_id = $1",
+          [user.id]
+        );
+        // Get role_ids from user_roles
+        const roleIds = rolesResult.map((row: { role_id: number }) => row.role_id);
+        // Fetch role names from roles table
+        let roleNames: string[] = [];
+        if (roleIds.length > 0) {
+          const rolesQuery = `
+            SELECT role_name FROM roles WHERE role_id = ANY($1)
+          `;
+          const rolesNameResult = await queryDatabase(rolesQuery, [roleIds]);
+          roleNames = rolesNameResult.map((row: { role_name: string }) => row.role_name);
+        }
+        token.roles = roleNames;
       }
       return token;
     },
@@ -76,6 +93,7 @@ export const authOptions = {
         session.user.id = token.id as number; // <--- Changed to number
         session.user.email = token.email as string;
         session.user.name = token.name as string | null;
+        session.user.roles = token.roles as string[]; // Add roles to session
       }
       return session;
     },

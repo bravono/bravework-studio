@@ -55,3 +55,12 @@
   color: #4f46e5;
   font-weight: 600;
 }
+
+.auth-error-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}

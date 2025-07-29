@@ -17,7 +17,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
- 
+  // Extend the user type to include 'roles'
+  type UserWithRoles = typeof session extends { user: infer U }
+    ? U & { roles?: string[] }
+    : never;
+  const user = session?.user as UserWithRoles | undefined;
+
+  const isAdmin =
+    status === "authenticated" &&
+    user?.roles?.map((role) => role.toLocaleLowerCase()).includes("admin");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,44 +113,56 @@ export default function Navbar() {
             onMouseLeave={() => setShowDropdown(false)}
           >
             <Link
-              href={status === "authenticated" && session.user.name ? "/dashboard" : "/auth/login"}
+              href={
+                status === "authenticated" && session.user.name
+                  ? isAdmin
+                    ? "/admin/dashboard"
+                    : "/dashboard"
+                  : "/auth/login"
+              }
               className={pathname === "/auth/login" ? "active" : ""}
               onClick={() => setIsMenuOpen(false)}
             >
-              {status === "authenticated" && session.user.name ? <i className="fas fa-user"></i> : "Sign In/Up"}
+              {status === "authenticated" && session.user.name ? (
+                <i className="fas fa-user"></i>
+              ) : (
+                "Sign In/Up"
+              )}
             </Link>
-            {status === "authenticated" && session.user.name && showDropdown && (
-              <div className="navbar-dropdown">
-                <Link
-                  href="/dashboard"
-                  className="dropdown-link"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/profile"
-                  className="dropdown-link"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  My Account
-                </Link>
-                <button
-                  className="dropdown-link"
-                  style={{
-                    border: "none",
-                    background: "red",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    signOut({ callbackUrl: "/auth/login" }); // Redirect to login page after logout
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+            {status === "authenticated" &&
+              session.user.name &&
+              showDropdown && (
+                <div className="navbar-dropdown">
+                  <Link
+                    href={isAdmin ? "/admin/dashboard" : "/dashboard"}
+                    className="dropdown-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="dropdown-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    My Account
+                  </Link>
+                  <button
+                    className="dropdown-link"
+                    style={{
+                      border: "none",
+                      background: "red",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      signOut({ callbackUrl: "/auth/login" }); // Redirect to login page after logout
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
           </li>
         </ul>
       </div>
