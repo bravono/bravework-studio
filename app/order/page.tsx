@@ -146,6 +146,7 @@ export default function OrderPage() {
     );
     if (selectedServiceData) {
       formDataToSend.append("serviceId", selectedServiceData.category_id);
+      formDataToSend.append("serviceType", selectedServiceData);
     }
 
     if (user) {

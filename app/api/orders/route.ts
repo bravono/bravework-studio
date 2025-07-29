@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../lib/db";
+import { createTrackingId } from "../../../lib/utils/tracking";
 
 export async function GET(request: Request) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const fields = [
       "serviceId",
+      "serviceType",
       "firstName",
       "lastName",
       "companyName",
@@ -32,6 +34,7 @@ export async function POST(request: Request) {
 
     const [
       serviceId,
+      serviceType,
       firstName,
       lastName,
       companyName,
@@ -43,17 +46,19 @@ export async function POST(request: Request) {
       filesRaw,
     ] = fields.map((field) => formData.get(field));
 
+    const trackingId = createTrackingId(
+      typeof serviceType === "string" ? serviceType : ""
+    );
+
     // Convert file to array from string
     let files: any[] = [];
     if (typeof filesRaw === "string") {
       try {
-      files = JSON.parse(filesRaw);
+        files = JSON.parse(filesRaw);
       } catch {
-      files = [];
+        files = [];
       }
     }
-
-    console.log("Received data:", serviceId, firstName, lastName, companyName, email, phone, projectDescription, budget, timeline, files);
 
     return await withTransaction(async (client) => {
       // Check if user with the given email already exists
@@ -76,8 +81,8 @@ export async function POST(request: Request) {
       }
 
       const orderResult = await client.query(
-        "INSERT INTO orders ( project_description, budget_range, timeline, user_id, category_id) VALUES ($1, $2, $3, $4, $5) RETURNING order_id",
-        [projectDescription, budget, timeline, userId, serviceId]
+        "INSERT INTO orders (project_description, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING order_id",
+        [projectDescription, budget, timeline, userId, serviceId, trackingId]
       );
       const newOrderId = orderResult.rows[0].order_id;
 
