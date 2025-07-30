@@ -7,17 +7,9 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import "../css/dashboard.css"; // Your dashboard CSS
+import "../../../css/dashboard.css";
 
-import {
-  AdminProfile,
-  Order,
-  User,
-  JobApplication,
-  CustomOffer,
-  Invoice,
-  AdminStats,
-} from "../types/models";
+import { AdminProfile, AdminStats } from "../../../types/app";
 
 // Import sub-components (will be created below)
 import AdminOrdersSection from "./AdminOrdersSection";
