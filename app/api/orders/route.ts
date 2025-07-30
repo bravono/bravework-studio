@@ -20,7 +20,6 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const fields = [
       "serviceId",
-      "serviceType",
       "firstName",
       "lastName",
       "companyName",
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
 
     const [
       serviceId,
-      serviceType,
       firstName,
       lastName,
       companyName,
@@ -45,10 +43,6 @@ export async function POST(request: Request) {
       timeline,
       filesRaw,
     ] = fields.map((field) => formData.get(field));
-
-    const trackingId = createTrackingId(
-      typeof serviceType === "string" ? serviceType : ""
-    );
 
     // Convert file to array from string
     let files: any[] = [];
@@ -61,6 +55,17 @@ export async function POST(request: Request) {
     }
 
     return await withTransaction(async (client) => {
+      const serviceResult = await client.query(
+        "SELECT category_name FROM product_categories WHERE category_id = $1",
+        [serviceId]
+      );
+
+      const serviceType = serviceResult.rows[0]?.category_name;
+
+      const trackingId = createTrackingId(
+        typeof serviceType === "string" ? serviceType : ""
+      );
+
       // Check if user with the given email already exists
       const existingUserResult = await client.query(
         "SELECT user_id FROM users WHERE email = $1",
