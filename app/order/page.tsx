@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 import Navbar from "../components/Navbar";
 import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 
 export default function OrderPage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -37,11 +40,11 @@ export default function OrderPage() {
     { fileName: string; fileSize: string; fileUrl: string }[]
   >([]);
   const icons = ["🎨", "🌐", "📱", "✨", "🎮", "🎙️", "🤼‍♂️"];
+  const searchParams = useSearchParams();
 
   // Get the service from URL parameters
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const serviceTitle = params.get("service");
+    const serviceTitle = searchParams.get("service");
     if (serviceTitle) {
       setSelectedService(decodeURIComponent(serviceTitle));
     }
@@ -127,6 +130,9 @@ export default function OrderPage() {
             },
           ]);
           toast.success(`File ${file.name} uploaded successfully!`);
+          setTimeout(() => {
+            router.push("/order/success");
+          }, 2000); // Redirect after 2 seconds
         } else {
           const errorData = await response.json();
 
@@ -146,11 +152,15 @@ export default function OrderPage() {
     );
     if (selectedServiceData) {
       formDataToSend.append("serviceId", selectedServiceData.category_id);
-      formDataToSend.append("serviceType", selectedServiceData);
     }
 
     if (user) {
-      // Only append fields for logged-in users
+      // Append fields for logged-in users, using session data for personal info
+      formDataToSend.append("first_name", user.name.split(" ")[0] || "");
+      formDataToSend.append("last_name", user.name.split(" ")[1] || "");
+      formDataToSend.append("companyName", user.companyName || "");
+      formDataToSend.append("phone", user.phone || "");
+      formDataToSend.append("email", user.email || "");
       formDataToSend.append("budget", formData.budget);
       formDataToSend.append("timeline", formData.timeline);
       formDataToSend.append("projectDescription", formData.projectDescription);
@@ -222,7 +232,6 @@ export default function OrderPage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    console.log("Input changed:", e.target.name, e.target.value);
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
