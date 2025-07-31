@@ -211,7 +211,10 @@ export default function DashboardPage() {
           </h1>
           <div className="profile-summary">
             <img
-              src={userProfile.profileImage || "/assets/Bravework_Studio-Logo-Color.png"}
+              src={
+                userProfile.profileImage ||
+                "/assets/Bravework_Studio-Logo-Color.png"
+              }
               alt="Profile"
               className="profile-image-thumbnail"
             />
@@ -228,7 +231,10 @@ export default function DashboardPage() {
             <div className="profile-info-grid">
               <div className="profile-image-container">
                 <img
-                  src={userProfile.profileImage || "/assets/Bravework_Studio-Logo-Color.png"}
+                  src={
+                    userProfile.profileImage ||
+                    "/assets/Bravework_Studio-Logo-Color.png"
+                  }
                   alt="Profile"
                   className="profile-image-large"
                 />
@@ -358,11 +364,7 @@ export default function DashboardPage() {
                         <p>Date: {order.date}</p>
                       </div>
                       <div className="order-status">
-                        <span
-                          className={`status-badge ${order.status
-                            .toLowerCase()
-                            .replace(" ", "-")}`}
-                        >
+                        <span className={`status-badge ${order.status}`}>
                           {order.status}
                         </span>
                         <span className="order-amount">
@@ -443,9 +445,7 @@ export default function DashboardPage() {
                         <p>Amount: ${invoice.amount.toLocaleString()}</p>
                       </div>
                       <div className="invoice-status">
-                        <span
-                          className={`status-badge ${invoice.status.toLowerCase()}`}
-                        >
+                        <span className={`status-badge ${invoice.status}`}>
                           {invoice.status}
                         </span>
                         {invoice.status !== "Paid" && (

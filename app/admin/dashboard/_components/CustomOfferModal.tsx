@@ -1,9 +1,9 @@
 // app/admin/dashboard/_components/CustomOfferModal.tsx
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Modal from './Modal'; // Import the generic Modal component
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import Modal from "./Modal"; // Import the generic Modal component
+import { toast } from "react-toastify";
 
 // Re-import types
 interface Order {
@@ -19,7 +19,7 @@ interface CustomOffer {
   offerAmount: number;
   description: string;
   createdAt: string;
-  status: 'Pending' | 'Accepted' | 'Rejected' | 'Expired';
+  status: "Pending" | "Accepted" | "Rejected" | "Expired";
 }
 
 interface CustomOfferModalProps {
@@ -29,9 +29,19 @@ interface CustomOfferModalProps {
   existingOffer?: CustomOffer; // Optional: if editing an existing offer
 }
 
-export default function CustomOfferModal({ order, onClose, onSave, existingOffer }: CustomOfferModalProps) {
-  const [offerAmount, setOfferAmount] = useState<number>(existingOffer?.offerAmount || 0);
-  const [description, setDescription] = useState<string>(existingOffer?.description || '');
+export default function CustomOfferModal({
+  order,
+  onClose,
+  onSave,
+  existingOffer,
+}: CustomOfferModalProps) {
+  const [offerAmount, setOfferAmount] = useState<number>(
+    existingOffer?.offerAmount || 0
+  );
+  const [description, setDescription] = useState<string>(
+    existingOffer?.description || ""
+  );
+  const [expireAt, setExpireAt] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,36 +51,54 @@ export default function CustomOfferModal({ order, onClose, onSave, existingOffer
     setError(null);
 
     try {
-      const method = existingOffer ? 'PATCH' : 'POST';
-      const url = existingOffer ? `/api/admin/custom-offers/${existingOffer.id}` : '/api/admin/custom-offers'; // NEW API ROUTES
+      const method = existingOffer ? "PATCH" : "POST";
+      const url = existingOffer
+        ? `/api/admin/custom-offers/${existingOffer.id}`
+        : "/api/admin/custom-offers"; // NEW API ROUTES
       const body = {
         orderId: order.id,
         userId: order.clientId, // User associated with the order
         offerAmount,
         description,
+        expireAt,
       };
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error(`Failed to ${existingOffer ? 'update' : 'create'} custom offer.`);
+      if (!res.ok)
+        throw new Error(
+          `Failed to ${existingOffer ? "update" : "create"} custom offer.`
+        );
 
-      toast.success(`Custom offer ${existingOffer ? 'updated' : 'created'} successfully!`);
+      toast.success(
+        `Custom offer ${existingOffer ? "updated" : "created"} successfully!`
+      );
       onSave(); // Trigger data re-fetch in parent
     } catch (err: any) {
       console.error("Error saving custom offer:", err);
       setError(err.message || "Failed to save custom offer.");
-      toast.error('Error saving custom offer: ' + (err.message || 'Unknown error.'));
+      toast.error(
+        "Error saving custom offer: " + (err.message || "Unknown error.")
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={existingOffer ? "Edit Custom Offer" : `Create Custom Offer for Order ${order.id}`}>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={
+        existingOffer
+          ? "Edit Custom Offer"
+          : `Create Custom Offer for Order ${order.id}`
+      }
+    >
       <form onSubmit={handleSubmit} className="modal-form">
         <div className="form-group">
           <label htmlFor="offerAmount">Offer Amount ($)</label>
@@ -95,9 +123,23 @@ export default function CustomOfferModal({ order, onClose, onSave, existingOffer
             className="form-textarea"
           ></textarea>
         </div>
+        <div className="form-group">
+          <label htmlFor="expiration">Expiration Date</label>
+          <input
+            type="datetime-local"
+            id="expiration"
+            value={expireAt}
+            onChange={(e) => setExpireAt(e.target.value)}
+            className="form-input"
+          />
+        </div>
         {error && <p className="error-message">{error}</p>}
         <button type="submit" disabled={loading} className="form-submit-button">
-          {loading ? "Saving..." : (existingOffer ? "Update Offer" : "Create Offer")}
+          {loading
+            ? "Saving..."
+            : existingOffer
+            ? "Update Offer"
+            : "Create Offer"}
         </button>
       </form>
     </Modal>

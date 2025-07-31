@@ -75,12 +75,17 @@ interface JobApplication {
 // New: Custom Offer interface
 interface CustomOffer {
   id: string;
-  orderId: string; // The order this offer is linked to
-  userId: string; // The user this offer is for
-  offerAmount: number; // The amount of the custom offer
+  orderId: string;
+  userId: string;
+  offerAmount: number;
   description: string;
   createdAt: string;
-  status: "Pending" | "Accepted" | "Rejected" | "Expired";
+  status: 'Pending' | 'Accepted' | 'Rejected' | 'Expired';
+  expiresAt?: string; // Optional expiry date
+  orderService?: string; // From join
+  orderDescription?: string; // From join
+  orderBudget?: number; // From join
+  rejectionReason?: string;
 }
 
 // New: Invoice interface (expanded)

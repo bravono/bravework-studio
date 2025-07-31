@@ -1,5 +1,15 @@
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer"; // Import Mail type for transporter
+import { format } from "date-fns"; // Import date-fns for formatting expiry
+import { generateSecureToken, verifySecureToken } from "./utils/generateToken"; // Import your secure token generation utility
+
+interface SendEmailOptions {
+  toEmail: string;
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+  fromEmail?: string;
+}
 
 let transporter: Mail | null = null; // Use Mail type for better type inference
 
@@ -54,6 +64,34 @@ async function initializeTransporter() {
 // Call this once on server start (e.g., in an entry point or immediately here)
 initializeTransporter();
 
+// Generic function to send emails
+export async function sendEmail({
+  toEmail,
+  subject,
+  htmlContent,
+  textContent,
+  fromEmail = process.env.EMAIL_FROM || "ahbideeny@braveworkstudio.com",
+}: SendEmailOptions) {
+  try {
+    await transporter.sendMail({
+      from: fromEmail,
+      to: toEmail,
+      subject: subject,
+      html: htmlContent,
+      text: textContent,
+    });
+    console.log(
+      `Email sent successfully to ${toEmail} for subject: ${subject}`
+    );
+  } catch (error) {
+    console.error(
+      `Error sending email to ${toEmail} for subject ${subject}:`,
+      error
+    );
+    throw new Error(`Failed to send email: ${subject}`);
+  }
+}
+
 export async function sendVerificationEmail(
   toEmail: string,
   token: string,
@@ -93,4 +131,65 @@ export async function sendVerificationEmail(
   } catch (error) {
     console.error("Error sending verification email:", error);
   }
+}
+
+// NEW: Function to send custom offer notification email with accept/reject links and expiry
+export async function sendCustomOfferNotificationEmail(
+  toEmail: string,
+  userName: string,
+  offerAmount: number,
+  offerDescription: string,
+  orderId: string,
+  offerId: string, // NEW: Pass offerId to generate unique links
+  expiresAt: string | null // NEW: Pass expiry date
+) {
+  const subject = "New Custom Offer from Bravework Studio!";
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/dashboard/offers/${offerId}`; // Link to their dashboard offer details page
+
+  // Directly using offerId in URL for accept/reject is INSECURE for production.
+  // Example of a more secure approach (requires backend token generation/verification):
+  const dateToNumber = new Date(expiresAt).getTime() / 1000; // Convert to seconds for token generation
+  const acceptToken = generateSecureToken(offerId, "accept", dateToNumber);
+  const rejectToken = generateSecureToken(offerId, "reject", dateToNumber);
+  const acceptLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/accept?token=${acceptToken}`;
+  const rejectLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/reject?token=${rejectToken}`;
+  // --- END SECURITY WARNING ---
+
+  let expiryText = "";
+  if (expiresAt) {
+    try {
+      const expiryDate = new Date(expiresAt);
+      expiryText = `<p style="color: #e53e3e; font-weight: bold;">This offer expires on: ${format(
+        expiryDate,
+        "MMM dd, yyyy HH:mm:ss"
+      )}.</p>`;
+    } catch (e) {
+      console.error("Invalid expiry date format for email:", expiresAt, e);
+      expiryText = `<p style="color: #e53e3e;">This offer has an expiry date. Please check your dashboard for details.</p>`;
+    }
+  }
+
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    <p>Great news! We've created a new custom offer for you related to Order ID: <strong>${orderId}</strong>.</p>
+    <p><strong>Offer Amount:</strong> $${offerAmount.toLocaleString()}</p>
+    <p><strong>Description:</strong> ${offerDescription}</p>
+    ${expiryText}
+    <p>Please log in to your dashboard to view the full details of this offer:</p>
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Your Dashboard</a></p>
+    <p style="margin-top: 20px;">You can also quickly respond to the offer directly:</p>
+    <p>
+      <a href="${acceptLink}" style="display: inline-block; padding: 10px 20px; background-color: #22c55e; color: #ffffff; text-decoration: none; border-radius: 5px; margin-right: 10px;">Accept Offer</a>
+      <a href="${rejectLink}" style="display: inline-block; padding: 10px 20px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 5px;">Reject Offer</a>
+    </p>
+    <p style="font-size: 0.8em; color: #777;">(Note: Clicking these links will update the offer status. You may need to be logged in to your account.)</p>
+    <p>We look forward to working with you!</p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nGreat news! We've created a new custom offer for you related to Order ID: ${orderId}.\n\nOffer Amount: $${offerAmount.toLocaleString()}\nDescription: ${offerDescription}\n\n${expiryText.replace(
+    /<[^>]*>/g,
+    ""
+  )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
+
+  await sendEmail({ toEmail, subject, htmlContent, textContent });
 }
