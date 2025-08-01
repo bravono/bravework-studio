@@ -1,7 +1,7 @@
 // app/admin/dashboard/_components/CustomOfferModal.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "./Modal"; // Import the generic Modal component
 import { toast } from "react-toastify";
 
@@ -41,7 +41,9 @@ export default function CustomOfferModal({
   const [description, setDescription] = useState<string>(
     existingOffer?.description || ""
   );
-  const [expireAt, setExpireAt] = useState<string>("");
+  const [expiresAt, setExpireAt] = useState<string>(
+    formatDateForInput(new Date())
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +62,7 @@ export default function CustomOfferModal({
         userId: order.clientId, // User associated with the order
         offerAmount,
         description,
-        expireAt,
+        expiresAt,
       };
 
       const res = await fetch(url, {
@@ -88,6 +90,20 @@ export default function CustomOfferModal({
       setLoading(false);
     }
   };
+
+  useEffect(() => { console.log('Expired At Frontend:', expiresAt) }, [expiresAt])
+
+  function formatDateForInput(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    const yyyy = date.getFullYear();
+    const MM = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+
+    return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+  }
 
   return (
     <Modal
@@ -128,9 +144,11 @@ export default function CustomOfferModal({
           <input
             type="datetime-local"
             id="expiration"
-            value={expireAt}
+            value={expiresAt}
             onChange={(e) => setExpireAt(e.target.value)}
             className="form-input"
+            required
+            min={formatDateForInput(new Date())}
           />
         </div>
         {error && <p className="error-message">{error}</p>}

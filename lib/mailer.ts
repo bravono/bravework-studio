@@ -70,8 +70,9 @@ export async function sendEmail({
   subject,
   htmlContent,
   textContent,
-  fromEmail = process.env.EMAIL_FROM || "ahbideeny@braveworkstudio.com",
+  fromEmail = process.env.EMAIL_FROM,
 }: SendEmailOptions) {
+  console.log("SendEmail Data", toEmail, subject, htmlContent, textContent);
   try {
     await transporter.sendMail({
       from: fromEmail,
@@ -143,6 +144,12 @@ export async function sendCustomOfferNotificationEmail(
   offerId: string, // NEW: Pass offerId to generate unique links
   expiresAt: string | null // NEW: Pass expiry date
 ) {
+ 
+  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
+  if (!currentTransporter) {
+    console.error("Email transporter not initialized! Cannot send email.");
+    return;
+  }
   const subject = "New Custom Offer from Bravework Studio!";
   const dashboardLink = `${process.env.NEXTAUTH_URL}/dashboard/offers/${offerId}`; // Link to their dashboard offer details page
 
@@ -190,6 +197,6 @@ export async function sendCustomOfferNotificationEmail(
     /<[^>]*>/g,
     ""
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
-
+  console.log();
   await sendEmail({ toEmail, subject, htmlContent, textContent });
 }

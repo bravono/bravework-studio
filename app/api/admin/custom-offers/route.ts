@@ -1,3 +1,4 @@
+// app/api/admin/custom-offers/route.ts
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db";
 import { verifyAdmin } from "../../../../lib/admin-auth-guard";
@@ -10,14 +11,47 @@ export async function GET(request: Request) {
     const guardResponse = await verifyAdmin(request);
     if (guardResponse) return guardResponse;
 
-    const offers = await queryDatabase(
-      "SELECT * FROM custom_offers ORDER BY created_at DESC"
-    );
-    return NextResponse.json(offers);
-  } catch (error) {
+    // Fetch all custom offers, joining to get status name and client name
+    const queryText = `
+      SELECT
+        co.offer_id AS id,
+        co.order_id AS "orderId",
+        co.user_id AS "userId",
+        co.offer_amount_in_kobo AS "offerAmount",
+        co.description,
+        co.created_at AS "createdAt",
+        cos.name AS status, -- Get the status name from the custom_offer_statuses table
+        co.expires_at AS "expiresAt",
+        u.full_name AS "clientName", -- Join to get client's full name
+        o.category_id AS "orderService",
+        o.project_description AS "orderDescription",
+        o.budget_range AS "orderBudget"
+      FROM custom_offers co
+      JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id
+      JOIN users u ON co.user_id = u.user_id -- Join with users table
+      JOIN orders o ON co.order_id = o.order_id -- Join with orders table
+      ORDER BY co.created_at DESC;
+    `;
+
+    const offers = await queryDatabase(queryText);
+
+    // Manually convert Date objects to ISO strings for JSON serialization
+    const serializableOffers = offers.map((offer: any) => {
+      if (offer.createdAt instanceof Date) {
+        offer.createdAt = offer.createdAt.toISOString();
+      }
+      if (offer.expiresAt instanceof Date) {
+        offer.expiresAt = offer.expiresAt.toISOString();
+      }
+      return offer;
+    });
+
+    console.log("Fetched custom offers:", serializableOffers[0]); // Log first for brevity
+    return NextResponse.json(serializableOffers); // Return the full array
+  } catch (error: any) {
     console.error("Error fetching custom offers:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: error.message || "Internal Server Error" }, // Ensure error is serializable
       { status: 500 }
     );
   }
@@ -28,7 +62,7 @@ export async function POST(request: Request) {
     const guardResponse = await verifyAdmin(request);
     if (guardResponse) return guardResponse;
 
-    const body = await request.json();
+    const body = await request.json(); // Admin Panel will send JSON, not formData for offer creation
     const { orderId, userId, offerAmount, description, expiresAt } = body;
 
     if (
@@ -65,38 +99,49 @@ export async function POST(request: Request) {
     }
 
     const createdAt = new Date().toISOString();
-    const status = 1; // Default status for a new custom offer is pending
+    const status = 1; // Default status for a new custom offer is 'Pending' (assuming ID 1)
 
-    await withTransaction(async (client) => {
-      const queryText = `
+    return await withTransaction(async (client) => {
+      const insertOfferQuery = `
         INSERT INTO custom_offers (
-           order_id, user_id, offer_amount_in_kobo, description, created_at, status
-        ) VALUES ($1, $2, $3, $4, $5, $6)
+            order_id, user_id, offer_amount_in_kobo, description, created_at, status, expires_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING
           offer_id AS id, order_id AS "orderId", user_id AS "userId",
           offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt", status, expires_at AS "expiresAt";
       `;
-      const params = [
-        orderId,
-        userId,
-        offerAmount,
-        description,
-        createdAt,
-        status,
-        parsedExpiresAt,
+      const offerParams = [
+        orderId, // Parameter 2
+        userId, // Parameter 3
+        offerAmount, // Parameter 4
+        description, // Parameter 5
+        createdAt, // Parameter 6
+        status, // Parameter 7
+        parsedExpiresAt, // Parameter 8
       ];
 
-      const offerResult = await client.query(queryText, params);
+      const offerResult = await client.query(insertOfferQuery, offerParams);
 
       if (offerResult.rows.length === 0) {
         throw new Error("Failed to create custom offer.");
       }
 
-      await client.query("INSERT INTO orders (offer_id) VALUES ($1)", [
-        offerResult[0].offer_id,
-      ]);
+      // Update the associated order with the new offer_id
+      // Assuming 'orders' table has an 'offer_id' column of type UUID
+      await client.query(
+        "UPDATE orders SET offer_id = $1 WHERE order_id = $2",
+        [offerResult.rows[0].id, orderId] // Use the returned offer ID
+      );
 
       const newOffer = offerResult.rows[0];
+
+      // Convert Date objects to ISO strings for JSON serialization
+      if (newOffer.createdAt instanceof Date) {
+        newOffer.createdAt = newOffer.createdAt.toISOString();
+      }
+      if (newOffer.expiresAt instanceof Date) {
+        newOffer.expiresAt = newOffer.expiresAt.toISOString();
+      }
 
       // --- Send Notifications ---
       const userResult = await client.query(
@@ -106,7 +151,10 @@ export async function POST(request: Request) {
 
       if (userResult.rows.length > 0) {
         const customerEmail = userResult.rows[0].email;
-        const customerName = `${userResult.rows[0].full_name} ${userResult.rows[0].full_name} `;
+        // Corrected: Concatenate first_name and last_name for full name
+        const customerName = `${userResult.rows[0].first_name || ""} ${
+          userResult.rows[0].last_name || ""
+        }`.trim();
 
         // Send Email Notification (non-blocking, but log errors)
         try {
@@ -124,7 +172,6 @@ export async function POST(request: Request) {
             "Failed to send custom offer email notification:",
             emailError
           );
-          // Don't re-throw, as offer creation is more critical than email sending
         }
 
         // Create In-App Notification
@@ -136,19 +183,17 @@ export async function POST(request: Request) {
             ? `Expires: ${new Date(newOffer.expiresAt).toLocaleString()}`
             : ""
         }`;
-        const notificationLink = `/dashboard/offers/${newOffer.id}`; // Link to a page where they can view/manage offers
 
         try {
           await client.query(
-            "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
-            [userId, notificationTitle, notificationMessage, notificationLink]
+            "INSERT INTO notifications (user_id, title, message) VALUES ($1, $2, $3)", // Added link column
+            [userId, notificationTitle, notificationMessage]
           );
         } catch (dbNotificationError) {
           console.error(
             "Failed to create in-app notification for custom offer:",
             dbNotificationError
           );
-          // Don't re-throw, as offer creation is more critical than notification insertion
         }
       } else {
         console.warn(
@@ -156,12 +201,12 @@ export async function POST(request: Request) {
         );
       }
       // --- END Send Notifications ---
-      return NextResponse.json(offerResult[0], { status: 201 });
+      return NextResponse.json(newOffer, { status: 201 }); // Return the full new offer object
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating custom offer:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -195,7 +240,7 @@ export async function PATCH(request: Request) {
           { status: 400 }
         );
       }
-      updateFields.push(`offer_amount = $${paramIndex++}`);
+      updateFields.push(`offer_amount_in_kobo = $${paramIndex++}`); // Corrected column name
       updateParams.push(offerAmount);
     }
     if (description !== undefined) {
@@ -203,11 +248,26 @@ export async function PATCH(request: Request) {
       updateParams.push(description);
     }
     if (status !== undefined) {
+      // If status is provided as a name (e.g., "Accepted"), convert to ID
+      let statusId = status;
+      if (typeof status === "string") {
+        const statusResult = await queryDatabase(
+          "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
+          [status]
+        );
+        if (statusResult.rows.length > 0) {
+          statusId = statusResult.rows[0].offer_status_id;
+        } else {
+          return NextResponse.json(
+            { error: `Invalid status name: ${status}` },
+            { status: 400 }
+          );
+        }
+      }
       updateFields.push(`status = $${paramIndex++}`);
-      updateParams.push(status);
+      updateParams.push(statusId);
     }
     if (expiresAt !== undefined) {
-      // NEW: Handle expiresAt update
       let parsedExpiresAt: string | null = null;
       if (expiresAt) {
         const date = new Date(expiresAt);
@@ -238,7 +298,8 @@ export async function PATCH(request: Request) {
       WHERE offer_id = $${paramIndex}
       RETURNING
         offer_id AS id, order_id AS "orderId", user_id AS "userId",
-        offer_amount AS "offerAmount", description, created_at AS "createdAt", status, expires_at AS "expiresAt";
+        offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt",
+        status, expires_at AS "expiresAt";
     `;
 
     const result = await queryDatabase(queryText, updateParams);
@@ -250,11 +311,32 @@ export async function PATCH(request: Request) {
       );
     }
 
-    return NextResponse.json(result[0]);
-  } catch (error) {
+    const updatedOffer = result[0];
+    // Convert Date objects to ISO strings for JSON serialization
+    if (updatedOffer.createdAt instanceof Date) {
+      updatedOffer.createdAt = updatedOffer.createdAt.toISOString();
+    }
+    if (updatedOffer.expiresAt instanceof Date) {
+      updatedOffer.expiresAt = updatedOffer.expiresAt.toISOString();
+    }
+
+    // Fetch status name for the returned object
+    const statusNameResult = await queryDatabase(
+      "SELECT name FROM custom_offer_statuses WHERE offer_status_id = $1",
+      [updatedOffer.status]
+    );
+    if (statusNameResult.rows.length > 0) {
+      updatedOffer.status = statusNameResult.rows[0].name; // Replace ID with name
+    } else {
+      console.warn(`Status name not found for ID: ${updatedOffer.status}`);
+    }
+
+    console.log("Updated custom offer:", updatedOffer);
+    return NextResponse.json(updatedOffer);
+  } catch (error: any) {
     console.error("Error updating custom offer:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -292,13 +374,11 @@ export async function DELETE(request: Request) {
     return NextResponse.json({
       message: `Custom offer ${offerId} deleted successfully`,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting custom offer:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
 }
-
-// Continue From Modals
