@@ -29,29 +29,36 @@ const Hero3DComponent = dynamic(() => import("../components/Hero3D"), {
 
 export default function Home() {
   const { data: session } = useSession();
-  
+
   return (
     <main>
       {/* Hero Section */}
       <section className="hero-section">
-        <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [1, 1, 10] }}>
+        <div className="virtual-office">
+          <Canvas
+            camera={{
+              position: [0, 0, 10],
+              fov: 50,
+            }}
+          >
             <ambientLight intensity={2} />
             <pointLight position={[10, 10, 10]} />
-            <OrbitControls enableZoom={true} />
+            <OrbitControls />
             <Hero3DComponent />
           </Canvas>
         </div>
 
         <div className="hero-content">
-          {session?.user && <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={` ${inter.className}`}
-          >
-            {`${session?.user?.name.split(' ')[0]}, welcome to`}
-          </motion.h1>}
+          {session?.user && (
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className={` ${inter.className}`}
+            >
+              {`${session?.user?.name.split(" ")[0]}, welcome to`}
+            </motion.h1>
+          )}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -70,14 +77,7 @@ export default function Home() {
           </motion.p>
           <div className="hero-buttons">
             <a href="/order" className="hero-cta">
-              Get Started
-            </a>
-            <a
-              href="/payment?service=3D%20Modeling&amount=100"
-              className="hero-cta"
-              style={{ marginLeft: "1rem" }}
-            >
-              Test Payment
+              Order A Service
             </a>
           </div>
         </div>
