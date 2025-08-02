@@ -507,7 +507,7 @@ export default function DashboardPage() {
               <Link href="/support" className="action-button">
                 Get Support
               </Link>
-              <Link href="/notifications" className="action-button">
+              <Link href="/dashboard/notifications" className="action-button">
                 Notifications (0 new)
               </Link>
             </div>

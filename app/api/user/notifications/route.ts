@@ -16,7 +16,10 @@ export async function GET(request: Request) {
 
     const userId = (session.user as any).id;
     if (!userId) {
-      return NextResponse.json({ error: "User ID not found in session" }, { status: 400 });
+      return NextResponse.json(
+        { error: "User ID not found in session" },
+        { status: 400 }
+      );
     }
 
     // 2. Fetch notifications for the authenticated user
@@ -35,7 +38,7 @@ export async function GET(request: Request) {
         cos.name AS "offerStatus", -- Get the name of the offer status
         co.expires_at AS "offerExpiresAt"
       FROM notifications n
-      LEFT JOIN custom_offers co ON co.offer_id || '%'
+      LEFT JOIN custom_offers co ON n.user_id = co.user_id
       LEFT JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id
       WHERE n.user_id = $1
       ORDER BY n.created_at DESC;
@@ -55,7 +58,6 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(serializableNotifications);
-
   } catch (error: any) {
     console.error("Error fetching user notifications:", error);
     return NextResponse.json(
@@ -76,20 +78,29 @@ export async function PATCH(request: Request) {
 
     const userId = (session.user as any).id;
     if (!userId) {
-      return NextResponse.json({ error: "User ID not found in session" }, { status: 400 });
+      return NextResponse.json(
+        { error: "User ID not found in session" },
+        { status: 400 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
     const notificationId = searchParams.get("id");
     if (!notificationId) {
-      return NextResponse.json({ error: "Notification ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Notification ID is required" },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
     const { isRead } = body;
 
-    if (typeof isRead !== 'boolean') {
-      return NextResponse.json({ error: "Invalid value for isRead" }, { status: 400 });
+    if (typeof isRead !== "boolean") {
+      return NextResponse.json(
+        { error: "Invalid value for isRead" },
+        { status: 400 }
+      );
     }
 
     // Update the notification status, ensuring it belongs to the user
@@ -99,14 +110,23 @@ export async function PATCH(request: Request) {
       WHERE notification_id = $2 AND user_id = $3
       RETURNING notification_id AS id, is_read AS "isRead";
     `;
-    const result = await queryDatabase(queryText, [isRead, notificationId, userId]);
+    const result = await queryDatabase(queryText, [
+      isRead,
+      notificationId,
+      userId,
+    ]);
 
     if (result.length === 0) {
-      return NextResponse.json({ error: "Notification not found or does not belong to user" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Notification not found or does not belong to user" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ message: "Notification updated successfully", notification: result[0] });
-
+    return NextResponse.json({
+      message: "Notification updated successfully",
+      notification: result[0],
+    });
   } catch (error: any) {
     console.error("Error updating notification status:", error);
     return NextResponse.json(

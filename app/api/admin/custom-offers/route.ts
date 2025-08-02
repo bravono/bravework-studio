@@ -184,10 +184,11 @@ export async function POST(request: Request) {
             : ""
         }`;
 
+        const notificationLink = `/dashboard/offers/${newOffer.id}`; // Link for in-app notification
         try {
           await client.query(
-            "INSERT INTO notifications (user_id, title, message) VALUES ($1, $2, $3)", // Added link column
-            [userId, notificationTitle, notificationMessage]
+            "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)", 
+            [userId, notificationTitle, notificationMessage, notificationLink]
           );
         } catch (dbNotificationError) {
           console.error(

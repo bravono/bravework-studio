@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import Link from "next/link";
 import RejectReasonModal from "../offers/_components/RejectReasonModal";
-import "../../css/dashboard.css"; // Your main dashboard CSS
+import "../../css/dashboard.css";
 
 // Define Notification type
 interface Notification {
@@ -22,7 +22,7 @@ interface Notification {
   offerId?: string;
   offerAmount?: number;
   offerDescription?: string;
-  offerStatus?: "Pending" | "Accepted" | "Rejected" | "Expired" | string; // String for other statuses
+  offerStatus?: "pending" | "accepted" | "rejected" | "expired" | string; // String for other statuses
   offerExpiresAt?: string;
 }
 
@@ -213,7 +213,7 @@ export default function NotificationsPage() {
                     new Date(notification.offerExpiresAt) < new Date();
                   const canActOnOffer =
                     isOfferNotification &&
-                    notification.offerStatus === "Pending" &&
+                    notification.offerStatus === "pending" &&
                     !isOfferExpired;
 
                   return (
@@ -312,8 +312,8 @@ export default function NotificationsPage() {
                             </div>
                           )}
                           {!canActOnOffer &&
-                            notification.offerStatus !== "Expired" &&
-                            notification.offerStatus !== "Pending" && (
+                            notification.offerStatus !== "expired" &&
+                            notification.offerStatus !== "pending" && (
                               <p className="mt-2 text-sm text-gray-600">
                                 Offer is{" "}
                                 {notification.offerStatus.toLowerCase()}.
