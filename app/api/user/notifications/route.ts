@@ -23,12 +23,14 @@ export async function GET(request: Request) {
     }
 
     // 2. Fetch notifications for the authenticated user
-
+    // We'll also join with custom_offers to get offer details if the notification links to one
+    // and with custom_offer_statuses to get the offer's status name.
     const queryText = `
       SELECT
         n.notification_id AS id,
         n.title,
         n.message,
+        n.link,
         n.is_read AS "isRead",
         n.created_at AS "createdAt",
         -- Include custom offer details if the link is for an offer
@@ -38,7 +40,7 @@ export async function GET(request: Request) {
         cos.name AS "offerStatus", -- Get the name of the offer status
         co.expires_at AS "offerExpiresAt"
       FROM notifications n
-      LEFT JOIN custom_offers co ON n.user_id = co.user_id
+      LEFT JOIN custom_offers co ON n.link LIKE '/dashboard/offers/' || co.offer_id || '%'
       LEFT JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id
       WHERE n.user_id = $1
       ORDER BY n.created_at DESC;
