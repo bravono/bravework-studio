@@ -178,7 +178,7 @@ export async function POST(request: Request) {
         const notificationTitle = "New Custom Offer Available!";
         const notificationMessage = `You have received a new custom offer for Order ID ${
           newOffer.orderId
-        }. Amount: $${newOffer.offerAmount.toLocaleString()}. ${
+        }. Amount: NGN${newOffer.offerAmount.toLocaleString()}. ${
           newOffer.expiresAt
             ? `Expires: ${new Date(newOffer.expiresAt).toLocaleString()}`
             : ""
