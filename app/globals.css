@@ -1,3 +1,14 @@
+/* styles/globals.css or styles/dashboard.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your custom CSS goes below these directives */
+/* Example: */
+/* body {
+  font-family: 'Inter', sans-serif;
+} */
+
 :root {
   --primary-color: #008751;
   --primary-light: #00a66e;
@@ -185,9 +196,9 @@ main {
   background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
 }
 
-.hero-section .absolute {
+.hero-section .virtual-office {
   inset: 0;
-  width: 50%;
+  position: absolute;
 }
 
 .hero-content {
