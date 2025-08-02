@@ -41,10 +41,12 @@ export async function GET(
         co.expires_at AS "expiresAt",
         o.category_id AS "orderService",
         o.project_description AS "orderDescription",
-        o.budget_range AS "orderBudget"
+        o.budget_range AS "orderBudget",
+        pc.category_name AS "categoryName" 
       FROM custom_offers co
       JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id -- <--- CORRECTED: Join to get status name
       JOIN orders o ON co.order_id = o.order_id
+      JOIN product_categories pc ON o.category_id = pc.category_id
       WHERE co.offer_id = $1 AND co.user_id = $2; -- Crucial: ensure offer belongs to the user
     `;
     const result = await queryDatabase(queryText, [offerId, userId]);
@@ -63,23 +65,23 @@ export async function GET(
     if (
       offer.expiresAt &&
       new Date(offer.expiresAt) < new Date() &&
-      offer.status === "Pending" // This comparison is now correct because 'offer.status' is the string name
+      offer.status === "pending" // This comparison is now correct because 'offer.status' is the string name
     ) {
       // If expired, update its status in the database to 'Expired'
       // First, get the integer ID for 'Expired' status
       const expiredStatusResult = await queryDatabase(
         "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
-        ["Expired"] // Assuming the exact name for expired status is 'Expired'
+        ["expired"] // Assuming the exact name for expired status is 'Expired'
       );
 
-      if (expiredStatusResult.rows.length > 0) {
-        const expiredStatusId = expiredStatusResult.rows[0].offer_status_id;
+      if (expiredStatusResult.length > 0) {
+        const expiredStatusId = expiredStatusResult[0].offer_status_id;
         // Update the custom_offers table using the integer ID
         await queryDatabase(
           "UPDATE custom_offers SET status = $1 WHERE offer_id = $2",
           [expiredStatusId, offerId]
         );
-        offer.status = "Expired"; // Update in memory for immediate response
+        offer.status = "expired"; // Update in memory for immediate response
       } else {
         console.warn(
           "Expired status ID not found in custom_offer_statuses table. Please ensure 'Expired' status exists."
