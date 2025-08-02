@@ -1,4 +1,3 @@
-
 import { Session } from "next-auth"; // For extending Session type
 
 // Extend NextAuth's Session type to include custom properties
@@ -80,12 +79,13 @@ interface CustomOffer {
   offerAmount: number;
   description: string;
   createdAt: string;
-  status: 'Pending' | 'Accepted' | 'Rejected' | 'Expired';
+  status: "pending" | "accepted" | "rejected" | "expired";
   expiresAt?: string; // Optional expiry date
   orderService?: string; // From join
   orderDescription?: string; // From join
   orderBudget?: number; // From join
   rejectionReason?: string;
+  categoryName?: string;
 }
 
 // New: Invoice interface (expanded)
@@ -123,4 +123,20 @@ interface AdminStats {
   activeCoupons: number;
   totalUsers: number;
   pendingJobApplications: number;
+}
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+  rejectionReason?: string; // Optional, only for rejected offers
+  // Custom offer specific fields (optional, from JOIN)
+  offerId?: string;
+  offerAmount?: number;
+  offerDescription?: string;
+  offerStatus?: "pending" | "accepted" | "rejected" | "expired" | string; // String for other statuses
+  offerExpiresAt?: string;
 }
