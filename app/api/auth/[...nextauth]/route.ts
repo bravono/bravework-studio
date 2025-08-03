@@ -1,9 +1,9 @@
 import NextAuth from "next-auth";
-import {authOptions} from "../../../../lib/auth-options"; 
+import { authOptions } from "../../../../lib/auth-options";
 
 // Explicitly set the runtime for this Route Handler to Node.js
 // This ensures that Node.js-specific modules like 'pg' can be used.
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // Extend NextAuth's User type to include 'id'
 declare module "next-auth" {
@@ -16,9 +16,11 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: number; // Add id to session.user
-      name?: string | null;
+      name?: string;
       email: string;
-      image?: string | null;
+      roles?: string[]; // Optional role field
+      companyName?: string; // Optional company name field
+      phone?: string;
     };
   }
 }
@@ -31,14 +33,11 @@ declare module "next-auth" {
   }
 }
 
-  
-
 // Get the handler object returned by NextAuth
 const handler = NextAuth(authOptions);
 
 // Export the GET and POST methods from the handler for the App Router
 export { handler as GET, handler as POST };
-
 
 // Additionally, for server-side `auth` utility (e.g., in layout.tsx)
 // and client-side `signIn`, `signOut` (e.g., in components)
