@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { toast, ToastContainer } from "react-toastify";
 
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 import Navbar from "../components/Navbar";
-import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 
-export default function OrderPage() {
+function Page() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
@@ -534,5 +534,13 @@ export default function OrderPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Page />
+    </Suspense>
   );
 }
