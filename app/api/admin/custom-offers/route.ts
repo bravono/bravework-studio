@@ -175,10 +175,11 @@ export async function POST(request: Request) {
         }
 
         // Create In-App Notification
+        const kobo = 100; // 1 NGN = 100 kobo
         const notificationTitle = "New Custom Offer Available!";
         const notificationMessage = `You have received a new custom offer for Order ID ${
           newOffer.orderId
-        }. Amount: NGN${newOffer.offerAmount.toLocaleString()}. ${
+        }. Amount: NGN${(newOffer.offerAmount / kobo).toLocaleString()}. ${
           newOffer.expiresAt
             ? `Expires: ${new Date(newOffer.expiresAt).toLocaleString()}`
             : ""

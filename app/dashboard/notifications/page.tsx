@@ -156,7 +156,7 @@ export default function NotificationsPage() {
       } finally {
         setActionLoading(false);
       }
-      router.push("/dashboard/payment");
+      router.push("/dashboard/payment?offerId=" + notification.offerId); // Redirect to payment page after action
     },
     [markNotificationAsRead]
   );
@@ -261,7 +261,8 @@ export default function NotificationsPage() {
                         {/* offer-details-summary */}
                         <p>
                           <strong>Offer Amount:</strong> NGN{" "}
-                          {(notification.offerAmount / kobo).toLocaleString() || "N/A"}
+                          {(notification.offerAmount / kobo).toLocaleString() ||
+                            "N/A"}
                         </p>
                         <p>
                           <strong>Offer Status:</strong>{" "}

@@ -504,7 +504,7 @@ export default function DashboardPage() {
           <div className="dashboard-card other-important">
             <h2>Quick Actions</h2>
             <div className="quick-actions-list">
-              <Link href="/support" className="action-button">
+              <Link href="/contact" className="action-button">
                 Get Support
               </Link>
               <Link href="/dashboard/notifications" className="action-button">
