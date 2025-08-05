@@ -86,6 +86,7 @@ interface CustomOffer {
   orderBudget?: number; // From join
   rejectionReason?: string;
   categoryName?: string;
+  projectDuration?: number; // New: duration in days or weeks
 }
 
 // New: Invoice interface (expanded)

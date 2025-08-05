@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     if (guardResponse) return guardResponse;
 
     const body = await request.json(); // Admin Panel will send JSON, not formData for offer creation
-    const { orderId, userId, offerAmount, description, expiresAt } = body;
+    const { orderId, userId, offerAmount, description, expiresAt, projectDuration } = body;
 
     if (
       !orderId ||
@@ -104,11 +104,11 @@ export async function POST(request: Request) {
     return await withTransaction(async (client) => {
       const insertOfferQuery = `
         INSERT INTO custom_offers (
-            order_id, user_id, offer_amount_in_kobo, description, created_at, status, expires_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            order_id, user_id, offer_amount_in_kobo, description, created_at, status, expires_at, project_duration_days
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING
           offer_id AS id, order_id AS "orderId", user_id AS "userId",
-          offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt", status, expires_at AS "expiresAt";
+          offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt", status, expires_at AS "expiresAt", project_duration_days AS "projectDuration";
       `;
       const offerParams = [
         orderId, // Parameter 2
@@ -118,6 +118,7 @@ export async function POST(request: Request) {
         createdAt, // Parameter 6
         status, // Parameter 7
         parsedExpiresAt, // Parameter 8
+        projectDuration || 0, // Parameter 9, default to 0 if not provided
       ];
 
       const offerResult = await client.query(insertOfferQuery, offerParams);

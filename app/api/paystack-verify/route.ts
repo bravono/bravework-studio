@@ -179,11 +179,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch the custom offer details to get the true original amount
+    // Fetch the custom offer details to get the true original amount, description, and duration
     const customOfferRows = await queryDatabase(
-      "SELECT offer_amount_in_kobo FROM custom_offers WHERE offer_id = $1",
+      "SELECT offer_amount_in_kobo, description, project_duration_days FROM custom_offers WHERE offer_id = $1",
       [offerId]
     );
+
 
     if (customOfferRows.length === 0) {
       console.error(
@@ -195,9 +196,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const totalExpectedOrderAmountKobo =
-      customOfferRows[0].offer_amount_in_kobo; // Use offer_amount_in_kobo from custom_offers table
-    // Currency is always NGN, so no need to fetch 'expected_currency' from DB
+    const { offer_amount_in_kobo, description, project_duration_days } =
+      customOfferRows[0];
+
+    // totalExpectedOrderAmountKobo will be the undiscounted value of offer_amount_in_kobo from custom_offers
+    const totalExpectedOrderAmountKobo = offer_amount_in_kobo;
     const amountPaidToDateKobo = order.amount_paid_to_date_kobo || 0;
 
     // --- Idempotency Check for Payments Table (for this specific Paystack reference) ---
@@ -225,7 +228,7 @@ export async function POST(req: NextRequest) {
       totalExpectedOrderAmountKobo * multiplier;
 
     let calculatedDiscountAmountKobo = Math.floor(
-      totalExpectedOrderAmountKobo * (discountApplied / 100) // 1 000 000
+      calculatedAmountForOptionKobo * (discountApplied / 100)
     );
     let backendCalculatedExpectedAmountKobo =
       calculatedAmountForOptionKobo - calculatedDiscountAmountKobo;
@@ -305,7 +308,7 @@ export async function POST(req: NextRequest) {
     // 4. Insert record into `payments` table
     await queryDatabase(
       `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
       [
         order.order_id, // Corrected to order.order_id
         reference, // Paystack reference for this specific payment
@@ -338,14 +341,27 @@ export async function POST(req: NextRequest) {
       // If a fraud-related status was determined, prioritize it. Otherwise, use calculated.
       newOrderStatusId = newOrderStatusId || calculatedOrderStatusId;
 
+      // Update the orders table with the new information
       await queryDatabase(
         `UPDATE orders
-         SET amount_paid_to_date_kobo = $1, order_status_id = $2, updated_at = NOW()
-         WHERE order_id = $3`, // Corrected to order_id
-        [newAmountPaidToDateKobo, newOrderStatusId, order.order_id] // Corrected to order.order_id
+          SET amount_paid_to_date_kobo = $1,
+              order_status_id = $2,
+              title = $3,
+              start_date = NOW(),
+              end_date = NOW() + INTERVAL '${project_duration_days} days',
+              total_expected_amount_kobo = $4,
+              updated_at = NOW()
+          WHERE order_id = $5`,
+        [
+          newAmountPaidToDateKobo,
+          newOrderStatusId,
+          description, // 1. Insert description into title
+          totalExpectedOrderAmountKobo, // 4. Insert undiscounted offer_amount_in_kobo
+          order.order_id,
+        ]
       );
       console.log(
-        `Order ${order.order_id} updated: New amount_paid_to_date_kobo = ${newAmountPaidToDateKobo}, Status ID = ${newOrderStatusId}`
+        `Order ${order.order_id} updated: New amount_paid_to_date_kobo = ${newAmountPaidToDateKobo}, Status ID = ${newOrderStatusId}, Title = ${description}, Start Date = NOW(), End Date calculated, Total Expected Amount = ${totalExpectedOrderAmountKobo}`
       );
 
       // --- Grant Access to Service (Placeholder) ---
@@ -388,8 +404,8 @@ export async function POST(req: NextRequest) {
       // TODO: Send internal fraud alert email.
       if (newOrderStatusId) {
         await queryDatabase(
-          `UPDATE orders SET status_id = $1, updated_at = NOW() WHERE order_id = $2`, // Corrected to order_id
-          [newOrderStatusId, order.order_id] // Corrected to order.order_id
+          `UPDATE orders SET order_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
+          [newOrderStatusId, order.order_id]
         );
         console.log(
           `Order ${order.order_id} status updated to fraud-related status: ${newOrderStatusId}`

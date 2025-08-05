@@ -260,7 +260,7 @@ export default function NotificationsPage() {
                         {" "}
                         {/* offer-details-summary */}
                         <p>
-                          <strong>Offer Amount:</strong> NGN{" "}
+                          <strong>Offer Amount:</strong> ₦
                           {(notification.offerAmount / kobo).toLocaleString() ||
                             "N/A"}
                         </p>
