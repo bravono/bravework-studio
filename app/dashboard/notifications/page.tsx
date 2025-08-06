@@ -26,8 +26,6 @@ export default function NotificationsPage() {
   const [selectedOfferForRejection, setSelectedOfferForRejection] =
     useState<Notification | null>(null);
 
-
-
   const fetchNotifications = useCallback(async () => {
     if (sessionStatus !== "authenticated") return;
 
@@ -348,7 +346,7 @@ export default function NotificationsPage() {
                           notification.offerStatus !== "expired" &&
                           notification.offerStatus !== "pending" && (
                             <p className="mt-2 text-sm text-gray-600">
-                              Offer is {notification.offerStatus.toLowerCase()}.
+                              Offer is {notification.offerStatus}.
                             </p>
                           )}
                         {isOfferExpired && ( // This block is now redundant for the text, as the badge handles it.
