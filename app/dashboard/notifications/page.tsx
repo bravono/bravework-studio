@@ -156,7 +156,6 @@ export default function NotificationsPage() {
       } finally {
         setActionLoading(false);
       }
-      router.push("/dashboard/payment?offerId=" + notification.offerId); // Redirect to payment page after action
     },
     [markNotificationAsRead]
   );
