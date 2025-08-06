@@ -44,7 +44,7 @@ export async function GET(
         o.budget_range AS "orderBudget",
         pc.category_name AS "categoryName" 
       FROM custom_offers co
-      JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id -- <--- CORRECTED: Join to get status name
+      JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id -- <--- CORRECTED: Join to get status name
       JOIN orders o ON co.order_id = o.order_id
       JOIN product_categories pc ON o.category_id = pc.category_id
       WHERE co.offer_id = $1 AND co.user_id = $2; -- Crucial: ensure offer belongs to the user

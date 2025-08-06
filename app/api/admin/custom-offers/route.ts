@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         o.project_description AS "orderDescription",
         o.budget_range AS "orderBudget"
       FROM custom_offers co
-      JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id
+      JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
       JOIN users u ON co.user_id = u.user_id -- Join with users table
       JOIN orders o ON co.order_id = o.order_id -- Join with orders table
       ORDER BY co.created_at DESC;
@@ -106,16 +106,20 @@ export async function POST(request: Request) {
     }
 
     const createdAt = new Date().toISOString();
-    const status = 1; // Default status for a new custom offer is 'Pending' (assuming ID 1)
+    const statusIdResult = await queryDatabase(
+      "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
+      ["pending"]
+    );
+    const statusId = statusIdResult[0].offer_status_id;
 
     return await withTransaction(async (client) => {
       const insertOfferQuery = `
         INSERT INTO custom_offers (
-            order_id, user_id, offer_amount_in_kobo, description, created_at, status, expires_at, project_duration_days
+            order_id, user_id, offer_amount_in_kobo, description, created_at, status_id, expires_at, project_duration_days
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING
           offer_id AS id, order_id AS "orderId", user_id AS "userId",
-          offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt", status, expires_at AS "expiresAt", project_duration_days AS "projectDuration";
+          offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt", status_id, expires_at AS "expiresAt", project_duration_days AS "projectDuration";
       `;
       const offerParams = [
         orderId, // Parameter 2
@@ -123,7 +127,7 @@ export async function POST(request: Request) {
         offerAmount, // Parameter 4
         description, // Parameter 5
         createdAt, // Parameter 6
-        status, // Parameter 7
+        statusId, // Parameter 7
         parsedExpiresAt, // Parameter 8
         projectDuration || 0, // Parameter 9, default to 0 if not provided
       ];
@@ -309,7 +313,7 @@ export async function PATCH(request: Request) {
       RETURNING
         offer_id AS id, order_id AS "orderId", user_id AS "userId",
         offer_amount_in_kobo AS "offerAmount", description, created_at AS "createdAt",
-        status, expires_at AS "expiresAt";
+        status_id, expires_at AS "expiresAt";
     `;
 
     const result = await queryDatabase(queryText, updateParams);

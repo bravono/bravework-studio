@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         co.expires_at AS "offerExpiresAt"
       FROM notifications n
       LEFT JOIN custom_offers co ON n.link LIKE '/dashboard/offers/' || co.offer_id || '%'
-      LEFT JOIN custom_offer_statuses cos ON co.status = cos.offer_status_id
+      LEFT JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
       WHERE n.user_id = $1
       ORDER BY n.created_at DESC;
     `;
