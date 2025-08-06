@@ -117,8 +117,8 @@ function PaymentContent() {
   // Effect to fetch offer details securely from backend
   useEffect(() => {
     const fetchOfferDetails = async () => {
-      if (!offerId || !orderId || !session?.user?.id) {
-        setOfferError("Offer ID or Order ID or user session missing.");
+      if (!offerId || !session?.user?.id) {
+        setOfferError("Offer ID or user session missing.");
         setOfferLoading(false);
         return;
       }
@@ -148,7 +148,7 @@ function PaymentContent() {
     if (session?.user?.id) {
       fetchOfferDetails();
     }
-  }, [offerId, orderId, session?.user?.id]);
+  }, [offerId, session?.user?.id]);
 
   // Effect to fetch exchange rates
   useEffect(() => {
