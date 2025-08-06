@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto"; // Node.js built-in module for cryptographic functions
 
 // Import your PostgreSQL database query function
-import { queryDatabase } from "../../../lib/db";
+import { queryDatabase, withTransaction } from "../../../lib/db"; // Ensure withTransaction is imported
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -82,8 +81,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Frontend sends the Paystack reference in the request body
-  const { reference } = await req.json();
+  // Frontend sends the Paystack reference and offerId in the request body
+  const {
+    reference,
+    offerId: frontendOfferId,
+    paymentOption,
+  } = await req.json(); // Added paymentOption from frontend
 
   if (!reference) {
     return NextResponse.json(
@@ -130,301 +133,329 @@ export async function POST(req: NextRequest) {
 
     // IMPORTANT: Extract metadata sent from frontend
     const metadata = transactionData.metadata;
-    const orderId = metadata?.orderId; // Expecting order_id directly from frontend metadata
-    const paymentOption = metadata?.payment_option; // e.g., '50%', '70%', '100%'
+    const orderId = metadata?.orderId; // Expecting orderId from frontend metadata
+    const paystackPaymentOption = metadata?.payment_option; // e.g., 'deposit_50', 'full_100_discount'
     const paymentPercentage = parseFloat(metadata?.payment_percentage); // e.g., 50, 70, 100
     const discountApplied = parseFloat(metadata?.discount_applied); // e.g., 0, 5, 10
-    const customer = metadata?.CustomerName;
-    // original_amount_kobo from metadata is just for reference, backend uses DB's offer_amount_in_kobo via order's offer_id
+    const customerName = metadata?.customer_name;
+    const originalAmountKoboFromMetadata = parseFloat(
+      metadata?.original_amount_kobo
+    ); // Original offer amount from metadata
 
     if (
       !orderId ||
-      !paymentOption ||
+      !paystackPaymentOption || // Use paystackPaymentOption from metadata
       isNaN(paymentPercentage) ||
-      isNaN(discountApplied)
+      isNaN(discountApplied) ||
+      isNaN(originalAmountKoboFromMetadata) ||
+      !frontendOfferId // Ensure offerId from frontend is present
     ) {
       console.error(
         "Missing or invalid metadata from Paystack verification response:",
-        metadata
+        metadata,
+        "Frontend Offer ID:",
+        frontendOfferId
       );
       return NextResponse.json(
-        { success: false, message: "Invalid payment metadata." },
+        {
+          success: false,
+          message: "Invalid payment metadata or missing offer ID.",
+        },
         { status: 400 }
       );
     }
 
-    // 2. Fetch Order from your database (primary entity for payment tracking)
-    // Using 'order_id' as the primary key for the 'orders' table
-    const orderRows = await queryDatabase(
-      "SELECT * FROM orders WHERE order_id = $1",
-      [orderId]
-    );
-
-    if (orderRows.length === 0) {
-      console.error(`Order with ID ${orderId} not found in DB.`);
-      return NextResponse.json(
-        { success: false, message: "Order not found." },
-        { status: 404 }
+    // Wrap all database operations in a transaction
+    return await withTransaction(async (client) => {
+      // 2. Fetch Order from your database (primary entity for payment tracking)
+      const orderRows = await client.query(
+        // Use client for transaction
+        "SELECT * FROM orders WHERE order_id = $1",
+        [orderId]
       );
-    }
 
-    let order = orderRows[0];
-    const offerId = order.offer_id; // Get the associated offer_id from the order record
+      if (orderRows.rows.length === 0) {
+        console.error(`Order with ID ${orderId} not found in DB.`);
+        throw new Error("Order not found."); // Throw to trigger rollback
+      }
 
-    if (!offerId) {
-      console.error(`Order ${orderId} does not have an associated offer_id.`);
-      return NextResponse.json(
-        { success: false, message: "Order is not linked to an offer." },
-        { status: 400 }
-      );
-    }
+      let order = orderRows.rows[0];
+      const offerId = order.offer_id; // Get the associated offer_id from the order record
 
-    // Fetch the custom offer details to get the true original amount, description, and duration
-    const customOfferRows = await queryDatabase(
-      "SELECT offer_amount_in_kobo, description, project_duration_days FROM custom_offers WHERE offer_id = $1",
-      [offerId]
-    );
-
-
-    if (customOfferRows.length === 0) {
-      console.error(
-        `Custom Offer with ID ${offerId} not found for Order ${orderId}.`
-      );
-      return NextResponse.json(
-        { success: false, message: "Associated custom offer not found." },
-        { status: 404 }
-      );
-    }
-
-    const { offer_amount_in_kobo, description, project_duration_days } =
-      customOfferRows[0];
-
-    // totalExpectedOrderAmountKobo will be the undiscounted value of offer_amount_in_kobo from custom_offers
-    const totalExpectedOrderAmountKobo = offer_amount_in_kobo;
-    const amountPaidToDateKobo = order.amount_paid_to_date_kobo || 0;
-
-    // --- Idempotency Check for Payments Table (for this specific Paystack reference) ---
-    // Link payments to orders using order_id
-    const existingPaymentRows = await queryDatabase(
-      "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND paystack_status = $2 AND order_id = $3",
-      [reference, "success", orderId]
-    );
-
-    if (existingPaymentRows.length > 0) {
-      console.log(
-        `Payment with Paystack reference ${reference} for order ${orderId} already processed. Skipping duplicate verification.`
-      );
-      return NextResponse.json({
-        success: true,
-        message: "Payment already processed.",
-        data: transactionData,
-      });
-    }
-
-    // 3. Re-calculate expected amount on backend (CRUCIAL for security)
-    // Use totalExpectedOrderAmountKobo (from custom_offers.offer_amount_in_kobo) for calculation base
-    const multiplier = paymentPercentage / 100;
-    const calculatedAmountForOptionKobo =
-      totalExpectedOrderAmountKobo * multiplier;
-
-    let calculatedDiscountAmountKobo = Math.floor(
-      calculatedAmountForOptionKobo * (discountApplied / 100)
-    );
-    let backendCalculatedExpectedAmountKobo =
-      calculatedAmountForOptionKobo - calculatedDiscountAmountKobo;
-
-    console.log(
-      `Backend Calculated Expected Amount for Option: ${backendCalculatedExpectedAmountKobo} kobo`
-    );
-
-    console.log(
-      `Actual Amount Received from Paystack: ${actualAmountKobo} kobo`
-    );
-
-    let paymentIsFraudulent = false;
-    let fraudReason = "";
-    let newOrderStatusId: number | undefined;
-
-    // --- Validate Currency (Simplified as it's always NGN) ---
-    // You might still want to log if actualCurrency is NOT NGN, but won't stop processing.
-    if (actualCurrency !== "NGN") {
-      console.warn(
-        `CURRENCY MISMATCH WARNING: Order ID: ${orderId}. Expected NGN, Received: ${actualCurrency}. Proceeding but investigate.`
-      );
-      // You could set paymentIsFraudulent = true here if you want to strictly enforce NGN.
-    }
-
-    // --- Validate Amount ---
-    // Allow a small tolerance for floating point arithmetic if necessary, but exact match is best.
-    if (
-      !paymentIsFraudulent &&
-      actualAmountKobo !== backendCalculatedExpectedAmountKobo
-    ) {
-      console.error(
-        `FRAUD/MISMATCH: Order ID ${orderId}. Amount mismatch. Backend Expected: ${backendCalculatedExpectedAmountKobo}, Actual Received: ${actualAmountKobo}`
-      );
-      paymentIsFraudulent = true;
-      fraudReason = "amount_mismatch";
-      newOrderStatusId = orderStatusMap["amount_mismatch"];
-    }
-
-    // --- 50% First Payment Rule (if applicable) ---
-    // This check is only relevant if this is the first payment for the order
-    // and the payment option is for a deposit (50% or 70%).
-    if (
-      !paymentIsFraudulent &&
-      amountPaidToDateKobo === 0 &&
-      paymentOption >= "50%"
-    ) {
-      const minimumFirstPaymentKobo = Math.ceil(
-        totalExpectedOrderAmountKobo * 0.5
-      );
-      if (actualAmountKobo < minimumFirstPaymentKobo) {
+      // CRITICAL SECURITY CHECK: Ensure the offerId from the order matches the one from frontend
+      if (offerId !== Number(frontendOfferId)) {
         console.error(
-          `FRAUD/MISMATCH: Order ID ${orderId}. First payment too low for deposit option. Expected min: ${minimumFirstPaymentKobo}, Received: ${actualAmountKobo}`
+          `SECURITY ALERT: Mismatch between order's offer_id (${offerId}) and frontend offerId (${frontendOfferId}) for order ${orderId}.`
+        );
+        throw new Error("Security mismatch: Invalid offer association."); // Rollback
+      }
+
+      if (!offerId) {
+        console.error(`Order ${orderId} does not have an associated offer_id.`);
+        throw new Error("Order is not linked to an offer."); // Throw to trigger rollback
+      }
+
+      // Fetch the custom offer details to get the true original amount, description, and duration
+      const customOfferRows = await client.query(
+        // Use client for transaction
+        "SELECT offer_amount_in_kobo, description, project_duration_days FROM custom_offers WHERE offer_id = $1",
+        [offerId]
+      );
+
+      if (customOfferRows.rows.length === 0) {
+        console.error(
+          `Custom Offer with ID ${offerId} not found for Order ${orderId}.`
+        );
+        throw new Error("Associated custom offer not found."); // Throw to trigger rollback
+      }
+
+      const { offer_amount_in_kobo, description, project_duration_days } =
+        customOfferRows.rows[0];
+
+      // totalExpectedOrderAmountKobo will be the undiscounted value of offer_amount_in_kobo from custom_offers
+      const totalExpectedOrderAmountKobo = offer_amount_in_kobo;
+      const amountPaidToDateKobo = order.amount_paid_to_date_kobo || 0;
+
+      // --- Idempotency Check for Payments Table (for this specific Paystack reference) ---
+      const existingPaymentRows = await client.query(
+        // Use client for transaction
+        "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND paystack_status = $2 AND order_id = $3",
+        [reference, "success", orderId]
+      );
+
+      if (existingPaymentRows.rows.length > 0) {
+        console.log(
+          `Payment with Paystack reference ${reference} for order ${orderId} already processed. Skipping duplicate verification.`
+        );
+        return NextResponse.json({
+          // Return success for idempotency
+          success: true,
+          message: "Payment already processed.",
+          data: transactionData,
+        });
+      }
+
+      // 3. Re-calculate expected amount on backend (CRUCIAL for security)
+      // Use totalExpectedOrderAmountKobo (from custom_offers.offer_amount_in_kobo) for calculation base
+      let backendCalculatedExpectedAmountKobo: number;
+      let calculatedDiscountAmountKobo: number = 0;
+
+      switch (paystackPaymentOption) {
+        case "deposit_50":
+          backendCalculatedExpectedAmountKobo = Math.round(
+            totalExpectedOrderAmountKobo * 0.5
+          );
+          break;
+        case "deposit_70_discount":
+          backendCalculatedExpectedAmountKobo = Math.round(
+            totalExpectedOrderAmountKobo * 0.7 * (1 - 5 / 100)
+          );
+          calculatedDiscountAmountKobo = Math.round(
+            totalExpectedOrderAmountKobo * 0.7 * (5 / 100)
+          );
+          break;
+        case "full_100_discount":
+          backendCalculatedExpectedAmountKobo = Math.round(
+            totalExpectedOrderAmountKobo * (1 - 10 / 100)
+          );
+          calculatedDiscountAmountKobo = Math.round(
+            totalExpectedOrderAmountKobo * (10 / 100)
+          );
+          break;
+        default:
+          console.error(
+            `Unknown payment option received: ${paystackPaymentOption}`
+          );
+          throw new Error("Invalid payment option detected."); // Rollback
+      }
+
+      console.log(
+        `Backend Calculated Expected Amount for Option (${paystackPaymentOption}): ${backendCalculatedExpectedAmountKobo} kobo`
+      );
+      console.log(
+        `Actual Amount Received from Paystack: ${actualAmountKobo} kobo`
+      );
+
+      let paymentIsFraudulent = false;
+      let fraudReason = "";
+      let newOrderStatusId: number | undefined;
+
+      // --- Validate Currency (Simplified as it's always NGN) ---
+      if (actualCurrency !== "NGN") {
+        console.warn(
+          `CURRENCY MISMATCH WARNING: Order ID: ${orderId}. Expected NGN, Received: ${actualCurrency}. Proceeding but investigate.`
+        );
+        // You could set paymentIsFraudulent = true here if you want to strictly enforce NGN.
+      }
+
+      // --- Validate Amount ---
+      // Allow a small tolerance for floating point arithmetic if necessary, but exact match is best.
+      // Use a small epsilon for floating point comparison if needed, but Math.round should help.
+      if (
+        !paymentIsFraudulent &&
+        actualAmountKobo !== backendCalculatedExpectedAmountKobo
+      ) {
+        console.error(
+          `FRAUD/MISMATCH: Order ID ${orderId}. Amount mismatch. Backend Expected: ${backendCalculatedExpectedAmountKobo}, Actual Received: ${actualAmountKobo}`
         );
         paymentIsFraudulent = true;
-        fraudReason = "first_payment_too_low";
-        newOrderStatusId = orderStatusMap["first_payment_too_low"];
-      }
-    }
-
-    // --- Overpayment Check ---
-    // This checks if the current payment, when added to previous payments, exceeds the total.
-    if (
-      !paymentIsFraudulent &&
-      amountPaidToDateKobo + actualAmountKobo > totalExpectedOrderAmountKobo
-    ) {
-      console.error(
-        `FRAUD/MISMATCH: Order ID ${orderId}. Overpayment detected. Total Expected: ${totalExpectedOrderAmountKobo}, New Total Paid: ${
-          amountPaidToDateKobo + actualAmountKobo
-        }`
-      );
-      paymentIsFraudulent = true;
-      fraudReason = "overpayment_detected";
-      newOrderStatusId = orderStatusMap["overpayment_detected"];
-    }
-
-    // 4. Insert record into `payments` table
-    await queryDatabase(
-      `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
-      [
-        order.order_id, // Corrected to order.order_id
-        reference, // Paystack reference for this specific payment
-        actualAmountKobo,
-        actualCurrency,
-        transactionData.status, // 'success' from Paystack
-        gatewayResponse,
-        customerEmail,
-        paymentIsFraudulent,
-      ]
-    );
-    console.log(
-      `Payment record for Paystack Ref ${reference} inserted into 'payments' table, linked to order ${order.order_id}.`
-    );
-
-    // 5. Update `orders` status and amount_paid_to_date_kobo (only if payment is not fraudulent)
-    if (!paymentIsFraudulent) {
-      const newAmountPaidToDateKobo = amountPaidToDateKobo + actualAmountKobo;
-      let calculatedOrderStatusId: number;
-
-      if (newAmountPaidToDateKobo >= totalExpectedOrderAmountKobo) {
-        calculatedOrderStatusId = orderStatusMap["paid"]; // Fully paid
-      } else if (newAmountPaidToDateKobo > 0) {
-        calculatedOrderStatusId = orderStatusMap["partially_paid"]; // Partial payment received
-      } else {
-        // This case should ideally not be hit with a charge.success event
-        calculatedOrderStatusId = orderStatusMap["pending"];
+        fraudReason = "amount_mismatch";
+        newOrderStatusId = orderStatusMap["amount_mismatch"]; // Ensure this status exists
       }
 
-      // If a fraud-related status was determined, prioritize it. Otherwise, use calculated.
-      newOrderStatusId = newOrderStatusId || calculatedOrderStatusId;
+      if (
+        !paymentIsFraudulent &&
+        amountPaidToDateKobo + actualAmountKobo > totalExpectedOrderAmountKobo
+      ) {
+        console.error(
+          `FRAUD/MISMATCH: Order ID ${orderId}. Overpayment detected. Total Expected: ${totalExpectedOrderAmountKobo}, New Total Paid: ${
+            amountPaidToDateKobo + actualAmountKobo
+          }`
+        );
+        paymentIsFraudulent = true;
+        fraudReason = "overpayment_detected";
+        newOrderStatusId = orderStatusMap["overpayment_detected"]; // Ensure this status exists
+      }
 
-      // Update the orders table with the new information
-      await queryDatabase(
-        `UPDATE orders
-          SET amount_paid_to_date_kobo = $1,
-              order_status_id = $2,
-              title = $3,
-              start_date = NOW(),
-              end_date = NOW() + INTERVAL '${project_duration_days} days',
-              total_expected_amount_kobo = $4,
-              updated_at = NOW()
-          WHERE order_id = $5`,
+      // 4. Insert record into `payments` table
+      await client.query(
+        // Use client for transaction
+        `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, created_at, updated_at, payment_option_selected, discount_applied_percentage)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), $9, $10)`,
         [
-          newAmountPaidToDateKobo,
-          newOrderStatusId,
-          description, // 1. Insert description into title
-          totalExpectedOrderAmountKobo, // 4. Insert undiscounted offer_amount_in_kobo
           order.order_id,
+          reference, // Paystack reference for this specific payment
+          actualAmountKobo,
+          actualCurrency,
+          transactionData.status, // 'success' from Paystack
+          gatewayResponse,
+          customerEmail,
+          paymentIsFraudulent,
+          paystackPaymentOption, // Store the selected option
+          discountApplied, // Store the discount applied
         ]
       );
       console.log(
-        `Order ${order.order_id} updated: New amount_paid_to_date_kobo = ${newAmountPaidToDateKobo}, Status ID = ${newOrderStatusId}, Title = ${description}, Start Date = NOW(), End Date calculated, Total Expected Amount = ${totalExpectedOrderAmountKobo}`
+        `Payment record for Paystack Ref ${reference} inserted into 'payments' table, linked to order ${order.order_id}.`
       );
 
-      // --- Grant Access to Service (Placeholder) ---
-      if (newOrderStatusId === orderStatusMap["paid"]) {
-        // await grantServiceAccess(customer?.email || customerEmail, totalExpectedOrderAmountKobo, order.order_id);
-        console.log(
-          `TODO: Grant full service access for ${
-            customer?.email || customerEmail
-          } (Order ID: ${order.order_id})`
+      // 5. Update `orders` status and amount_paid_to_date_kobo (only if payment is not fraudulent)
+      if (!paymentIsFraudulent) {
+        const newAmountPaidToDateKobo = amountPaidToDateKobo + actualAmountKobo;
+        let calculatedOrderStatusId: number;
+
+        // Determine new order status based on total amount paid
+        if (newAmountPaidToDateKobo >= totalExpectedOrderAmountKobo) {
+          calculatedOrderStatusId = orderStatusMap["paid"]; // Fully paid
+        } else if (newAmountPaidToDateKobo > 0) {
+          calculatedOrderStatusId = orderStatusMap["partially_paid"]; // Partial payment received
+        } else {
+          calculatedOrderStatusId = orderStatusMap["pending"]; // Should not happen with successful payment
+        }
+
+        // If a fraud-related status was determined, prioritize it. Otherwise, use calculated.
+        newOrderStatusId = newOrderStatusId || calculatedOrderStatusId;
+
+        // Update the orders table with the new information
+        await client.query(
+          // Use client for transaction
+          `UPDATE orders
+            SET amount_paid_to_date_kobo = $1,
+                order_status_id = $2,
+                title = $3,
+                start_date = NOW(),
+                end_date = NOW() + INTERVAL '${project_duration_days} days',
+                total_expected_amount_kobo = $4,
+                updated_at = NOW()
+            WHERE order_id = $5`,
+          [
+            newAmountPaidToDateKobo,
+            newOrderStatusId,
+            description, // Use offer description as order title
+            totalExpectedOrderAmountKobo, // Store undiscounted offer_amount_in_kobo as total expected
+            order.order_id,
+          ]
         );
-      } else if (newOrderStatusId === orderStatusMap["partially_paid"]) {
-        // await grantPartialAccess(customer?.email || customerEmail, actualAmountKobo, order.order_id);
         console.log(
-          `TODO: Grant partial service access or mark for follow-up for ${
-            customer?.email || customerEmail
-          } (Order ID: ${order.order_id})`
+          `Order ${order.order_id} updated: New amount_paid_to_date_kobo = ${newAmountPaidToDateKobo}, Status ID = ${newOrderStatusId}, Title = ${description}, Start Date = NOW(), End Date calculated, Total Expected Amount = ${totalExpectedOrderAmountKobo}`
         );
+
+        await client.query(
+          // Use client for transaction
+          `UPDATE custom_offers
+                SET status_id = (SELECT offer_status_id FROM custom_offer_statuses WHERE name = 'accepted'),
+                updated_at = NOW()
+                WHERE offer_id = $1`,
+          [offerId]
+        );
+        console.log(`Custom offer ${offerId} status updated to 'accepted'.`);
+
+        // --- Grant Access to Service (Placeholder) ---
+        if (newOrderStatusId === orderStatusMap["paid"]) {
+          // await grantServiceAccess(customerName || customerEmail, totalExpectedOrderAmountKobo, order.order_id);
+          console.log(
+            `TODO: Grant full service access for ${
+              customerName || customerEmail
+            } (Order ID: ${order.order_id})`
+          );
+        } else if (newOrderStatusId === orderStatusMap["partially_paid"]) {
+          // await grantPartialAccess(customerName || customerEmail, actualAmountKobo, order.order_id);
+          console.log(
+            `TODO: Grant partial service access or mark for follow-up for ${
+              customerName || customerEmail
+            } (Order ID: ${order.order_id})`
+          );
+        }
+
+        // --- Send Confirmation Email (Placeholder) ---
+        const finalOrderStatusName =
+          Object.keys(orderStatusMap).find(
+            (key) => orderStatusMap[key] === newOrderStatusId
+          ) || "unknown";
+        // await sendConfirmationEmail(customerName || customerEmail, order.order_id, actualAmountKobo / 100, newAmountPaidToDateKobo / 100, finalOrderStatusName);
+        console.log(
+          `TODO: Send confirmation email to ${
+            customerName || customerEmail
+          } for Order ID: ${order.order_id} (Status: ${finalOrderStatusName})`
+        );
+      } else {
+        // Payment was fraudulent. Update order status to a fraud-related status if not already set.
+        const finalFraudStatusName =
+          Object.keys(orderStatusMap).find(
+            (key) => orderStatusMap[key] === newOrderStatusId
+          ) || "unknown_fraud";
+        console.warn(
+          `Payment ${reference} for Order ID ${orderId} marked as fraudulent: ${fraudReason} (Status: ${finalFraudStatusName}). No order update or service granted.`
+        );
+        // TODO: Send internal fraud alert email.
+        if (newOrderStatusId) {
+          await client.query(
+            // Use client for transaction
+            `UPDATE orders SET order_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
+            [newOrderStatusId, order.order_id]
+          );
+          console.log(
+            `Order ${order.order_id} status updated to fraud-related status: ${newOrderStatusId}`
+          );
+        }
       }
 
-      // --- Send Confirmation Email (Placeholder) ---
-      const finalOrderStatusName =
-        Object.keys(orderStatusMap).find(
-          (key) => orderStatusMap[key] === newOrderStatusId
-        ) || "unknown";
-      // await sendConfirmationEmail(customer?.email || customerEmail, order.order_id, actualAmountKobo / 100, newAmountPaidToDateKobo / 100, finalOrderStatusName);
-      console.log(
-        `TODO: Send confirmation email to ${
-          customer?.email || customerEmail
-        } for Order ID: ${order.order_id} (Status: ${finalOrderStatusName})`
-      );
-    } else {
-      // Payment was fraudulent. Update order status to a fraud-related status if not already set.
-      const finalFraudStatusName =
-        Object.keys(orderStatusMap).find(
-          (key) => orderStatusMap[key] === newOrderStatusId
-        ) || "unknown_fraud";
-      console.warn(
-        `Payment ${reference} for Order ID ${orderId} marked as fraudulent: ${fraudReason} (Status: ${finalFraudStatusName}). No order update or service granted.`
-      );
-      // TODO: Send internal fraud alert email.
-      if (newOrderStatusId) {
-        await queryDatabase(
-          `UPDATE orders SET order_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
-          [newOrderStatusId, order.order_id]
-        );
-        console.log(
-          `Order ${order.order_id} status updated to fraud-related status: ${newOrderStatusId}`
-        );
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Payment verified and order updated.",
-      data: transactionData,
-    });
-  } catch (error) {
+      return NextResponse.json({
+        success: true,
+        message: "Payment verified and order updated.",
+        data: transactionData,
+      });
+    }); // End of withTransaction
+  } catch (error: any) {
     console.error(
       "Error during Paystack verification or database update:",
       error
     );
     return NextResponse.json(
-      { success: false, message: "Internal server error during verification." },
+      {
+        success: false,
+        message: error.message || "Internal server error during verification.",
+      },
       { status: 500 }
     );
   }
