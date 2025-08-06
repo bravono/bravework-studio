@@ -26,7 +26,7 @@ export default function AdminJobApplicationsSection() {
     setError(null);
     try {
       // NEW API ROUTE (GET job applications, with optional role filter)
-      const res = await fetch(`/api/admin/job-applications${filterRole ? `?role=${filterRole}` : ''}`);
+      const res = await fetch(`/api/admin/jobs${filterRole ? `?role=${filterRole}` : ''}`);
       if (!res.ok) throw new Error('Failed to fetch job applications.');
       const data: JobApplication[] = await res.json();
       setJobApplications(data);

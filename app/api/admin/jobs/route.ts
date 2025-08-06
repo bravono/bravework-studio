@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { queryDatabase, withTransaction } from "../../../lib/db";
+import { queryDatabase, withTransaction } from "../../../../lib/db";
 
 export async function GET() {
   try {
-    const jobs = await queryDatabase("SELECT * FROM jobs");
+    const jobs = await queryDatabase("SELECT * FROM job_applications");
     return NextResponse.json(jobs);
   } catch (error) {
     console.error("Error fetching jobs:", error);

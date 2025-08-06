@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     // If user is admin, fetch all users (example)
     const allUsers = await queryDatabase(
-      "SELECT user_id, first_name, last_name, email, FROM users"
+      "SELECT user_id, first_name, last_name, email FROM users"
     );
     return NextResponse.json(allUsers);
   } catch (error) {

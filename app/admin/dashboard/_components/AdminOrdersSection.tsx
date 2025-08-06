@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 import CustomOfferModal from "./CustomOfferModal"; // New modal component
 import OrderFormModal from "./OrderFormModal"; // New modal component
-import { Order, CustomOffer } from "../../../types/app";
+import { Order } from "../../../types/app";
 
 export default function AdminOrdersSection() {
   const router = useRouter();
@@ -18,6 +18,8 @@ export default function AdminOrdersSection() {
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isOrderFormModalOpen, setIsOrderFormModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null); // For editing/creating offers
+
+  const kobo = 100;
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -68,8 +70,8 @@ export default function AdminOrdersSection() {
   };
 
   const handleMarkAsPortfolio = async (order: Order) => {
-    if (order.status !== "Completed") {
-      alert("Only completed orders can be marked as portfolio.");
+    if (order.statusName !== "paid") {
+      alert("Only paid orders can be marked as portfolio.");
       return;
     }
     if (!confirm(`Mark order ${order.id} as portfolio?`)) return;
@@ -107,7 +109,7 @@ export default function AdminOrdersSection() {
   };
 
   const activeProjects = orders.filter(
-    (order) => order.status === "In Progress"
+    (order) => order.statusName === "partially_paid"
   );
 
   if (loading) return <div className="loading-state">Loading orders...</div>;
@@ -132,8 +134,8 @@ export default function AdminOrdersSection() {
                   <p>Client: {project.clientName}</p>
                   <p>
                     Status:{" "}
-                    <span className={`status-badge ${project.status}`}>
-                      {project.status}
+                    <span className={`status-badge ${project.statusName}`}>
+                      {project.statusName}
                     </span>
                   </p>
                   <p>
@@ -163,42 +165,42 @@ export default function AdminOrdersSection() {
       <div className="dashboard-card all-orders mt-4">
         <h3>All Orders</h3>
         {orders.length > 0 ? (
-          <div className="table-responsive">
-            <table className="data-table">
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th>ID</th>
-                  <th>Service</th>
-                  <th>Client</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Paid</th>
-                  <th>Created</th>
-                  <th>Started</th>
-                  <th>Completed</th>
-                  <th>Actions</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Service</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Client</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Amount</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Paid</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Created</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Started</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Completed</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {orders.map((order) => (
                   <tr key={order.id}>
-                    <td>{order.id}</td>
-                    <td>{order.service}</td>
-                    <td>{order.clientName || "N/A"}</td>
-                    <td>
-                      <span className={`status-badge ${order.status}`}>
-                        {order.status}
+                    <td className="px-4 py-2 text-sm text-gray-800">{order.id}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{order.serviceName}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{order.clientName || "N/A"}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">
+                      <span className={`status-badge`}>
+                        {order.statusName}
                       </span>
                     </td>
-                    <td>${order.amount.toLocaleString()}</td>
-                    <td>${order.amountPaid.toLocaleString()}</td>
-                    <td>{format(new Date(order.date), "MMM dd, yyyy")}</td>
-                    <td>
+                    <td className="px-4 py-2 text-sm text-gray-800">₦{(order.amount / kobo).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">₦{(order.amountPaid / kobo).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{format(new Date(order.date), "MMM dd, yyyy")}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">
                       {order.dateStarted
                         ? format(new Date(order.dateStarted), "MMM dd, yyyy")
                         : "N/A"}
                     </td>
-                    <td>
+                    <td className="px-4 py-2 text-sm text-gray-800">
                       {order.dateCompleted
                         ? format(new Date(order.dateCompleted), "MMM dd, yyyy")
                         : "N/A"}
@@ -216,7 +218,7 @@ export default function AdminOrdersSection() {
                       >
                         Delete
                       </button>
-                      {order.status === "Completed" && (
+                      {order.statusName === "paid" && (
                         <button
                           onClick={() => handleMarkAsPortfolio(order)}
                           className={`portfolio-button ${
@@ -228,7 +230,7 @@ export default function AdminOrdersSection() {
                             : "Mark Portfolio"}
                         </button>
                       )}
-                      {order.amount === 0 && order.amountPaid === 0 && (
+                      {order.statusName === "pending" && (
                         <button
                           onClick={() => handleCreateCustomOffer(order)}
                           className="offer-button"

@@ -25,14 +25,17 @@ export async function GET(request: Request) {
         o.total_expected_amount_kobo AS amount,
         o.amount_paid_to_date_kobo AS "amountPaid",
         o.user_id AS "clientId",
-        u.first_name AS "firstName",
-        u.last_name AS "lastName",
+        CONCAT(u.first_name, ' ', u.last_name) AS "clientName",
         o.is_portfolio AS "isPortfolio",
         o.project_description AS description,
         o.timeline, 
-        o.tracking_id AS "trackingId" 
+        o.tracking_id AS "trackingId",
+        pc.category_name AS "serviceName",
+        os.name AS "statusName"
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
+      JOIN product_categories pc ON o.category_id = pc.category_id
+      JOIN order_statuses os ON o.order_status_id = os.order_status_id
       ORDER BY o.created_at DESC;
     `;
 

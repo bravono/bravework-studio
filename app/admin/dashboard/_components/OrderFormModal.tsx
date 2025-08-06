@@ -3,23 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
+import {Order} from "../../../types/app"
 
-// Re-import types
-interface Order {
-  id: string;
-  service: string;
-  date: string; // created_at
-  dateStarted?: string;
-  dateCompleted?: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Payment';
-  amount: number;
-  amountPaid: number;
-  trackingId?: string;
-  clientName?: string;
-  clientId: string;
-  isPortfolio?: boolean;
-  description?: string;
-}
 
 interface OrderFormModalProps {
   order?: Order | null; // Null for create, Order object for edit
@@ -30,7 +15,7 @@ interface OrderFormModalProps {
 export default function OrderFormModal({ order, onClose, onSave }: OrderFormModalProps) {
   const [formData, setFormData] = useState<Partial<Order>>({
     service: order?.service || '',
-    status: order?.status || 'Pending',
+    statusName: order?.statusName || 'pending',
     amount: order?.amount || 0,
     amountPaid: order?.amountPaid || 0,
     clientId: order?.clientId || '',
@@ -47,7 +32,7 @@ export default function OrderFormModal({ order, onClose, onSave }: OrderFormModa
     if (order) {
       setFormData({
         service: order.service,
-        status: order.status,
+        statusName: order.statusName,
         amount: order.amount,
         amountPaid: order.amountPaid,
         clientId: order.clientId,
@@ -121,7 +106,7 @@ export default function OrderFormModal({ order, onClose, onSave }: OrderFormModa
         </div>
         <div className="form-group">
           <label htmlFor="status">Status</label>
-          <select id="status" name="status" value={formData.status || 'Pending'} onChange={handleChange} className="form-input">
+          <select id="status" name="status" value={formData.statusName || 'pending'} onChange={handleChange} className="form-input">
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>

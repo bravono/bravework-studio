@@ -33,12 +33,6 @@ interface Order {
   date: string; // created_at from DB
   dateStarted?: string; // New: date when work started
   dateCompleted?: string; // New: date when work completed
-  status:
-    | "Pending"
-    | "In Progress"
-    | "Completed"
-    | "Cancelled"
-    | "Pending Payment"; // order_status_id from DB
   amount: number; // total_expected_amount_kobo from DB (remember to convert kobo to actual currency)
   amountPaid: number; // amount_paid_to_date_kobo from DB
   trackingId?: string; // If you have a separate tracking ID
@@ -46,6 +40,8 @@ interface Order {
   clientId: string; // The user_id associated with the order
   isPortfolio?: boolean; // New: to mark if it can be added to portfolio
   description?: string; // Optional: order description for admin view
+  serviceName?: string;
+  statusName?: string;
 }
 
 // New: User interface for User Management
