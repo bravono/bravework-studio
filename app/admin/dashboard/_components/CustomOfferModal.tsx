@@ -4,23 +4,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal"; // Import the generic Modal component
 import { toast } from "react-toastify";
-
-// Re-import types
-interface Order {
-  id: string;
-  clientId: string;
-  clientName?: string;
-}
-
-interface CustomOffer {
-  id: string;
-  orderId: string;
-  userId: string;
-  offerAmount: number;
-  description: string;
-  createdAt: string;
-  status: "Pending" | "Accepted" | "Rejected" | "Expired";
-}
+import { Order, CustomOffer } from "../../../types/app"; // Adjust the import path as necessary
 
 interface CustomOfferModalProps {
   order: Order; // The order for which to create the offer
@@ -37,6 +21,9 @@ export default function CustomOfferModal({
 }: CustomOfferModalProps) {
   const [offerAmount, setOfferAmount] = useState<number>(
     existingOffer?.offerAmount || 0
+  );
+  const [projectDuration, setProjectDuration] = useState<number>(
+    existingOffer?.projectDuration || 0
   );
   const [description, setDescription] = useState<string>(
     existingOffer?.description || ""
@@ -56,13 +43,14 @@ export default function CustomOfferModal({
       const method = existingOffer ? "PATCH" : "POST";
       const url = existingOffer
         ? `/api/admin/custom-offers/${existingOffer.id}`
-        : "/api/admin/custom-offers"; // NEW API ROUTES
+        : "/api/admin/custom-offers";
       const body = {
         orderId: order.id,
         userId: order.clientId, // User associated with the order
         offerAmount,
         description,
         expiresAt,
+        projectDuration
       };
 
       const res = await fetch(url, {
@@ -90,8 +78,6 @@ export default function CustomOfferModal({
       setLoading(false);
     }
   };
-
-  useEffect(() => { console.log('Expired At Frontend:', expiresAt) }, [expiresAt])
 
   function formatDateForInput(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -126,6 +112,18 @@ export default function CustomOfferModal({
             required
             min="0"
             step="0.01"
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="offerAmount">Project Duration Days</label>
+          <input
+            type="number"
+            id="projectDuration"
+            value={projectDuration}
+            onChange={(e) => setProjectDuration(parseFloat(e.target.value))}
+            required
+            min="1"
             className="form-input"
           />
         </div>
