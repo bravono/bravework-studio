@@ -50,6 +50,8 @@ export default function AdminDashboardClient({
   const [loadingData, setLoadingData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
 
+  const kobo = 100;
+
   // Function to fetch overall admin dashboard stats
   const fetchAdminStats = useCallback(async () => {
     setLoadingData(true);
@@ -179,7 +181,7 @@ export default function AdminDashboardClient({
                   </div>
                   <div className="stat-item">
                     <span className="stat-value">
-                      ${stats.totalRevenue.toLocaleString()}
+                      ₦{(stats.totalRevenue / kobo).toLocaleString()}
                     </span>
                     <span className="stat-label">Total Revenue</span>
                   </div>

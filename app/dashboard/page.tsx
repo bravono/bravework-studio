@@ -77,6 +77,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const kobo = 100;
+
   // Function to fetch all dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (status !== "authenticated") return; // Only fetch if authenticated
@@ -341,7 +343,7 @@ export default function DashboardPage() {
               </div>
               <div className="stat-item">
                 <span className="stat-value">
-                  ${totalSpent.toLocaleString()}
+                  ₦{totalSpent.toLocaleString()}
                 </span>
                 <span className="stat-label">Total Spent</span>
               </div>
@@ -368,7 +370,7 @@ export default function DashboardPage() {
                           {order.status}
                         </span>
                         <span className="order-amount">
-                          ${order.amount.toLocaleString()}
+                          ₦{(order.amount / kobo).toLocaleString()}
                         </span>
                       </div>
                       {order.status !== "Completed" && ( // Only show track button for active orders
@@ -442,7 +444,9 @@ export default function DashboardPage() {
                       <div className="invoice-info">
                         <h3>Invoice #{invoice.id}</h3>
                         <p>Date: {invoice.date}</p>
-                        <p>Amount: ${invoice.amount.toLocaleString()}</p>
+                        <p>
+                          Amount: ₦{(invoice.amount / kobo).toLocaleString()}
+                        </p>
                       </div>
                       <div className="invoice-status">
                         <span className={`status-badge ${invoice.status}`}>
@@ -508,7 +512,7 @@ export default function DashboardPage() {
                 Get Support
               </Link>
               <Link href="/dashboard/notifications" className="action-button">
-                Notifications (0 new)
+                Notifications {1}
               </Link>
             </div>
           </div>
