@@ -85,9 +85,24 @@ export async function POST(request: Request) {
         userId = userResult.rows[0].user_id;
       }
 
+      const orderStatus = await client.query(
+        "SELECT order_status_id FROM order_statuses WHERE name = $1",
+        ["pending"]
+      );
+
+      const orderStatusId = orderStatus.rows[0]?.order_status_id;
+
       const orderResult = await client.query(
-        "INSERT INTO orders (project_description, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING order_id",
-        [projectDescription, budget, timeline, userId, serviceId, trackingId]
+        "INSERT INTO orders (project_description, order_status_id, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING order_id",
+        [
+          projectDescription,
+          orderStatusId,
+          budget,
+          timeline,
+          userId,
+          serviceId,
+          trackingId,
+        ]
       );
       const newOrderId = orderResult.rows[0].order_id;
 
