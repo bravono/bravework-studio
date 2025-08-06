@@ -26,6 +26,8 @@ export default function NotificationsPage() {
   const [selectedOfferForRejection, setSelectedOfferForRejection] =
     useState<Notification | null>(null);
 
+
+
   const fetchNotifications = useCallback(async () => {
     if (sessionStatus !== "authenticated") return;
 

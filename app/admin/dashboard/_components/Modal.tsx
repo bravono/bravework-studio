@@ -1,8 +1,8 @@
 // app/admin/dashboard/_components/Modal.tsx
-'use client';
+"use client";
 
-import React from 'react';
-import { createPortal } from 'react-dom';
+import React from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,7 +11,12 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: ModalProps) {
   if (!isOpen) return null;
 
   return createPortal(
@@ -19,11 +24,11 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
-          <button onClick={onClose} className="modal-close-button">&times;</button>
+          <button onClick={onClose} className="modal-close-button">
+            &times;
+          </button>
         </div>
-        <div className="modal-body">
-          {children}
-        </div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>,
     document.body // Render modal directly into the body

@@ -95,7 +95,6 @@ function PaymentContent() {
         break;
     }
 
-    console.log("Payment Percentage", paymentPercentage);
     return {
       amount: Math.round(calculatedAmount), // Round to nearest kobo (integer)
       discountPercentage,

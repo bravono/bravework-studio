@@ -117,7 +117,7 @@ export default function AdminOrdersSection() {
     <div className="dashboard-section">
       <h2>Orders & Projects</h2>
       <button onClick={handleCreateOrder} className="action-button mb-4">
-        Create New Order
+        Create Portfolio
       </button>
 
       {/* Active Projects */}

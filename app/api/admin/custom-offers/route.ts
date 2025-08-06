@@ -63,7 +63,14 @@ export async function POST(request: Request) {
     if (guardResponse) return guardResponse;
 
     const body = await request.json(); // Admin Panel will send JSON, not formData for offer creation
-    const { orderId, userId, offerAmount, description, expiresAt, projectDuration } = body;
+    const {
+      orderId,
+      userId,
+      offerAmount,
+      description,
+      expiresAt,
+      projectDuration,
+    } = body;
 
     if (
       !orderId ||
@@ -189,7 +196,7 @@ export async function POST(request: Request) {
         const notificationLink = `/dashboard/offers/${newOffer.id}`; // Link for in-app notification
         try {
           await client.query(
-            "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)", 
+            "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
             [userId, notificationTitle, notificationMessage, notificationLink]
           );
         } catch (dbNotificationError) {

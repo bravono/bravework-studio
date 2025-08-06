@@ -117,7 +117,7 @@ export default function CustomOfferModal({
     >
       <form onSubmit={handleSubmit} className="modal-form">
         <div className="form-group">
-          <label htmlFor="offerAmount">Offer Amount ($)</label>
+          <label htmlFor="offerAmount">Offer Amount Kobo (₦)</label>
           <input
             type="number"
             id="offerAmount"
