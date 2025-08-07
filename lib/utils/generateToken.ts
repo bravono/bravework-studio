@@ -26,9 +26,11 @@ export async function generateSecureToken(
     .digest("hex");
   const token = Buffer.from(`${payload}:${signature}`).toString("base64");
 
+  const newTimeStamp = new Date(expiration).toISOString(); // db
+
   await queryDatabase(
     "INSERT INTO secure_tokens (id, token, offer_id, action, expires_at, used) VALUES ($1, $2, $3, $4, $5, $6)",
-    [id, token, offerId, action, expiration, false]
+    [id, token, offerId, action, newTimeStamp, false]
   );
 
   return token;
