@@ -252,8 +252,7 @@ function PaymentContent() {
             const data = await res.json();
             if (data.success) {
               toast.success("Payment confirmed and service granted!");
-              // Consider updating offer status to 'Paid' or 'Deposit Paid' on backend
-              // router.push(`/dashboard/offers/${offerId}?paymentStatus=success`);
+
             } else {
               toast.error(
                 "Payment could not be confirmed. Please contact support."

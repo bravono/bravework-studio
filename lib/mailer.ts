@@ -151,7 +151,7 @@ export async function sendCustomOfferNotificationEmail(
     return;
   }
   const subject = "New Custom Offer from Bravework Studio!";
-  const dashboardLink = `${process.env.NEXTAUTH_URL}/dashboard/offers/${offerId}`; // Link to their dashboard offer details page
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications/${offerId}`; // Link to their dashboard offer details page
 
   // Directly using offerId in URL for accept/reject is INSECURE for production.
   // Example of a more secure approach (requires backend token generation/verification):

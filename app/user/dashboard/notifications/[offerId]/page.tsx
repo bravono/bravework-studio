@@ -5,10 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { CustomOffer } from "../../../types/app";
+import { CustomOffer } from "../../../../types/app";
 
-import RejectReasonModal from "../_components/RejectReasonModal";
-import "../../../css/dashboard.css";
+import RejectReasonModal from "../../offers/_components/RejectReasonModal";
+import "../../../../css/dashboard.css";
 
 export default function CustomerOfferDetailsPage() {
   const router = useRouter();
@@ -29,7 +29,9 @@ export default function CustomerOfferDetailsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/user/custom-offers/${offerId}`); // Call your new API route
+      const res = await fetch(`/api/user/custom-offers/${offerId}`, {
+      }); // Call your new API route
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to fetch offer details.");
@@ -94,14 +96,13 @@ export default function CustomerOfferDetailsPage() {
             ? { ...prev, status: result.newStatus, rejectionReason: reason }
             : null
         ); // Update local state
-        router.push("/dashboard/offers"); // Go back to offers list or dashboard
+        router.push("/user/dashboard/notifications/"); // Go back to offers list or dashboard
       } catch (err: any) {
         console.error(`Error ${action}ing offer:`, err);
         alert(`Error ${action}ing offer: ` + (err.message || "Unknown error."));
       } finally {
         setActionLoading(false);
       }
-      router.push("/payment");
     },
     [offer, offerId, router]
   );
@@ -141,7 +142,7 @@ export default function CustomerOfferDetailsPage() {
       <div className="dashboard-container">
         <div className="dashboard-header">
           <h1>Custom Offer Details</h1>
-          <Link href="/dashboard/notifications" className="profile-link">
+          <Link href="/user/dashboard/notifications" className="profile-link">
             <span>&larr; Back to Notifications</span>
           </Link>
         </div>
@@ -156,7 +157,7 @@ export default function CustomerOfferDetailsPage() {
               </span>
             </p>
             <p>
-              <strong>Offer Amount:</strong> NGN{" "}
+              <strong>Offer Amount:</strong> ₦
               {(offer.offerAmount / kobo).toLocaleString()}
             </p>
             <p>
@@ -203,21 +204,21 @@ export default function CustomerOfferDetailsPage() {
             <p>
               <strong>Original Budget:</strong>{" "}
               {offer.orderBudget
-                ? `$${offer.orderBudget.toLocaleString()}`
+                ? `₦${offer.orderBudget.toLocaleString()}`
                 : "N/A"}
             </p>
 
             {canAct && (
               <div className="offer-actions mt-4">
                 <button
-                  onClick={() => performOfferAction("accept")} // Direct call for accept
+                  onClick={(e) => {e.stopPropagation(); performOfferAction("accept")}} // Direct call for accept
                   disabled={actionLoading}
                   className="bg-green 600 mr-2"
                 >
                   {actionLoading ? "Accepting..." : "Accept Offer"}
                 </button>
                 <button
-                  onClick={handleRejectClick} // Opens the modal for reject
+                  onClick={(e) => {e.stopPropagation(); handleRejectClick("reject")}} // Opens the modal for reject
                   disabled={actionLoading}
                   className="bg-red-600"
                 >

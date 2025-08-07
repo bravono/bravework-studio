@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import "../../../css/payment-status.css";
+import "../../../../css/payment-status.css";
 
 function PaymentSuccessContent() {
   const router = useRouter();

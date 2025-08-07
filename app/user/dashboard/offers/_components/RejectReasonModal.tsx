@@ -1,8 +1,7 @@
-// app/dashboard/offers/_components/RejectReasonModal.tsx
 'use client';
 
 import React, { useState } from 'react';
-import Modal from '../../../admin/dashboard/_components/Modal'; 
+import Modal from '../../../../admin/dashboard/_components/Modal'; 
 
 interface RejectReasonModalProps {
   onClose: () => void;

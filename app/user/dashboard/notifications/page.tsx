@@ -10,7 +10,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
-import { Notification } from "../../types/app";
+import { Notification } from "../../../types/app";
 import RejectReasonModal from "../offers/_components/RejectReasonModal";
 
 export default function NotificationsPage() {
@@ -54,6 +54,7 @@ export default function NotificationsPage() {
     } else if (sessionStatus === "unauthenticated") {
       router.push("/auth/login?error=unauthenticated"); // Redirect if not logged in
     }
+
   }, [sessionStatus, fetchNotifications, router]);
 
   // Function to mark a notification as read
@@ -207,8 +208,9 @@ export default function NotificationsPage() {
               {" "}
               {/* notification-items */}
               {notifications.map((notification) => {
-                const isOfferNotification =
-                  notification.link?.startsWith("/dashboard/offers/");
+                const isOfferNotification = notification.link?.startsWith(
+                  "/user/dashboard/notifications/"
+                );
                 const isOfferExpired =
                   notification.offerExpiresAt &&
                   new Date(notification.offerExpiresAt) < new Date();

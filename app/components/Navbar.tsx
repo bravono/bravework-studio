@@ -117,7 +117,7 @@ export default function Navbar() {
                 status === "authenticated" && session.user.name
                   ? isAdmin
                     ? "/admin/dashboard"
-                    : "/dashboard"
+                    : "/user/dashboard"
                   : "/auth/login"
               }
               className={pathname === "/auth/login" ? "active" : ""}

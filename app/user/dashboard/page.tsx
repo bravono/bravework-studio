@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import "../css/dashboard.css";
+import "../../css/dashboard.css";
 
 // Define a type for your user profile data
 interface UserProfile {
@@ -511,7 +511,7 @@ export default function DashboardPage() {
               <Link href="/contact" className="action-button">
                 Get Support
               </Link>
-              <Link href="/dashboard/notifications" className="action-button">
+              <Link href="/user/dashboard/notifications" className="action-button">
                 Notifications {1}
               </Link>
             </div>
