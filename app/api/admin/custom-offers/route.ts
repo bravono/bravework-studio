@@ -1,4 +1,3 @@
-// app/api/admin/custom-offers/route.ts
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db";
 import { verifyAdmin } from "../../../../lib/admin-auth-guard";
@@ -197,7 +196,7 @@ export async function POST(request: Request) {
             : ""
         }`;
 
-        const notificationLink = `/dashboard/offers/${newOffer.id}`; // Link for in-app notification
+        const notificationLink = `/user/dashboard/notifications/${newOffer.id}`; // Link for in-app notification
         try {
           await client.query(
             "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
