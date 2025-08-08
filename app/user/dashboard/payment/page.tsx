@@ -3,36 +3,30 @@
 
 import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { toast } from "react-toastify"; // Ensure toast is installed and configured
-import { useSession } from "next-auth/react"; // Import useSession to get user email for Paystack
+import { toast } from "react-toastify"; 
+import { useSession } from "next-auth/react"; 
+import { getCurrency } from "lib/utils/getCurrency";
+import { ExchangeRates } from "app/types/app";
 
-// Define a type for the exchange rates
-interface ExchangeRates {
-  [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
-}
-
-// Mock Exchange Rate API Call (Replace with a real API like Open Exchange Rates, ExchangeRate-API, etc.)
-// For a real API, you'd typically fetch from your own backend route, which then calls the external API
-const fetchExchangeRates = async (): Promise<ExchangeRates> => {
-  // In a real application, you would call your own backend API here:
-  // const response = await fetch('/api/exchange-rates');
-  // const data = await response.json();
-  // return data.rates;
-
-  // For demonstration, we'll return mock data directly.
-  // Base currency is assumed to be NGN for conversion purposes from kobo.
-  // Rates are relative to NGN (e.g., 1 NGN = X USD, 1 NGN = Y GBP)
-  // If your external API provides rates relative to USD, adjust conversion logic accordingly.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        NGN: 1, // 1 NGN is 1 NGN
-        USD: 0.00067, // Example: 1 NGN = 0.00067 USD (approx 1 USD = 1500 NGN)
-        GBP: 0.00053, // Example: 1 NGN = 0.00053 GBP (approx 1 GBP = 1900 NGN)
-        EUR: 0.00061, // Example: 1 NGN = 0.00061 EUR (approx 1 EUR = 1650 NGN)
-      });
-    }, 500); // Simulate network delay
-  });
+export const fetchExchangeRates = async (): Promise<ExchangeRates> => {
+  try {
+    const result = await getCurrency(1); // Get rates for $1
+    return {
+      USD: 1,
+      GBP: result.rates.GBP,
+      EUR: result.rates.EUR,
+      NGN: result.rates.NGN,
+    };
+  } catch (error) {
+    console.error("Error fetching exchange rates:", error);
+    // Fallback to mock data if needed
+    return {
+      NGN: 1,
+      USD: 0.00067,
+      GBP: 0.00053,
+      EUR: 0.00061,
+    };
+  }
 };
 
 // Create a separate component that uses useSearchParams
@@ -156,6 +150,7 @@ function PaymentContent() {
       setRatesLoading(true);
       try {
         const rates = await fetchExchangeRates();
+        console.log("Rates", rates)
         setExchangeRates(rates);
         setRatesError(null);
       } catch (err) {
@@ -252,7 +247,6 @@ function PaymentContent() {
             const data = await res.json();
             if (data.success) {
               toast.success("Payment confirmed and service granted!");
-
             } else {
               toast.error(
                 "Payment could not be confirmed. Please contact support."

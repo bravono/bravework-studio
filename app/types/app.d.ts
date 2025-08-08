@@ -137,3 +137,7 @@ interface Notification {
   offerStatus?: "pending" | "accepted" | "rejected" | "expired" | string; // String for other statuses
   offerExpiresAt?: string;
 }
+
+interface ExchangeRates {
+  [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
+}
