@@ -1,3 +1,4 @@
+// app/lib/mailer.ts
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer"; // Import Mail type for transporter
 import { format } from "date-fns"; // Import date-fns for formatting expiry
@@ -72,9 +73,8 @@ export async function sendEmail({
   textContent,
   fromEmail = process.env.EMAIL_FROM,
 }: SendEmailOptions) {
-  console.log("SendEmail Data", toEmail, subject, htmlContent, textContent);
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: fromEmail,
       to: toEmail,
       subject: subject,
@@ -84,6 +84,9 @@ export async function sendEmail({
     console.log(
       `Email sent successfully to ${toEmail} for subject: ${subject}`
     );
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    }
   } catch (error) {
     console.error(
       `Error sending email to ${toEmail} for subject ${subject}:`,
@@ -134,7 +137,58 @@ export async function sendVerificationEmail(
   }
 }
 
-// NEW: Function to send custom offer notification email with accept/reject links and expiry
+// NEW: Function to send a confirmation email when an order is received
+export async function sendOrderReceivedEmail(
+  toEmail: string,
+  userName: string,
+  orderId: string
+) {
+  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
+  if (!currentTransporter) {
+    console.error("Email transporter not initialized! Cannot send email.");
+    return;
+  }
+
+  const subject = "We've Received Your Order!";
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    <p>Thank you for placing an order with us! We have successfully received your request (Order ID: <strong>${orderId}</strong>).</p>
+    <p><strong>Please note:</strong> No money has been charged yet. We will review your order details and send you a custom offer for confirmation.</p>
+    <p>Please look out for our email with the custom offer. We're excited to get started!</p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nThank you for placing an order with us! We have successfully received your request (Order ID: ${orderId}).\n\nPlease note: No money has been charged yet. We will review your order details and send you a custom offer for confirmation.\n\nPlease look out for our email with the custom offer. We're excited to get started!\n\nThanks,\nThe Bravework Studio Team`;
+
+  await sendEmail({ toEmail, subject, htmlContent, textContent });
+}
+
+// NEW: Function to send a confirmation email when a payment is received
+export async function sendPaymentReceivedEmail(
+  toEmail: string,
+  userName: string,
+  orderId: string
+) {
+  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
+  if (!currentTransporter) {
+    console.error("Email transporter not initialized! Cannot send email.");
+    return;
+  }
+
+  const subject = "Payment Received - Your Project is Underway!";
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/orders/${orderId}`;
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    <p>We have successfully received your payment for Order ID: <strong>${orderId}</strong>.</p>
+    <p>Work will begin on your project right away! To see and track the progress of your current project, please go to your dashboard.</p>
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Your Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nWe have successfully received your payment for Order ID: ${orderId}.\n\nWork will begin on your project right away! To see and track the progress of your current project, please go to your dashboard:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  await sendEmail({ toEmail, subject, htmlContent, textContent });
+}
+
+// Existing function for custom offers (with a small fix)
 export async function sendCustomOfferNotificationEmail(
   toEmail: string,
   userName: string,
@@ -144,14 +198,13 @@ export async function sendCustomOfferNotificationEmail(
   offerId: string, // NEW: Pass offerId to generate unique links
   expiresAt: string | null // NEW: Pass expiry date
 ) {
- 
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
     console.error("Email transporter not initialized! Cannot send email.");
     return;
   }
   const subject = "New Custom Offer from Bravework Studio!";
-  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications/${offerId}`; // Link to their dashboard offer details page
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}`; // Link to their dashboard offer details page
 
   // Directly using offerId in URL for accept/reject is INSECURE for production.
   // Example of a more secure approach (requires backend token generation/verification):
@@ -197,6 +250,5 @@ export async function sendCustomOfferNotificationEmail(
     /<[^>]*>/g,
     ""
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
-  console.log();
   await sendEmail({ toEmail, subject, htmlContent, textContent });
 }

@@ -1,9 +1,6 @@
-// app/api/paystack-webhook/route.ts
-// This file handles incoming webhook events from Paystack,
-// interacting with separate 'customers', 'orders', and 'payments' tables in PostgreSQL.
-
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto"; // Node.js built-in module for cryptographic functions
+import { sendPaymentReceivedEmail } from "lib/mailer";
 
 // Import your PostgreSQL database query function
 import { queryDatabase } from "../../../lib/db";
@@ -133,22 +130,24 @@ export async function POST(req: NextRequest) {
   console.log("Received Paystack Webhook Event:", event.event);
   console.log("Event Data:", event.data);
 
+  let customerEmail;
+  let orderId;
+  let clientName;
   // 5. Handle Different Event Types
   switch (event.event) {
     case "charge.success":
       const paystackReference = event.data.reference; // Unique for THIS payment
       const paystackAmountKobo = event.data.amount;
       const paystackCurrency = event.data.currency;
-      const customerEmail = event.data.customer.email;
+      customerEmail = event.data.customer.email;
       const gatewayResponse = event.data.gateway_response;
       const paystackStatus = event.data.status; // 'success'
       const paystackPaymentOption = event.payment_option;
       const discountApplied = event.discount_applied;
 
       // IMPORTANT: Extract order_id from Paystack's metadata.
-      // This requires you to pass your internal order_id in the frontend
-      // PaystackPop.newTransaction() metadata object.
-      const orderId = event.data.metadata?.order_id;
+      orderId = event.data.metadata?.order_id;
+      clientName = event.data.metadata?.clientName;
 
       if (!orderId) {
         console.error(
@@ -444,7 +443,7 @@ export async function POST(req: NextRequest) {
       break;
   }
 
-  // 6. Respond with 200 OK
+  sendPaymentReceivedEmail(customerEmail, clientName, orderId);
   // This tells Paystack you successfully received and acknowledged the webhook.
   return NextResponse.json(
     { message: "Webhook received successfully." },

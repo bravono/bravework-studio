@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../lib/db";
 import { createTrackingId } from "../../../lib/utils/tracking";
+import { sendOrderReceivedEmail } from "lib/mailer";
 
 export async function GET(request: Request) {
   try {
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
 
       // Check if user with the given email already exists
       const existingUserResult = await client.query(
-        "SELECT user_id FROM users WHERE email = $1",
+        "SELECT * FROM users WHERE email = $1",
         [email]
       );
 
@@ -115,6 +116,11 @@ export async function POST(request: Request) {
           );
         }
       }
+
+      const userResult = existingUserResult.rows[0]
+      const clientName = `${userResult.first_name} ${userResult.last_name}` 
+      const userEmail = userResult.email;
+      sendOrderReceivedEmail(userEmail, clientName, newOrderId)
 
       return NextResponse.json(newOrderId, { status: 201 });
     });
