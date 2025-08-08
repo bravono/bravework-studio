@@ -54,7 +54,6 @@ export default function NotificationsPage() {
     } else if (sessionStatus === "unauthenticated") {
       router.push("/auth/login?error=unauthenticated"); // Redirect if not logged in
     }
-
   }, [sessionStatus, fetchNotifications, router]);
 
   // Function to mark a notification as read
@@ -134,23 +133,32 @@ export default function NotificationsPage() {
           throw new Error(errorData.error || `Failed to ${action} offer.`);
         }
 
-        const result = await res.json();
-        toast.success(`Offer ${action}ed successfully!`);
-        // Update the notification's offerStatus in local state
-        setNotifications((prev) =>
-          prev.map((notif) =>
-            notif.id === notification.id
-              ? {
-                  ...notif,
-                  offerStatus: result.newStatus.toLowerCase(), // Ensure status is lowercase for badge class
-                  rejectionReason: result.rejectionReason,
-                }
-              : notif
-          )
-        );
+        
+          const result = await res.json();
+          toast.success(`Offer ${action}ed successfully!`);
+
+          // Update the notification's offerStatus in local state
+          setNotifications((prev) =>
+            prev.map((notif) =>
+              notif.id === notification.id
+                ? {
+                    ...notif,
+                    offerStatus: result.newStatus.toLowerCase(),
+                    rejectionReason: result.rejectionReason,
+                  }
+                : notif
+            )
+          );
+
+          // Handle redirect if needed
+          if (result.redirectTo) {
+            window.location.href = result.redirectTo;
+          }
+    
+
         markNotificationAsRead(notification.id); // Mark notification as read after action
       } catch (err: any) {
-        console.error(`Error ${action}ing offer:`, err);
+        console.error(`Error ${action}ing offer:`, err.message);
         toast.error(
           `Error ${action}ing offer: ` + (err.message || "Unknown error.")
         );
@@ -317,7 +325,7 @@ export default function NotificationsPage() {
                               </p>
                             </div>
                           )}
-                        {canActOnOffer && (
+                        {canActOnOffer ? (
                           <div className="flex flex-col sm:flex-row gap-3 mt-3">
                             {" "}
                             {/* offer-actions */}
@@ -342,6 +350,21 @@ export default function NotificationsPage() {
                               {actionLoading ? "Rejecting..." : "Reject Offer"}
                             </button>
                           </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                            {" "}
+                            {notification.offerStatus === "accepted" && (
+                              <button
+                                onClick={(e) => {
+                                  router.push(`/user/dashboard/payment`);
+                                }}
+                                disabled={actionLoading}
+                                className="px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
+                              >
+                                Make Payment
+                              </button>
+                            )}
+                          </div>
                         )}
                         {!canActOnOffer &&
                           notification.offerStatus !== "expired" &&
@@ -350,11 +373,6 @@ export default function NotificationsPage() {
                               Offer is {notification.offerStatus}.
                             </p>
                           )}
-                        {isOfferExpired && ( // This block is now redundant for the text, as the badge handles it.
-                          <p className="mt-2 text-sm text-red-600 font-bold">
-                            {/* This text is now handled by the badge itself for expired status */}
-                          </p>
-                        )}
                         {notification.link && (
                           <Link
                             href={notification.link}

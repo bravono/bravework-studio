@@ -1,4 +1,3 @@
-// app/api/user/custom-offers/[offerId]/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../lib/auth-options"; // Adjusted path as per your update
@@ -78,7 +77,7 @@ export async function GET(
         const expiredStatusId = expiredStatusResult[0].offer_status_id;
         // Update the custom_offers table using the integer ID
         await queryDatabase(
-          "UPDATE custom_offers SET status = $1 WHERE offer_id = $2",
+          "UPDATE custom_offers SET status_id = $1 WHERE offer_id = $2",
           [expiredStatusId, offerId]
         );
         offer.status = "expired"; // Update in memory for immediate response

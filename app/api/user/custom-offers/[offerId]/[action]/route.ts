@@ -1,4 +1,3 @@
-// app/api/user/custom-offers/[offerId]/[action]/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../../../lib/auth-options"; // Adjust path as needed
@@ -132,7 +131,9 @@ export async function POST(
 
         if (!verification.valid || verification.expired) {
           console.log("Invalid or expired token detected.");
-          throw new Error("Invalid or expired token. Please try again or log in.");
+          throw new Error(
+            "Invalid or expired token. Please try again or log in."
+          );
         }
 
         // Verify token in DB and mark as used within the transaction
@@ -144,35 +145,44 @@ export async function POST(
 
         if (!dbToken || dbToken.used) {
           console.log(`Token ${token} already used or not found in DB.`);
-          throw new Error("Token already used or not found. Please try again or log in.");
+          throw new Error(
+            "Token already used or not found. Please try again or log in."
+          );
         }
 
-        await client.query("UPDATE secure_tokens SET used = true WHERE token = $1", [
-          token,
-        ]);
+        await client.query(
+          "UPDATE secure_tokens SET used = true WHERE token = $1",
+          [token]
+        );
         console.log(`Secure token ${token} marked as used within transaction.`);
         userId = dbToken.user_id; // Get userId from the token record
         isAuthenticated = true;
-
       } else {
         // Scenario 2: No token provided (likely from dashboard, rely on session)
-        console.log("No token detected. Attempting session-based authentication.");
+        console.log(
+          "No token detected. Attempting session-based authentication."
+        );
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user || !(session.user as any).id) {
           console.log("Unauthorized: No valid session or user ID found.");
-          throw new Error("Unauthorized. Please log in to perform this action.");
+          throw new Error(
+            "Unauthorized. Please log in to perform this action."
+          );
         }
         userId = (session.user as any).id;
         isAuthenticated = true;
       }
 
       if (!isAuthenticated || !userId) {
-        console.error("Authentication failed: No valid token or session found.");
-        throw new Error("Authentication failed. Please log in or use a valid link.");
+        console.error(
+          "Authentication failed: No valid token or session found."
+        );
+        throw new Error(
+          "Authentication failed. Please log in or use a valid link."
+        );
       }
       console.log(`User ${userId} authenticated successfully.`);
-
 
       // Validate the action
       if (action !== "accept" && action !== "reject") {
@@ -208,19 +218,27 @@ export async function POST(
 
       // 3. Authorization: Ensure the offer belongs to the authenticated user
       if (offer.user_id !== userId) {
-        console.log(`Forbidden: Offer ${offerId} does not belong to user ${userId}. Offer user_id: ${offer.user_id}`);
+        console.log(
+          `Forbidden: Offer ${offerId} does not belong to user ${userId}. Offer user_id: ${offer.user_id}`
+        );
         throw new Error("Forbidden: Offer does not belong to this user.");
       }
 
       // 4. Check offer status: Only 'Pending' offers can be accepted/rejected
       if (currentOfferStatusName.toLowerCase() !== "pending") {
-        console.log(`Offer ${offerId} is already ${currentOfferStatusName.toLowerCase()}. Cannot ${action}.`);
-        throw new Error(`Offer is already ${currentOfferStatusName.toLowerCase()}. Cannot ${action}.`);
+        console.log(
+          `Offer ${offerId} is already ${currentOfferStatusName.toLowerCase()}. Cannot ${action}.`
+        );
+        throw new Error(
+          `Offer is already ${currentOfferStatusName.toLowerCase()}. Cannot ${action}.`
+        );
       }
 
       // 5. Check expiry: ensure the offer is not expired
       if (offer.expires_at && new Date(offer.expires_at) < new Date()) {
-        console.log(`Offer ${offerId} has expired. Attempting to update status to 'expired'.`);
+        console.log(
+          `Offer ${offerId} has expired. Attempting to update status to 'expired'.`
+        );
         const expiredStatusResult = await client.query(
           "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
           ["expired"]
@@ -231,9 +249,13 @@ export async function POST(
             "UPDATE custom_offers SET status_id = $1 WHERE offer_id = $2",
             [expiredStatusId, offerId]
           );
-          console.log(`Offer ${offerId} status updated to expired (${expiredStatusId}).`);
+          console.log(
+            `Offer ${offerId} status updated to expired (${expiredStatusId}).`
+          );
         } else {
-          console.warn("Expired status ID not found in custom_offer_statuses table. Please ensure 'Expired' status exists.");
+          console.warn(
+            "Expired status ID not found in custom_offer_statuses table. Please ensure 'Expired' status exists."
+          );
         }
         throw new Error("Offer has expired.");
       }
@@ -247,11 +269,17 @@ export async function POST(
       );
 
       if (targetStatusResult.rows.length === 0) {
-        console.error(`Target status '${targetStatusName}' not found in database.`);
-        throw new Error(`Target status '${targetStatusName}' not found in database.`);
+        console.error(
+          `Target status '${targetStatusName}' not found in database.`
+        );
+        throw new Error(
+          `Target status '${targetStatusName}' not found in database.`
+        );
       }
       const newStatusId = targetStatusResult.rows[0].offer_status_id;
-      console.log(`Found target status ID: ${newStatusId} for name: ${targetStatusName}`);
+      console.log(
+        `Found target status ID: ${newStatusId} for name: ${targetStatusName}`
+      );
 
       // Build update query dynamically to include rejection_reason if action is 'reject'
       let updateFields = [`status_id = $1`];
@@ -261,7 +289,9 @@ export async function POST(
       if (action === "reject" && rejectionReason !== undefined) {
         updateFields.push(`rejection_reason = $${paramIndex++}`);
         updateParams.push(rejectionReason);
-        console.log(`Adding rejection_reason: '${rejectionReason}' to update fields.`);
+        console.log(
+          `Adding rejection_reason: '${rejectionReason}' to update fields.`
+        );
       }
       updateParams.push(offerId);
 
@@ -278,7 +308,9 @@ export async function POST(
 
       console.log("Update query result rows length:", updateResult.rows.length);
       if (updateResult.rows.length === 0) {
-        console.error("Failed to update offer status. No rows returned from update query.");
+        console.error(
+          "Failed to update offer status. No rows returned from update query."
+        );
         throw new Error("Failed to update offer status.");
       }
       console.log("Offer updated successfully:", updateResult.rows[0]);
@@ -291,21 +323,20 @@ export async function POST(
       );
 
       // If accepted, redirect to payment page
+      let paymentUrl;
       if (action === "accept") {
-        const paymentUrl = new URL(`${process.env.NEXTAUTH_URL}/user/dashboard/payment`);
+        paymentUrl = new URL(
+          `${process.env.NEXTAUTH_URL}/user/dashboard/payment`
+        );
         paymentUrl.searchParams.set("offerId", offer.offer_id);
-        paymentUrl.searchParams.set("service", offer.orderService || offer.offerDescription || "Custom Offer");
-
-        // Return a redirect response
-        return NextResponse.redirect(paymentUrl.toString());
       }
-
 
       return NextResponse.json({
         message: `Offer ${targetStatusName} successfully`,
         offerId: offerId,
         newStatus: targetStatusName,
         rejectionReason: action === "reject" ? rejectionReason : undefined,
+        redirectTo: paymentUrl?.toString(), // Include redirect URL in JSON
       });
     });
   } catch (error: any) {
@@ -314,38 +345,36 @@ export async function POST(
     let errorMessage = "Internal Server Error";
 
     if (error.message.includes("Token already used or not found")) {
-        statusCode = 401;
-        errorMessage = "Invalid or expired token. Please try again.";
+      statusCode = 401;
+      errorMessage = "Invalid or expired token. Please try again.";
     } else if (error.message.includes("Unauthorized")) {
-        statusCode = 401;
-        errorMessage = "Unauthorized. Please log in to perform this action.";
+      statusCode = 401;
+      errorMessage = "Unauthorized. Please log in to perform this action.";
     } else if (error.message.includes("Custom offer not found")) {
-        statusCode = 404;
-        errorMessage = "Custom offer not found.";
+      statusCode = 404;
+      errorMessage = "Custom offer not found.";
     } else if (error.message.includes("Forbidden")) {
-        statusCode = 403;
-        errorMessage = "You do not have permission to perform this action on this offer.";
+      statusCode = 403;
+      errorMessage =
+        "You do not have permission to perform this action on this offer.";
     } else if (error.message.includes("Offer is already")) {
-        statusCode = 409;
-        errorMessage = error.message;
+      statusCode = 409;
+      errorMessage = error.message;
     } else if (error.message.includes("Offer has expired")) {
-        statusCode = 410;
-        errorMessage = error.message;
+      statusCode = 410;
+      errorMessage = error.message;
     } else if (error.message.includes("Target status")) {
-        statusCode = 500;
-        errorMessage = "Server configuration error: Target offer status not found.";
+      statusCode = 500;
+      errorMessage =
+        "Server configuration error: Target offer status not found.";
     } else if (error.message.includes("Failed to update offer status")) {
-        statusCode = 500;
-        errorMessage = "Failed to update offer status in the database.";
+      statusCode = 500;
+      errorMessage = "Failed to update offer status in the database.";
     } else if (error.message.includes("Invalid action")) {
-        statusCode = 400;
-        errorMessage = "Invalid action specified.";
+      statusCode = 400;
+      errorMessage = "Invalid action specified.";
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: statusCode }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }
-

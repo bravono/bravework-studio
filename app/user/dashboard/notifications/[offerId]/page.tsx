@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
+
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { CustomOffer } from "../../../../types/app";
 
+import { CustomOffer } from "../../../../types/app";
 import RejectReasonModal from "../../offers/_components/RejectReasonModal";
 import "../../../../css/dashboard.css";
 
@@ -29,8 +31,7 @@ export default function CustomerOfferDetailsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/user/custom-offers/${offerId}`, {
-      }); // Call your new API route
+      const res = await fetch(`/api/user/custom-offers/${offerId}`); // Call your new API route
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -90,13 +91,17 @@ export default function CustomerOfferDetailsPage() {
         }
 
         const result = await res.json();
-        alert(`Offer ${action}ed successfully!`);
+        toast.success(`Offer ${action}ed successfully!`);
         setOffer((prev) =>
           prev
             ? { ...prev, status: result.newStatus, rejectionReason: reason }
             : null
         ); // Update local state
-        router.push("/user/dashboard/notifications/"); // Go back to offers list or dashboard
+
+        // Handle redirect if needed
+        if (result.redirectTo) {
+          window.location.href = result.redirectTo;
+        }
       } catch (err: any) {
         console.error(`Error ${action}ing offer:`, err);
         alert(`Error ${action}ing offer: ` + (err.message || "Unknown error."));
@@ -211,14 +216,17 @@ export default function CustomerOfferDetailsPage() {
             {canAct && (
               <div className="offer-actions mt-4">
                 <button
-                  onClick={(e) => {e.stopPropagation(); performOfferAction("accept")}} // Direct call for accept
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    performOfferAction("accept");
+                  }} // Direct call for accept
                   disabled={actionLoading}
                   className="bg-green 600 mr-2"
                 >
                   {actionLoading ? "Accepting..." : "Accept Offer"}
                 </button>
                 <button
-                  onClick={(e) => {e.stopPropagation(); handleRejectClick("reject")}} // Opens the modal for reject
+                  onClick={handleRejectClick} // Opens the modal for reject
                   disabled={actionLoading}
                   className="bg-red-600"
                 >
