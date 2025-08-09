@@ -1,6 +1,5 @@
 export async function getCurrency(amount: number) {
   const apiKey = process.env.NEXT_PUBLIC_CURRENCY_API_KEY;
-  console.log("Key", apiKey)
   const url = `https://api.freecurrencyapi.com/v1/latest?apikey=${apiKey}&`;
 
   const res = await fetch(url);
@@ -12,15 +11,13 @@ export async function getCurrency(amount: number) {
   const data = await res.json();
   const rates = data.data; // Note: FreeCurrencyAPI returns rates under `data`
 
-  console.log("Rates:", rates);
-
   return {
     amount,
     conversions: {
       USD: amount * rates.USD,
       GBP: amount * rates.GBP,
       EUR: amount * rates.EUR,
-      NGN: amount * rates.NGn
+      NGN: amount * 1550
     },
     rates,
   };

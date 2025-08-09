@@ -10,6 +10,10 @@ import { useSearchParams } from "next/navigation";
 
 import Navbar from "../components/Navbar";
 import FilesToUpload from "../components/FilesToUpload";
+import { fetchExchangeRates } from "lib/utils/fetchExchangeRate";
+import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
+import { convertBudgetRange } from "lib/utils/convertBudgetRange";
+import { ExchangeRates } from "app/types/app";
 
 function Page() {
   const router = useRouter();
@@ -36,11 +40,18 @@ function Page() {
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [ratesLoading, setRatesLoading] = useState(true);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
+    null
+  );
   const [fileInfos, setFileInfos] = useState<
     { fileName: string; fileSize: string; fileUrl: string }[]
   >([]);
   const icons = ["🎨", "🌐", "📱", "✨", "🎮", "🎙️", "🤼‍♂️"];
   const searchParams = useSearchParams();
+  const currencies = ["NGN", "USD", "GBP", "EUR"];
 
   // Get the service from URL parameters
   useEffect(() => {
@@ -57,6 +68,25 @@ function Page() {
       setProductCategories(categories);
     };
     fetchCategories();
+  }, []);
+
+  // Effect to fetch exchange rates
+  useEffect(() => {
+    const getRates = async () => {
+      setRatesLoading(true);
+      try {
+        const rates = await fetchExchangeRates();
+        console.log("Rates", rates);
+        setExchangeRates(rates);
+        setRatesError(null);
+      } catch (err) {
+        console.error("Error fetching exchange rates:", err);
+        setRatesError("Failed to load exchange rates.");
+      } finally {
+        setRatesLoading(false);
+      }
+    };
+    getRates();
   }, []);
 
   const getSelectedService = () => {
@@ -247,7 +277,6 @@ function Page() {
   return (
     <main>
       <ToastContainer />
-      <Navbar />
       <section className="order-section">
         <div className="container">
           <h1 className="section-title">Order a Service</h1>
@@ -288,7 +317,22 @@ function Page() {
                 ))}
               </div>
             </div>
-
+            <div className="grid grid-cols-2 gap-3">
+              {currencies.map((currency) => (
+                <button
+                  key={currency}
+                  onClick={() => setSelectedCurrency(currency)}
+                  className={`py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200
+                                      ${
+                                        selectedCurrency === currency
+                                          ? "bg-blue-600 text-white shadow-md"
+                                          : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                                      }`}
+                >
+                  {currency} - {getCurrencySymbol(currency)}
+                </button>
+              ))}
+            </div>
             <form onSubmit={handleSubmit} className="order-form">
               {!user ? (
                 <>
@@ -440,13 +484,20 @@ function Page() {
                       required
                       disabled={!selectedService}
                     >
-                      <option value="">Select a budget range</option>
                       {getSelectedService()?.budget_ranges.map(
-                        (range, index) => (
-                          <option key={index} value={range.range_value}>
-                            {range.range_label}
-                          </option>
-                        )
+                        (range, index) => {
+                          const convertedLabel = convertBudgetRange(
+                            range.range_value,
+                            exchangeRates[selectedCurrency],
+                            getCurrencySymbol(selectedCurrency)
+                          );
+
+                          return (
+                            <option key={index} value={range.range_value}>
+                              {convertedLabel}
+                            </option>
+                          );
+                        }
                       )}
                     </select>
                   </div>
