@@ -160,9 +160,6 @@ function Page() {
             },
           ]);
           toast.success(`File ${file.name} uploaded successfully!`);
-          setTimeout(() => {
-            router.push("/order/success");
-          }, 2000); // Redirect after 2 seconds
         } else {
           const errorData = await response.json();
 
@@ -253,8 +250,26 @@ function Page() {
         body: JSON.stringify(formspreeData),
       });
     } catch (err) {
-      // Optionally handle Formspree errors
+      console.log("Couldn't post to Formspree");
     }
+
+    // Reset form data and files after submission
+    setFormData({
+      firstName: "",
+      lastName: "",
+      companyName: "",
+      email: "",
+      phone: "",
+      projectDescription: "",
+      budget: "",
+      timeline: "",
+      files: "",
+    });
+    setFiles([]);
+    setFilePreviews([]);
+    setTimeout(() => {
+      router.push("/order/success");
+    }, 2000);
   };
 
   const handleInputChange = (
@@ -488,7 +503,8 @@ function Page() {
                         (range, index) => {
                           const convertedLabel = convertBudgetRange(
                             range.range_value,
-                            exchangeRates[selectedCurrency],
+                            exchangeRates &&
+                              exchangeRates[selectedCurrency || "NGN"],
                             getCurrencySymbol(selectedCurrency)
                           );
 
@@ -568,13 +584,6 @@ function Page() {
               >
                 {isSubmitting ? "Submitting..." : " Submit Order"}
               </button>
-              {submitStatus === "success" && (
-                <div className="success-message">
-                  Thank you for your order! We'll review it and get back to you
-                  via email.
-                </div>
-              )}
-
               {submitStatus === "error" && (
                 <div className="error-message">
                   There was an error submitting your order. Please try again.

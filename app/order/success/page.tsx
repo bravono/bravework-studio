@@ -1,8 +1,11 @@
 "use client";
-
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function OrderSuccessPage() {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   return (
     <div
       className="order-success-page"
@@ -62,7 +65,8 @@ export default function OrderSuccessPage() {
         <p style={{ color: "#166534", marginBottom: 22, fontWeight: 500 }}>
           Thank you for your order.
           <br />
-          We'll review your project and get back to you via email soon.
+          We'll review your project details and get back to you via email with a
+          custom offer within the hour.
         </p>
         <Link
           href="/"
@@ -82,6 +86,26 @@ export default function OrderSuccessPage() {
         >
           Go to Home
         </Link>
+        {user && (
+          <Link
+            href="/user/dashboard"
+            style={{
+              display: "block",
+              background: "#4f46e5",
+              color: "#fff",
+              borderRadius: 8,
+              padding: "12px 0",
+              fontWeight: 600,
+              fontSize: "1rem",
+              textDecoration: "none",
+              marginBottom: 12,
+              boxShadow: "0 2px 8px rgba(79,70,229,0.10)",
+              transition: "background 0.2s",
+            }}
+          >
+            Dashboard
+          </Link>
+        )}
         <Link
           href="/order"
           style={{
