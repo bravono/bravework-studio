@@ -7,6 +7,8 @@ import { toast } from "react-toastify";
 import { useSession } from "next-auth/react"; 
 import { fetchExchangeRates } from "lib/utils/fetchExchangeRate";
 import { ExchangeRates } from "app/types/app";
+import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
+
 
 
 // Create a separate component that uses useSearchParams
@@ -269,20 +271,6 @@ function PaymentContent() {
     convertedAmount, // Added convertedAmount to dependencies for logging
   ]);
 
-  const getCurrencySymbol = (currencyCode: string) => {
-    switch (currencyCode) {
-      case "USD":
-        return "$";
-      case "NGN":
-        return "₦";
-      case "GBP":
-        return "£";
-      case "EUR":
-        return "€";
-      default:
-        return "";
-    }
-  };
 
   const finalKoboDetails = calculateFinalAmountKobo();
   const originalAmountDisplay =
