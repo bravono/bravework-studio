@@ -1,52 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+
+import {
+  Order,
+  Course,
+  UserProfile,
+  Invoice,
+  Notification,
+} from "app/types/app";
 import "../../css/dashboard.css";
-
-// Define a type for your user profile data
-interface UserProfile {
-  fullName: string;
-  email: string;
-  bio: string;
-  profileImage: string; // URL to the image
-  companyName: string;
-  phone: string;
-  memberSince: string; // Date string or actual Date object
-  referrals: number;
-  coupons: string[]; // Array of coupon codes
-  // Add other fields you might have, like user ID
-  id?: string;
-}
-
-// Define types for other data
-interface Order {
-  id: string;
-  service: string;
-  date: string;
-  status: "In Progress" | "Completed" | "Pending Payment" | "Cancelled";
-  amount: number;
-  // Add a unique identifier for tracking if different from id
-  trackingId?: string;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  progress: number; // Percentage
-  lastAccessed: string; // Date string
-  link: string; // Link to the course page
-}
-
-interface Invoice {
-  id: string;
-  date: string;
-  amount: number;
-  status: "Paid" | "Pending" | "Overdue";
-  // Add payment initiation link/API endpoint
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -74,6 +41,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,6 +79,11 @@ export default function DashboardPage() {
       // if (!invoicesRes.ok) throw new Error("Failed to fetch invoices");
       // const invoicesData: Invoice[] = await invoicesRes.json();
       // setInvoices(invoicesData);
+
+      const notificationRes = await fetch("/api/user/notifications"); // Create this API route
+      if (!notificationRes.ok) throw new Error("Failed to fetch notifications");
+      const notificationData: Notification[] = await notificationRes.json();
+      setNotifications(notificationData);
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(
@@ -196,7 +169,9 @@ export default function DashboardPage() {
   // Calculate overview stats from fetched data
   const activeOrders = orders.filter(
     (order) =>
-      order.status === "In Progress" || order.status === "Pending Payment"
+      order.statusName !== "failed" &&
+      order.statusName !== "pending" &&
+      order.statusName !== "currency_mismatch"
   ).length;
   const coursesInProgress = courses.filter(
     (course) => course.progress < 100
@@ -366,21 +341,25 @@ export default function DashboardPage() {
                         <p>Date: {order.date}</p>
                       </div>
                       <div className="order-status">
-                        <span className={`status-badge ${order.status}`}>
-                          {order.status}
+                        <span className={`status-badge ${order.statusName}`}>
+                          {order.statusName}
                         </span>
                         <span className="order-amount">
                           ₦{(order.amount / kobo).toLocaleString()}
                         </span>
                       </div>
-                      {order.status !== "Completed" && ( // Only show track button for active orders
-                        <Link
-                          href={`/orders/track/${order.trackingId || order.id}`}
-                          className="track-button"
-                        >
-                          Track
-                        </Link>
-                      )}
+                      {order.statusName === "paid" ||
+                        order.statusName === "partially_paid" ||
+                        (order.statusName === "overpayment_detected" && ( // Only show track button for active orders
+                          <Link
+                            href={`/orders/track/${
+                              order.trackingId || order.id
+                            }`}
+                            className="track-button"
+                          >
+                            Track
+                          </Link>
+                        ))}
                     </div>
                   )
                 )}
@@ -443,7 +422,7 @@ export default function DashboardPage() {
                     <div key={invoice.id} className="invoice-item">
                       <div className="invoice-info">
                         <h3>Invoice #{invoice.id}</h3>
-                        <p>Date: {invoice.date}</p>
+                        <p>Date: {invoice.issueDate}</p>
                         <p>
                           Amount: ₦{(invoice.amount / kobo).toLocaleString()}
                         </p>
@@ -511,8 +490,14 @@ export default function DashboardPage() {
               <Link href="/contact" className="action-button">
                 Get Support
               </Link>
-              <Link href="/user/dashboard/notifications" className="action-button">
-                Notifications {1}
+              <Link
+                href="/user/dashboard/notifications"
+                className="action-button relative inline-block"
+              >
+                Notifications
+                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">
+                  {notifications.filter((n) => !n.isRead).length}
+                </span>
               </Link>
             </div>
           </div>

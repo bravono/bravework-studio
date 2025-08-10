@@ -141,3 +141,28 @@ interface Notification {
 interface ExchangeRates {
   [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
 }
+
+
+// Define a type for your user profile data
+interface UserProfile {
+  fullName: string;
+  email: string;
+  bio: string;
+  profileImage: string; // URL to the image
+  companyName: string;
+  phone: string;
+  memberSince: string; // Date string or actual Date object
+  referrals: number;
+  coupons: string[]; // Array of coupon codes
+  // Add other fields you might have, like user ID
+  id?: string;
+}
+
+
+interface Course {
+  id: string;
+  title: string;
+  progress: number; // Percentage
+  lastAccessed: string; // Date string
+  link: string; // Link to the course page
+}
