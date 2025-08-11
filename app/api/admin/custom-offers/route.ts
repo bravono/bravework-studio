@@ -202,10 +202,10 @@ export async function POST(request: Request) {
             "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
             [userId, notificationTitle, notificationMessage, notificationLink]
           );
-        } catch (dbNotificationError) {
+        } catch (err) {
           console.error(
             "Failed to create in-app notification for custom offer:",
-            dbNotificationError
+            err
           );
         }
       } else {

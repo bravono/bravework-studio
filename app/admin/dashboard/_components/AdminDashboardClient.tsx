@@ -26,6 +26,7 @@ import AdminOrdersSection from "./AdminOrdersSection";
 import AdminUsersSection from "./AdminUsersSection";
 import AdminJobApplicationsSection from "./AdminJobApplicationsSection";
 import AdminInvoicesSection from "./AdminInvoicesSection";
+import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
 
 interface AdminDashboardClientProps {
@@ -57,9 +58,9 @@ export default function AdminDashboardClient({
 
   // Admin Profile state (for display, not directly editable here)
   const [adminProfile, setAdminProfile] = useState<AdminProfile>({
-    id: (initialSession.user as any)?.id || "",
-    fullName: initialSession.user?.name || "Admin User",
-    email: initialSession.user?.email || "",
+    id: (initialSession.user as any)?.id,
+    fullName: initialSession.user?.name,
+    email: initialSession.user?.email,
     memberSince: "N/A", // Will be fetched from backend
   });
 
