@@ -1,28 +1,17 @@
-// app/api/user/notifications/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth-options"; // Adjust path as needed
 import { queryDatabase } from "../../../../lib/db";
+import { verifyAdmin } from "@/lib/admin-auth-guard"; // Import the admin guard
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   try {
-    // 1. Authenticate the user
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse; // Guard returns a  unauthorized/forbidden
 
-    const userId = (session.user as any).id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID not found in session" },
-        { status: 400 }
-      );
-    }
-
-    // 2. Fetch notifications for the authenticated user
+    // 2. Fetch notifications for the authenticated admin
     // We'll also join with custom_offers to get offer details if the notification links to one
     // and with custom_offer_statuses to get the offer's status name.
     const queryText = `
@@ -40,13 +29,13 @@ export async function GET(request: Request) {
         cos.name AS "offerStatus", -- Get the name of the offer status
         co.expires_at AS "offerExpiresAt"
       FROM notifications n
-      LEFT JOIN custom_offers co ON n.link LIKE '/user/dashboard/notifications/' || co.offer_id || '%'
+      LEFT JOIN custom_offers co ON n.link LIKE '/admin/dashboard/notifications/' || co.offer_id || '%'
       LEFT JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
-      WHERE n.user_id = $1 AND n.link LIKE '/user/dashboard/notifications/%'
+      WHERE n.link LIKE '/admin/dashboard/notifications/'|| co.offer_id || '%'
       ORDER BY n.created_at DESC;
     `;
 
-    const result = await queryDatabase(queryText, [userId]);
+    const result = await queryDatabase(queryText);
 
     // 3. Convert Date objects to ISO strings for JSON serialization
     const serializableNotifications = result.map((notification: any) => {
@@ -72,19 +61,8 @@ export async function GET(request: Request) {
 // NEW: PATCH method to mark a notification as read
 export async function PATCH(request: Request) {
   try {
-    // 1. Authenticate the user
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as any).id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID not found in session" },
-        { status: 400 }
-      );
-    }
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse; // Guard returns a  unauthorized/forbidden
 
     const { searchParams } = new URL(request.url);
     const notificationId = searchParams.get("id");
@@ -109,14 +87,10 @@ export async function PATCH(request: Request) {
     const queryText = `
       UPDATE notifications
       SET is_read = $1
-      WHERE notification_id = $2 AND user_id = $3
+      WHERE notification_id = $2
       RETURNING notification_id AS id, is_read AS "isRead";
     `;
-    const result = await queryDatabase(queryText, [
-      isRead,
-      notificationId,
-      userId,
-    ]);
+    const result = await queryDatabase(queryText, [isRead, notificationId]);
 
     if (result.length === 0) {
       return NextResponse.json(

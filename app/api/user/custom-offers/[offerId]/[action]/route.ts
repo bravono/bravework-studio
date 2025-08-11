@@ -6,7 +6,6 @@ import { verifySecureToken } from "../../../../../../lib/utils/generateToken"; /
 
 export const runtime = "nodejs";
 
-// The GET method was previously in this file, re-adding for completeness if still needed here.
 // If this GET method is handled by a separate file (e.g., app/api/user/custom-offers/[offerId]/route.ts),
 // then you can remove this GET export.
 export async function GET(
@@ -321,6 +320,23 @@ export async function POST(
           rejectionReason || "N/A"
         }`
       );
+
+      const notificationLink = `/admin/dashboard/notifications/${offerId}`;
+      const title = `New User Action`;
+      const message = `User with ID ${userId}  has ${action}ed custom offer ${offerId}`;
+
+      // Insert into notifications table to notify admin
+      try {
+        await queryDatabase(
+          `INSERT INTO notifications (
+          user_id, title, message, is_read, link, created_at
+          ) VALUES ($1, $2, $3, $4, $5, NOW())`,
+
+          [userId, title, message, false, notificationLink]
+        );
+      } catch (err) {
+        console.log("Couldn't insert user's action to the db", err.message);
+      }
 
       // If accepted, redirect to payment page
       let paymentUrl;
