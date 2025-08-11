@@ -1,23 +1,14 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
+
 import { queryDatabase } from "../../../../lib/db";
 import { verifyAdmin } from "../../../../lib/admin-auth-guard";
-
-// Define the expected structure of the statistics
-interface AdminStats {
-  totalOrders: number;
-  totalRevenue: number; // Stored in kobo, convert to currency unit for display
-  pendingOrders: number;
-  activeCoupons: number;
-  totalUsers: number;
-  pendingJobApplications: number;
-}
+import { AdminStats } from "@/app/types/app";
 
 export async function GET(request: Request) {
   try {
     const guardResponse = await verifyAdmin(request);
-  if (guardResponse) return guardResponse;
-
+    if (guardResponse) return guardResponse;
 
     // 4. Fetch aggregated statistics from the database
     const stats: AdminStats = {
@@ -27,6 +18,7 @@ export async function GET(request: Request) {
       activeCoupons: 0,
       totalUsers: 0,
       pendingJobApplications: 0,
+      totalUnreadNotifications: 0,
     };
 
     // Total Orders
@@ -69,6 +61,16 @@ export async function GET(request: Request) {
       "SELECT COUNT(*) FROM coupons WHERE expiration_date > NOW()"
     );
     stats.activeCoupons = parseInt(activeCouponsResult[0].count || "0", 10);
+
+    const unReadNotifications = await queryDatabase(
+      `SELECT COUNT(*) FROM notifications WHERE link LIKE '/admin/dashboard/notifications/%' AND is_read = $1`,
+      [false]
+    );
+
+    stats.totalUnreadNotifications = parseInt(
+      unReadNotifications[0].count || "0",
+      10
+    );
 
     // 5. Return the aggregated statistics
     return NextResponse.json(stats);

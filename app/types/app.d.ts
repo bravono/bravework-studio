@@ -166,3 +166,14 @@ interface Course {
   lastAccessed: string; // Date string
   link: string; // Link to the course page
 }
+
+interface AdminStats {
+  totalOrders: number;
+  totalRevenue: number; // Stored in kobo, convert to currency unit for display
+  pendingOrders: number;
+  activeCoupons: number;
+  totalUsers: number;
+  pendingJobApplications: number;
+  totalUnreadNotifications: number;
+}
+
