@@ -133,28 +133,62 @@ export default function NotificationsPage() {
           throw new Error(errorData.error || `Failed to ${action} offer.`);
         }
 
-        
-          const result = await res.json();
-          toast.success(`Offer ${action}ed successfully!`);
+        const result = await res.json();
+        toast.success(`Offer ${action}ed successfully!`);
 
-          // Update the notification's offerStatus in local state
-          setNotifications((prev) =>
-            prev.map((notif) =>
-              notif.id === notification.id
-                ? {
-                    ...notif,
-                    offerStatus: result.newStatus.toLowerCase(),
-                    rejectionReason: result.rejectionReason,
-                  }
-                : notif
-            )
-          );
+        // Email Admin of Action
+        const formDataToSend = new FormData();
+        formDataToSend.append("message", notification.message || "");
+        formDataToSend.append("link", notification.link || "");
+        formDataToSend.append(
+          "offerAmount",
+          notification.offerAmount?.toString() || ""
+        );
+        formDataToSend.append("offerStatus", `${action}ed`);
+        formDataToSend.append(
+          "offerDescription",
+          notification.offerDescription || ""
+        );
+        formDataToSend.append(
+          "rejectionReason",
+          notification.rejectionReason ?? ""
+        );
 
-          // Handle redirect if needed
-          if (result.redirectTo) {
-            window.location.href = result.redirectTo;
-          }
-    
+        fetch("https://formspree.io/f/yourFormID", {
+          method: "POST",
+          body: JSON.stringify(formDataToSend),
+          headers: {
+            Accept: "application/json",
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log("Form submitted successfully!");
+            } else {
+              console.error("Form submission failed.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error submitting form:", error);
+          });
+
+        // Update the notification's offerStatus in local state
+        setNotifications((prev) =>
+          prev.map((notif) =>
+            notif.id === notification.id
+              ? {
+                  ...notif,
+                  offerStatus: result.newStatus.toLowerCase(),
+                  rejectionReason: result.rejectionReason,
+                }
+              : notif
+          )
+        );
+
+        // Handle redirect if needed
+        if (result.redirectTo) {
+          window.location.href = result.redirectTo;
+        }
 
         markNotificationAsRead(notification.id); // Mark notification as read after action
       } catch (err: any) {
@@ -277,7 +311,8 @@ export default function NotificationsPage() {
                           <strong>Offer Status:</strong>{" "}
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              isOfferExpired
+                              isOfferExpired &&
+                              notification.offerStatus !== "accepted"
                                 ? "bg-gray-200 text-gray-600" // If expired, use expired styling
                                 : notification.offerStatus === "pending"
                                 ? "bg-yellow-100 text-yellow-800"
@@ -288,7 +323,8 @@ export default function NotificationsPage() {
                                 : "bg-gray-100 text-gray-700" // Default if status is unknown
                             }`}
                           >
-                            {isOfferExpired
+                            {isOfferExpired &&
+                            notification.offerStatus !== "accepted"
                               ? "Expired"
                               : notification.offerStatus}{" "}
                             {/* Display 'Expired' if expired, else actual status */}
