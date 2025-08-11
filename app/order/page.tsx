@@ -12,7 +12,7 @@ import Navbar from "../components/Navbar";
 import FilesToUpload from "../components/FilesToUpload";
 import { fetchExchangeRates } from "lib/utils/fetchExchangeRate";
 import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
-import { convertBudgetRange } from "lib/utils/convertBudgetRange";
+import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { ExchangeRates } from "app/types/app";
 
 function Page() {
@@ -501,7 +501,7 @@ function Page() {
                     >
                       {getSelectedService()?.budget_ranges.map(
                         (range, index) => {
-                          const convertedLabel = convertBudgetRange(
+                          const convertedLabel = convertCurrency(
                             range.range_value,
                             exchangeRates &&
                               exchangeRates[selectedCurrency || "NGN"],
