@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const queryText = `
       SELECT
         n.notification_id AS id,
+        n.user_id AS "userId",
         n.title,
         n.message,
         n.link,

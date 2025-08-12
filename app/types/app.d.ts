@@ -124,6 +124,7 @@ interface AdminStats {
 
 interface Notification {
   id: string;
+  userId: number;
   title: string;
   message: string;
   link?: string;

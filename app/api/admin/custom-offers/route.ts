@@ -21,7 +21,8 @@ export async function GET(request: Request) {
         co.created_at AS "createdAt",
         cos.name AS status, -- Get the status name from the custom_offer_statuses table
         co.expires_at AS "expiresAt",
-        u.full_name AS "clientName", -- Join to get client's full name
+        u.first_name AS "firstName",
+        u.last_name AS "lastName",
         o.category_id AS "orderService",
         o.project_description AS "orderDescription",
         o.budget_range AS "orderBudget"
