@@ -241,8 +241,8 @@ function PaymentContent() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 reference: response.reference,
-                offerId: offerId,
-                paymentOption: paymentOption,
+                offerId,
+                paymentOption,
               }),
             });
             const data = await res.json();

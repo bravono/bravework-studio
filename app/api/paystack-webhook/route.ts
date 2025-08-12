@@ -5,9 +5,6 @@ import { sendPaymentReceivedEmail } from "lib/mailer";
 // Import your PostgreSQL database query function
 import { queryDatabase } from "../../../lib/db";
 
-// Ensure your Paystack Secret Key is available as an environment variable.
-// This should be your LIVE Secret Key (sk_live_...) for production.
-// NEVER expose this key on the client-side.
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 // --- Cache for Order Statuses ---
@@ -287,7 +284,10 @@ export async function POST(req: NextRequest) {
             amountPaidToDateKobo + paystackAmountKobo;
           let calculatedOrderStatusId: number;
 
-          if (newAmountPaidToDateKobo >= totalExpectedAmountKobo) {
+          if (
+            newAmountPaidToDateKobo >= totalExpectedAmountKobo ||
+            paystackPaymentOption === "full_100_discount"
+          ) {
             calculatedOrderStatusId = orderStatusMap["paid"]; // Fully paid
           } else if (newAmountPaidToDateKobo > 0) {
             calculatedOrderStatusId = orderStatusMap["partially_paid"]; // Partial payment received

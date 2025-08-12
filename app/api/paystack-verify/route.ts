@@ -345,7 +345,10 @@ export async function POST(req: NextRequest) {
         let calculatedOrderStatusId: number;
 
         // Determine new order status based on total amount paid
-        if (newAmountPaidToDateKobo >= totalExpectedOrderAmountKobo) {
+        if (
+          newAmountPaidToDateKobo >= totalExpectedOrderAmountKobo ||
+          paymentOption === "full_100_discount"
+        ) {
           calculatedOrderStatusId = orderStatusMap["paid"]; // Fully paid
         } else if (newAmountPaidToDateKobo > 0) {
           calculatedOrderStatusId = orderStatusMap["partially_paid"]; // Partial payment received
