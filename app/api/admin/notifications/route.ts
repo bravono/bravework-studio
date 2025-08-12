@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth-options"; // Adjust path as needed
 import { queryDatabase } from "../../../../lib/db";
 import { verifyAdmin } from "@/lib/admin-auth-guard"; // Import the admin guard
 
