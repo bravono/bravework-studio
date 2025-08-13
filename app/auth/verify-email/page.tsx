@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { MailCheck } from "lucide-react";
 
 export default function VerificationEmailPage() {
   // Try to open the user's default email client
@@ -9,73 +10,30 @@ export default function VerificationEmailPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 4px 24px rgba(79,70,229,0.08)",
-          padding: "40px 32px",
-          maxWidth: 420,
-          width: "100%",
-          textAlign: "center",
-        }}
-      >
-        <svg
-          width={64}
-          height={64}
-          viewBox="0 0 24 24"
-          fill="none"
-          style={{ margin: "0 auto 18px auto", color: "#4f46e5" }}
-        >
-          <path
-            d="M3 8l9 6 9-6M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <h1 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 10 }}>
-          Verify Your Email
-        </h1>
-        <p style={{ color: "#555", marginBottom: 22 }}>
-          We’ve sent a verification link to your email address.
-          <br />
-          Please check your inbox and click the link to activate your account.
-        </p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg text-center">
+        <div className="flex flex-col items-center mb-6">
+          <MailCheck className="h-16 w-16 text-green-500 mb-4" />
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Verify Your Email
+          </h1>
+          <p className="text-sm text-gray-500">
+            We’ve sent a verification link to your email address. Please check your inbox and click the link to activate your account.
+          </p>
+        </div>
+        
         <button
           onClick={handleOpenEmail}
-          style={{
-            background: "#4f46e5",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "12px 28px",
-            fontSize: "1rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            marginBottom: 14,
-            boxShadow: "0 2px 8px rgba(79,70,229,0.10)",
-            transition: "background 0.2s",
-          }}
+          className="w-full py-3 px-6 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
         >
           Open Email App
         </button>
-        <div style={{ marginTop: 12, color: "#888", fontSize: 15 }}>
-          Didn’t get the email? Check your spam folder or&nbsp;
+
+        <div className="mt-4 text-sm text-gray-500">
+          Didn’t get the email? Check your spam folder or{" "}
           <a
             href="/auth/resend_verification"
-            style={{ color: "#4f46e5", fontWeight: 600 }}
+            className="text-green-600 hover:underline font-medium"
           >
             resend verification
           </a>

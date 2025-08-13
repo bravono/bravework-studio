@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import "../../css/auth.css";
+import { XCircle, ArrowLeft, ArrowRight } from "lucide-react";
 
 function ErrorContent() {
   const searchParams = useSearchParams();
@@ -10,100 +10,33 @@ function ErrorContent() {
     searchParams.get("message") || "An unknown error occurred.";
 
   return (
-    <div
-      className="auth-error-page"
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 4px 24px rgba(239,68,68,0.10)",
-          padding: "40px 32px",
-          maxWidth: 420,
-          width: "100%",
-          textAlign: "center",
-        }}
-      >
-        <svg
-          width={64}
-          height={64}
-          viewBox="0 0 24 24"
-          fill="none"
-          style={{ margin: "0 auto 18px auto", color: "#ef4444" }}
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="#ef4444"
-            strokeWidth="2"
-            fill="#fef2f2"
-          />
-          <path
-            d="M15 9l-6 6M9 9l6 6"
-            stroke="#ef4444"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-            marginBottom: 10,
-            color: "#ef4444",
-          }}
-        >
-          Authentication Error
-        </h1>
-        <p style={{ color: "#b91c1c", marginBottom: 22, fontWeight: 500 }}>
-          {errorMessage}
-        </p>
-        <a
-          href="/auth/login"
-          style={{
-            display: "block",
-            background: "#4f46e5",
-            color: "#fff",
-            borderRadius: 8,
-            padding: "12px 0",
-            fontWeight: 600,
-            fontSize: "1rem",
-            textDecoration: "none",
-            marginBottom: 12,
-            boxShadow: "0 2px 8px rgba(79,70,229,0.10)",
-            transition: "background 0.2s",
-          }}
-        >
-          Go to Sign In
-        </a>
-        <a
-          href="/auth/signup"
-          style={{
-            display: "block",
-            background: "#f3f4f6",
-            color: "#22223b",
-            borderRadius: 8,
-            padding: "12px 0",
-            fontWeight: 600,
-            fontSize: "1rem",
-            textDecoration: "none",
-            marginBottom: 0,
-            boxShadow: "0 2px 8px rgba(79,70,229,0.06)",
-            transition: "background 0.2s",
-          }}
-        >
-          Go to Sign Up
-        </a>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-red-200">
+        <div className="flex flex-col items-center text-center">
+          <XCircle className="h-16 w-16 text-red-500 mb-4" />
+          <h1 className="text-3xl font-bold text-red-600 mb-2">
+            Authentication Error
+          </h1>
+          <p className="text-sm text-red-800 mb-6 font-medium">
+            {errorMessage}
+          </p>
+        </div>
+        <div className="space-y-4">
+          <a
+            href="/auth/login"
+            className="flex items-center justify-center w-full py-3 px-6 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Go to Login
+          </a>
+          <a
+            href="/auth/signup"
+            className="flex items-center justify-center w-full py-3 px-6 rounded-lg font-bold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+          >
+            <ArrowRight className="h-5 w-5 mr-2" />
+            Go to Sign Up
+          </a>
+        </div>
       </div>
     </div>
   );

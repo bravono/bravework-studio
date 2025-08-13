@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Joi from "joi";
-import "../../css/auth.css";
+import { User, Mail, Lock, Building, Phone } from "lucide-react";
 
 const signupSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -66,6 +66,8 @@ export default function Signup() {
       });
       const data = await res.json();
       if (res.ok) {
+        // Use a generic success message to maintain consistency
+        setMessage("Signup successful! Redirecting to email verification...");
         router.push("/auth/verify-email");
 
         setForm({
@@ -88,141 +90,193 @@ export default function Signup() {
   };
 
   return (
-    <div className="auth-container">
-      <h2 style={{ textAlign: "center", marginBottom: 24 }}>Create Account</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="firstName" className="auth-label">
-            First Name *
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            className="auth-input"
-            value={form.firstName}
-            onChange={handleChange}
-            autoComplete="given-name"
-            required
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="lastName" className="auth-label">
-            Last Name *
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            className="auth-input"
-            value={form.lastName}
-            onChange={handleChange}
-            autoComplete="family-name"
-            required
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="email" className="auth-label">
-            Email *
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className="auth-input"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-            required
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="password" className="auth-label">
-            Password *
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className="auth-input"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete="new-password"
-            required
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="confirmPassword" className="auth-label">
-            Confirm Password *
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            className="auth-input"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            autoComplete="new-password"
-            required
-          />
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
+        <div className="flex flex-col items-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-800">Create Account</h2>
+          <p className="mt-2 text-gray-500 text-sm">
+            Please fill in the details below to get started.
+          </p>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="companyName" className="auth-label">
-            Company Name
-          </label>
-          <input
-            type="text"
-            id="companyName"
-            name="companyName"
-            className="auth-input"
-            value={form.companyName}
-            onChange={handleChange}
-            maxLength={100}
-          />
-        </div>
-        <div style={{ marginBottom: 20 }}>
-          <label htmlFor="phone" className="auth-label">
-            Phone
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            className="auth-input"
-            value={form.phone}
-            onChange={handleChange}
-            autoComplete="tel"
-          />
-        </div>
-        {message && (
-          <div
-            className="auth-message"
-            style={{
-              color: message.startsWith("Signup successful")
-                ? "#22c55e"
-                : "#ef4444",
-            }}
-          >
-            {message}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* First Name */}
+          <div className="relative">
+            <label htmlFor="firstName" className="sr-only">
+              First Name *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <User className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="First Name *"
+              value={form.firstName}
+              onChange={handleChange}
+              autoComplete="given-name"
+              required
+            />
           </div>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="auth-button"
-          style={{
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "Signing up..." : "Sign Up"}
-        </button>
-      </form>
-      <div style={{ marginTop: 18, textAlign: "center", fontSize: 15 }}>
-        Already have an account?{" "}
-        <a href="/auth/login" className="auth-link">
-          Log in
-        </a>
+
+          {/* Last Name */}
+          <div className="relative">
+            <label htmlFor="lastName" className="sr-only">
+              Last Name *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <User className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Last Name *"
+              value={form.lastName}
+              onChange={handleChange}
+              autoComplete="family-name"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div className="relative">
+            <label htmlFor="email" className="sr-only">
+              Email *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Mail className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Email *"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div className="relative">
+            <label htmlFor="password" className="sr-only">
+              Password *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Password *"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative">
+            <label htmlFor="confirmPassword" className="sr-only">
+              Confirm Password *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Confirm Password *"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+
+          {/* Company Name (Optional) */}
+          <div className="relative">
+            <label htmlFor="companyName" className="sr-only">
+              Company Name
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Building className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              id="companyName"
+              name="companyName"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Company Name (Optional)"
+              value={form.companyName}
+              onChange={handleChange}
+              maxLength={100}
+            />
+          </div>
+
+          {/* Phone (Optional) */}
+          <div className="relative">
+            <label htmlFor="phone" className="sr-only">
+              Phone
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Phone className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Phone (Optional)"
+              value={form.phone}
+              onChange={handleChange}
+              autoComplete="tel"
+            />
+          </div>
+
+          {message && (
+            <div
+              className={`p-3 rounded-lg text-sm text-center ${
+                message.startsWith("Signup successful")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {message}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 px-6 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 ${
+              loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+            }`}
+          >
+            {loading ? "Signing up..." : "Sign Up"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-500">
+          Already have an account?{" "}
+          <a
+            href="/auth/login"
+            className="text-green-600 hover:underline font-medium"
+          >
+            Log in
+          </a>
+        </div>
       </div>
     </div>
   );
