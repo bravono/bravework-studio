@@ -1,103 +1,170 @@
 import React from "react";
 import Link from "next/link";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Youtube,
+  MessageCircle,
+  MapPin,
+  Mail,
+  Clock,
+  Square,
+} from "lucide-react";
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        <div className="footer-grid">
+    <footer className="bg-gray-900 text-gray-300 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
-          <div className="footer-section">
-            <h3>Bravework Studio</h3>
-            <p>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-white">Bravework Studio</h3>
+            <p className="text-sm">
               Empowering creativity through technology education and digital
               solutions.
             </p>
-            <div className="social-links">
+            <div className="flex space-x-4">
               <a
                 href="https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
               >
-                <i className="fab fa-facebook"></i>
+                <Facebook size={24} />
               </a>
               <a
                 href="https://x.com/YAhbideen"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Twitter"
+                className="text-gray-400 hover:text-blue-400 transition-colors duration-200"
               >
-                <i className="fab fa-twitter"></i>
+                <Twitter size={24} />
               </a>
               <a
                 href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="text-gray-400 hover:text-pink-500 transition-colors duration-200"
               >
-                <i className="fab fa-instagram"></i>
+                <Instagram size={24} />
               </a>
               <a
                 href="https://www.linkedin.com/in/ahbideen-y-74a232179?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="text-gray-400 hover:text-blue-700 transition-colors duration-200"
               >
-                <i className="fab fa-linkedin"></i>
+                <Linkedin size={24} />
               </a>
               <a
                 href="https://tiktok.com/@techtalestudio"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="text-gray-400 hover:text-black transition-colors duration-200"
               >
-                <i className="fab fa-tiktok"></i>
+                {/* lucide-react does not have a dedicated TikTok icon */}
+                <Square size={24} />
               </a>
               <a
                 href="https://youtube.com/@AY-TechTaleStudio"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="text-gray-400 hover:text-red-600 transition-colors duration-200"
               >
-                <i className="fab fa-youtube"></i>
+                <Youtube size={24} />
               </a>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="footer-section">
-            <h3>Quick Links</h3>
-            <div className="footer-links">
-              <ul>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-white">Quick Links</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/about">About Us</Link>
+                  <Link
+                    href="/about"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    About Us
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/services">Services</Link>
+                  <Link
+                    href="/services"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Services
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/projects">Projects</Link>
+                  <Link
+                    href="/projects"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Projects
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/contact">Contact</Link>
+                  <Link
+                    href="/contact"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Contact
+                  </Link>
                 </li>
               </ul>
-              <ul>
+              <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/blog">Blog</Link>
+                  <Link
+                    href="/blog"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Blog
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/jobs">Careers</Link>
+                  <Link
+                    href="/jobs"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Careers
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/training">Training</Link>
+                  <Link
+                    href="/training"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    Training
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/faq">FAQ</Link>
+                  <Link
+                    href="/faq"
+                    className="hover:text-blue-500 transition-colors duration-200"
+                  >
+                    FAQ
+                  </Link>
                 </li>
               </ul>
             </div>
           </div>
 
           {/* Services */}
-          <div className="footer-section">
-            <h3>Our Services</h3>
-            <ul>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-white">Our Services</h3>
+            <ul className="space-y-2 text-sm">
               <li>3D Modeling & Animation</li>
               <li>Web Development</li>
               <li>UI/UX Design</li>
@@ -108,29 +175,42 @@ export default function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div className="footer-section">
-            <h3>Contact Us</h3>
-            <ul className="contact-info">
-              <li>
-                <i className="fas fa-map-marker-alt"></i>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-white">Contact Us</h3>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <MapPin
+                  size={20}
+                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                />
                 <span>Abuja, Nigeria</span>
               </li>
-              <li>
+              <li className="flex items-start gap-2">
                 <Link
                   href="https://wa.me/2349023224596"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-blue-500 transition-colors duration-200"
                 >
-                  <i className="fab fa-whatsapp"></i>&nbsp;&nbsp;
+                  <MessageCircle
+                    size={20}
+                    className="flex-shrink-0 text-gray-500"
+                  />
                   <span>+234 902-322-4596</span>
                 </Link>
               </li>
-              <li>
-                <i className="fas fa-envelope"></i>
+              <li className="flex items-start gap-2">
+                <Mail
+                  size={20}
+                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                />
                 <span>support@braveworkstudio.com</span>
               </li>
-              <li>
-                <i className="fas fa-clock"></i>
+              <li className="flex items-start gap-2">
+                <Clock
+                  size={20}
+                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                />
                 <span>Mon - Fri: 9:00 AM - 6:00 PM</span>
               </li>
             </ul>
@@ -138,17 +218,27 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="footer-bottom">
-          <div className="footer-bottom-content">
-            <p>
-              &copy; {new Date().getFullYear()} Bravework Studio. All rights
-              reserved.
-            </p>
-            <div className="footer-bottom-links">
-              <Link href="/privacy-policy">Privacy Policy</Link>
-              <Link href="/terms-of-service">Terms of Service</Link>
-              <Link href="/refund-policy">Refund Policy</Link>
-            </div>
+        <div className="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row items-center justify-between text-sm">
+          <p>© {currentYear} Bravework Studio. All rights reserved.</p>
+          <div className="flex flex-wrap justify-center md:justify-end gap-x-6 mt-4 md:mt-0">
+            <Link
+              href="/privacy-policy"
+              className="hover:text-blue-500 transition-colors duration-200"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms-of-service"
+              className="hover:text-blue-500 transition-colors duration-200"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/refund-policy"
+              className="hover:text-blue-500 transition-colors duration-200"
+            >
+              Refund Policy
+            </Link>
           </div>
         </div>
       </div>

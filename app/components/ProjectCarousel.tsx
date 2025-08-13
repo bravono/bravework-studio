@@ -111,7 +111,7 @@ export default function ProjectCarousel() {
         </h2>
         <div className="relative flex items-center justify-center">
           <button
-            className="absolute left-0 z-10 p-3 text-white bg-indigo-500 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute left-0 z-10 p-3 text-white bg-green-600 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={prevProject}
             disabled={isAnimating}
           >
@@ -236,7 +236,7 @@ export default function ProjectCarousel() {
             <div className="mt-8 text-center">
               <Link
                 href={`/projects/${currentProject.id}`}
-                className="inline-block bg-indigo-500 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
+                className="inline-block bg-green-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
               >
                 View Project Details
               </Link>
@@ -244,7 +244,7 @@ export default function ProjectCarousel() {
           </div>
 
           <button
-            className="absolute right-0 z-10 p-3 text-white bg-indigo-500 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute right-0 z-10 p-3 text-white bg-green-600 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={nextProject}
             disabled={isAnimating}
           >

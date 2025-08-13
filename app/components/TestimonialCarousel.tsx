@@ -102,7 +102,7 @@ export default function TestimonialCarousel() {
         <div className="relative flex items-center justify-center">
           {/* Previous Testimonial Button */}
           <button
-            className="absolute left-0 z-10 p-3 text-white bg-indigo-500 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg hidden sm:block"
+            className="absolute left-0 z-10 p-3 text-white bg-green-600 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg hidden sm:block"
             onClick={() => paginate(-1)}
             aria-label="Previous Testimonial"
           >
@@ -142,7 +142,7 @@ export default function TestimonialCarousel() {
                     alt={testimonials[currentIndex].heading}
                     width={120}
                     height={120}
-                    className="rounded-full border-4 border-indigo-500 shadow-lg object-cover"
+                    className="rounded-full border-4 border-green-500 shadow-lg object-cover"
                     style={{ objectFit: "cover" }}
                   />
                 </div>
@@ -163,7 +163,7 @@ export default function TestimonialCarousel() {
                   </div>
                   <a
                     href={`/testimonial/${testimonials[currentIndex].id}`}
-                    className="mt-6 inline-block bg-indigo-500 text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
+                    className="mt-6 inline-block bg-green-600 text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
                   >
                     Read Their Story
                   </a>
@@ -174,7 +174,7 @@ export default function TestimonialCarousel() {
 
           {/* Next Testimonial Button */}
           <button
-            className="absolute right-0 z-10 p-3 text-white bg-indigo-500 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg hidden sm:block"
+            className="absolute right-0 z-10 p-3 text-white bg-green-600 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg hidden sm:block"
             onClick={() => paginate(1)}
             aria-label="Next Testimonial"
           >
@@ -189,7 +189,7 @@ export default function TestimonialCarousel() {
               key={index}
               className={`w-3 h-3 rounded-full transition-colors duration-300 ${
                 index === currentIndex
-                  ? "bg-indigo-500 scale-125"
+                  ? "bg-green-600 scale-125"
                   : "bg-gray-300 dark:bg-gray-600"
               }`}
               onClick={() => {
