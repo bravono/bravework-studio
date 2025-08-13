@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import "../../../../css/payment-status.css";
+import { CheckCircle, ShoppingBag } from "lucide-react";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -32,47 +32,46 @@ function PaymentSuccessContent() {
   }, [reference, router]);
 
   return (
-    <div className="payment-status-container">
-      <div className="payment-status-card">
-        <svg
-          className="payment-status-icon payment-status-success"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          ></path>
-        </svg>
-        <h1 className="payment-status-title">Thank You!</h1>
-        <p className="payment-status-message">
-          Your payment was successful and your order has been placed.
-        </p>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100 p-4">
+      <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl overflow-hidden p-8 sm:p-10 text-center">
+        <div className="flex flex-col items-center justify-center space-y-6">
+          <div className="p-4 bg-green-100 text-green-600 rounded-full">
+            <CheckCircle className="w-16 h-16" />
+          </div>
+          <h1 className="text-4xl font-extrabold text-gray-900">Thank You!</h1>
+          <p className="text-lg text-gray-700 max-w-md mx-auto">
+            Your payment was successful and your order has been placed.
+          </p>
+        </div>
 
         {orderId && (
-          <div className="payment-status-message">
-            <p className="payment-status-message">Order ID: {orderId}</p>
-            <p className="payment-status-message">
-              You will receive an email confirmation shortly.
-            </p>
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="bg-gray-50 rounded-xl p-6 text-left space-y-2">
+              <p className="font-semibold text-gray-800 text-lg">
+                Order ID:
+                <span className="ml-2 font-bold text-green-600">{orderId}</span>
+              </p>
+              <p className="text-sm text-gray-500">
+                You will receive an email confirmation shortly with all the details.
+              </p>
+            </div>
           </div>
         )}
 
-        <p className="payment-status-message">
+        <p className="text-sm text-gray-500 mt-6">
           We appreciate your business! If you have any questions, please contact
           our support team.
         </p>
 
-        <button
-          onClick={() => router.push("/")}
-          className="payment-status-btn payment-status-btn-success"
-        >
-          Continue Shopping
-        </button>
+        <div className="mt-8">
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            Continue Shopping
+          </button>
+        </div>
       </div>
     </div>
   );

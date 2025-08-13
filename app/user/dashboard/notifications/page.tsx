@@ -10,6 +10,14 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
+import {
+  Bell,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../offers/_components/RejectReasonModal";
 
@@ -39,7 +47,6 @@ export default function NotificationsPage() {
       }
       const data: Notification[] = await res.json();
       setNotifications(data);
-      console.log("Fetched notifications:", data);
     } catch (err: any) {
       console.error("Error fetching notifications:", err);
       setError(err.message || "An error occurred while loading notifications.");
@@ -52,11 +59,10 @@ export default function NotificationsPage() {
     if (sessionStatus === "authenticated") {
       fetchNotifications();
     } else if (sessionStatus === "unauthenticated") {
-      router.push("/auth/login?error=unauthenticated"); // Redirect if not logged in
+      router.push("/auth/login?error=unauthenticated");
     }
   }, [sessionStatus, fetchNotifications, router]);
 
-  // Function to mark a notification as read
   const markNotificationAsRead = useCallback(async (notificationId: string) => {
     try {
       const res = await fetch(`/api/user/notifications?id=${notificationId}`, {
@@ -70,7 +76,6 @@ export default function NotificationsPage() {
           errorData.error || "Failed to mark notification as read."
         );
       }
-      // Update local state to reflect the change
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
@@ -78,18 +83,16 @@ export default function NotificationsPage() {
       );
     } catch (err: any) {
       console.error("Error marking notification as read:", err);
-      // Optionally show a toast or message
     }
   }, []);
 
-  // Handle offer actions (Accept/Reject)
   const handleOfferAction = useCallback(
     async (
       notification: Notification,
       action: "accept" | "reject",
       reason?: string
     ) => {
-      if (!notification.offerId) return; // Should only be called for offer notifications
+      if (!notification.offerId) return;
 
       const currentOfferStatus = notification.offerStatus?.toLowerCase();
       const isExpired =
@@ -104,11 +107,10 @@ export default function NotificationsPage() {
       }
       if (isExpired) {
         toast.error("This offer has expired.");
-        // Optionally, update the notification's offerStatus to 'Expired' in local state
         setNotifications((prev) =>
           prev.map((notif) =>
             notif.id === notification.id
-              ? { ...notif, offerStatus: "expired" } // Changed to 'expired' string
+              ? { ...notif, offerStatus: "expired" }
               : notif
           )
         );
@@ -136,7 +138,6 @@ export default function NotificationsPage() {
         const result = await res.json();
         toast.success(`Offer ${action}ed successfully!`);
 
-        // Email Admin of Action
         const formDataToSend = new FormData();
         formDataToSend.append("message", notification.message || "");
         formDataToSend.append("link", notification.link || "");
@@ -172,7 +173,6 @@ export default function NotificationsPage() {
             console.error("Error submitting form:", error);
           });
 
-        // Update the notification's offerStatus in local state
         setNotifications((prev) =>
           prev.map((notif) =>
             notif.id === notification.id
@@ -185,12 +185,11 @@ export default function NotificationsPage() {
           )
         );
 
-        // Handle redirect if needed
         if (result.redirectTo) {
           window.location.href = result.redirectTo;
         }
 
-        markNotificationAsRead(notification.id); // Mark notification as read after action
+        markNotificationAsRead(notification.id);
       } catch (err: any) {
         console.error(`Error ${action}ing offer:`, err.message);
         toast.error(
@@ -203,13 +202,11 @@ export default function NotificationsPage() {
     [markNotificationAsRead]
   );
 
-  // Handle click on reject button to open modal
   const handleRejectClick = (notification: Notification) => {
     setSelectedOfferForRejection(notification);
     setIsRejectReasonModalOpen(true);
   };
 
-  // Callback from RejectReasonModal
   const handleConfirmReject = (reason: string) => {
     if (selectedOfferForRejection) {
       setIsRejectReasonModalOpen(false);
@@ -219,228 +216,235 @@ export default function NotificationsPage() {
 
   if (sessionStatus === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
-        Loading notifications...
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-8">
+        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-xl">
+          <Bell className="h-16 w-16 text-blue-500 animate-pulse" />
+          <p className="mt-4 text-xl font-semibold text-gray-700">
+            Loading notifications...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (sessionStatus === "unauthenticated") {
-    return null; // Redirect handled by useEffect
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <div className="flex justify-between items-center mb-6 mt-10">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Your Notifications
-          </h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-white p-6 rounded-xl shadow-lg">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+              <Bell className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900">
+                Notifications
+              </h1>
+              <p className="text-gray-500 mt-1">
+                Your latest updates and offers.
+              </p>
+            </div>
+          </div>
           <Link
             href="/dashboard"
-            className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+            className="mt-4 sm:mt-0 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2"
           >
-            <span className="mr-1">&larr;</span> Back to Dashboard
+            <ExternalLink className="w-4 h-4" />
+            Back to Dashboard
           </Link>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {notifications.length > 0 ? (
-            <div className="space-y-4">
-              {" "}
-              {/* notification-items */}
-              {notifications.map((notification) => {
-                const isOfferNotification = notification.link?.startsWith(
-                  "/user/dashboard/notifications/"
-                );
-                const isOfferExpired =
-                  notification.offerExpiresAt &&
-                  new Date(notification.offerExpiresAt) < new Date();
-                const canActOnOffer =
-                  isOfferNotification &&
-                  notification.offerStatus === "pending" &&
-                  !isOfferExpired;
+            notifications.map((notification) => {
+              const isOfferNotification =
+                notification.link?.startsWith("/user/dashboard/notifications/");
+              const isOfferExpired =
+                notification.offerExpiresAt &&
+                new Date(notification.offerExpiresAt) < new Date();
+              const canActOnOffer =
+                isOfferNotification &&
+                notification.offerStatus === "pending" &&
+                !isOfferExpired;
 
-                return (
-                  <div
-                    key={notification.id}
-                    className={`bg-white border rounded-lg shadow-sm p-4 cursor-pointer transition-all duration-200 ease-in-out
-                      ${
-                        notification.isRead
-                          ? "bg-gray-50 border-gray-100 text-gray-600"
-                          : "bg-blue-50 border-blue-200 text-gray-800 font-medium hover:bg-blue-100 shadow-md"
-                      }`}
-                    onClick={() =>
-                      !notification.isRead &&
-                      markNotificationAsRead(notification.id)
-                    }
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      {" "}
-                      {/* notification-header */}
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {" "}
-                        {/* notification-title */}
+              const statusColors = {
+                pending: "bg-yellow-100 text-yellow-800",
+                accepted: "bg-green-100 text-green-800",
+                rejected: "bg-red-100 text-red-800",
+                expired: "bg-gray-200 text-gray-600",
+              };
+
+              const offerStatusKey = isOfferExpired
+                ? "expired"
+                : notification.offerStatus?.toLowerCase() || "unknown";
+
+              return (
+                <div
+                  key={notification.id}
+                  className={`bg-white border rounded-xl shadow-sm p-6 cursor-pointer transition-transform duration-300 ease-in-out hover:shadow-lg
+                  ${
+                    notification.isRead
+                      ? "bg-gray-50 border-gray-100 text-gray-600 opacity-80"
+                      : "bg-white border-blue-200 text-gray-800 font-medium scale-105"
+                  }`}
+                  onClick={() =>
+                    !notification.isRead &&
+                    markNotificationAsRead(notification.id)
+                  }
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`p-2 rounded-full ${
+                          notification.isRead
+                            ? "bg-gray-100 text-gray-500"
+                            : "bg-blue-50 text-blue-600"
+                        }`}
+                      >
+                        <Bell className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">
                         {notification.title}
                       </h3>
-                      <span className="text-sm text-gray-500">
-                        {" "}
-                        {/* notification-date */}
-                        {format(
-                          new Date(notification.createdAt),
-                          "MMM dd, yyyy HH:mm"
-                        )}
-                      </span>
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      {" "}
-                      {/* notification-message */}
-                      {notification.message}
-                    </p>
+                    <span className="text-sm text-gray-500">
+                      {format(
+                        new Date(notification.createdAt),
+                        "MMM dd, yyyy HH:mm"
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    {notification.message}
+                  </p>
 
-                    {isOfferNotification && (
-                      <div className="bg-gray-100 border border-gray-300 rounded-md p-3 text-sm text-gray-700 mt-2">
-                        {" "}
-                        {/* offer-details-summary */}
-                        <p>
-                          <strong>Offer Amount:</strong> ₦
-                          {(notification.offerAmount / kobo).toLocaleString() ||
-                            "N/A"}
-                        </p>
-                        <p>
-                          <strong>Offer Status:</strong>{" "}
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              isOfferExpired &&
-                              notification.offerStatus !== "accepted"
-                                ? "bg-gray-200 text-gray-600" // If expired, use expired styling
-                                : notification.offerStatus === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : notification.offerStatus === "accepted"
-                                ? "bg-green-100 text-green-800"
-                                : notification.offerStatus === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-700" // Default if status is unknown
-                            }`}
-                          >
-                            {isOfferExpired &&
-                            notification.offerStatus !== "accepted"
-                              ? "Expired"
-                              : notification.offerStatus}{" "}
-                            {/* Display 'Expired' if expired, else actual status */}
+                  {isOfferNotification && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm mt-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="flex items-center gap-2 text-gray-600">
+                          <Wallet className="w-4 h-4 text-gray-500" />
+                          <strong>Amount:</strong>{" "}
+                          <span className="text-gray-900 font-bold">
+                            ₦
+                            {(notification.offerAmount / kobo).toLocaleString() ||
+                              "N/A"}
                           </span>
                         </p>
-                        {notification.offerExpiresAt && (
-                          <p>
-                            <strong>Expires:</strong>{" "}
-                            <span
-                              className={`${
-                                isOfferExpired
-                                  ? "text-red-600 font-bold"
-                                  : "text-orange-500 font-bold"
-                              }`}
-                            >
-                              {format(
-                                new Date(notification.offerExpiresAt),
-                                "MMM dd, yyyy HH:mm"
-                              )}
-                              {isOfferExpired && " (expired)"}
-                            </span>
-                          </p>
-                        )}
-                        {notification.offerStatus === "rejected" &&
-                          notification.rejectionReason && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 italic mt-4">
-                              {" "}
-                              {/* rejection-reason */}
-                              <h3 className="text-red-700 font-semibold mb-2">
-                                Reason for Rejection:
-                              </h3>
-                              <p className="text-red-600 italic">
-                                {notification.rejectionReason}
-                              </p>
-                            </div>
-                          )}
-                        {canActOnOffer ? (
-                          <div className="flex flex-col sm:flex-row gap-3 mt-3">
-                            {" "}
-                            {/* offer-actions */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOfferAction(notification, "accept");
-                              }}
-                              disabled={actionLoading}
-                              className="px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
-                            >
-                              {actionLoading ? "Accepting..." : "Accept Offer"}
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRejectClick(notification);
-                              }}
-                              disabled={actionLoading}
-                              className="px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
-                            >
-                              {actionLoading ? "Rejecting..." : "Reject Offer"}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col sm:flex-row gap-3 mt-3">
-                            {" "}
-                            {notification.offerStatus === "accepted" && (
-                              <button
-                                onClick={(e) => {
-                                  router.push(`/user/dashboard/payment`);
-                                }}
-                                disabled={actionLoading}
-                                className="px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
-                              >
-                                Make Payment
-                              </button>
-                            )}
-                          </div>
-                        )}
-                        {!canActOnOffer &&
-                          notification.offerStatus !== "expired" &&
-                          notification.offerStatus !== "pending" && (
-                            <p className="mt-2 text-sm text-gray-600">
-                              Offer is {notification.offerStatus}.
-                            </p>
-                          )}
-                        {notification.link && (
-                          <Link
-                            href={notification.link}
-                            className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-2"
-                          >
-                            View Full Offer Details &rarr;
-                          </Link>
-                        )}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            statusColors[offerStatusKey] ||
+                            "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {offerStatusKey.charAt(0).toUpperCase() +
+                            offerStatusKey.slice(1)}
+                        </span>
                       </div>
-                    )}
+                      {notification.offerExpiresAt && (
+                        <p
+                          className={`flex items-center gap-2 ${
+                            isOfferExpired
+                              ? "text-red-600"
+                              : "text-orange-500"
+                          }`}
+                        >
+                          <Clock className="w-4 h-4" />
+                          <strong>Expires:</strong>{" "}
+                          <span className="font-bold">
+                            {format(
+                              new Date(notification.offerExpiresAt),
+                              "MMM dd, yyyy HH:mm"
+                            )}
+                            {isOfferExpired && " (expired)"}
+                          </span>
+                        </p>
+                      )}
+                      {notification.offerStatus === "rejected" &&
+                        notification.rejectionReason && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                            <h4 className="text-red-700 font-semibold mb-1">
+                              Reason for Rejection:
+                            </h4>
+                            <p className="text-red-600 italic">
+                              {notification.rejectionReason}
+                            </p>
+                          </div>
+                        )}
+                      {canActOnOffer ? (
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOfferAction(notification, "accept");
+                            }}
+                            disabled={actionLoading}
+                            className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                            {actionLoading ? "Accepting..." : "Accept Offer"}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectClick(notification);
+                            }}
+                            disabled={actionLoading}
+                            className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            <XCircle className="w-5 h-5" />
+                            {actionLoading ? "Rejecting..." : "Reject Offer"}
+                          </button>
+                        </div>
+                      ) : notification.offerStatus === "accepted" ? (
+                        <div className="pt-4 border-t border-gray-200 mt-4">
+                          <button
+                            onClick={() => router.push("/user/dashboard/payment")}
+                            disabled={actionLoading}
+                            className="w-full px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          >
+                            Make Payment
+                          </button>
+                        </div>
+                      ) : null}
+                      {notification.link && (
+                        <Link
+                          href={notification.link}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
+                        >
+                          View Full Offer Details <ExternalLink className="w-4 h-4" />
+                        </Link>
+                      )}
+                    </div>
+                  )}
 
-                    {!isOfferNotification && notification.link && (
-                      <Link
-                        href={notification.link}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-2"
-                      >
-                        View Details &rarr;
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  {!isOfferNotification && notification.link && (
+                    <Link
+                      href={notification.link}
+                      className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
+                    >
+                      View Details <ExternalLink className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
+              );
+            })
           ) : (
-            <p className="text-center text-gray-500 p-4">
-              No new notifications.
-            </p>
+            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-lg">
+              <Bell className="w-20 h-20 text-gray-300" />
+              <p className="mt-4 text-xl font-semibold text-gray-500">
+                No new notifications.
+              </p>
+              <p className="text-gray-400 mt-2">
+                We'll let you know when something new comes up.
+              </p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Reject Reason Modal */}
       {isRejectReasonModalOpen && selectedOfferForRejection && (
         <RejectReasonModal
           onClose={() => setIsRejectReasonModalOpen(false)}
