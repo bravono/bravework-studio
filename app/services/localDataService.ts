@@ -43,6 +43,7 @@ interface Todo {
 interface Project {
   id: number;
   title: string;
+  subtitle: string;
   owner: string;
   budget: string;
   category: string;
@@ -648,85 +649,86 @@ const services: Services[] = [
 ];
 
 const projects: Project[] = [
-  {
-    id: 1,
-    title: "Backend Integration (Braveworkstudio.com)",
-    owner: "Bravework Studio",
-    budget: "$2000",
-    category: "Web Development",
-    description:
-      "Develop a robust backend system for the corporate website to enable key e-commerce functionalities, including user order tracking, automated update notifications, and personalized discounts based on purchase history.",
-    todos: [
-      { id: "1", title: "Define backend architecture", completed: true },
-      { id: "2", title: "Implement secure user auth & auth", completed: false },
-      { id: "3", title: "Develop API endpoints", completed: true },
-      {
-        id: "4",
-        title: "Implement comprehensive unit tests and integration tests",
-        completed: false,
-      },
-      {
-        id: "5",
-        title: "Create clear and detailed API documentation",
-        completed: false,
-      },
-    ],
-    startDate: "2025-04-15",
-    endDate: "2025-07-15",
-    status: "active",
-  },
+  // {
+  //   id: 1,
+  //   title: "Backend Integration (Braveworkstudio.com)",
+  //   owner: "Bravework Studio",
+  //   budget: "$2000",
+  //   category: "Web Development",
+  //   description:
+  //     "Develop a robust backend system for the corporate website to enable key e-commerce functionalities, including user order tracking, automated update notifications, and personalized discounts based on purchase history.",
+  //   todos: [
+  //     { id: "1", title: "Define backend architecture", completed: true },
+  //     { id: "2", title: "Implement secure user auth & auth", completed: false },
+  //     { id: "3", title: "Develop API endpoints", completed: true },
+  //     {
+  //       id: "4",
+  //       title: "Implement comprehensive unit tests and integration tests",
+  //       completed: false,
+  //     },
+  //     {
+  //       id: "5",
+  //       title: "Create clear and detailed API documentation",
+  //       completed: false,
+  //     },
+  //   ],
+  //   startDate: "2025-04-15",
+  //   endDate: "2025-07-15",
+  //   status: "active",
+  // },
+  // {
+  //   id: 2,
+  //   title: "Full Stack Development (Vidlify)",
+  //   owner: "Bravework Studio",
+  //   budget: "$1000",
+  //   category: "Web Development",
+  //   description:
+  //     "This project focuses on modernizing an existing website by migrating the existing React website to a Next.js framework. This transition will unify the frontend and backend within a single codebase, streamlining maintenance and deployment processes.",
+  //   todos: [
+  //     { id: "1", title: "Set up New Next.js Project", completed: true },
+  //     {
+  //       id: "2",
+  //       title: "Migrate Existing React Components to Next.js",
+  //       completed: true,
+  //     },
+  //     { id: "3", title: "Implement Next.js Routing", completed: true },
+  //     {
+  //       id: "4",
+  //       title: "Configure Data Fetching (SSR, SSG, CSR)",
+  //       completed: true,
+  //     },
+  //     {
+  //       id: "5",
+  //       title: "Integrate Backend Logic (API Routes or Custom Server)",
+  //       completed: true,
+  //     },
+  //     {
+  //       id: "8",
+  //       title: "Thoroughly Test All Functionality and Performance",
+  //       completed: false,
+  //     },
+  //     {
+  //       id: "9",
+  //       title: "Update Documentation with Next.js Specifics",
+  //       completed: true,
+  //     },
+  //     { id: "10", title: "Deploy the New Next.js Website", completed: true },
+  //   ],
+  //   startDate: "2025-04-30",
+  //   endDate: "2025-06-30",
+  //   status: "active",
+  // },
   {
     id: 2,
-    title: "Full Stack Development (Vidlify)",
-    owner: "Bravework Studio",
-    budget: "$1000",
-    category: "Web Development",
-    description:
-      "This project focuses on modernizing an existing website by migrating the existing React website to a Next.js framework. This transition will unify the frontend and backend within a single codebase, streamlining maintenance and deployment processes.",
-    todos: [
-      { id: "1", title: "Set up New Next.js Project", completed: true },
-      {
-        id: "2",
-        title: "Migrate Existing React Components to Next.js",
-        completed: true,
-      },
-      { id: "3", title: "Implement Next.js Routing", completed: true },
-      {
-        id: "4",
-        title: "Configure Data Fetching (SSR, SSG, CSR)",
-        completed: true,
-      },
-      {
-        id: "5",
-        title: "Integrate Backend Logic (API Routes or Custom Server)",
-        completed: true,
-      },
-      {
-        id: "8",
-        title: "Thoroughly Test All Functionality and Performance",
-        completed: false,
-      },
-      {
-        id: "9",
-        title: "Update Documentation with Next.js Specifics",
-        completed: true,
-      },
-      { id: "10", title: "Deploy the New Next.js Website", completed: true },
-    ],
-    startDate: "2025-04-30",
-    endDate: "2025-06-30",
-    status: "active",
-  },
-  {
-    id: 2,
-    title: "Software Development (FindIt)",
+    title: "Software Development",
+    subtitle: "Findit",
     owner: "Bravework Studio",
     budget: "$5000",
     category: "Web Development",
     description:
       "This project is about building an application that connect landlords and tenant together without the need for a middle man that charge outrageous agent fee",
     todos: [
-      { id: "1", title: "User Management", completed: false },
+      { id: "1", title: "User Management", completed: true },
       {
         id: "2",
         title: "Flat Rentals",
@@ -755,7 +757,7 @@ const projects: Project[] = [
       },
     ],
     startDate: "2025-04-20",
-    endDate: "2025-09-30",
+    endDate: "2025-12-30",
     status: "active",
   },
 ];

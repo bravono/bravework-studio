@@ -84,7 +84,8 @@ export default function ProjectCarousel() {
   const end = new Date(currentProject.endDate);
   const today = new Date();
   const totalDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-  const elapsedDays = (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  const elapsedDays =
+    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
 
   // If the project hasn't started yet, timeline should be 0
   const timelinePercentage =
@@ -137,6 +138,9 @@ export default function ProjectCarousel() {
               {currentProject.title}
             </h3>
             <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
+              Project Name: {currentProject.subtitle}
+            </p>
+            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
               Owner: {currentProject.owner}
             </p>
 
@@ -153,7 +157,7 @@ export default function ProjectCarousel() {
                     fill="transparent"
                   />
                   <circle
-                    className="text-emerald-500 stroke-current transition-all duration-500 ease-out"
+                    className="text-indigo-500 stroke-current transition-all duration-500 ease-out"
                     strokeWidth="10"
                     strokeLinecap="round"
                     cx="50"
@@ -189,7 +193,7 @@ export default function ProjectCarousel() {
                     fill="transparent"
                   />
                   <circle
-                    className="text-indigo-500 stroke-current transition-all duration-500 ease-out"
+                    className="text-emerald-500 stroke-current transition-all duration-500 ease-out"
                     strokeWidth="10"
                     strokeLinecap="round"
                     cx="50"

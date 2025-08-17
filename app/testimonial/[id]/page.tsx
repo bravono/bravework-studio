@@ -1,6 +1,7 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { testimonials } from "../../services/localDataService";
+import { Quote } from "lucide-react";
 
 export default async function TestimonialDetailPage({
   params,
@@ -18,55 +19,35 @@ export default async function TestimonialDetailPage({
     : [];
 
   return (
-    <div
-      className="testimonial-detail-container"
-      style={{
-        maxWidth: 600,
-        margin: "100px auto",
-        padding: 24,
-        background: "#fff",
-        borderRadius: 12,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div>
-        <img
-          src={testimonial.avatar}
-          alt={testimonial.companyName}
-          style={{
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            objectFit: "cover",
-            marginRight: 24,
-            border: "1px solid #008751",
-          }}
-        />
-        <h2 style={{ marginBottom: 25 }}>{testimonial.companyName}</h2>
-      </div>
-      {customerTestimony.map((testimonial) => (
-        <>
-          <div
-            style={{ display: "flex", alignItems: "center", marginBottom: 50 }}
-          >
-            <div>
-              <div style={{ fontWeight: 900 }}>{testimonial.heading}</div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-xl w-full mx-auto p-6 sm:p-8 md:p-10 bg-white rounded-2xl shadow-xl space-y-8">
+        {/* Company Header */}
+        <div className="flex flex-col items-center text-center">
+          <img
+            src={testimonial.avatar}
+            alt={testimonial.companyName}
+            className="w-24 h-24 rounded-full object-cover ring-2 ring-green-600 ring-offset-2 mb-4"
+          />
+          <h2 className="text-3xl font-bold text-gray-900">
+            {testimonial.companyName}
+          </h2>
+        </div>
 
-              <blockquote
-                style={{
-                  fontSize: 15,
-                  fontStyle: "italic",
-                  color: "#222",
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}
-              >
-                “{testimonial.body}”
-              </blockquote>
+        {/* Testimonial List */}
+        <div className="space-y-10">
+          {customerTestimony.map((t, index) => (
+            <div key={index} className="space-y-4">
+              <h3 className="text-xl font-bold text-gray-900">{t.heading}</h3>
+              <div className="relative p-6 bg-gray-100 rounded-xl">
+                <Quote className="absolute top-4 left-4 h-8 w-8 text-gray-400" />
+                <blockquote className="pl-12 text-gray-700 text-lg leading-relaxed italic">
+                  “{t.body}”
+                </blockquote>
+              </div>
             </div>
-          </div>
-        </>
-      ))}
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

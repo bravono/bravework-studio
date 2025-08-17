@@ -33,7 +33,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                className="text-green-500 hover:text-blue-500 transition-colors duration-200"
               >
                 <Facebook size={24} />
               </a>
@@ -42,7 +42,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Twitter"
-                className="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                className="text-green-500 hover:text-blue-400 transition-colors duration-200"
               >
                 <Twitter size={24} />
               </a>
@@ -51,7 +51,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="text-gray-400 hover:text-pink-500 transition-colors duration-200"
+                className="text-green-500 hover:text-pink-500 transition-colors duration-200"
               >
                 <Instagram size={24} />
               </a>
@@ -60,7 +60,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="text-gray-400 hover:text-blue-700 transition-colors duration-200"
+                className="text-green-500 hover:text-blue-700 transition-colors duration-200"
               >
                 <Linkedin size={24} />
               </a>
@@ -69,7 +69,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="TikTok"
-                className="text-gray-400 hover:text-black transition-colors duration-200"
+                className="text-green-500 hover:text-black transition-colors duration-200"
               >
                 {/* lucide-react does not have a dedicated TikTok icon */}
                 <Square size={24} />
@@ -79,7 +79,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
-                className="text-gray-400 hover:text-red-600 transition-colors duration-200"
+                className="text-green-500 hover:text-red-600 transition-colors duration-200"
               >
                 <Youtube size={24} />
               </a>
@@ -181,7 +181,7 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <MapPin
                   size={20}
-                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                  className="flex-shrink-0 text-green-500 mt-0.5"
                 />
                 <span>Abuja, Nigeria</span>
               </li>
@@ -194,7 +194,7 @@ export default function Footer() {
                 >
                   <MessageCircle
                     size={20}
-                    className="flex-shrink-0 text-gray-500"
+                    className="flex-shrink-0 text-green-500"
                   />
                   <span>+234 902-322-4596</span>
                 </Link>
@@ -202,14 +202,14 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <Mail
                   size={20}
-                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                  className="flex-shrink-0 text-green-500 mt-0.5"
                 />
                 <span>support@braveworkstudio.com</span>
               </li>
               <li className="flex items-start gap-2">
                 <Clock
                   size={20}
-                  className="flex-shrink-0 text-gray-500 mt-0.5"
+                  className="flex-shrink-0 text-green-500 mt-0.5"
                 />
                 <span>Mon - Fri: 9:00 AM - 6:00 PM</span>
               </li>

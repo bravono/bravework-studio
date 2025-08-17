@@ -99,7 +99,7 @@ export default function TestimonialCarousel() {
         >
           What Our Clients Say
         </h2>
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center  ">
           {/* Previous Testimonial Button */}
           <button
             className="absolute left-0 z-10 p-3 text-white bg-green-600 rounded-full hover:bg-indigo-600 transition-all duration-300 shadow-lg hidden sm:block"
@@ -136,7 +136,7 @@ export default function TestimonialCarousel() {
                 }}
                 className="absolute inset-0 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 sm:p-12 flex flex-col justify-center items-center"
               >
-                <div className="mb-6 flex-shrink-0">
+                <div className="absolute -top-10 mb-8 flex-shrink-0">
                   <Image
                     src={testimonials[currentIndex].avatar}
                     alt={testimonials[currentIndex].heading}
@@ -150,7 +150,7 @@ export default function TestimonialCarousel() {
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
                     &ldquo;{testimonials[currentIndex].heading}&rdquo;
                   </h3>
-                  <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed italic text-center mb-4">
+                  <p className="line-clamp-3 w-full text-lg text-gray-600 dark:text-gray-300 leading-relaxed italic text-center mb-4">
                     {testimonials[currentIndex].body}
                   </p>
                   <div className="text-center">
@@ -163,7 +163,7 @@ export default function TestimonialCarousel() {
                   </div>
                   <a
                     href={`/testimonial/${testimonials[currentIndex].id}`}
-                    className="mt-6 inline-block bg-green-600 text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
+                    className="mt-2 inline-block bg-green-600 text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-600 transition-colors duration-300"
                   >
                     Read Their Story
                   </a>
