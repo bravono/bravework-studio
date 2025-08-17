@@ -249,7 +249,7 @@ export default function NotificationsPage() {
             </div>
           </div>
           <Link
-            href="/dashboard"
+            href="/user/dashboard"
             className="mt-4 sm:mt-0 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />
@@ -260,8 +260,9 @@ export default function NotificationsPage() {
         <div className="space-y-6">
           {notifications.length > 0 ? (
             notifications.map((notification) => {
-              const isOfferNotification =
-                notification.link?.startsWith("/user/dashboard/notifications/");
+              const isOfferNotification = notification.link?.startsWith(
+                "/user/dashboard/notifications/"
+              );
               const isOfferExpired =
                 notification.offerExpiresAt &&
                 new Date(notification.offerExpiresAt) < new Date();
@@ -329,8 +330,9 @@ export default function NotificationsPage() {
                           <strong>Amount:</strong>{" "}
                           <span className="text-gray-900 font-bold">
                             ₦
-                            {(notification.offerAmount / kobo).toLocaleString() ||
-                              "N/A"}
+                            {(
+                              notification.offerAmount / kobo
+                            ).toLocaleString() || "N/A"}
                           </span>
                         </p>
                         <span
@@ -346,9 +348,7 @@ export default function NotificationsPage() {
                       {notification.offerExpiresAt && (
                         <p
                           className={`flex items-center gap-2 ${
-                            isOfferExpired
-                              ? "text-red-600"
-                              : "text-orange-500"
+                            isOfferExpired ? "text-red-600" : "text-orange-500"
                           }`}
                         >
                           <Clock className="w-4 h-4" />
@@ -401,7 +401,9 @@ export default function NotificationsPage() {
                       ) : notification.offerStatus === "accepted" ? (
                         <div className="pt-4 border-t border-gray-200 mt-4">
                           <button
-                            onClick={() => router.push("/user/dashboard/payment")}
+                            onClick={() =>
+                              router.push("/user/dashboard/payment")
+                            }
                             disabled={actionLoading}
                             className="w-full px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                           >
@@ -414,7 +416,8 @@ export default function NotificationsPage() {
                           href={notification.link}
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
                         >
-                          View Full Offer Details <ExternalLink className="w-4 h-4" />
+                          View Full Offer Details{" "}
+                          <ExternalLink className="w-4 h-4" />
                         </Link>
                       )}
                     </div>

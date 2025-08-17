@@ -255,10 +255,7 @@ export default function DashboardPage() {
 
   // Calculate overview stats from fetched data
   const activeOrders = orders.filter(
-    (order) =>
-      order.statusName !== "failed" &&
-      order.statusName !== "pending" &&
-      order.statusName !== "currency_mismatch"
+    (order) => order.statusName === "overpayment_detected"
   ).length;
   const coursesInProgress = courses.filter(
     (course) => course.progress < 100
@@ -286,7 +283,7 @@ export default function DashboardPage() {
   const totalInvoicesPages = Math.ceil(invoices.length / itemsPerPage);
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 md:p-8">
+    <div className="bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 p-6 bg-white rounded-xl shadow-lg">
@@ -299,13 +296,13 @@ export default function DashboardPage() {
               !
             </span>
           </h1>
-          <Link
-            href="/profile"
-            className="mt-4 md:mt-0 flex items-center gap-2 text-green-600 hover:text-green-800 font-semibold transition-colors"
+          <button
+            onClick={() => setIsEditingProfile(true)}
+            className="flex items-center gap-2 w-[15%] p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
           >
             <User size={20} />
             Edit Profile
-          </Link>
+          </button>
         </div>
 
         {/* Dashboard Grid */}
@@ -322,12 +319,12 @@ export default function DashboardPage() {
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center justify-between">
                     <span className="text-3xl font-bold text-green-700">
-                      {activeOrders}
+                      {orders.length}
                     </span>
                     <Package size={28} className="text-green-500" />
                   </div>
                   <span className="text-sm font-medium text-gray-500 block mt-1">
-                    Active Orders
+                    Orders (Active {activeOrders})
                   </span>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
