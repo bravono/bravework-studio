@@ -1,11 +1,10 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import { queryDatabase } from "./db"; 
+import { queryDatabase } from "./db";
 
 import "next-auth";
 import type { User as NextAuthUser } from "next-auth";
 // Dynamic import for bcryptjs, as it's a server-only module
 import { default as bcrypt } from "bcryptjs";
-
 
 declare module "next-auth" {
   interface User {
@@ -96,10 +95,12 @@ export const authOptions = {
           "SELECT role_id FROM user_roles WHERE user_id = $1",
           [user.id]
         );
+
         // Get role_ids from user_roles
         const roleIds = rolesResult.map(
           (row: { role_id: number }) => row.role_id
         );
+        console.log("All Role IDs", roleIds);
         // Fetch role names from roles table
         let roleNames: string[] = [];
         if (roleIds.length > 0) {
@@ -110,6 +111,8 @@ export const authOptions = {
           roleNames = rolesNameResult.map(
             (row: { role_name: string }) => row.role_name
           );
+
+          console.log("Role Names", roleNames)
         }
         token.roles = roleNames;
       }

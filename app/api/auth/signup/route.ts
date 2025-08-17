@@ -3,6 +3,7 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid"; // For generating verification tokens
 import { sendVerificationEmail } from "../../../../lib/mailer"; // Import your mailer utility
+import { redirect } from "next/navigation";
 import Joi from "joi";
 
 const signupSchema = Joi.object({
@@ -29,73 +30,76 @@ export async function POST(req: Request) {
 
     const { firstName, lastName, email, password, companyName, phone } = body;
 
-    let newUserId;
-    withTransaction(async (client) => {
-      // Check if user already exists
-      const existingUserResult = await client.query(
-        "SELECT user_id FROM users WHERE email = $1",
-        [email]
+    // Check if user already exists
+    const existingUserResult = await queryDatabase(
+      "SELECT user_id FROM users WHERE email = $1",
+      [email]
+    );
+    if (existingUserResult.length > 0) {
+      return NextResponse.json(
+        { message: "User already exists with that email." },
+        { status: 422 }
       );
-      if (existingUserResult.length > 0) {
-        return NextResponse.json(
-          { message: "User already exists with that email." },
-          { status: 422 }
-        );
-      }
+    }
 
-      const hashedPassword = await hash(password, 12); // Hash password
+    const hashedPassword = await hash(password, 12); // Hash password
 
-      // Insert new user with guest role
-      const insertUserResult = await client.query(
-        `INSERT INTO users 
-          (first_name, last_name, email, password, company_name, phone, email_verified) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
-        [
-          firstName,
-          lastName,
-          email,
-          hashedPassword,
-          companyName || null,
-          phone || null,
-          null, // email_verified is null initially
-        ]
-      );
+    // Insert new user with guest role
+    console.log("Creating User");
+    const insertUserResult = await queryDatabase(
+      `INSERT INTO users 
+        (first_name, last_name, email, password, company_name, phone, email_verified) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
+      [
+        firstName,
+        lastName,
+        email,
+        hashedPassword,
+        companyName || null,
+        phone || null,
+        null, // email_verified is null initially
+      ]
+    );
 
-      newUserId = insertUserResult.rows[0];
-      console.log("New User Id", newUserId);
+    console.log("User Result", insertUserResult);
+    const newUserId = insertUserResult[0].user_id;
+    console.log("New User Id", newUserId);
 
-      const roleResult = await client.query(
-        "SELECT * FROM roles WHERE role_name = ($1)",
-        ["user"]
-      );
+    console.log("Getting role for user");
+    const roleResult = await queryDatabase(
+      "SELECT * FROM roles WHERE role_name = ($1)",
+      ["user"]
+    );
 
-      console.log("Role Result", roleResult);
-      const roleId = roleResult.rows[0].role_id;
+    console.log("Role Result", roleResult);
+    const roleId = roleResult[0].role_id;
 
-      // Insert user role into user_roles table
-      await client.query(
-        "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
-        [newUserId, roleId]
-      );
+    // Insert user role into user_roles table
+    console.log("Assigning role to user");
+    await queryDatabase(
+      "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
+      [newUserId, roleId]
+    );
 
-      // Generate a verification token
-      const verificationToken = uuidv4();
-      const expires = new Date();
-      expires.setHours(expires.getHours() + 24); // Token valid for 24 hours
+    // Generate a verification token
+    const verificationToken = uuidv4();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 24); // Token valid for 24 hours
 
-      // Store the verification token in the database
-      await client.query(
-        'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
-        [newUserId, verificationToken, expires, "email_verification"]
-      );
+    // Store the verification token in the database
+    console.log("Adding verification token to the db with userId", newUserId);
+    await queryDatabase(
+      'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+      [newUserId, verificationToken, expires, "email_verification"]
+    );
 
-      // Send the verification email (non-blocking)
-      const name = `${firstName} ${lastName}`;
-      console.log(
-        `Sending verification email to ${email} with token ${verificationToken}`
-      );
-      sendVerificationEmail(email, verificationToken, name);
-    });
+    // Send the verification email (non-blocking)
+    const name = `${firstName} ${lastName}`;
+    console.log(
+      `Sending verification email to ${email} with token ${verificationToken}`
+    );
+    sendVerificationEmail(email, verificationToken, name);
+
     return NextResponse.json(
       { message: "User created successfully!", newUserId },
       { status: 201 }

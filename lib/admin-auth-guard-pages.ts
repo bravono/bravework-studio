@@ -15,9 +15,11 @@ export async function verifyAdminPages() {
   const userRoles = Array.isArray((session.user as any).roles)
     ? (session.user as any).roles.map((role: string) => role.toLowerCase())
     : [];
+  
+  console.log("Roles", userRoles)
 
   if (!userRoles.includes("admin")) {
-    redirect("/auth/error?message=forbidden");
+    redirect("/auth/errors?message=forbidden");
   }
 
   return session; // Return session if valid and authorized

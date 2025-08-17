@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { queryDatabase } from "../../../lib/db";
 import { redirect } from "next/navigation";
 // IMPORTANT: Import RedirectError from this specific path
-import { RedirectError } from "next/dist/client/components/redirect";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

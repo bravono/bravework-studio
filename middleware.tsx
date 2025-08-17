@@ -4,16 +4,36 @@ import { NextResponse } from "next/server";
 export default withAuth(
   // `withAuth` augments your `Request` with the user's token.
   function middleware(req) {
-    const token = req.nextauth.token;
+    const isLocalDev = req.nextUrl.hostname === "localhost";
+    console.log("Next URL Hostname", req.nextUrl.hostname);
+    let token = req.nextauth.token;
+
+    if (isLocalDev) {
+      // Bypass auth checks in local development
+      token = {
+        name: "Ahbideen Yusuf",
+        email: "ahbideeny@gmail.com",
+        sub: "2",
+        id: 2,
+        companyName: "Bravono",
+        phone: "+2348162785602",
+        roles: ["admin", "user"],
+        iat: 1755258030,
+        exp: 1757850030,
+        jti: "f45b1aef-7d9f-4e81-97fe-0106d9c07f49",
+      };
+      console.log("Middleware Request", req.nextauth);
+    }
+    console.log("Auth Token", token);
     const userRoles = Array.isArray((token as any)?.roles)
       ? (token as any).roles.map((role: string) => role.toLowerCase())
       : [];
 
-    const startsWithAdmin = req.nextUrl.pathname.startsWith("/admin");
+    const includesAdmin = req.nextUrl.pathname.includes("/admin");
 
     // Protect /admin routes
-    if (startsWithAdmin && !userRoles.includes("admin")) {
-      return NextResponse.rewrite(
+    if (includesAdmin && !userRoles.includes("admin")) {
+      return NextResponse.redirect(
         new URL("/auth/error?message=forbidden", req.url)
       );
     }
@@ -43,8 +63,5 @@ export default withAuth(
 export const config = {
   matcher: [
     "/admin/:path*", // Protect all routes under /admin
-    // Add other paths you want to protect globally here
-    // For example, if you want to protect all authenticated routes except login/signup:
-    // "/((?!api|_next/static|_next/image|favicon.ico|auth|public).*)",
   ],
 };
