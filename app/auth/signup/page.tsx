@@ -68,7 +68,6 @@ export default function Signup() {
       if (res.ok) {
         // Use a generic success message to maintain consistency
         setMessage("Signup successful! Redirecting to email verification...");
-        router.push("/auth/verify-email");
 
         setForm({
           firstName: "",
@@ -79,6 +78,8 @@ export default function Signup() {
           companyName: "",
           phone: "",
         });
+
+        router.push("/auth/verify-email");
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
       }

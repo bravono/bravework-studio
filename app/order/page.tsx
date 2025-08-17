@@ -144,7 +144,6 @@ function Page() {
       setRatesLoading(true);
       try {
         const rates = await fetchExchangeRates();
-        console.log("Rates", rates);
         setExchangeRates(rates);
       } catch (err) {
         console.error("Error fetching exchange rates:", err);
@@ -227,10 +226,7 @@ function Page() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          `Error uploading ${file.name}: ${errorData.message}` ||
-            "Upload failed."
-        );
+        throw new Error(`Error uploading ${file.name}: ${errorData.message}`);
       }
       return response.json();
     });
@@ -243,13 +239,15 @@ function Page() {
         fileSize: blobDataRaw.size || files[index].size,
       }));
       setFileInfos(newFileInfos);
-      toast.success("Files uploaded successfully!");
 
       // Submit order to API
       const formDataToSend = new FormData();
       const selectedServiceData = getSelectedService();
       if (selectedServiceData) {
-        formDataToSend.append("serviceId", String(selectedServiceData.category_id));
+        formDataToSend.append(
+          "serviceId",
+          String(selectedServiceData.category_id)
+        );
       }
 
       if (user) {
@@ -268,19 +266,19 @@ function Page() {
       formDataToSend.append("projectDescription", formData.projectDescription);
       formDataToSend.append("files", JSON.stringify(newFileInfos));
 
-      const orderResponse = await fetch("/api/orders", {
+      const orderResponse = await fetch("/api/user/orders", {
         method: "POST",
         body: formDataToSend,
       });
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json();
-        throw new Error(
-          `Error submitting order: ${errorData.message}` || "Order submission failed."
-        );
+        throw new Error(`Error submitting order: ${errorData.message}`);
       }
 
       toast.success("Your order has been submitted!");
+      if (files.length > 0) toast.success("Files uploaded successfully!");
+
       setTimeout(() => {
         router.push("/order/success");
       }, 2000);
@@ -333,7 +331,9 @@ function Page() {
         // Step 1: Service Selection
         return (
           <>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">1. Choose a Service</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              1. Choose a Service
+            </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {productCategories.map((product, index) => (
                 <div
@@ -345,16 +345,15 @@ function Page() {
                   }`}
                   onClick={() => setSelectedService(product.category_name)}
                 >
-                  <div className="text-4xl mb-4">{serviceIcons[index % serviceIcons.length]}</div>
+                  <div className="text-4xl mb-4">
+                    {serviceIcons[index % serviceIcons.length]}
+                  </div>
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
                     {product.category_name}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4">
                     {product.category_description}
                   </p>
-                  <div className="mt-auto text-xs text-gray-400">
-                    Accepted files: {product.accepted_files}
-                  </div>
                 </div>
               ))}
             </div>
@@ -377,10 +376,17 @@ function Page() {
           // Guest form
           return (
             <>
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">2. Your Information</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                2. Your Information
+              </h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    First Name
+                  </label>
                   <input
                     type="text"
                     id="firstName"
@@ -392,7 +398,12 @@ function Page() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Last Name
+                  </label>
                   <input
                     type="text"
                     id="lastName"
@@ -404,7 +415,12 @@ function Page() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                  <label
+                    htmlFor="companyName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Company Name
+                  </label>
                   <input
                     type="text"
                     id="companyName"
@@ -416,7 +432,12 @@ function Page() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Email Address
+                  </label>
                   <input
                     type="email"
                     id="email"
@@ -428,7 +449,12 @@ function Page() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Phone Number
+                  </label>
                   <input
                     type="tel"
                     id="phone"
@@ -459,8 +485,8 @@ function Page() {
             </>
           );
         }
-        // Fall through to the next step if user is logged in
-        // eslint-disable-next-line no-fallthrough
+      // Fall through to the next step if user is logged in
+      // eslint-disable-next-line no-fallthrough
       case 3:
       default:
         // Step 3: Project Details
@@ -472,7 +498,9 @@ function Page() {
             <div className="flex flex-col gap-6">
               {/* Currency selection */}
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Select Currency</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Select Currency
+                </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {currencies.map((currency) => (
                     <button
@@ -493,7 +521,12 @@ function Page() {
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
+                  <label
+                    htmlFor="budget"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Budget Range
+                  </label>
                   <select
                     id="budget"
                     name="budget"
@@ -509,8 +542,8 @@ function Page() {
                     ) : (
                       selectedServiceData?.budget_ranges.map((range, index) => {
                         const convertedLabel = convertCurrency(
-                          Number(range.range_value),
-                          exchangeRates?.[selectedCurrency] || 1,
+                          range.range_value,
+                          exchangeRates?.[selectedCurrency],
                           getCurrencySymbol(selectedCurrency)
                         );
                         return (
@@ -523,7 +556,12 @@ function Page() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="timeline" className="block text-sm font-medium text-gray-700 mb-1">Project Timeline</label>
+                  <label
+                    htmlFor="timeline"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Project Timeline
+                  </label>
                   <select
                     id="timeline"
                     name="timeline"
@@ -543,7 +581,12 @@ function Page() {
                 </div>
               </div>
               <div>
-                <label htmlFor="projectDescription" className="block text-sm font-medium text-gray-700 mb-1">Project Description</label>
+                <label
+                  htmlFor="projectDescription"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Project Description
+                </label>
                 <textarea
                   id="projectDescription"
                   name="projectDescription"
@@ -555,7 +598,9 @@ function Page() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Project Files</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Project Files
+                </label>
                 <div className="relative border-2 border-dashed border-gray-300 rounded-md p-6 text-center transition-colors duration-200 hover:border-gray-400">
                   <input
                     type="file"
@@ -568,7 +613,10 @@ function Page() {
                   <div className="flex flex-col items-center justify-center">
                     <FileUploadIcon />
                     <p className="mt-2 text-gray-500">
-                      Drag and drop files here or <span className="text-blue-600 font-medium">click to browse</span>
+                      Drag and drop files here or{" "}
+                      <span className="text-blue-600 font-medium">
+                        click to browse
+                      </span>
                     </p>
                     {selectedServiceData && (
                       <small className="mt-1 text-xs text-gray-400">
@@ -624,7 +672,10 @@ function Page() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200"
+        >
           {renderStep()}
         </form>
       </main>
@@ -634,7 +685,13 @@ function Page() {
 
 export default function OrderPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-lg text-gray-700">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
+          Loading...
+        </div>
+      }
+    >
       <Page />
     </Suspense>
   );

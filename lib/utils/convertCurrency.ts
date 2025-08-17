@@ -1,16 +1,9 @@
 export function convertCurrency(
-  amount: number,
+  amount: any,
   rate: number,
   symbol: string
 ): string {
   const amountStr = amount.toString();
-  if (amountStr.includes("+")) {
-    // Handle "9000+" format
-    const baseStr = amountStr.replace("+", "").trim();
-    const base = parseFloat(baseStr);
-    const convertedBase = Math.round(base * rate).toLocaleString();
-    return `${symbol}${convertedBase}+`;
-  }
 
   if (amountStr.includes("-")) {
     // Handle "100 - 500" format
@@ -22,6 +15,14 @@ export function convertCurrency(
     const convertedMax = Math.round(max * rate).toLocaleString();
 
     return `${symbol}${convertedMin} - ${symbol}${convertedMax}`;
+  }
+
+  if (amountStr.includes("+")) {
+    // Handle "9000+" format
+    const baseStr = amountStr.replace("+", "").trim();
+    const base = parseFloat(baseStr);
+    const convertedBase = Math.round(base * rate).toLocaleString();
+    return `${symbol}${convertedBase}+`;
   }
 
   return Math.ceil(amount * rate).toLocaleString();

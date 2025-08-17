@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import { Loader2 } from "lucide-react"; // Importing Loader2 for the loading spinner
+import { Loader2, Mail, Lock } from "lucide-react";
 
 function LoginForm() {
   const [form, setForm] = useState({
@@ -64,35 +64,42 @@ function LoginForm() {
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg border border-gray-200">
-        <h2 className="text-3xl font-bold text-center text-green-800">
-          Login
-        </h2>
+        <h2 className="text-3xl font-bold text-center text-green-800">Login</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="relative">
+            <label htmlFor="email" className="sr-only">
               Email
             </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Mail className="w-5 h-5 text-gray-400" />
+            </div>
             <input
               type="email"
               id="email"
               name="email"
-              className="w-full px-4 py-2 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Email *"
               value={form.email}
               onChange={handleChange}
               autoComplete="email"
               required
             />
           </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="relative">
+            <label htmlFor="password" className="sr-only">
               Password
             </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className="w-5 h-5 text-gray-400" />
+            </div>
+
             <input
               type="password"
               id="password"
               name="password"
-              className="w-full px-4 py-2 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Password *"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"
@@ -130,7 +137,10 @@ function LoginForm() {
 
         <div className="text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <a href="/auth/signup" className="text-green-600 hover:text-green-800 font-medium">
+          <a
+            href="/auth/signup"
+            className="text-green-600 hover:text-green-800 font-medium"
+          >
             Sign up
           </a>
         </div>
@@ -153,4 +163,3 @@ export default function Login() {
     </Suspense>
   );
 }
-
