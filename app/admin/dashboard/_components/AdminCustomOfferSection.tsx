@@ -3,9 +3,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import { PlusCircle, Edit, Trash2, X, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import {
+  PlusCircle,
+  Edit,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+} from "lucide-react";
 
 import Loader from "@/app/components/Loader";
+import ConfirmationModal from "./ConfirmationModal";
 import { CustomOffer, Order } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
@@ -76,14 +85,14 @@ const CustomOfferModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 animate-fade-in-down">
-      <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg relative transition-all duration-300 transform scale-95 opacity-0 animate-scale-in">
+      <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg relative transition-all duration-300 transform scale-95  animate-scale-in">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors"
         >
           <X size={24} />
         </button>
-        <h3 className="text-xl font-bold mb-4">
+        <h3 className="text-xl font-bold mb-4">-
           {offer ? "Edit Custom Offer" : "Create New Custom Offer"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,48 +174,6 @@ const CustomOfferModal = ({
   );
 };
 
-// Custom modal for confirming deletion
-const ConfirmationModal = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  message,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  message: string;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 animate-fade-in-down">
-      <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-all duration-300 transform scale-95 opacity-0 animate-scale-in">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <AlertTriangle size={48} className="text-red-500" />
-          <h3 className="text-xl font-bold text-gray-800">Confirm Deletion</h3>
-          <p className="text-center text-gray-600">{message}</p>
-          <div className="flex justify-center w-full space-x-4">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex-1"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors flex-1"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 // Main CustomOffersTab component
 export default function AdminCustomOffersSection() {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
@@ -260,7 +227,10 @@ export default function AdminCustomOffersSection() {
   // Pagination logic
   const indexOfLastOffer = currentPage * offersPerPage;
   const indexOfFirstOffer = indexOfLastOffer - offersPerPage;
-  const currentOffers = useMemo(() => offers.slice(indexOfFirstOffer, indexOfLastOffer), [offers, indexOfFirstOffer, indexOfLastOffer]);
+  const currentOffers = useMemo(
+    () => offers.slice(indexOfFirstOffer, indexOfLastOffer),
+    [offers, indexOfFirstOffer, indexOfLastOffer]
+  );
   const totalPages = Math.ceil(offers.length / offersPerPage);
 
   const handlePageChange = (pageNumber: number) => {
@@ -284,7 +254,7 @@ export default function AdminCustomOffersSection() {
 
   const handleDeleteOfferConfirm = async () => {
     if (!offerToDelete) return;
-    
+
     setIsLoading(true);
     try {
       const res = await fetch(`/api/admin/custom-offers/${offerToDelete}`, {
@@ -340,7 +310,9 @@ export default function AdminCustomOffersSection() {
   return (
     <div className="space-y-6 p-4 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
       <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Custom Offers Management</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Custom Offers Management
+        </h2>
         <button
           onClick={handleCreateOffer}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors font-semibold"
@@ -380,7 +352,10 @@ export default function AdminCustomOffersSection() {
           <tbody className="bg-white divide-y divide-gray-200">
             {currentOffers.length > 0 ? (
               currentOffers.map((offer) => (
-                <tr key={offer.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={offer.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {offer.id}
                   </td>
@@ -488,7 +463,7 @@ export default function AdminCustomOffersSection() {
       />
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onCancel={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteOfferConfirm}
         message={`Are you sure you want to delete offer ID: ${offerToDelete}? This action cannot be undone.`}
       />

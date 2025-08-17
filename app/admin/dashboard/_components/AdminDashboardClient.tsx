@@ -307,7 +307,7 @@ export default function AdminDashboardClient({
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900 font-sans">
       {/* Sidebar Navigation */}
-      <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 shadow-xl flex flex-col">
+      <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 pt-10 mt-8 shadow-xl flex flex-col">
         <div className="flex items-center justify-center md:justify-start">
             <Image
                 src="/assets/Braveword_Studio-Logo-Color.png" // Replace with your logo

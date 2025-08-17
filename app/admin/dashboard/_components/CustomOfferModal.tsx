@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "./Modal"; // Import the generic Modal component
 import { toast } from "react-toastify";
 import { Order, CustomOffer } from "../../../types/app"; // Adjust the import path as necessary
-import { DollarSign, Clock, FileText, Calendar } from 'lucide-react';
+import { DollarSign, Clock, FileText, Calendar } from "lucide-react";
 
 interface CustomOfferModalProps {
   order: Order; // The order for which to create the offer
@@ -41,7 +41,9 @@ export default function CustomOfferModal({
     existingOffer?.description || ""
   );
   const [expiresAt, setExpireAt] = useState<string>(
-    existingOffer?.expiresAt ? formatDateForInput(new Date(existingOffer.expiresAt)) : formatDateForInput(new Date())
+    existingOffer?.expiresAt
+      ? formatDateForInput(new Date(existingOffer.expiresAt))
+      : formatDateForInput(new Date())
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function CustomOfferModal({
         offerAmount,
         description,
         expiresAt,
-        projectDuration
+        projectDuration,
       };
 
       const res = await fetch(url, {
@@ -84,7 +86,9 @@ export default function CustomOfferModal({
     } catch (err: any) {
       console.error("Error saving custom offer:", err);
       setError(err.message || "Failed to save custom offer.");
-      toast.error("Error saving custom offer: " + (err.message || "Unknown error."));
+      toast.error(
+        "Error saving custom offer: " + (err.message || "Unknown error.")
+      );
     } finally {
       setLoading(false);
     }
@@ -96,84 +100,147 @@ export default function CustomOfferModal({
       onClose={onClose}
       title={existingOffer ? "Edit Custom Offer" : "Create Custom Offer"}
     >
-      <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <div>
-          <label htmlFor="offerAmount" className="flex items-center text-sm font-medium text-gray-700 mb-1">
-            <DollarSign className="h-4 w-4 mr-2" /> Offer Amount
-          </label>
-          <input
-            type="number"
-            id="offerAmount"
-            value={offerAmount}
-            onChange={(e) => setOfferAmount(parseFloat(e.target.value))}
-            required
-            min="0"
-            step="0.01"
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <label htmlFor="projectDuration" className="flex items-center text-sm font-medium text-gray-700 mb-1">
-            <Clock className="h-4 w-4 mr-2" /> Project Duration Days
-          </label>
-          <input
-            type="number"
-            id="projectDuration"
-            value={projectDuration}
-            onChange={(e) => setProjectDuration(parseFloat(e.target.value))}
-            required
-            min="1"
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <label htmlFor="description" className="flex items-center text-sm font-medium text-gray-700 mb-1">
-            <FileText className="h-4 w-4 mr-2" /> Description
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="expiration" className="flex items-center text-sm font-medium text-gray-700 mb-1">
-            <Calendar className="h-4 w-4 mr-2" /> Expiration Date
-          </label>
-          <input
-            type="datetime-local"
-            id="expiration"
-            value={expiresAt}
-            onChange={(e) => setExpireAt(e.target.value)}
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            required
-            min={formatDateForInput(new Date())}
-          />
-        </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-t-2 border-white border-opacity-25 rounded-full animate-spin"></div>
-            ) : (
-              existingOffer ? "Update Offer" : "Create Offer"
-            )}
-          </button>
-        </div>
-      </form>
+      {
+        <form onSubmit={handleSubmit} className="p-4 space-y-6">
+          <div>
+            <label
+              htmlFor="offerAmount"
+              className="flex items-center text-sm font-medium text-gray-700 mb-1"
+            >
+              <DollarSign className="h-4 w-4 mr-2" /> Offer Amount
+            </label>
+            <input
+              type="number"
+              id="offerAmount"
+              value={offerAmount}
+              onChange={(e) => setOfferAmount(parseFloat(e.target.value))}
+              required
+              min="0"
+              step="0.01"
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="projectDuration"
+              className="flex items-center text-sm font-medium text-gray-700 mb-1"
+            >
+              <Clock className="h-4 w-4 mr-2" /> Project Duration Days
+            </label>
+            <input
+              type="number"
+              id="projectDuration"
+              value={projectDuration}
+              onChange={(e) => setProjectDuration(parseFloat(e.target.value))}
+              required
+              min="1"
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="description"
+              className="flex items-center text-sm font-medium text-gray-700 mb-1"
+            >
+              <FileText className="h-4 w-4 mr-2" /> Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            ></textarea>
+          </div>
+          <div>
+            <label
+              htmlFor="expiration"
+              className="flex items-center text-sm font-medium text-gray-700 mb-1"
+            >
+              <Calendar className="h-4 w-4 mr-2" /> Expiration Date
+            </label>
+            <input
+              type="datetime-local"
+              id="expiration"
+              value={expiresAt}
+              onChange={(e) => setExpireAt(e.target.value)}
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
+              min={formatDateForInput(new Date())}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-t-2 border-white border-opacity-25 rounded-full animate-spin"></div>
+              ) : existingOffer ? (
+                "Update Offer"
+              ) : (
+                "Create Offer"
+              )}
+            </button>
+          </div>
+        </form>
+      }
     </Modal>
   );
 }
+
+// Modal for creating/updating offers
+// export default function CustomOfferModal({
+//   isOpen,
+//   onClose,
+//   offer,
+//   onSave,
+//   orders,
+// }: {
+//   isOpen: boolean;
+//   onClose: () => void;
+//   offer: CustomOffer | null;
+//   onSave: (data: any) => void;
+//   orders: Order[];
+// }){
+//   const [formData, setFormData] = useState({
+//     order_id: offer?.orderId || "",
+//     offer_amount_in_kobo: offer?.offerAmount || 0,
+//     description: offer?.description || "",
+//     expires_at: offer?.expiresAt
+//       ? format(new Date(offer.expiresAt), "yyyy-MM-dd")
+//       : "",
+//     user_id: offer?.userId || "",
+//   });
+//   const [isLoading, setIsLoading] = useState(false);
+
+//   useEffect(() => {
+//     if (offer) {
+//       setFormData({
+//         order_id: offer.orderId,
+//         offer_amount_in_kobo: offer.offerAmount,
+//         description: offer.description,
+//         expires_at: offer.expiresAt
+//           ? format(new Date(offer.expiresAt), "yyyy-MM-dd")
+//           : "",
+//         user_id: offer.userId,
+//       });
+//     } else {
+//       setFormData({
+//         order_id: "",
+//         offer_amount_in_kobo: 0,
+//         description: "",
+//         expires_at: "",
+//         user_id: "",
+//       });
+//     }
+//   }, [offer]);

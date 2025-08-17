@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { toast } from 'react-toastify';
-import { format } from 'date-fns';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
 import {
   Eye,
   Trash2,
@@ -11,11 +11,10 @@ import {
   XCircle,
   CheckCircle,
   Clock,
-  MoreHorizontal
-} from 'lucide-react';
+  MoreHorizontal,
+} from "lucide-react";
 import { Notification, Order } from "@/app/types/app";
-import Modal from "./Modal"
-
+import Modal from "./Modal";
 
 // Reusable Loading Spinner component
 const LoadingSpinner = () => (
@@ -58,7 +57,11 @@ const CustomModal = ({
               onClose();
             }}
             className={`px-6 py-2 rounded-lg font-bold text-white transition-colors
-              ${isConfirm ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+              ${
+                isConfirm
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
           >
             {isConfirm ? confirmText : "OK"}
           </button>
@@ -72,16 +75,16 @@ const NotificationDetailModal = ({ notification, onClose }) => {
   if (!notification) return null;
 
   const statusColors = {
-    'accepted': 'bg-green-100 text-green-800',
-    'rejected': 'bg-red-100 text-red-800',
-    'pending': 'bg-yellow-100 text-yellow-800',
+    accepted: "bg-green-100 text-green-800",
+    rejected: "bg-red-100 text-red-800",
+    pending: "bg-yellow-100 text-yellow-800",
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'accepted':
+      case "accepted":
         return <CheckCircle className="text-green-500" size={20} />;
-      case 'rejected':
+      case "rejected":
         return <XCircle className="text-red-500" size={20} />;
       default:
         return <Clock className="text-yellow-500" size={20} />;
@@ -92,33 +95,57 @@ const NotificationDetailModal = ({ notification, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
       <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full mx-auto transform transition-all duration-300 scale-95 md:scale-100">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-800">Notification Details</h3>
-          <button onClick={onClose} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+          <h3 className="text-2xl font-bold text-gray-800">
+            Notification Details
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
             <XCircle size={24} />
           </button>
         </div>
         <div className="space-y-4 text-gray-700">
           <p>
-            <strong>ID:</strong> <span className="font-mono text-sm bg-gray-100 p-1 rounded-md">{notification.id}</span>
+            <strong>ID:</strong>{" "}
+            <span className="font-mono text-sm bg-gray-100 p-1 rounded-md">
+              {notification.id}
+            </span>
           </p>
           <p>
-            <strong>Message:</strong> <span className="bg-gray-100 p-1 rounded-md">{notification.message}</span>
+            <strong>Message:</strong>{" "}
+            <span className="bg-gray-100 p-1 rounded-md">
+              {notification.message}
+            </span>
           </p>
           <p>
-            <strong>Offer Amount:</strong> <span className="font-bold text-green-700">₦{(notification.offerAmount / 100).toLocaleString()}</span>
+            <strong>Offer Amount:</strong>{" "}
+            <span className="font-bold text-green-700">
+              ₦{(notification.offerAmount / 100).toLocaleString() || notification.budget}
+            </span>
           </p>
           <p>
-            <strong>Client Name:</strong> <span className="bg-gray-100 p-1 rounded-md">{notification.clientName || 'N/A'}</span>
+            <strong>Client Name:</strong>{" "}
+            <span className="bg-gray-100 p-1 rounded-md">
+              {notification.clientName || "N/A"}
+            </span>
           </p>
           <p className="flex items-center space-x-2">
             <strong>Status:</strong>
-            <span className={`px-3 py-1 inline-flex items-center space-x-1 text-xs leading-5 font-semibold rounded-full ${statusColors[notification.offerStatus]}`}>
+            <span
+              className={`px-3 py-1 inline-flex items-center space-x-1 text-xs leading-5 font-semibold rounded-full ${
+                statusColors[notification.offerStatus]
+              }`}
+            >
               {getStatusIcon(notification.offerStatus)}
               <span>{notification.offerStatus}</span>
             </span>
           </p>
           <p>
-            <strong>Date:</strong> <span className="bg-gray-100 p-1 rounded-md">{format(new Date(notification.createdAt), "MMM d, yyyy")}</span>
+            <strong>Date:</strong>{" "}
+            <span className="bg-gray-100 p-1 rounded-md">
+              {format(new Date(notification.createdAt), "MMM d, yyyy")}
+            </span>
           </p>
         </div>
       </div>
@@ -126,20 +153,24 @@ const NotificationDetailModal = ({ notification, onClose }) => {
   );
 };
 
-
 export default function AdminNotificationSection() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [notificationsPerPage] = useState(10);
 
   // Modal state for confirmations
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmModalContent, setConfirmModalContent] = useState({ title: '', message: '', onConfirm: () => {} });
+  const [confirmModalContent, setConfirmModalContent] = useState({
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const kobo = 100;
 
@@ -181,13 +212,16 @@ export default function AdminNotificationSection() {
 
   const handleDeleteNotification = (notification: Notification) => {
     setConfirmModalContent({
-      title: 'Confirm Deletion',
+      title: "Confirm Deletion",
       message: `Are you sure you want to delete this notification from ${notification.userId}? This action cannot be undone.`,
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/admin/notifications/${notification.id}`, {
-            method: "DELETE",
-          });
+          const res = await fetch(
+            `/api/admin/notifications/${notification.id}`,
+            {
+              method: "DELETE",
+            }
+          );
           if (!res.ok) {
             const errorData = await res.json();
             throw new Error(errorData.error || "Failed to delete notification");
@@ -197,19 +231,24 @@ export default function AdminNotificationSection() {
         } catch (error: any) {
           toast.error(error.message);
         }
-      }
+      },
     });
     setIsConfirmModalOpen(true);
   };
-  
+
   const handleViewNotification = (notification: Notification) => {
     setSelectedNotification(notification);
   };
 
   // Pagination logic
   const indexOfLastNotification = currentPage * notificationsPerPage;
-  const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage;
-  const currentNotifications = useMemo(() => notifications.slice(indexOfFirstNotification, indexOfLastNotification), [notifications, indexOfFirstNotification, indexOfLastNotification]);
+  const indexOfFirstNotification =
+    indexOfLastNotification - notificationsPerPage;
+  const currentNotifications = useMemo(
+    () =>
+      notifications.slice(indexOfFirstNotification, indexOfLastNotification),
+    [notifications, indexOfFirstNotification, indexOfLastNotification]
+  );
   const totalPages = Math.ceil(notifications.length / notificationsPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -220,7 +259,7 @@ export default function AdminNotificationSection() {
     for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push(i);
     }
-    
+
     return (
       <nav className="flex justify-center mt-6">
         <ul className="flex items-center space-x-2">
@@ -233,14 +272,14 @@ export default function AdminNotificationSection() {
               <ChevronLeft size={16} />
             </button>
           </li>
-          {pageNumbers.map(number => (
+          {pageNumbers.map((number) => (
             <li key={number}>
               <button
                 onClick={() => paginate(number)}
                 className={`px-3 py-1 rounded-md font-medium transition-colors ${
                   currentPage === number
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {number}
@@ -262,9 +301,9 @@ export default function AdminNotificationSection() {
   };
 
   const statusColors = {
-    'accepted': 'bg-green-100 text-green-800',
-    'rejected': 'bg-red-100 text-red-800',
-    'pending': 'bg-yellow-100 text-yellow-800',
+    accepted: "bg-green-100 text-green-800",
+    rejected: "bg-red-100 text-red-800",
+    pending: "bg-yellow-100 text-yellow-800",
   };
 
   if (isLoading) {
@@ -278,7 +317,9 @@ export default function AdminNotificationSection() {
           Notifications Management
         </h2>
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">All Notifications</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            All Notifications
+          </h3>
           {currentNotifications.length > 0 ? (
             <div className="overflow-x-auto rounded-lg border border-gray-200">
               <table className="min-w-full divide-y divide-gray-200">
@@ -309,7 +350,10 @@ export default function AdminNotificationSection() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentNotifications.map((notification) => (
-                    <tr key={notification.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={notification.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {notification.id}
                       </td>
@@ -323,10 +367,17 @@ export default function AdminNotificationSection() {
                         {notification.userId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {format(new Date(notification.createdAt), "MMM d, yyyy")}
+                        {format(
+                          new Date(notification.createdAt),
+                          "MMM d, yyyy"
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[notification.offerStatus]}`}>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            statusColors[notification.offerStatus]
+                          }`}
+                        >
                           {notification.offerStatus}
                         </span>
                       </td>
@@ -340,7 +391,9 @@ export default function AdminNotificationSection() {
                             <Eye size={16} />
                           </button>
                           <button
-                            onClick={() => handleDeleteNotification(notification)}
+                            onClick={() =>
+                              handleDeleteNotification(notification)
+                            }
                             className="p-2 text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
                             title="Delete Notification"
                           >
@@ -354,7 +407,9 @@ export default function AdminNotificationSection() {
               </table>
             </div>
           ) : (
-            <p className="p-4 text-center text-gray-500">No notifications found.</p>
+            <p className="p-4 text-center text-gray-500">
+              No notifications found.
+            </p>
           )}
           {renderPaginationButtons()}
         </div>
