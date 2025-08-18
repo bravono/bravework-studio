@@ -15,8 +15,8 @@ const signupSchema = Joi.object({
     .required()
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
-  companyName: Joi.string().max(100).allow("").label("Company Name"),
-  phone: Joi.string().allow("").label("Phone"),
+  companyName: Joi.string().max(100).allow("").optional().label("Company Name"),
+  phone: Joi.string().allow("").optional().label("Phone"),
 });
 
 export default function Signup() {

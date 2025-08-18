@@ -3,7 +3,6 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid"; // For generating verification tokens
 import { sendVerificationEmail } from "../../../../lib/mailer"; // Import your mailer utility
-import { redirect } from "next/navigation";
 import Joi from "joi";
 
 const signupSchema = Joi.object({
@@ -11,8 +10,8 @@ const signupSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(7).max(100).required(),
-  companyName: Joi.string().max(100).optional(),
-  phone: Joi.string().optional(),
+  companyName: Joi.string().max(100).allow("").optional(),
+  phone: Joi.string().allow("").optional(),
 });
 
 export async function POST(req: Request) {
