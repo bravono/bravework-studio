@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db"; // Ensure withTransaction is imported
-import { verifyAdmin } from "../../../../lib/admin-auth-guard"; // Import the admin guard
+import { verifyAdmin } from "@/lib/auth/admin-auth-guard"; // Import the admin guard
 
 // Explicitly set the runtime for this Route Handler to Node.js
 // This ensures that Node.js-specific modules like 'pg' can be used.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db";
-import { verifyAdmin } from "../../../../lib/admin-auth-guard";
+import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
 import { sendCustomOfferNotificationEmail } from "../../../../lib/mailer";
 
 export const runtime = "nodejs";

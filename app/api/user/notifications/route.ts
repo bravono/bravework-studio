@@ -1,7 +1,7 @@
 // app/api/user/notifications/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth-options"; // Adjust path as needed
+import { authOptions } from "@/lib/auth/auth-options"; // Adjust path as needed
 import { queryDatabase } from "../../../../lib/db";
 
 export const runtime = "nodejs";

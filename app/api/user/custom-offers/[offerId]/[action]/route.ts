@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../../../lib/auth-options"; // Adjust path as needed
+import { authOptions } from "@/lib/auth/auth-options"; // Adjust path as needed
 import { queryDatabase, withTransaction } from "../../../../../../lib/db"; // Adjust path as needed
 import { verifySecureToken } from "../../../../../../lib/utils/generateToken"; // Adjust path as needed
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../../lib/auth-options"; // Adjusted path as per your update
+import { authOptions } from "@/lib/auth/auth-options"; // Adjusted path as per your update
 import { queryDatabase } from "../../../../../lib/db"; // Adjusted path as per your update
 
 export const runtime = "nodejs";

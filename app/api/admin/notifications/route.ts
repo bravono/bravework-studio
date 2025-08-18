@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "../../../../lib/db";
-import { verifyAdmin } from "@/lib/admin-auth-guard"; // Import the admin guard
+import { verifyAdmin } from "@/lib/auth/admin-auth-guard"; // Import the admin guard
 
 export const runtime = "nodejs";
 

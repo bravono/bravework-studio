@@ -213,7 +213,6 @@ export async function sendCustomOfferNotificationEmail(
   const rejectToken = generateSecureToken(offerId, "reject", dateToNumber);
   const acceptLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/accept?token=${acceptToken}`;
   const rejectLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/reject?token=${rejectToken}`;
-  // --- END SECURITY WARNING ---
 
   let expiryText = "";
   if (expiresAt) {

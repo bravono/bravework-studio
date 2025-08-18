@@ -1,7 +1,7 @@
 // app/api/user/profile/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next"; // Import getServerSession
-import { authOptions } from "../../../../lib/auth-options";
+import { authOptions } from "@/lib/auth/auth-options";
 import { queryDatabase } from "../../../../lib/db"; // Assuming this path is correct for your db utility
 
 export async function GET(request: Request) {

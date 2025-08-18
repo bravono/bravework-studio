@@ -1,4 +1,4 @@
-import { verifyAdminPages } from "@/lib/admin-auth-guard-pages"; // Adjust the import path as necessary
+import { verifyAdminPages } from "@/lib/auth/admin-auth-guard-pages"; // Adjust the import path as necessary
 
 // Import the Client Component for the actual dashboard content
 import AdminDashboardClient from "./_components/AdminDashboardClient";

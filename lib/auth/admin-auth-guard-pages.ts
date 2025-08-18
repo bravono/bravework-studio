@@ -16,7 +16,6 @@ export async function verifyAdminPages() {
     ? (session.user as any).roles.map((role: string) => role.toLowerCase())
     : [];
   
-  console.log("Roles", userRoles)
 
   if (!userRoles.includes("admin")) {
     redirect("/auth/errors?message=forbidden");

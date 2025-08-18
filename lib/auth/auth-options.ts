@@ -1,5 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import { queryDatabase } from "./db";
+import { queryDatabase } from "../db";
 
 import "next-auth";
 import type { User as NextAuthUser } from "next-auth";
@@ -112,7 +112,7 @@ export const authOptions = {
             (row: { role_name: string }) => row.role_name
           );
 
-          console.log("Role Names", roleNames)
+          console.log("Role Names", roleNames);
         }
         token.roles = roleNames;
       }
