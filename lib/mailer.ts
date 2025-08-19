@@ -124,8 +124,8 @@ export async function sendVerificationEmail(
   const text = `Hello ${userName},\n\nThank thank you for signing up for our services! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
   try {
-    const info = await currentTransporter.sendMail(to, subject, html, text);
-    console.log("Email sent: %s", info.messageId);
+    const info = await currentTransporter.sendMail({to, subject, html, text});
+    console.log("Email sent: %s", info);
     if (process.env.NODE_ENV !== "production") {
       console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info)); // This gives the specific email's preview URL
     }
