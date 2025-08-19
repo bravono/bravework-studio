@@ -39,7 +39,7 @@ export default function Navbar() {
 
   const commonLinkClasses = `block px-3 py-2 rounded-md font-medium transition-colors duration-200`;
   const inactiveLinkClasses = `text-white hover:bg-gray-700 md:text-gray-900 md:hover:bg-gray-100`;
-  const activeLinkClasses = `bg-blue-600 text-white hover:bg-blue-700 md:bg-blue-100 md:text-blue-600 md:hover:bg-blue-200`;
+  const activeLinkClasses = `bg-white text-green hover:bg-white md:bg-blue-100 md:text-blue-600 md:hover:bg-blue-200`;
 
   return (
     <nav
@@ -205,7 +205,7 @@ export default function Navbar() {
       <div
         className={`md:hidden ${
           isMenuOpen ? "block" : "hidden"
-        } bg-white shadow-lg`}
+        } bg-green-600 shadow-lg`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <Link
