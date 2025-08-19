@@ -47,6 +47,8 @@ export default function CustomOfferModal({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,7 +168,7 @@ export default function CustomOfferModal({
               onChange={(e) => setExpireAt(e.target.value)}
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
-              min={formatDateForInput(new Date())}
+              min={formatDateForInput(tomorrow)}
             />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
