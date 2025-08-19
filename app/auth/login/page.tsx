@@ -28,6 +28,31 @@ function LoginForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent page reload
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(data.message);
+        setMessage(data.message);
+      } else {
+        toast.error(data.error || "Something went wrong");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -42,7 +67,7 @@ function LoginForm() {
     if (result?.error) {
       if (result.error === "Please verify your email first.") {
         setMessage(
-          "Your email address is not verified. Please check your inbox for a verification link."
+          `Your email address is not verified. Please check your inbox for a verification link or`
         );
       } else {
         setMessage(result.error);
@@ -109,13 +134,24 @@ function LoginForm() {
           {message && (
             <div
               className={`p-3 text-sm rounded-lg ${
-                message.includes("successful")
+                message.includes("successful") || message.includes("sent")
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
               {message}
             </div>
+          )}
+          {message && message.includes("not verified") && (
+            <button
+              onClick={handleResend}
+              disabled={loading}
+              className={`w-full py-3 px-6 rounded-lg font-bold text-white bg-green-900 hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 ${
+                loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
+            >
+              Resend Verification
+            </button>
           )}
           <button
             type="submit"
