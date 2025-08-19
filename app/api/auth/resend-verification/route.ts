@@ -4,6 +4,8 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid"; // For generating verification tokens
 import { differenceInHours } from "date-fns";
 
+export const runtime = "nodejs";
+
 export async function POST(request: Request) {
   console.log("Begining to resend verification email");
   try {
@@ -71,7 +73,9 @@ export async function POST(request: Request) {
       `Email: ${email}, Verification Token: ${verificationToken} Name: ${name}`
     );
 
-    sendVerificationEmail(email, verificationToken, name);
+    console.log("About to send verification email...");
+    await sendVerificationEmail(email, verificationToken, name);
+    console.log("Verification email sent.");
 
     return NextResponse.json({
       message: "New verification email sent",
