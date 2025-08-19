@@ -111,9 +111,8 @@ export async function sendVerificationEmail(
 
   const verificationLink = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
 
-  const to = toEmail;
   const subject = "Verify Your Email Address for Our Services";
-  const html = `
+  const htmlContent = `
     <p>Hello ${userName},</p>
     <p>Thank you for signing up for our services! Please verify your email address by clicking the link below:</p>
     <p><a href="${verificationLink}">Verify Email Address</a></p>
@@ -121,17 +120,9 @@ export async function sendVerificationEmail(
     <p>If you did not sign up for an account, please ignore this email.</p>
     <p>Thanks,<br/>Our Services Team</p>
   `;
-  const text = `Hello ${userName},\n\nThank thank you for signing up for our services! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
+  const textContent = `Hello ${userName},\n\nThank thank you for signing up for our services! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
-  try {
-    const info = await currentTransporter.sendMail({to, subject, html, text});
-    console.log("Email sent: %s", info);
-    if (process.env.NODE_ENV !== "production") {
-      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info)); // This gives the specific email's preview URL
-    }
-  } catch (error) {
-    console.error("Error sending verification email:", error);
-  }
+  await sendEmail({ toEmail, subject, htmlContent, textContent });
 }
 
 // NEW: Function to send a confirmation email when an order is received
