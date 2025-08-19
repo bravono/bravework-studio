@@ -196,6 +196,7 @@ export async function sendCustomOfferNotificationEmail(
   offerDescription: string,
   orderId: string,
   offerId: string, // NEW: Pass offerId to generate unique links
+  userId: string,
   expiresAt: string | null // NEW: Pass expiry date
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
@@ -205,14 +206,29 @@ export async function sendCustomOfferNotificationEmail(
   }
   const subject = "New Custom Offer from Bravework Studio!";
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}`; // Link to their dashboard offer details page
+  const KOBO_PER_NAIRA = 100;
 
   // Directly using offerId in URL for accept/reject is INSECURE for production.
   // Example of a more secure approach (requires backend token generation/verification):
   const dateToNumber = new Date(expiresAt).getTime() / 1000; // Convert to seconds for token generation
-  const acceptToken = generateSecureToken(offerId, "accept", dateToNumber);
-  const rejectToken = generateSecureToken(offerId, "reject", dateToNumber);
-  const acceptLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/accept?token=${acceptToken}`;
-  const rejectLink = `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/reject?token=${rejectToken}`;
+  const acceptToken = await generateSecureToken(
+    offerId,
+    userId,
+    "accept",
+    dateToNumber
+  );
+  const rejectToken = await generateSecureToken(
+    offerId,
+    userId,
+    "reject",
+    dateToNumber
+  );
+  const acceptLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}/accept`;
+  // `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/accept?token=${acceptToken}`;
+  const rejectLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}/reject`;
+  // `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/reject?token=${rejectToken}`;
+
+  console.log(`Accept Token: ${acceptToken} Reject Token: ${rejectToken}`);
 
   let expiryText = "";
   if (expiresAt) {
@@ -231,7 +247,11 @@ export async function sendCustomOfferNotificationEmail(
   const htmlContent = `
     <p>Hello ${userName},</p>
     <p>Great news! We've created a new custom offer for you related to Order ID: <strong>${orderId}</strong>.</p>
-    <p><strong>Offer Amount:</strong> $${offerAmount.toLocaleString()}</p>
+    <p><strong>Offer Amount:</strong> $${(
+      offerAmount /
+      KOBO_PER_NAIRA /
+      1550
+    ).toLocaleString()}</p>
     <p><strong>Description:</strong> ${offerDescription}</p>
     ${expiryText}
     <p>Please log in to your dashboard to view the full details of this offer:</p>

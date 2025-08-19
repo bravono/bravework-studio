@@ -1,109 +1,64 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/auth-options"; // Adjust path as needed
-import { queryDatabase, withTransaction } from "../../../../../../lib/db"; // Adjust path as needed
-import { verifySecureToken } from "../../../../../../lib/utils/generateToken"; // Adjust path as needed
+import { queryDatabase, withTransaction } from "@/lib/db"; 
+import { verifySecureToken } from "@/lib/utils/generateToken"; 
+import { verifyUser } from "@/lib/auth/user-auth-guard";
 
 export const runtime = "nodejs";
 
-// If this GET method is handled by a separate file (e.g., app/api/user/custom-offers/[offerId]/route.ts),
-// then you can remove this GET export.
-export async function GET(
-  request: Request,
-  { params }: { params: { offerId: string } }
-) {
-  try {
-    const { offerId } = params;
+// export async function GET(
+//   request: Request,
+//   { params }: { params: { offerId: string; action: string } }
+// ) {
+//   const { offerId, action } = params;
+//   const url = new URL(request.url);
+//   const token = url.searchParams.get("token");
 
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+//   // Validate token and offer
+//   const tokenResult = await queryDatabase(
+//     "SELECT * FROM secure_tokens WHERE offer_id = $1",
+//     [offerId]
+//   );
+//   if (tokenResult[0].length === 0) {
+//     return NextResponse.json({ error: "Offer not found" }, { status: 404 });
+//   }
 
-    const userId = (session.user as any).id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID not found in session" },
-        { status: 400 }
-      );
-    }
+//   const acceptToken = tokenResult[0].token;
+//   const rejectToken = tokenResult[0].token;
 
-    const queryText = `
-      SELECT
-        co.offer_id AS id,
-        co.order_id AS "orderId",
-        co.user_id AS "userId",
-        co.offer_amount_in_kobo AS "offerAmount",
-        co.description,
-        co.created_at AS "createdAt",
-        cos.name AS statusName,
-        co.expires_at AS "expiresAt",
-        co.rejection_reason AS "rejectionReason",
-        o.category_id AS "orderService",
-        o.project_description AS "orderDescription",
-        o.budget_range AS "orderBudget"
-      FROM custom_offers co
-      JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
-      JOIN orders o ON co.order_id = o.order_id
-      WHERE co.offer_id = $1 AND co.user_id = $2;
-    `;
-    const result = await queryDatabase(queryText, [offerId, userId]);
+//   const expectedToken =
+//     action === "accept"
+//       ? acceptToken
+//       : action === "reject"
+//       ? rejectToken
+//       : null;
 
-    if (result.length === 0) {
-      return NextResponse.json(
-        { error: "Custom offer not found or does not belong to this user" },
-        { status: 404 }
-      );
-    }
+//   if (!expectedToken || token !== expectedToken) {
+//     return NextResponse.json(
+//       { error: "Invalid or expired token" },
+//       { status: 400 }
+//     );
+//   }
 
-    const offer = result[0];
+//   const statusIdResult = await queryDatabase(
+//     `SELECT offer_status_id FROM custom_offer_statuses WHERE name = ${action}`
+//   );
+//   const statusId = statusIdResult[0].offer_status_id;
 
-    if (
-      offer.expiresAt &&
-      new Date(offer.expiresAt) < new Date() &&
-      offer.statusName === "pending"
-    ) {
-      const expiredStatusResult = await queryDatabase(
-        "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
-        ["Expired"]
-      );
+//   await queryDatabase(
+//     `UPDATE custom_offers co SET status_id (${statusId}) WHERE co.offer_id = ${offerId} RETURNING user_id, description`
+//   );
 
-      if (expiredStatusResult.rows.length > 0) {
-        const expiredStatusId = expiredStatusResult.rows[0].offer_status_id;
-        await queryDatabase(
-          "UPDATE custom_offers SET status_id = $1 WHERE offer_id = $2",
-          [expiredStatusId, offerId]
-        );
-        offer.status_id = "expired";
-      } else {
-        console.warn(
-          "Expired status ID not found in custom_offer_statuses table. Please ensure 'Expired' status exists."
-        );
-      }
-    }
-
-    // Convert Date objects to ISO strings for JSON serialization
-    if (offer.createdAt instanceof Date) {
-      offer.createdAt = offer.createdAt.toISOString();
-    }
-    if (offer.expiresAt instanceof Date) {
-      offer.expiresAt = offer.expiresAt.toISOString();
-    }
-
-    return NextResponse.json(offer);
-  } catch (error: any) {
-    console.error("Error fetching custom offer details:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
+//   // Redirect to confirmation page
+//   return NextResponse.redirect(
+//     `${process.env.NEXTAUTH_URL}/offer-${action}-confirmation`
+//   );
+// }
 
 export async function POST(
   request: Request,
   { params }: { params: { offerId: string; action: string } }
 ) {
+  console.log("Request with action", request);
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
 
@@ -125,7 +80,10 @@ export async function POST(
       // --- Authentication Logic ---
       if (token) {
         // Scenario 1: Token provided (likely from email link)
-        console.log("Token detected. Attempting token-based authentication.");
+        console.log(
+          "Token detected. Attempting token-based authentication.",
+          token
+        );
         const verification = verifySecureToken(token);
 
         if (!verification.valid || verification.expired) {
@@ -137,7 +95,7 @@ export async function POST(
 
         // Verify token in DB and mark as used within the transaction
         const dbTokenRows = await client.query(
-          "SELECT user_id FROM secure_tokens WHERE token = $1 FOR UPDATE", // Use FOR UPDATE to lock the row
+          "SELECT * FROM secure_tokens WHERE token = $1 FOR UPDATE", // Use FOR UPDATE to lock the row
           [token]
         );
         const dbToken = dbTokenRows.rows[0];
@@ -161,16 +119,10 @@ export async function POST(
         console.log(
           "No token detected. Attempting session-based authentication."
         );
-        const session = await getServerSession(authOptions);
+        const user = await verifyUser();
 
-        if (!session || !session.user || !(session.user as any).id) {
-          console.log("Unauthorized: No valid session or user ID found.");
-          throw new Error(
-            "Unauthorized. Please log in to perform this action."
-          );
-        }
-        userId = (session.user as any).id;
-        isAuthenticated = true;
+        isAuthenticated = user.isAuthenticated;
+        userId = user.userId;
       }
 
       if (!isAuthenticated || !userId) {

@@ -177,6 +177,7 @@ export async function POST(request: Request) {
             newOffer.description,
             newOffer.orderId,
             newOffer.id, // Pass offerId for accept/reject links
+            newOffer.userId,
             newOffer.expiresAt // Pass expiresAt for email content
           );
         } catch (emailError) {

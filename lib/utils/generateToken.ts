@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 import { queryDatabase } from "lib/db";
 
 const SECRET_KEY = process.env.STACK_SECRET_SERVER_KEY;
@@ -14,12 +13,12 @@ const SECRET_KEY = process.env.STACK_SECRET_SERVER_KEY;
 
 export async function generateSecureToken(
   offerId: string | number,
+  userId: string | number,
   action: "accept" | "reject",
   expiresInMinutes: number = 60
 ): Promise<string> {
   const expiration = Date.now() + expiresInMinutes * 60 * 1000;
-  const id = uuidv4();
-  const payload = `${id}:${offerId}:${action}:${expiration}`;
+  const payload = `${userId}:${offerId}:${action}:${expiration}`;
   const signature = crypto
     .createHmac("sha256", SECRET_KEY)
     .update(payload)
@@ -29,8 +28,8 @@ export async function generateSecureToken(
   const newTimeStamp = new Date(expiration).toISOString(); // db
 
   await queryDatabase(
-    "INSERT INTO secure_tokens (id, token, offer_id, action, expires_at, used) VALUES ($1, $2, $3, $4, $5, $6)",
-    [id, token, offerId, action, newTimeStamp, false]
+    "INSERT INTO secure_tokens ( token, offer_id, action, expires_at, used, user_id) VALUES ($1, $2, $3, $4, $5, $6)",
+    [ token, offerId, action, newTimeStamp, false, userId]
   );
 
   return token;
