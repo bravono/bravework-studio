@@ -25,13 +25,13 @@ export async function POST(request: Request) {
     const userId = userResult[0].user_id;
 
     const verifyTokenResult = await queryDatabase(
-      "SELECT token, expires FROM verification_tokens vt WHERE vt.user_id = $1",
+      "SELECT token, expires_at FROM secure_tokens vt WHERE vt.user_id = $1",
       [userId]
     );
     console.log("Token", verifyTokenResult);
 
-    let verificationToken = verifyTokenResult[0].token;
-    const expirationDate = verifyTokenResult[0].expires;
+    let verificationToken = verifyTokenResult[0]?.token;
+    const expirationDate = verifyTokenResult[0]?.expires_at;
     const now = new Date();
     const lastSent = userResult[0].lastVerification;
     const hoursSinceLast = lastSent
