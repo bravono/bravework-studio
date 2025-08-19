@@ -122,7 +122,11 @@ export async function sendVerificationEmail(
   `;
   const textContent = `Hello ${userName},\n\nThank thank you for signing up for our services! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
-  await sendEmail({ toEmail, subject, htmlContent, textContent });
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
 }
 
 // NEW: Function to send a confirmation email when an order is received
@@ -147,7 +151,11 @@ export async function sendOrderReceivedEmail(
   `;
   const textContent = `Hello ${userName},\n\nThank you for placing an order with us! We have successfully received your request (Order ID: ${orderId}).\n\nPlease note: No money has been charged yet. We will review your order details and send you a custom offer for confirmation.\n\nPlease look out for our email with the custom offer. We're excited to get started!\n\nThanks,\nThe Bravework Studio Team`;
 
-  await sendEmail({ toEmail, subject, htmlContent, textContent });
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
 }
 
 // NEW: Function to send a confirmation email when a payment is received
@@ -173,7 +181,11 @@ export async function sendPaymentReceivedEmail(
   `;
   const textContent = `Hello ${userName},\n\nWe have successfully received your payment for Order ID: ${orderId}.\n\nWork will begin on your project right away! To see and track the progress of your current project, please go to your dashboard:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
-  await sendEmail({ toEmail, subject, htmlContent, textContent });
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
 }
 
 // Existing function for custom offers (with a small fix)
@@ -257,5 +269,9 @@ export async function sendCustomOfferNotificationEmail(
     /<[^>]*>/g,
     ""
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
-  await sendEmail({ toEmail, subject, htmlContent, textContent });
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
 }
