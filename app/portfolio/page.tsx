@@ -11,22 +11,22 @@ const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
 const categoryIcons = {
   All: Grid,
-  "3D Service": Shapes,
+  "3D Modeling & Animation": Shapes,
   "Web Development": Code,
-  "Mobile development": Smartphone,
-  "UI/UX Design": PenTool,
-  "Voice Service": Mic,
+  "Mobile App": Smartphone,
+  "UiUx Design": PenTool,
+  "Video & Voice Over": Mic,
 };
 
 export default function Portfolio() {
   // Get unique categories from portfolios
   const categories = [
     "All",
-    "3D Service",
+    "3D Modeling & Animation",
     "Web Development",
-    "Mobile development",
-    "UI/UX Design",
-    "Voice Service",
+    "Mobile App",
+    "UiUx Design",
+    "Video & Voice Over",
   ];
   const [selectedCategory, setSelectedCategory] = useState("All");
 
