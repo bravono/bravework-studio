@@ -27,13 +27,13 @@ export async function POST(request: Request) {
     const userId = userResult[0].user_id;
 
     const verifyTokenResult = await queryDatabase(
-      "SELECT token, expires, user_id FROM verification_tokens vt WHERE vt.user_id = $1",
+      "SELECT * FROM verification_tokens WHERE user_id = $1",
       [userId]
     );
-    console.log("Token Result", verifyTokenResult);
+    console.log(`Token Result ${verifyTokenResult}, for user with ID ${userId}`);
 
     let verificationToken = verifyTokenResult[0]?.token;
-    const expirationDate = verifyTokenResult[0]?.expires_at;
+    const expirationDate = verifyTokenResult[0]?.expires;
     const now = new Date();
     const lastSent = userResult[0].lastVerification;
     const hoursSinceLast = lastSent
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         );
 
         await client.query(
-          'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+          'INSERT INTO verification_tokens (user_id, token, expires, type) VALUES ($1, $2, $3, $4)',
           [userId, verificationToken, expires, "email_verification"]
         );
       });

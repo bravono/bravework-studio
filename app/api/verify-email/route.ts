@@ -23,8 +23,8 @@ export async function GET(req: Request) {
   try {
     console.log("LOG: Attempting to find token in DB.");
     const tokenResult = await queryDatabase(
-      "SELECT * FROM verification_tokens WHERE type = $1",
-      ["email_verification"]
+      "SELECT * FROM verification_tokens WHERE token = $1 AND type = $2",
+      [token, "email_verification"]
     );
 
     console.log("Token Result", tokenResult);
