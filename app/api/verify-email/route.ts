@@ -19,10 +19,10 @@ export async function GET(req: Request) {
   try {
     console.log("LOG: Attempting to find token in DB.");
     const tokenResult = await queryDatabase(
-      'SELECT "user_id", expires FROM verification_tokens WHERE token = $1 AND type = $2',
+      'SELECT "user_id", expires, token FROM verification_tokens WHERE token = $1 AND type = $2',
       [token, "email_verification"]
     );
-    const verificationToken = tokenResult[0];
+    const verificationToken = tokenResult[0].token;
 
     if (!verificationToken) {
       console.log(
