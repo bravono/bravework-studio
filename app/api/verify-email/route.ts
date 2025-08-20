@@ -22,9 +22,9 @@ export async function GET(req: Request) {
       'SELECT "user_id", expires, token FROM verification_tokens WHERE token = $1 AND type = $2',
       [token, "email_verification"]
     );
-    const verificationToken = tokenResult[0].token;
+    const verificationToken = tokenResult[0];
 
-    if (!verificationToken) {
+    if (!verificationToken.token) {
       console.log(
         "LOG: Invalid verification token found. Redirecting to error page."
       );
