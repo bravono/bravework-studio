@@ -7,7 +7,7 @@ import { differenceInHours } from "date-fns";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  console.log("Begining to resend verification email");
+  console.log("Beginning to resend verification email");
   try {
     const email = (await request.json()).email?.trim().toLowerCase();
     console.log("Received email", email);
@@ -27,10 +27,10 @@ export async function POST(request: Request) {
     const userId = userResult[0].user_id;
 
     const verifyTokenResult = await queryDatabase(
-      "SELECT token, expires FROM verification_tokens vt WHERE vt.user_id = $1",
+      "SELECT token, expires, user_id FROM verification_tokens vt WHERE vt.user_id = $1",
       [userId]
     );
-    console.log("Token", verifyTokenResult);
+    console.log("Token Result", verifyTokenResult);
 
     let verificationToken = verifyTokenResult[0]?.token;
     const expirationDate = verifyTokenResult[0]?.expires_at;
