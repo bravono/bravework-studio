@@ -97,7 +97,13 @@ export async function POST(req: Request) {
     console.log(
       `Sending verification email to ${email} with token ${verificationToken}`
     );
-    await sendVerificationEmail(email, verificationToken, name);
+
+    try {
+      console.log("About to send verification email")
+      await sendVerificationEmail(email, verificationToken, name);
+    } catch (error) {
+      console.log("Failed to send verification email", error.message)
+    }
 
     return NextResponse.json(
       { message: "User created successfully!", newUserId },

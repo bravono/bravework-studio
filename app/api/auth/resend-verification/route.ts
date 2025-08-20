@@ -73,9 +73,13 @@ export async function POST(request: Request) {
       `Email: ${email}, Verification Token: ${verificationToken} Name: ${name}`
     );
 
-    console.log("About to send verification email...");
-    await sendVerificationEmail(email, verificationToken, name);
-    console.log("Verification email sent.");
+    try {
+      console.log("About to send verification email...");
+      await sendVerificationEmail(email, verificationToken, name);
+      console.log("Verification email sent.");
+    } catch (error) {
+      console.error("Failed to send custom offer email notification:", error);
+    }
 
     return NextResponse.json({
       message: "New verification email sent",

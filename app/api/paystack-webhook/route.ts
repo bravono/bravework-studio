@@ -443,7 +443,12 @@ export async function POST(req: NextRequest) {
       break;
   }
 
-  sendPaymentReceivedEmail(customerEmail, clientName, orderId);
+  try {
+    console.log("About to send payment received email");
+    sendPaymentReceivedEmail(customerEmail, clientName, orderId);
+  } catch (error) {
+    console.log("Couldn't send payment received email");
+  }
   // This tells Paystack you successfully received and acknowledged the webhook.
   return NextResponse.json(
     { message: "Webhook received successfully." },

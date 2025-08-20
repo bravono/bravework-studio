@@ -188,7 +188,13 @@ export async function POST(request: Request) {
       const userResult = existingUserResult.rows[0];
       const clientName = `${userResult.first_name} ${userResult.last_name}`;
       const userEmail = userResult.email;
-      sendOrderReceivedEmail(userEmail, clientName, newOrderId);
+
+      try {
+        console.log("About to send order received email")
+        await sendOrderReceivedEmail(userEmail, clientName, newOrderId);
+      } catch (error) {
+        console.log("Couldn't send order confirmation email")
+      }
 
       return NextResponse.json(newOrderId, { status: 201 });
     });
