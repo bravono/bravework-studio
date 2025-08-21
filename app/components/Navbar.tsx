@@ -128,13 +128,7 @@ export default function Navbar() {
                   {status === "authenticated" && session.user.name ? (
                     <>
                       <Link
-                        href={
-                          isAdmin
-                            ? "/admin/dashboard"
-                            : user
-                            ? "/user/dashboard"
-                            : "/dashboard"
-                        }
+                        href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                         className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => {
                           setIsMenuOpen(false);
