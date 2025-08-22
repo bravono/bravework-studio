@@ -28,10 +28,13 @@ const Hero3DComponent = dynamic(() => import("../components/Hero3D"), {
 
 // Array of taglines to cycle through
 const taglines = [
-  "Vitalizing Your Vision With 3D and Web Solutions.",
-  "Crafting Digital Experiences, One Pixel at a Time.",
-  "Bringing Your Ideas to Life in Three Dimensions.",
-  "Innovative Web Solutions for a Modern World.",
+  "blazing-fast web apps with Next.js, React, Node.js, and modern databases",
+  "stunning 3D product visualizations that sell your vision",
+  "authentic African-accent voice-overs that give your brand a bold identity",
+  "game-ready 3D assets and props that bring virtual worlds to life",
+  "sleek Mobile App MVPs that launch your idea fast and smart",
+  "lifelike 3D human characters with expert modeling and texturing",
+  "fast, engaging 3D explainer videos that captivate and convert",
 ];
 
 export default function Home() {
@@ -77,7 +80,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className={`text-lg sm:text-2xl lg:text-3xl font-semibold text-gray-200 mb-2 ${inter.className}`}
+              className={`text-lg sm:text-2xl lg:text-3xl font-semibold text-gray-200 mb-4 ${inter.className}`}
             >
               {`${session?.user?.name.split(" ")[0]}, welcome to`}
             </motion.h1>
@@ -91,6 +94,15 @@ export default function Home() {
             Bravework Studio
           </motion.h1>
 
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className={`mt-4 text-xl sm:text-2xl lg:text-3xl text-gray-300 max-w-2xl px-4 ${inter.className}`}
+          >
+            Your one-stop-shop to create
+          </motion.h1>
+
           {/* Animated tagline that cycles through the array */}
           <AnimatePresence mode="wait">
             <motion.p
@@ -99,11 +111,20 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className={`mt-4 text-xl sm:text-2xl lg:text-3xl text-gray-300 max-w-2xl px-4 ${inter.className}`}
+              className={`mt-4 text-xl sm:text-2xl lg:text-3xl text-transparent bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text max-w-2xl px-4 ${inter.className}`}
             >
               {taglines[currentTaglineIndex]}
             </motion.p>
           </AnimatePresence>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className={`mt-4 text-sm italic text-gray-300 max-w-2xl px-4 ${inter.className}`}
+          >
+            Flexible payment options with fair refunds and free revisions
+            included.
+          </motion.p>
 
           <div className="mt-12">
             <a
@@ -113,6 +134,57 @@ export default function Home() {
               Get Started
               <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
             </a>
+          </div>
+          {/* Freelance Platforms Order Options */}
+          <div className="mt-8 flex flex-col items-center">
+            <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <a
+                href="https://www.fiverr.com/ahbideenyusuf?public_mode=true"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="/assets/fiverr-icon.svg"
+                  alt="Fiverr"
+                  className="h-10 w-10"
+                />
+              </a>
+              <a
+                href="https://www.upwork.com/freelancers/~01e0fd25ba6d3353e8?mp_source=share"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="/assets/upwork-icon.svg"
+                  alt="Upwork"
+                  className="h-10 w-10"
+                />
+              </a>
+              <a
+                href="https://www.freelancer.com/u/ahbideenyusuf?sb=t"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="/assets/freelancer-icon.svg"
+                  alt="Freelancer.com"
+                  className="h-10 w-10"
+                />
+              </a>
+              <a
+                href="https://www.guru.com/freelancers/ahbideen-yusuf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 rounded-sm bg-white"
+              >
+                <img
+                  src="/assets/guru-icon.svg"
+                  alt="Guru"
+                  className="h-10 w-12"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -134,7 +206,7 @@ export default function Home() {
                 key={index}
                 className="bg-white rounded-3xl shadow-lg p-8 text-center transform transition duration-300 hover:scale-105 hover:shadow-2xl border border-gray-200"
               >
-                <div className="text-green-600 mb-4 inline-block p-4 rounded-full bg-green-100">
+                <div className="mb-4 inline-block p-4 rounded-full text-6xl">
                   {/* Assuming service.icon is a React component */}
                   {service.icon}
                 </div>
