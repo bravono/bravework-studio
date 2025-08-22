@@ -101,7 +101,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/services"
+                    href="/order"
                     className="hover:text-blue-500 transition-colors duration-200"
                   >
                     Services
@@ -109,7 +109,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/projects"
+                    href="/portfolio"
                     className="hover:text-blue-500 transition-colors duration-200"
                   >
                     Projects
@@ -151,10 +151,10 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/faq"
+                    href="/faqs"
                     className="hover:text-blue-500 transition-colors duration-200"
                   >
-                    FAQ
+                    FAQs
                   </Link>
                 </li>
               </ul>
@@ -238,6 +238,12 @@ export default function Footer() {
               className="hover:text-blue-500 transition-colors duration-200"
             >
               Refund Policy
+            </Link>
+            <Link
+              href="/faqs"
+              className="hover:text-blue-500 transition-colors duration-200"
+            >
+              FAQs
             </Link>
           </div>
         </div>

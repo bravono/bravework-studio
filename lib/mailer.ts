@@ -264,6 +264,13 @@ export async function sendCustomOfferNotificationEmail(
     <p style="font-size: 0.8em; color: #777;">(Note: Clicking these links will update the offer status. You may need to be logged in to your account.)</p>
     <p>We look forward to working with you!</p>
     <p>Thanks,<br/>The Bravework Studio Team</p>
+
+    <p style="margin-top: 30px; font-size: 0.9em; color: #888;">
+      Please review our 
+      <a href="${process.env.NEXTAUTH_URL}/privacy-policy" style="color: #008751;">Privacy Policy</a>, 
+      <a href="${process.env.NEXTAUTH_URL}/terms-of-service" style="color: #008751;">Terms of Service</a>, and 
+      <a href="${process.env.NEXTAUTH_URL}/refund-policy" style="color: #008751;">Refund Policy</a>.
+    </p>
   `;
   const textContent = `Hello ${userName},\n\nGreat news! We've created a new custom offer for you related to Order ID: ${orderId}.\n\nOffer Amount: $${offerAmount.toLocaleString()}\nDescription: ${offerDescription}\n\n${expiryText.replace(
     /<[^>]*>/g,
