@@ -143,10 +143,10 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/training"
+                    href="/courses"
                     className="hover:text-blue-500 transition-colors duration-200"
                   >
-                    Training
+                    Courses
                   </Link>
                 </li>
                 <li>

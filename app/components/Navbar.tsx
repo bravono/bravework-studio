@@ -43,22 +43,13 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out ${
-        isScrolled
-          ? "bg-white shadow-lg md:bg-white"
-          : "bg-transparent md:bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out bg-white shadow-lg md:bg-white`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <Image
-              src={isScrolled ? LogoColor : LogoWhite}
-              alt="BWS Logo"
-              width={70}
-              height={70}
-            />
+            <Image src={LogoColor} alt="BWS Logo" width={70} height={70} />
           </Link>
 
           {/* Desktop Menu */}
@@ -253,7 +244,7 @@ export default function Navbar() {
             {status === "authenticated" && session.user.name ? (
               <>
                 <Link
-                  href={isAdmin ? "/admin/dashboard" : "/dashboard"}
+                  href={isAdmin ? "/admin/dashboard" : "user/dashboard"}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsMenuOpen(false)}
                 >
