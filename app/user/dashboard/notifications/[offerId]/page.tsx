@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 
 import { CustomOffer } from "../../../../types/app";
-import RejectReasonModal from "../../offers/_components/RejectReasonModal";
-import Modal from "@/app/admin/dashboard/_components/Modal"; // Assuming a generic Modal component exists
+import RejectReasonModal from "../../_components/RejectReasonModal";
+import Modal from "@/app/components/Modal"; // Assuming a generic Modal component exists
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { getCurrency } from "@/lib/utils/getCurrency";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";

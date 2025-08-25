@@ -19,7 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Notification } from "../../../types/app";
-import RejectReasonModal from "../offers/_components/RejectReasonModal";
+import RejectReasonModal from "../_components/RejectReasonModal";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function NotificationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/user/notifications");
+      const res = await fetch("/api/user/coupons");
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to fetch notifications.");
@@ -65,7 +65,7 @@ export default function NotificationsPage() {
 
   const markNotificationAsRead = useCallback(async (notificationId: string) => {
     try {
-      const res = await fetch(`/api/user/notifications?id=${notificationId}`, {
+      const res = await fetch(`/api/user/coupons?id=${notificationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isRead: true }),

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Modal from '../../../../admin/dashboard/_components/Modal';
-import { XCircle, Send, X } from 'lucide-react';
+import React, { useState } from "react";
+import Modal from "../../../components/Modal";
+import { XCircle, Send, X } from "lucide-react";
 
 interface RejectReasonModalProps {
   onClose: () => void;
@@ -10,15 +10,19 @@ interface RejectReasonModalProps {
   isLoading: boolean;
 }
 
-export default function RejectReasonModal({ onClose, onConfirm, isLoading }: RejectReasonModalProps) {
-  const [reason, setReason] = useState('');
+export default function RejectReasonModal({
+  onClose,
+  onConfirm,
+  isLoading,
+}: RejectReasonModalProps) {
+  const [reason, setReason] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (reason.trim()) {
       onConfirm(reason.trim());
     } else {
-      alert('Please provide a reason for rejection.');
+      alert("Please provide a reason for rejection.");
     }
   };
 
@@ -30,13 +34,20 @@ export default function RejectReasonModal({ onClose, onConfirm, isLoading }: Rej
             <XCircle className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Reason for Rejection</h2>
-            <p className="text-sm text-gray-500">Provide a reason to help the sender improve their offers.</p>
+            <h2 className="text-xl font-bold text-gray-900">
+              Reason for Rejection
+            </h2>
+            <p className="text-sm text-gray-500">
+              Provide a reason to help the sender improve their offers.
+            </p>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col">
-            <label htmlFor="rejectionReason" className="text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="rejectionReason"
+              className="text-sm font-medium text-gray-700 mb-2"
+            >
               Please tell us why you are rejecting this offer:
             </label>
             <textarea
@@ -65,7 +76,7 @@ export default function RejectReasonModal({ onClose, onConfirm, isLoading }: Rej
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
-              {isLoading ? 'Submitting...' : 'Submit Rejection'}
+              {isLoading ? "Submitting..." : "Submit Rejection"}
             </button>
           </div>
         </form>

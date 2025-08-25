@@ -5,55 +5,6 @@ import { verifyUser } from "@/lib/auth/user-auth-guard";
 
 export const runtime = "nodejs";
 
-// export async function GET(
-//   request: Request,
-//   { params }: { params: { offerId: string; action: string } }
-// ) {
-//   const { offerId, action } = params;
-//   const url = new URL(request.url);
-//   const token = url.searchParams.get("token");
-
-//   // Validate token and offer
-//   const tokenResult = await queryDatabase(
-//     "SELECT * FROM secure_tokens WHERE offer_id = $1",
-//     [offerId]
-//   );
-//   if (tokenResult[0].length === 0) {
-//     return NextResponse.json({ error: "Offer not found" }, { status: 404 });
-//   }
-
-//   const acceptToken = tokenResult[0].token;
-//   const rejectToken = tokenResult[0].token;
-
-//   const expectedToken =
-//     action === "accept"
-//       ? acceptToken
-//       : action === "reject"
-//       ? rejectToken
-//       : null;
-
-//   if (!expectedToken || token !== expectedToken) {
-//     return NextResponse.json(
-//       { error: "Invalid or expired token" },
-//       { status: 400 }
-//     );
-//   }
-
-//   const statusIdResult = await queryDatabase(
-//     `SELECT offer_status_id FROM custom_offer_statuses WHERE name = ${action}`
-//   );
-//   const statusId = statusIdResult[0].offer_status_id;
-
-//   await queryDatabase(
-//     `UPDATE custom_offers co SET status_id (${statusId}) WHERE co.offer_id = ${offerId} RETURNING user_id, description`
-//   );
-
-//   // Redirect to confirmation page
-//   return NextResponse.redirect(
-//     `${process.env.NEXTAUTH_URL}/offer-${action}-confirmation`
-//   );
-// }
-
 export async function POST(
   request: Request,
   { params }: { params: { offerId: string; action: string } }
