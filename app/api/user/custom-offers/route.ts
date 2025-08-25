@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/auth-options";
 import { queryDatabase } from "@/lib/db";
 import { verifyUser } from "@/lib/auth/user-auth-guard";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
