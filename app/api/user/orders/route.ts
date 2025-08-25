@@ -4,7 +4,6 @@ import { createTrackingId } from "../../../../lib/utils/tracking";
 import { sendOrderReceivedEmail } from "lib/mailer";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
-4;
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
