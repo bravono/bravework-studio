@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -81,7 +81,7 @@ const Pagination = ({
   );
 };
 
-export default function DashboardPage() {
+function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -916,4 +916,12 @@ export default function DashboardPage() {
     }
   };
   return renderContent();
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense>
+      <Page />
+    </Suspense>
+  );
 }
