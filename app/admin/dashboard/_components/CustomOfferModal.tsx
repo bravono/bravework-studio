@@ -2,10 +2,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Modal from "./Modal"; // Import the generic Modal component
 import { toast } from "react-toastify";
 import { Order, CustomOffer } from "../../../types/app"; // Adjust the import path as necessary
 import { DollarSign, Clock, FileText, Calendar } from "lucide-react";
+import Modal from "@/app/components/Modal";
+
 
 interface CustomOfferModalProps {
   order: Order; // The order for which to create the offer

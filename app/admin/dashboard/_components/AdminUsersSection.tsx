@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import AssignRoleModal from "./AssignRoleModal";
 import { User } from "../../../types/app";
 import { UserPlus, Tag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
-import Modal from "./Modal"
+import Modal from "@/app/components/Modal";
 
 
 // Reusable Loading Spinner component

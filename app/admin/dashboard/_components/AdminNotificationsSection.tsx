@@ -14,7 +14,8 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { Notification, Order } from "@/app/types/app";
-import Modal from "./Modal";
+import Modal from "@/app/components/Modal";
+
 
 // Reusable Loading Spinner component
 const LoadingSpinner = () => (
@@ -121,7 +122,9 @@ const NotificationDetailModal = ({ notification, onClose }) => {
           <p>
             <strong>Offer Amount:</strong>{" "}
             <span className="font-bold text-green-700">
-              ₦{(notification.offerAmount / 100).toLocaleString() || notification.budget}
+              ₦
+              {(notification.offerAmount / 100).toLocaleString() ||
+                notification.budget}
             </span>
           </p>
           <p>

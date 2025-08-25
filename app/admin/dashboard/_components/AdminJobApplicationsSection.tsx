@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { toast } from 'react-toastify';
-import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, FileText, ArrowRightCircle } from 'lucide-react';
-import Modal from "./Modal"
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  ArrowRightCircle,
+} from "lucide-react";
+import Modal from "@/app/components/Modal";
 
 // Re-import types (or import from a shared types file)
 interface JobApplication {
@@ -12,7 +17,7 @@ interface JobApplication {
   applicantName: string;
   applicantEmail: string;
   roleApplied: string;
-  status: 'Pending' | 'Reviewed' | 'Interviewing' | 'Rejected' | 'Hired';
+  status: "Pending" | "Reviewed" | "Interviewing" | "Rejected" | "Hired";
   appliedDate: string;
   resumeUrl?: string;
   coverLetter?: string;
@@ -59,7 +64,11 @@ const CustomModal = ({
               onClose();
             }}
             className={`px-6 py-2 rounded-lg font-bold text-white transition-colors
-              ${isConfirm ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+              ${
+                isConfirm
+                  ? "bg-blue-500 hover:bg-blue-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
           >
             {isConfirm ? confirmText : "OK"}
           </button>
@@ -73,31 +82,39 @@ export default function AdminJobApplicationsSection() {
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterRole, setFilterRole] = useState<string>(''); // State for role filter
-  
+  const [filterRole, setFilterRole] = useState<string>(""); // State for role filter
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [applicationsPerPage] = useState(10);
 
   // Modal state for confirmations
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmModalContent, setConfirmModalContent] = useState({ title: '', message: '', onConfirm: () => {} });
+  const [confirmModalContent, setConfirmModalContent] = useState({
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const fetchJobApplications = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/jobs${filterRole ? `?role=${filterRole}` : ''}`);
+      const res = await fetch(
+        `/api/admin/jobs${filterRole ? `?role=${filterRole}` : ""}`
+      );
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to fetch job applications.');
+        throw new Error(errorData.error || "Failed to fetch job applications.");
       }
       const data: JobApplication[] = await res.json();
       setJobApplications(data);
     } catch (err: any) {
       console.error("Error fetching job applications:", err);
       setError(err.message || "Failed to load job applications.");
-      toast.error('Failed to load job applications: ' + (err.message || 'Unknown error.'));
+      toast.error(
+        "Failed to load job applications: " + (err.message || "Unknown error.")
+      );
     } finally {
       setLoading(false);
     }
@@ -107,31 +124,41 @@ export default function AdminJobApplicationsSection() {
     fetchJobApplications();
   }, [fetchJobApplications]);
 
-  const handleUpdateApplicationStatus = (app: JobApplication, newStatus: JobApplication['status']) => {
+  const handleUpdateApplicationStatus = (
+    app: JobApplication,
+    newStatus: JobApplication["status"]
+  ) => {
     setConfirmModalContent({
-      title: 'Confirm Status Change',
+      title: "Confirm Status Change",
       message: `Are you sure you want to change the status of the application from ${app.applicantName} to "${newStatus}"?`,
       onConfirm: async () => {
         setLoading(true);
         try {
-          const res = await fetch(`/api/admin/job-applications/${app.id}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus }),
-          });
+          const res = await fetch(
+            `/api/admin/job-applications/${app.id}/status`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: newStatus }),
+            }
+          );
           if (!res.ok) {
             const errorData = await res.json();
-            throw new Error(errorData.error || 'Failed to update application status.');
+            throw new Error(
+              errorData.error || "Failed to update application status."
+            );
           }
-          toast.success('Application status updated successfully!');
+          toast.success("Application status updated successfully!");
           fetchJobApplications(); // Re-fetch applications
         } catch (err: any) {
           console.error("Error updating application status:", err);
-          toast.error('Error updating status: ' + (err.message || 'Unknown error.'));
+          toast.error(
+            "Error updating status: " + (err.message || "Unknown error.")
+          );
         } finally {
           setLoading(false);
         }
-      }
+      },
     });
     setIsConfirmModalOpen(true);
   };
@@ -139,7 +166,11 @@ export default function AdminJobApplicationsSection() {
   // Pagination logic
   const indexOfLastApplication = currentPage * applicationsPerPage;
   const indexOfFirstApplication = indexOfLastApplication - applicationsPerPage;
-  const currentApplications = useMemo(() => jobApplications.slice(indexOfFirstApplication, indexOfLastApplication), [jobApplications, indexOfFirstApplication, indexOfLastApplication]);
+  const currentApplications = useMemo(
+    () =>
+      jobApplications.slice(indexOfFirstApplication, indexOfLastApplication),
+    [jobApplications, indexOfFirstApplication, indexOfLastApplication]
+  );
   const totalPages = Math.ceil(jobApplications.length / applicationsPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -150,7 +181,7 @@ export default function AdminJobApplicationsSection() {
     for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push(i);
     }
-    
+
     return (
       <nav className="flex justify-center mt-6">
         <ul className="flex items-center space-x-2">
@@ -163,14 +194,14 @@ export default function AdminJobApplicationsSection() {
               <ChevronLeft size={16} />
             </button>
           </li>
-          {pageNumbers.map(number => (
+          {pageNumbers.map((number) => (
             <li key={number}>
               <button
                 onClick={() => paginate(number)}
                 className={`px-3 py-1 rounded-md font-medium transition-colors ${
                   currentPage === number
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {number}
@@ -192,17 +223,24 @@ export default function AdminJobApplicationsSection() {
   };
 
   const statusColors = {
-    'Pending': 'bg-yellow-100 text-yellow-800',
-    'Reviewed': 'bg-blue-100 text-blue-800',
-    'Interviewing': 'bg-purple-100 text-purple-800',
-    'Rejected': 'bg-red-100 text-red-800',
-    'Hired': 'bg-green-100 text-green-800',
+    Pending: "bg-yellow-100 text-yellow-800",
+    Reviewed: "bg-blue-100 text-blue-800",
+    Interviewing: "bg-purple-100 text-purple-800",
+    Rejected: "bg-red-100 text-red-800",
+    Hired: "bg-green-100 text-green-800",
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg font-medium">Error: {error}</div>;
+  if (error)
+    return (
+      <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg font-medium">
+        Error: {error}
+      </div>
+    );
 
-  const uniqueRoles = Array.from(new Set(jobApplications.map(app => app.roleApplied)));
+  const uniqueRoles = Array.from(
+    new Set(jobApplications.map((app) => app.roleApplied))
+  );
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -212,9 +250,16 @@ export default function AdminJobApplicationsSection() {
         </h2>
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-gray-800">All Applications</h3>
+            <h3 className="text-xl font-bold text-gray-800">
+              All Applications
+            </h3>
             <div className="filter-controls flex items-center space-x-2">
-              <label htmlFor="roleFilter" className="text-gray-700 font-medium text-sm">Filter by Role:</label>
+              <label
+                htmlFor="roleFilter"
+                className="text-gray-700 font-medium text-sm"
+              >
+                Filter by Role:
+              </label>
               <select
                 id="roleFilter"
                 className="select-filter px-3 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -225,8 +270,10 @@ export default function AdminJobApplicationsSection() {
                 }}
               >
                 <option value="">All Roles</option>
-                {uniqueRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
+                {uniqueRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
                 ))}
               </select>
             </div>
@@ -236,25 +283,56 @@ export default function AdminJobApplicationsSection() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Applicant</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role Applied</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Applied Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Applicant
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Role Applied
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Applied Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentApplications.map(app => (
-                    <tr key={app.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{app.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{app.applicantName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{app.applicantEmail}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{app.roleApplied}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{format(new Date(app.appliedDate), 'MMM dd, yyyy')}</td>
+                  {currentApplications.map((app) => (
+                    <tr
+                      key={app.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {app.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {app.applicantName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {app.applicantEmail}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {app.roleApplied}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {format(new Date(app.appliedDate), "MMM dd, yyyy")}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[app.status]}`}>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            statusColors[app.status]
+                          }`}
+                        >
                           {app.status}
                         </span>
                       </td>
@@ -273,7 +351,12 @@ export default function AdminJobApplicationsSection() {
                           )}
                           <select
                             value={app.status}
-                            onChange={(e) => handleUpdateApplicationStatus(app, e.target.value as JobApplication['status'])}
+                            onChange={(e) =>
+                              handleUpdateApplicationStatus(
+                                app,
+                                e.target.value as JobApplication["status"]
+                              )
+                            }
                             className="px-2 py-1 text-xs rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                           >
                             <option value="Pending">Pending</option>
@@ -290,7 +373,9 @@ export default function AdminJobApplicationsSection() {
               </table>
             </div>
           ) : (
-            <p className="p-4 text-center text-gray-500">No job applications found.</p>
+            <p className="p-4 text-center text-gray-500">
+              No job applications found.
+            </p>
           )}
           {renderPaginationButtons()}
         </div>

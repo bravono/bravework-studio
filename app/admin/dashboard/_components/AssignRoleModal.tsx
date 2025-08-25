@@ -1,10 +1,11 @@
 // app/admin/dashboard/_components/AssignRoleModal.tsx
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Modal from './Modal';
-import { toast } from 'react-toastify';
-import { User, UserCheck } from 'lucide-react';
+import React, { useState } from "react";
+import { toast } from "react-toastify";
+import { User, UserCheck } from "lucide-react";
+import Modal from "@/app/components/Modal";
+
 
 // Re-import types
 interface User {
@@ -20,13 +21,17 @@ interface AssignRoleModalProps {
   onSave: () => void;
 }
 
-export default function AssignRoleModal({ user, onClose, onSave }: AssignRoleModalProps) {
+export default function AssignRoleModal({
+  user,
+  onClose,
+  onSave,
+}: AssignRoleModalProps) {
   const [selectedRole, setSelectedRole] = useState<string>(user.role);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Define available roles (customize as per your application's roles)
-  const availableRoles = ['user', 'client', 'student', 'editor', 'admin'];
+  const availableRoles = ["user", "client", "student", "editor", "admin"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,35 +39,49 @@ export default function AssignRoleModal({ user, onClose, onSave }: AssignRoleMod
     setError(null);
 
     try {
-      const res = await fetch(`/api/admin/users/${user.id}/role`, { // NEW API ROUTE (PATCH)
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`/api/admin/users/${user.id}/role`, {
+        // NEW API ROUTE (PATCH)
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole }),
       });
 
-      if (!res.ok) throw new Error('Failed to assign role.');
+      if (!res.ok) throw new Error("Failed to assign role.");
 
-      toast.success(`Role for ${user.fullName} updated to ${selectedRole} successfully!`);
+      toast.success(
+        `Role for ${user.fullName} updated to ${selectedRole} successfully!`
+      );
       onSave(); // Trigger data re-fetch in parent
       onClose(); // Close the modal
     } catch (err: any) {
       console.error("Error assigning role:", err);
       setError(err.message || "Failed to assign role.");
-      toast.error('Error assigning role: ' + (err.message || 'Unknown error.'));
+      toast.error("Error assigning role: " + (err.message || "Unknown error."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={`Assign Role to ${user.fullName}`}>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={`Assign Role to ${user.fullName}`}
+    >
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <div className="flex items-center space-x-3 text-gray-700">
           <User className="h-5 w-5 text-gray-500" />
-          <span><strong>User:</strong> {user.email}</span>
+          <span>
+            <strong>User:</strong> {user.email}
+          </span>
         </div>
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Select Role</label>
+          <label
+            htmlFor="role"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Select Role
+          </label>
           <select
             id="role"
             value={selectedRole}
@@ -70,8 +89,10 @@ export default function AssignRoleModal({ user, onClose, onSave }: AssignRoleMod
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             required
           >
-            {availableRoles.map(role => (
-              <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+            {availableRoles.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
             ))}
           </select>
         </div>

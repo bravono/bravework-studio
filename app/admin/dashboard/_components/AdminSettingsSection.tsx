@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { Key, User, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { Key, User, ExternalLink } from "lucide-react";
 
 // Assuming the new Modal component is imported from its location
-import Modal from './Modal'; // Adjust the import path as needed
+import Modal from "@/app/components/Modal";
+
 
 // Define the type for the admin profile data
 interface AdminProfile {
@@ -18,7 +19,7 @@ export default function AdminSettingsSection() {
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
+  const [modalTitle, setModalTitle] = useState("");
   const [modalChildren, setModalChildren] = useState<React.ReactNode>(null);
 
   // Simulate fetching admin profile data
@@ -40,11 +41,12 @@ export default function AdminSettingsSection() {
   }, []);
 
   const handleChangePassword = () => {
-    setModalTitle('Change Password');
+    setModalTitle("Change Password");
     setModalChildren(
       <>
         <p className="text-gray-600 mb-6">
-          This feature is currently under development. You will be able to change your password from here soon.
+          This feature is currently under development. You will be able to
+          change your password from here soon.
         </p>
         <div className="flex justify-end">
           <button
@@ -83,10 +85,15 @@ export default function AdminSettingsSection() {
           Admin Settings
         </h2>
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Profile Information</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            Profile Information
+          </h3>
           <div className="flex items-center space-x-6 mb-8">
             <img
-              src={adminProfile.profileImage || "https://placehold.co/100x100/A5B4FC/3730A3?text=A"}
+              src={
+                adminProfile.profileImage ||
+                "https://placehold.co/100x100/A5B4FC/3730A3?text=A"
+              }
               alt="Profile"
               width={100}
               height={100}
@@ -96,10 +103,11 @@ export default function AdminSettingsSection() {
               <span className="text-xl font-bold text-gray-900">
                 {adminProfile.fullName}
               </span>
-              <span className="text-gray-600">
-                {adminProfile.email}
-              </span>
-              <a href="/profile" className="text-indigo-500 hover:text-indigo-600 font-semibold mt-2 flex items-center space-x-1 transition-colors">
+              <span className="text-gray-600">{adminProfile.email}</span>
+              <a
+                href="/profile"
+                className="text-indigo-500 hover:text-indigo-600 font-semibold mt-2 flex items-center space-x-1 transition-colors"
+              >
                 <span>Edit Profile</span>
                 <ExternalLink size={16} />
               </a>
