@@ -30,6 +30,7 @@ import { fetchExchangeRates } from "@/lib/utils/fetchExchangeRate";
 import { ExchangeRates } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 import Loader from "@/app/components/Loader";
+import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 
 // Status badge component for consistent styling
 const StatusBadge = ({ status }: { status: string }) => {
@@ -96,7 +97,7 @@ export default function CustomerOfferDetailsPage() {
   const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
   const [isAcceptConfirmationModalOpen, setIsAcceptConfirmationModalOpen] =
     useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("NGN");
+  const {selectedCurrency, updateSelectedCurrency} = useSelectedCurrency();
 
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
     null
@@ -289,7 +290,7 @@ export default function CustomerOfferDetailsPage() {
             {["NGN", "USD", "GBP", "EUR"].map((currency) => (
               <button
                 key={currency}
-                onClick={() => setSelectedCurrency(currency)}
+                onClick={() => updateSelectedCurrency(currency as any)}
                 className={cn(
                   "py-3 px-2 rounded-xl text-sm font-semibold transition-all duration-200",
                   selectedCurrency === currency

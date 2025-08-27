@@ -10,6 +10,7 @@ import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { ExchangeRates } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn"; // Assuming this utility exists
+import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
@@ -27,7 +28,7 @@ function PaymentContent() {
   );
   const [serviceName, setServiceName] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
-  const [selectedCurrency, setSelectedCurrency] = useState("NGN");
+  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const [convertedAmountToPay, setConvertedAmountToPay] = useState<
     number | null
   >(null);
@@ -452,7 +453,7 @@ function PaymentContent() {
               {["NGN", "USD", "GBP", "EUR"].map((currency) => (
                 <button
                   key={currency}
-                  onClick={() => setSelectedCurrency(currency)}
+                  onClick={() => updateSelectedCurrency(currency as any)}
                   className={cn(
                     "py-3 px-2 rounded-xl text-sm font-semibold transition-all duration-200",
                     selectedCurrency === currency

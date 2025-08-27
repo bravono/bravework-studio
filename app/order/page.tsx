@@ -11,6 +11,7 @@ import { fetchExchangeRates } from "lib/utils/fetchExchangeRate";
 import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { ExchangeRates } from "app/types/app";
+import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 
 // Import the icons we will use as inline SVG.
 // This is an example of a simple SVG icon for a forward arrow.
@@ -109,7 +110,7 @@ function Page() {
     { fileName: string; fileSize: string; fileUrl: string }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const {selectedCurrency, updateSelectedCurrency} = useSelectedCurrency();
   const [ratesLoading, setRatesLoading] = useState(true);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
     null
@@ -154,6 +155,12 @@ function Page() {
     };
     getRates();
   }, []);
+
+  const CurrencyDisplay = () => {
+    const { selectedCurrency } = useSelectedCurrency();
+    return <p>Current Selected Currency: {selectedCurrency}</p>;
+  };
+
 
   const getSelectedService = useCallback(() => {
     return productCategories.find(
@@ -506,7 +513,7 @@ function Page() {
                     <button
                       key={currency}
                       type="button"
-                      onClick={() => setSelectedCurrency(currency)}
+                      onClick={() => updateSelectedCurrency(currency as any)}
                       className={`py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200
                                 ${
                                   selectedCurrency === currency
