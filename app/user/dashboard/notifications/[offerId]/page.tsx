@@ -24,13 +24,13 @@ import { CustomOffer } from "../../../../types/app";
 import RejectReasonModal from "../../_components/RejectReasonModal";
 import Modal from "@/app/components/Modal"; // Assuming a generic Modal component exists
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { getCurrency } from "@/lib/utils/getCurrency";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-import { fetchExchangeRates } from "@/lib/utils/fetchExchangeRate";
-import { ExchangeRates } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 import Loader from "@/app/components/Loader";
+
+// Custom Hooks
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+import useExchangeRates from "@/hooks/useExchangeRates";
 
 // Status badge component for consistent styling
 const StatusBadge = ({ status }: { status: string }) => {
@@ -88,7 +88,9 @@ export default function CustomerOfferDetailsPage() {
   const params = useParams();
   const offerId = params.offerId as string;
   const { data: session, status: sessionStatus } = useSession();
-  const KOBO_PER_NAIRA = 100; //  NGN = 100 Kobo
+  const KOBO_PER_NAIRA = 100;
+
+  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
 
   const [offer, setOffer] = useState<CustomOffer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,13 +99,7 @@ export default function CustomerOfferDetailsPage() {
   const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
   const [isAcceptConfirmationModalOpen, setIsAcceptConfirmationModalOpen] =
     useState(false);
-  const {selectedCurrency, updateSelectedCurrency} = useSelectedCurrency();
-
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
-    null
-  );
-  const [ratesLoading, setRatesLoading] = useState(true);
-  const [ratesError, setRatesError] = useState<string | null>(null);
+  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
 
   const fetchOfferDetails = useCallback(async () => {
     if (sessionStatus !== "authenticated" || !offerId) return;
@@ -137,24 +133,6 @@ export default function CustomerOfferDetailsPage() {
       router.push("/auth/login?error=unauthenticated");
     }
   }, [sessionStatus, fetchOfferDetails, router]);
-
-  // Effect to fetch exchange rates
-  useEffect(() => {
-    const getRates = async () => {
-      setRatesLoading(true);
-      try {
-        const rates = await fetchExchangeRates();
-        setExchangeRates(rates);
-        setRatesError(null);
-      } catch (err) {
-        console.error("Error fetching exchange rates:", err);
-        setRatesError("Failed to load exchange rates.");
-      } finally {
-        setRatesLoading(false);
-      }
-    };
-    getRates();
-  }, []);
 
   // Function to handle the actual API call for offer action
   const performOfferAction = useCallback(

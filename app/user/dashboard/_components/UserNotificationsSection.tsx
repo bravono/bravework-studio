@@ -21,10 +21,21 @@ import {
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../_components/RejectReasonModal";
 
+import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
+import { convertCurrency } from "@/lib/utils/convertCurrency";
+
+// Custom Hooks
+import useExchangeRates from "@/hooks/useExchangeRates";
+import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+
 export default function NotificationsPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
-  const KOBO_PER_NAIRA = 100; 
+  const KOBO_PER_NAIRA = 100;
+  const DOLLAR_PER_NAIRA = 0.00065;
+
+  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
+  const { exchangeRates } = useExchangeRates();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,7 +260,7 @@ export default function NotificationsPage() {
             </div>
           </div>
           <Link
-            href="/user/dashboard"
+            href="/user/dashboard?tab=overview"
             className="mt-4 sm:mt-0 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />
@@ -329,10 +340,13 @@ export default function NotificationsPage() {
                           <Wallet className="w-4 h-4 text-gray-500" />
                           <strong>Amount:</strong>{" "}
                           <span className="text-gray-900 font-bold">
-                            ₦
-                            {(
-                              notification.offerAmount / KOBO_PER_NAIRA
-                            ).toLocaleString() || "N/A"}
+                            {getCurrencySymbol(selectedCurrency)}
+                            {convertCurrency(
+                              (notification.offerAmount / KOBO_PER_NAIRA) *
+                                DOLLAR_PER_NAIRA,
+                              exchangeRates?.[selectedCurrency],
+                              getCurrencySymbol(selectedCurrency)
+                            ).toLocaleString()}
                           </span>
                         </p>
                         <span
@@ -414,8 +428,8 @@ export default function NotificationsPage() {
                       {notification.link && (
                         <Link
                           href={{
-                          pathname: "/user/dashboard",
-                          query: { tab: "custom-offers" },
+                            pathname: "/user/dashboard",
+                            query: { tab: "custom-offers" },
                           }}
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
                         >

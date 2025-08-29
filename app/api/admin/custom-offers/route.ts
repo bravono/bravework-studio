@@ -4,6 +4,7 @@ import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
 import { sendCustomOfferNotificationEmail } from "../../../../lib/mailer";
 
 export const runtime = "nodejs";
+const DOLLAR_PER_NAIRA = 0.00065;
 
 export async function GET(request: Request) {
   try {
@@ -192,7 +193,10 @@ export async function POST(request: Request) {
         const notificationTitle = "New Custom Offer Available!";
         const notificationMessage = `You have received a new custom offer for Order ID ${
           newOffer.orderId
-        }. Amount: NGN${(newOffer.offerAmount / kobo).toLocaleString()}. ${
+        }. Amount: $${(
+          (newOffer.offerAmount / kobo) *
+          DOLLAR_PER_NAIRA
+        ).toLocaleString()}. ${
           newOffer.expiresAt
             ? `Expires: ${new Date(newOffer.expiresAt).toLocaleString()}`
             : ""

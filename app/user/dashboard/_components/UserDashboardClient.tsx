@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -24,7 +24,7 @@ import {
   User,
   HeartHandshake,
 } from "lucide-react";
-import { toast } from "react-toastify"; // Using react-toastify as it was already imported in other files
+import { toast } from "react-toastify";
 
 import {
   Order,
@@ -34,15 +34,19 @@ import {
   Notification,
   CustomOffer,
 } from "app/types/app";
-// The existing dashboard.css import is commented out to use Tailwind for consistent styling
-// import "../../css/dashboard.css";
+
+import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 
 // Importing page sections as components
 import UserCustomOffersSection from "./UserCustomOfferSection";
 import UserInvoicesSection from "./UserInvoicesSection";
 import UserNotificationsSection from "./UserNotificationsSection";
 import UserOrdersSection from "./UserOrdersSection";
-import { getTime } from "date-fns";
+
+// Custom Hooks
+import useExchangeRates from "@/hooks/useExchangeRates";
+import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 
 // Generic Pagination component
 interface PaginationProps {
@@ -84,6 +88,7 @@ const Pagination = ({
 function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const DOLLAR_PER_NAIRA = 0.00065;
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -93,6 +98,8 @@ function Page() {
   }, [searchParams]);
   const { data: session, status } = useSession();
 
+  const { exchangeRates } = useExchangeRates();
+  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
 
   // State for user profile data (initially empty or from session if available)
@@ -158,7 +165,6 @@ function Page() {
       if (!offerRes.ok) throw new Error("Failed to fetch custom offers");
       const offerData: CustomOffer[] = await offerRes.json();
       setOffers(offerData);
-      console.log("Custom offers fetched:", offerData);
 
       // // 3. Fetch Courses
       // const coursesRes = await fetch("/api/user/courses"); // Create this API route
@@ -377,10 +383,16 @@ function Page() {
                           Courses in Progress
                         </span>
                       </div>
+
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <div className="flex items-center justify-between">
                           <span className="text-3xl font-bold text-green-700">
-                            ₦{totalSpent.toLocaleString()}
+                            {getCurrencySymbol(selectedCurrency)}
+                            {convertCurrency(
+                              totalSpent,
+                              exchangeRates?.[selectedCurrency],
+                              getCurrencySymbol(selectedCurrency)
+                            ).toLocaleString()}
                           </span>
                           <BadgeDollarSign
                             size={28}
@@ -442,9 +454,12 @@ function Page() {
                                 {order.statusName}
                               </span>
                               <span className="font-bold text-gray-800">
-                                ₦
-                                {(
-                                  order.amount / KOBO_PER_NAIRA
+                                {getCurrencySymbol(selectedCurrency)}
+                                {convertCurrency(
+                                  (order.amount / KOBO_PER_NAIRA) *
+                                    DOLLAR_PER_NAIRA,
+                                  exchangeRates?.[selectedCurrency],
+                                  getCurrencySymbol(selectedCurrency)
                                 ).toLocaleString()}
                               </span>
                               {(order.statusName === "paid" ||
@@ -527,9 +542,12 @@ function Page() {
                                 {offer.status}
                               </span>
                               <span className="font-bold text-gray-800">
-                                ₦
-                                {(
-                                  offer.offerAmount / KOBO_PER_NAIRA
+                                {getCurrencySymbol(selectedCurrency)}
+                                {convertCurrency(
+                                  (offer.offerAmount / KOBO_PER_NAIRA) *
+                                    DOLLAR_PER_NAIRA,
+                                  exchangeRates?.[selectedCurrency],
+                                  getCurrencySymbol(selectedCurrency)
                                 ).toLocaleString()}
                               </span>
                               {(offer.status === "accepted" ||

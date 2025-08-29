@@ -5,12 +5,13 @@ import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
-import { fetchExchangeRates } from "@/lib/utils/fetchExchangeRate";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { ExchangeRates } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn"; // Assuming this utility exists
+
+// Hooks
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+import useExchangeRates from "@/hooks/useExchangeRates";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
@@ -23,6 +24,7 @@ function PaymentContent() {
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
 
+  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
   const [offerAmountInKobo, setOfferAmountInKobo] = useState<number | null>(
     null
   );
@@ -37,11 +39,6 @@ function PaymentContent() {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [PaystackPop, setPaystackPop] = useState<any>(null);
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
-    null
-  );
-  const [ratesLoading, setRatesLoading] = useState(true);
-  const [ratesError, setRatesError] = useState<string | null>(null);
   const [offerLoading, setOfferLoading] = useState(true);
   const [offerError, setOfferError] = useState<string | null>(null);
 
@@ -132,24 +129,6 @@ function PaymentContent() {
       fetchOfferDetails();
     }
   }, [offerId, session?.user?.id]);
-
-  // Effect to fetch exchange rates
-  useEffect(() => {
-    const getRates = async () => {
-      setRatesLoading(true);
-      try {
-        const rates = await fetchExchangeRates();
-        setExchangeRates(rates);
-        setRatesError(null);
-      } catch (err) {
-        console.error("Error fetching exchange rates:", err);
-        setRatesError("Failed to load exchange rates.");
-      } finally {
-        setRatesLoading(false);
-      }
-    };
-    getRates();
-  }, []);
 
   // Effect to convert amount when final amount in kobo or selectedCurrency changes
   useEffect(() => {

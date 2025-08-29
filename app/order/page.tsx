@@ -7,11 +7,14 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import FilesToUpload from "../components/FilesToUpload";
-import { fetchExchangeRates } from "lib/utils/fetchExchangeRate";
 import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { ExchangeRates } from "app/types/app";
+import { currencies } from "@/lib/utils/currencies";
+
+// Hooks
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+import useExchangeRates from "@/hooks/useExchangeRates";
+import CurrencySelector from "../components/CurrencySelector";
 
 // Import the icons we will use as inline SVG.
 // This is an example of a simple SVG icon for a forward arrow.
@@ -74,7 +77,6 @@ const Spinner = () => (
   </svg>
 );
 
-// Define a type for a product category as it will be fetched from the API
 interface ProductCategory {
   category_id: number;
   category_name: string;
@@ -89,6 +91,7 @@ function Page() {
   const { data: session } = useSession();
   const user = session?.user;
 
+  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState("");
@@ -110,13 +113,8 @@ function Page() {
     { fileName: string; fileSize: string; fileUrl: string }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
-  const {selectedCurrency, updateSelectedCurrency} = useSelectedCurrency();
-  const [ratesLoading, setRatesLoading] = useState(true);
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
-    null
-  );
+  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const searchParams = useSearchParams();
-  const currencies = ["NGN", "USD", "GBP", "EUR"];
 
   // Get the service from URL parameters and fetch categories
   useEffect(() => {
@@ -138,29 +136,6 @@ function Page() {
     };
     fetchCategories();
   }, []);
-
-  // Effect to fetch exchange rates
-  useEffect(() => {
-    const getRates = async () => {
-      setRatesLoading(true);
-      try {
-        const rates = await fetchExchangeRates();
-        setExchangeRates(rates);
-      } catch (err) {
-        console.error("Error fetching exchange rates:", err);
-        toast.error("Failed to load exchange rates.");
-      } finally {
-        setRatesLoading(false);
-      }
-    };
-    getRates();
-  }, []);
-
-  const CurrencyDisplay = () => {
-    const { selectedCurrency } = useSelectedCurrency();
-    return <p>Current Selected Currency: {selectedCurrency}</p>;
-  };
-
 
   const getSelectedService = useCallback(() => {
     return productCategories.find(
@@ -508,23 +483,10 @@ function Page() {
                 <p className="text-sm font-medium text-gray-700 mb-2">
                   Select Currency
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {currencies.map((currency) => (
-                    <button
-                      key={currency}
-                      type="button"
-                      onClick={() => updateSelectedCurrency(currency as any)}
-                      className={`py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200
-                                ${
-                                  selectedCurrency === currency
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
-                                }`}
-                    >
-                      {currency} - {getCurrencySymbol(currency)}
-                    </button>
-                  ))}
-                </div>
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onSelect={(currency) => updateSelectedCurrency(currency)}
+                />
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>

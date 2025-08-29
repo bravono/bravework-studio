@@ -1,4 +1,4 @@
-import { getCurrency } from "lib/utils/getCurrency";
+import { getCurrency } from "@/lib/utils/getCurrencyRate";
 
 export async function fetchExchangeRates() {
   try {
