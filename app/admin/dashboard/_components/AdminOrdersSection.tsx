@@ -13,7 +13,7 @@ import Pagination from "../../../components/Pagination";
 // These modal components are assumed to exist and are kept as is.
 import CustomOfferModal from "./CustomOfferModal";
 import OrderFormModal from "./OrderFormModal";
-import ConfirmationModal from "./ConfirmationModal";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { Order } from "../../../types/app";
 
 // Constant for items per page

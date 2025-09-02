@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import Loader from "@/app/components/Loader";
-import ConfirmationModal from "./ConfirmationModal";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { CustomOffer, Order } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
@@ -92,8 +92,8 @@ const CustomOfferModal = ({
         >
           <X size={24} />
         </button>
-        <h3 className="text-xl font-bold mb-4">-
-          {offer ? "Edit Custom Offer" : "Create New Custom Offer"}
+        <h3 className="text-xl font-bold mb-4">
+          -{offer ? "Edit Custom Offer" : "Create New Custom Offer"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
