@@ -22,7 +22,7 @@ import {
 
 import { CustomOffer } from "../../../../types/app";
 import RejectReasonModal from "../../_components/RejectReasonModal";
-import Modal from "@/app/components/Modal"; // Assuming a generic Modal component exists
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { cn } from "@/lib/utils/cn";
@@ -51,35 +51,6 @@ const StatusBadge = ({ status }: { status: string }) => {
     >
       {statusText}
     </span>
-  );
-};
-
-// Confirmation modal for accepting the offer
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Accept Offer">
-      <div className="p-4">
-        <p className="text-gray-700 mb-4">
-          Are you sure you want to accept this offer?
-        </p>
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-            disabled={isLoading}
-          >
-            {isLoading ? "Accepting..." : "Confirm Accept"}
-          </button>
-        </div>
-      </div>
-    </Modal>
   );
 };
 
@@ -135,7 +106,7 @@ export default function CustomerOfferDetailsPage() {
   }, [sessionStatus, fetchOfferDetails, router]);
 
   // Function to handle the actual API call for offer action
-  const performOfferAction = useCallback(
+  const handleOfferAction = useCallback(
     async (action: "accept" | "reject", reason?: string) => {
       if (!offer || offer.status !== "pending") {
         toast.info(
@@ -202,12 +173,12 @@ export default function CustomerOfferDetailsPage() {
 
   const handleConfirmAccept = () => {
     setIsAcceptConfirmationModalOpen(false);
-    performOfferAction("accept");
+    handleOfferAction("accept");
   };
 
   const handleConfirmReject = (reason: string) => {
     setIsRejectReasonModalOpen(false);
-    performOfferAction("reject", reason);
+    handleOfferAction("reject", reason);
   };
 
   if (sessionStatus === "loading" || loading) {
@@ -401,15 +372,17 @@ export default function CustomerOfferDetailsPage() {
           onClose={() => setIsRejectReasonModalOpen(false)}
           onConfirm={handleConfirmReject}
           isLoading={actionLoading}
+          
         />
       )}
 
       {isAcceptConfirmationModalOpen && (
         <ConfirmationModal
           isOpen={isAcceptConfirmationModalOpen}
-          onClose={() => setIsAcceptConfirmationModalOpen(false)}
+          onCancel={() => setIsAcceptConfirmationModalOpen(false)}
           onConfirm={handleConfirmAccept}
           isLoading={actionLoading}
+          message="Are you sure you want to accept this offer?"
         />
       )}
     </div>

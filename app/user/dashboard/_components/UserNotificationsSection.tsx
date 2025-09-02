@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../_components/RejectReasonModal";
-
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 
@@ -108,7 +107,9 @@ export default function NotificationsPage() {
       const currentOfferStatus = notification.offerStatus?.toLowerCase();
       const isExpired =
         notification.offerExpiresAt &&
-        new Date(notification.offerExpiresAt) < new Date();
+        new Date(notification.offerExpiresAt) < new Date() &&
+        notification.offerStatus !== "accepted" &&
+        notification.offerStatus !== "rejected";
 
       if (currentOfferStatus !== "pending") {
         toast.error(
@@ -412,18 +413,6 @@ export default function NotificationsPage() {
                             {actionLoading ? "Rejecting..." : "Reject Offer"}
                           </button>
                         </div>
-                      ) : notification.offerStatus === "accepted" ? (
-                        <div className="pt-4 border-t border-gray-200 mt-4">
-                          <button
-                            onClick={() =>
-                              router.push("/user/dashboard/payment")
-                            }
-                            disabled={actionLoading}
-                            className="w-full px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                          >
-                            Make Payment
-                          </button>
-                        </div>
                       ) : null}
                       {notification.link && (
                         <Link
@@ -431,7 +420,7 @@ export default function NotificationsPage() {
                             pathname: "/user/dashboard",
                             query: { tab: "custom-offers" },
                           }}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                         >
                           View Full Offer Details{" "}
                           <ExternalLink className="w-4 h-4" />
@@ -443,7 +432,7 @@ export default function NotificationsPage() {
                   {!isOfferNotification && notification.link && (
                     <Link
                       href={notification.link}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
+                      className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                     >
                       View Details <ExternalLink className="w-4 h-4" />
                     </Link>
