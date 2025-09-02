@@ -15,11 +15,13 @@ import useExchangeRates from "@/hooks/useExchangeRates";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
+const DOLLAR_PER_NAIRA = 0.00065;
 
 // Create a separate component that uses useSearchParams
 function PaymentContent() {
   const searchParams = useSearchParams();
   const offerId = searchParams.get("offerId");
+  const payingBalance = searchParams.get("balance");
   const { data: session } = useSession();
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
@@ -28,6 +30,7 @@ function PaymentContent() {
   const [offerAmountInKobo, setOfferAmountInKobo] = useState<number | null>(
     null
   );
+  const [totalPaid, setTotalPaid] = useState<number>(0); // in Naira
   const [serviceName, setServiceName] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
@@ -37,6 +40,10 @@ function PaymentContent() {
   const [convertedOriginalAmount, setConvertedOriginalAmount] = useState<
     number | null
   >(null);
+  const [convertedBalanceToPay, setConvertedBalanceToPay] = useState<
+    number | null
+  >(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [PaystackPop, setPaystackPop] = useState<any>(null);
   const [offerLoading, setOfferLoading] = useState(true);
@@ -115,6 +122,7 @@ function PaymentContent() {
         }
         const data = await res.json();
         setOfferAmountInKobo(data.offerAmount);
+        setTotalPaid(data.totalPaid);
         setServiceName(data.categoryName);
         setOrderId(data.orderId);
       } catch (err: any) {
@@ -137,27 +145,34 @@ function PaymentContent() {
       // Calculate the original amount and the amount to pay, both in NGN
       const originalAmountNGN = offerAmountInKobo / KOBO_PER_NAIRA;
       const amountToPayNGN = finalKoboDetails.amount / KOBO_PER_NAIRA;
-      const originalAmountUSD = originalAmountNGN / exchangeRates["NGN"];
-      const amountToPayUSD = amountToPayNGN / exchangeRates["NGN"];
+      const balanceNGN = amountToPayNGN - totalPaid / KOBO_PER_NAIRA;
 
       // Convert the NGN amounts to the selected display currency
       const convertedOriginal = Number(
         convertCurrency(
-          originalAmountUSD,
+          totalPaid > 0 ? balanceNGN : originalAmountNGN,
           exchangeRates[selectedCurrency],
-          "NGN"
+          getCurrencySymbol(selectedCurrency)
         ).replace(/,/g, "")
       );
       const convertedPayment = Number(
         convertCurrency(
-          amountToPayUSD,
+          amountToPayNGN,
           exchangeRates[selectedCurrency],
-          "NGN"
+          getCurrencySymbol(selectedCurrency)
+        ).replace(/,/g, "")
+      );
+      const convertedBalance = Number(
+        convertCurrency(
+          balanceNGN,
+          exchangeRates[selectedCurrency],
+          getCurrencySymbol(selectedCurrency)
         ).replace(/,/g, "")
       );
 
       setConvertedOriginalAmount(convertedOriginal);
       setConvertedAmountToPay(convertedPayment);
+      setConvertedBalanceToPay(convertedBalance);
     }
   }, [
     calculateFinalAmountKobo,
@@ -169,6 +184,8 @@ function PaymentContent() {
   const handlePaystackPayment = useCallback(async () => {
     setIsLoading(true);
     const finalKoboDetails = calculateFinalAmountKobo();
+    const amountAlreadyPaidKobo = totalPaid;
+    const balanceToChargeKobo = finalKoboDetails.amount - amountAlreadyPaidKobo;
 
     if (!publicKey) {
       toast.error("Payment gateway not configured. Please contact support.");
@@ -197,7 +214,7 @@ function PaymentContent() {
       const handler = PaystackPop.setup({
         key: publicKey,
         email: email,
-        amount: finalKoboDetails.amount,
+        amount: payingBalance ? balanceToChargeKobo : finalKoboDetails.amount,
         currency: "NGN",
         ref: `offer_${offerId}_${new Date().getTime()}_${paymentOption}`,
         metadata: {
@@ -215,6 +232,7 @@ function PaymentContent() {
         },
         callback: async (response: any) => {
           console.log("Paystack callback received:", response);
+
           try {
             const res = await fetch("/api/paystack-verify", {
               method: "POST",
@@ -226,8 +244,11 @@ function PaymentContent() {
               }),
             });
             const data = await res.json();
+
             if (data.success) {
               toast.success("Payment confirmed and service granted!");
+              // Optionally redirect to orders or another page
+              window.location.href = "/user/dashboard";
             } else {
               toast.error(
                 "Payment could not be confirmed. Please contact support."
@@ -291,7 +312,7 @@ function PaymentContent() {
   }
 
   const finalKoboDetails = calculateFinalAmountKobo();
-  const balanceToPay =
+  const balanceToPayAfterDiscount =
     (convertedOriginalAmount ?? 0) - (convertedAmountToPay ?? 0);
 
   return (
@@ -308,10 +329,13 @@ function PaymentContent() {
               Service: {serviceName || "Loading..."}
             </h2>
             <p className="text-lg text-blue-700 dark:text-blue-300">
-              Original Amount:{" "}
+              {payingBalance ? "Balance To Pay: " : "Original Amount: "}
               <span className="font-extrabold text-blue-900 dark:text-blue-100">
                 {getCurrencySymbol(selectedCurrency)}
-                {(convertedOriginalAmount ?? 0).toLocaleString(undefined, {
+                {(payingBalance
+                  ? convertedBalanceToPay
+                  : convertedOriginalAmount
+                )?.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -325,58 +349,60 @@ function PaymentContent() {
           </div>
 
           {/* Payment Options Section */}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Select Payment Option
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={() => setPaymentOption("deposit_50")}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105",
-                  paymentOption === "deposit_50"
-                    ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                    : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                )}
-              >
-                <span className="text-2xl font-bold">50%</span>
-                <span className="text-sm">Deposit</span>
-              </button>
-              <button
-                onClick={() => setPaymentOption("deposit_70_discount")}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
-                  paymentOption === "deposit_70_discount"
-                    ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                    : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                )}
-              >
-                <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
-                  5% Off
-                </span>
-                <span className="text-2xl font-bold">70%</span>
-                <span className="text-sm">Discounted Deposit</span>
-              </button>
-              <button
-                onClick={() => setPaymentOption("full_100_discount")}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
-                  paymentOption === "full_100_discount"
-                    ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                    : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                )}
-              >
-                <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
-                  10% Off
-                </span>
-                <span className="text-2xl font-bold">100%</span>
-                <span className="text-sm">Discounted Full Payment</span>
-              </button>
+          {!payingBalance && (
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Select Payment Option
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setPaymentOption("deposit_50")}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105",
+                    paymentOption === "deposit_50"
+                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
+                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  )}
+                >
+                  <span className="text-2xl font-bold">50%</span>
+                  <span className="text-sm">Deposit</span>
+                </button>
+                <button
+                  onClick={() => setPaymentOption("deposit_70_discount")}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
+                    paymentOption === "deposit_70_discount"
+                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
+                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  )}
+                >
+                  <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
+                    5% Off
+                  </span>
+                  <span className="text-2xl font-bold">70%</span>
+                  <span className="text-sm">Discounted Deposit</span>
+                </button>
+                <button
+                  onClick={() => setPaymentOption("full_100_discount")}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
+                    paymentOption === "full_100_discount"
+                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
+                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  )}
+                >
+                  <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
+                    10% Off
+                  </span>
+                  <span className="text-2xl font-bold">100%</span>
+                  <span className="text-sm">Discounted Full Payment</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Payment Summary */}
-          {finalKoboDetails && (
+          {finalKoboDetails && !payingBalance && (
             <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-2xl p-6 text-center shadow-inner">
               <h3 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-3">
                 Payment Summary
@@ -413,7 +439,7 @@ function PaymentContent() {
                     {getCurrencySymbol(selectedCurrency)}
                     {paymentOption === "full_100_discount"
                       ? 0
-                      : balanceToPay.toLocaleString(undefined, {
+                      : balanceToPayAfterDiscount.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -462,9 +488,10 @@ function PaymentContent() {
                 ? "Processing Payment..."
                 : !PaystackPop
                 ? "Loading Payment Gateway..."
-                : `Pay ${getCurrencySymbol(selectedCurrency)}${(
-                    convertedAmountToPay ?? 0
-                  ).toLocaleString(undefined, {
+                : `Pay ${getCurrencySymbol(selectedCurrency)}${(payingBalance
+                    ? convertedBalanceToPay
+                    : convertedAmountToPay
+                  )?.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`}

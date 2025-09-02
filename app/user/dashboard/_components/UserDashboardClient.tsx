@@ -17,12 +17,18 @@ import {
   Mail,
   Package,
   BadgeEuro,
+  Gift,
   FileText,
   BadgeDollarSign,
   ChevronLeft,
   ChevronRight,
   User,
   HeartHandshake,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  Wallet,
+  XCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -47,6 +53,7 @@ import UserOrdersSection from "./UserOrdersSection";
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+import RejectReasonModal from "./RejectReasonModal";
 
 // Generic Pagination component
 interface PaginationProps {
@@ -88,7 +95,6 @@ const Pagination = ({
 function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const DOLLAR_PER_NAIRA = 0.00065;
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -100,7 +106,8 @@ function Page() {
 
   const { exchangeRates } = useExchangeRates();
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
-  const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
+  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [actionLoading, setActionLoading] = useState(false);
 
   // State for user profile data (initially empty or from session if available)
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -136,7 +143,15 @@ function Page() {
   const [invoicesPage, setInvoicesPage] = useState(1);
   const itemsPerPage = 5; // Can be adjusted
 
+  const [isAcceptConfirmationModalOpen, setIsAcceptConfirmationModalOpen] =
+    useState(false);
+  const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
+  const [selectedOfferForRejection, setSelectedOfferForRejection] =
+    useState<CustomOffer | null>(null);
+
   const KOBO_PER_NAIRA = 100;
+  const PERCENT_100 = 100;
+
   const notificationCount = notifications.filter((n) => !n.isRead).length;
 
   // Function to fetch all dashboard data
@@ -244,6 +259,98 @@ function Page() {
   const handleInitiatePayment = (invoiceId: string) => {
     toast.info(`Initiating payment for Invoice ID: ${invoiceId}`);
     // Example: router.push(`/checkout?invoice=${invoiceId}`);
+  };
+
+  const handleOfferAction = useCallback(
+    async (
+      offer: CustomOffer,
+      action: "accept" | "reject",
+      reason?: string
+    ) => {
+      if (!offer.id) return;
+
+      const currentOfferStatus = offer.status?.toLowerCase();
+      const isExpired =
+        offer.expiresAt && new Date(offer.expiresAt) < new Date();
+
+      if (currentOfferStatus !== "pending") {
+        toast.error(
+          `This offer is already ${currentOfferStatus || "not available"}.`
+        );
+        return;
+      }
+
+      setActionLoading(true);
+      try {
+        const res = await fetch(
+          `/api/user/custom-offers/${offer.id}/${action}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rejectionReason: reason }),
+          }
+        );
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || `Failed to ${action} offer.`);
+        }
+
+        const result = await res.json();
+        toast.success(`Offer ${action}ed successfully!`);
+
+        const formDataToSend = new FormData();
+        formDataToSend.append(
+          "offerAmount",
+          offer.offerAmount?.toString() || ""
+        );
+        formDataToSend.append("offerStatus", `${action}ed`);
+        formDataToSend.append("offerDescription", offer.description || "");
+        formDataToSend.append("rejectionReason", offer.rejectionReason ?? "");
+
+        fetch("https://formspree.io/f/yourFormID", {
+          method: "POST",
+          body: JSON.stringify(formDataToSend),
+          headers: {
+            Accept: "application/json",
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log("Form submitted successfully!");
+            } else {
+              console.error("Form submission failed.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error submitting form:", error);
+          });
+
+        if (result.redirectTo) {
+          window.location.href = result.redirectTo;
+        }
+      } catch (err: any) {
+        console.error(`Error ${action}ing offer:`, err.message);
+        toast.error(
+          `Error ${action}ing offer: ` + (err.message || "Unknown error.")
+        );
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    []
+  );
+
+  const handleRejectClick = (offer: CustomOffer) => {
+    setSelectedOfferForRejection(offer);
+    setIsRejectReasonModalOpen(true);
+  };
+
+  const handleConfirmReject = (reason: string) => {
+    if (selectedOfferForRejection) {
+      setIsRejectReasonModalOpen(false);
+      handleOfferAction(selectedOfferForRejection, "reject", reason);
+    }
   };
 
   if (status === "loading" || loading) {
@@ -389,7 +496,7 @@ function Page() {
                           <span className="text-3xl font-bold text-green-700">
                             {getCurrencySymbol(selectedCurrency)}
                             {convertCurrency(
-                              totalSpent,
+                              totalSpent / KOBO_PER_NAIRA,
                               exchangeRates?.[selectedCurrency],
                               getCurrencySymbol(selectedCurrency)
                             ).toLocaleString()}
@@ -429,7 +536,7 @@ function Page() {
                           >
                             <div className="flex-grow mb-2 sm:mb-0">
                               <h3 className="font-semibold text-lg text-gray-800">
-                                {order.service}
+                                {order.serviceName}
                               </h3>
                               <p className="text-sm text-gray-500">
                                 Order ID: {order.id}
@@ -456,8 +563,7 @@ function Page() {
                               <span className="font-bold text-gray-800">
                                 {getCurrencySymbol(selectedCurrency)}
                                 {convertCurrency(
-                                  (order.amount / KOBO_PER_NAIRA) *
-                                    DOLLAR_PER_NAIRA,
+                                  order.amount / KOBO_PER_NAIRA,
                                   exchangeRates?.[selectedCurrency],
                                   getCurrencySymbol(selectedCurrency)
                                 ).toLocaleString()}
@@ -492,7 +598,7 @@ function Page() {
                   <div className="bg-white p-6 rounded-xl shadow-lg">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                        <Package size={24} className="text-green-600" />
+                        <Gift size={24} className="text-green-600" />
                         Custom Offers
                       </h2>
                       <button
@@ -502,67 +608,207 @@ function Page() {
                         View All
                       </button>
                     </div>
-                    {offers ? (
+                    {offers.length > 0 ? (
                       <div className="space-y-4">
-                        {paginatedOffers.map((offer) => (
-                          <div
-                            key={offer.id}
-                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                          >
-                            <div className="flex-grow mb-2 sm:mb-0">
-                              <h3 className="font-semibold text-lg text-gray-800">
-                                {offer.description}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                Offer ID: {offer.id}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Created:{" "}
-                                {offer.createdAt
-                                  ? new Date(offer.createdAt).toLocaleString()
-                                  : "N/A"}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Expires:{" "}
-                                {offer.expiresAt
-                                  ? new Date(offer.expiresAt).toLocaleString()
-                                  : "N/A"}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-4 flex-shrink-0">
-                              <span
-                                className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                  offer.status === "accepted"
-                                    ? "bg-green-200 text-green-800"
-                                    : offer.status === "pending"
-                                    ? "bg-yellow-200 text-yellow-800"
-                                    : "bg-red-200 text-red-800"
-                                }`}
+                        {paginatedOffers.map((offer) => {
+                          // Status color mapping
+                          const statusColors = {
+                            pending: "bg-yellow-100 text-yellow-800",
+                            accepted: "bg-green-100 text-green-800",
+                            rejected: "bg-red-100 text-red-800",
+                            expired: "bg-gray-200 text-gray-600",
+                          };
+
+                          // Check if offer is expired
+                          const isOfferExpired =
+                            offer.expiresAt &&
+                            new Date(offer.expiresAt) < new Date() &&
+                            offer.status !== "accepted" &&
+                            offer.status !== "rejected";
+
+                          // Compute status key
+                          const offerStatusKey = isOfferExpired
+                            ? "expired"
+                            : offer.status?.toLowerCase() || "unknown";
+
+                          const canActOnOffer =
+                            offer.status === "pending" && !isOfferExpired;
+
+                          const owing =
+                            offer.offerAmount -
+                            (Number(offer.totalPaid) +
+                              (offer.discount
+                                ? offer.offerAmount *
+                                  (offer.discount / PERCENT_100)
+                                : 0));
+                          return (
+                            <div className="space-y-6" key={offer.id}>
+                              <div
+                                className={`bg-white border rounded-xl shadow-sm p-6 cursor-pointer transition-transform duration-300 ease-in-out hover:shadow-lg`}
                               >
-                                {offer.status}
-                              </span>
-                              <span className="font-bold text-gray-800">
-                                {getCurrencySymbol(selectedCurrency)}
-                                {convertCurrency(
-                                  (offer.offerAmount / KOBO_PER_NAIRA) *
-                                    DOLLAR_PER_NAIRA,
-                                  exchangeRates?.[selectedCurrency],
-                                  getCurrencySymbol(selectedCurrency)
-                                ).toLocaleString()}
-                              </span>
-                              {(offer.status === "accepted" ||
-                                offer.status === "rejected" ||
-                                offer.status === "pending") && (
-                                <Link
-                                  href={`/orders/track/${offer.id}`}
-                                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm mt-4 space-y-2">
+                                  {/* <div className="flex items-center justify-between">
+                                    <p className="flex items-center gap-2 text-gray-600">
+                                      <KeyRound className="w-4 h-4 text-gray-500 font-bold" />
+                                      <strong>Offer ID:</strong>{" "}
+                                      <span className="text-gray-900 font-bold">
+                                        {offer.id}
+                                      </span>
+                                    </p>
+                                    
+                                  </div> */}
+
+                                  <div className="flex items-center justify-between">
+                                    <p className="flex items-center gap-2 text-gray-600">
+                                      <Wallet className="w-4 h-4 text-gray-500 font-bold" />
+                                      <strong>Amount:</strong>{" "}
+                                      <span className="text-gray-900 font-bold">
+                                        {getCurrencySymbol(selectedCurrency)}
+                                        {convertCurrency(
+                                          offer.offerAmount / KOBO_PER_NAIRA,
+                                          exchangeRates?.[selectedCurrency],
+                                          getCurrencySymbol(selectedCurrency)
+                                        ).toLocaleString()}
+                                      </span>
+                                    </p>
+                                    {
+                                      <span
+                                        className={`px-3 py-1 rounded-full text-xs  ${
+                                          statusColors[offerStatusKey] ||
+                                          "bg-gray-100 text-gray-700"
+                                        }`}
+                                      >
+                                        {offerStatusKey
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                          offerStatusKey.slice(1)}
+                                      </span>
+                                    }
+                                  </div>
+                                  {owing && offer.status === "accepted" ? (
+                                    <div className="flex items-center justify-between">
+                                      <p className="flex items-center gap-2 text-gray-600">
+                                        <DollarSign className="w-4 h-4 text-gray-500 font-bold" />
+                                        <strong>Balance:</strong>{" "}
+                                        <span className="text-gray-900 font-bold">
+                                          {getCurrencySymbol(selectedCurrency)}
+
+                                          {convertCurrency(
+                                            owing / KOBO_PER_NAIRA,
+                                            exchangeRates?.[selectedCurrency],
+                                            getCurrencySymbol(selectedCurrency)
+                                          ).toLocaleString()}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  ) : null}
+                                  <div className="flex items-center justify-between">
+                                    <p className="flex items-center gap-2 text-gray-600">
+                                      <FileText className="w-4 h-4 text-gray-500 font-bold" />
+                                      <strong>Description:</strong>{" "}
+                                      <span className="text-gray-900 font-bold">
+                                        {offer.description}
+                                      </span>
+                                    </p>
+                                  </div>
+
+                                  {offer.expiresAt && (
+                                    <p
+                                      className={`flex items-center gap-2 text-gray-600`}
+                                    >
+                                      <Clock className="w-4 h-4 text-gray-500 font-bold" />
+                                      <strong>Expires:</strong>{" "}
+                                      <span className="text-gray-900 font-bold">
+                                        {offer.expiresAt
+                                          ? new Date(
+                                              offer.expiresAt
+                                            ).toLocaleDateString()
+                                          : "N/A"}
+                                      </span>
+                                    </p>
+                                  )}
+                                  {offer.status === "rejected" &&
+                                    offer.rejectionReason && (
+                                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                                        <h4 className="text-red-700 font-bold mb-1">
+                                          Reason for Rejection:
+                                        </h4>
+                                        <p className="text-red-600 italic">
+                                          {offer.rejectionReason}
+                                        </p>
+                                      </div>
+                                    )}
+                                  {canActOnOffer ? (
+                                    <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-4">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setIsAcceptConfirmationModalOpen(
+                                            false
+                                          );
+
+                                          handleOfferAction(offer, "accept");
+                                        }}
+                                        disabled={actionLoading}
+                                        className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                      >
+                                        <CheckCircle className="w-5 h-5" />
+                                        {actionLoading
+                                          ? "Accepting..."
+                                          : "Accept Offer"}
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRejectClick(offer);
+                                        }}
+                                        disabled={actionLoading}
+                                        className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                      >
+                                        <XCircle className="w-5 h-5" />
+                                        {actionLoading
+                                          ? "Rejecting..."
+                                          : "Reject Offer"}
+                                      </button>
+                                    </div>
+                                  ) : owing && offer.status === "accepted" ? (
+                                    <div className="pt-4 border-t border-gray-200 mt-4">
+                                      <button
+                                        onClick={() =>
+                                          router.push(
+                                            `/user/dashboard/payment?offerId=${offer.id}&balance=true`
+                                          )
+                                        }
+                                        className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                      >
+                                        Pay Balance
+                                      </button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setActiveTab("custom-offers");
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                                 >
-                                  Associate Order
-                                </Link>
-                              )}
+                                  View Details{" "}
+                                  <ExternalLink className="w-4 h-4" />
+                                </button>
+                              </div>
+                              {isRejectReasonModalOpen &&
+                                selectedOfferForRejection && (
+                                  <RejectReasonModal
+                                    onClose={() =>
+                                      setIsRejectReasonModalOpen(false)
+                                    }
+                                    onConfirm={handleConfirmReject}
+                                    isLoading={actionLoading}
+                                  />
+                                )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         <Pagination
                           currentPage={offersPage}
                           totalPages={totalOffersPages}

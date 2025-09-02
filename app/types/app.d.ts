@@ -76,13 +76,15 @@ interface CustomOffer {
   description: string;
   createdAt: string;
   status: "pending" | "accepted" | "rejected" | "expired";
-  expiresAt?: string; // Optional expiry date
-  orderService?: string; // From join
-  orderDescription?: string; // From join
-  orderBudget?: number; // From join
+  expiresAt?: string;
+  orderService?: string;
+  orderDescription?: string;
+  orderBudget?: number;
   rejectionReason?: string;
   categoryName?: string;
-  projectDuration?: number; // New: duration in days or weeks
+  projectDuration?: number;
+  totalPaid?: number;
+  discount?: number;
 }
 
 // New: Invoice interface (expanded)
@@ -143,7 +145,6 @@ interface ExchangeRates {
   [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
 }
 
-
 // Define a type for your user profile data
 interface UserProfile {
   fullName: string;
@@ -158,7 +159,6 @@ interface UserProfile {
   // Add other fields you might have, like user ID
   id?: string;
 }
-
 
 interface Course {
   id: string;
@@ -177,4 +177,3 @@ interface AdminStats {
   pendingJobApplications: number;
   totalUnreadNotifications: number;
 }
-

@@ -34,19 +34,23 @@ export async function GET(request: Request) {
     // Use aliases (AS "camelCase") to match your frontend Order interface.
     const queryText = `
       SELECT
-        order_id AS id,
-        category_id AS service,
-        created_at AS date,
-        order_status_id AS status,
-        total_expected_amount_kobo AS amount,
-        amount_paid_to_date_kobo AS amountPaid
-      FROM orders
+        o.order_id AS id,
+        o.category_id AS service,
+        o.created_at AS date,
+        o.order_status_id AS status,
+        o.total_expected_amount_kobo AS amount,
+        o.amount_paid_to_date_kobo AS amountPaid,
+        pc.category_name AS "serviceName"
+      FROM orders o
+      LEFT JOIN product_categories pc ON o.category_id = pc.category_id
       WHERE user_id = $1
       ORDER BY created_at DESC; -- Order by most recent orders first
     `;
 
     const params = [userId];
     const result = await queryDatabase(queryText, params);
+
+    console.log("Orders fetched for user:", result);
 
     // 5. Return the fetched orders
     // Add a revalidate option to the response to control caching behavior.
@@ -98,6 +102,8 @@ export async function POST(request: Request) {
       timeline,
       filesRaw,
     ] = fields.map((field) => formData.get(field));
+
+    console.log("FormDat", formData);
 
     // Convert file to array from string
     let files: any[] = [];
@@ -184,15 +190,16 @@ export async function POST(request: Request) {
         }
       }
 
-      const userResult = existingUserResult.rows[0];
-      const clientName = `${userResult.first_name} ${userResult.last_name}`;
-      const userEmail = userResult.email;
+      const userResult =
+        existingUserResult.rows[0] || `${firstName} ${lastName}`;
+      const clientName = `${userResult?.first_name} ${userResult?.last_name}`;
+      const userEmail = userResult?.email || email;
 
       try {
-        console.log("About to send order received email")
+        console.log("About to send order received email");
         await sendOrderReceivedEmail(userEmail, clientName, newOrderId);
       } catch (error) {
-        console.log("Couldn't send order confirmation email")
+        console.log("Couldn't send order confirmation email");
       }
 
       return NextResponse.json(newOrderId, { status: 201 });

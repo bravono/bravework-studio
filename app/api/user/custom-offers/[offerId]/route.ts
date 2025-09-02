@@ -41,11 +41,18 @@ export async function GET(
         o.category_id AS "orderService",
         o.project_description AS "orderDescription",
         o.budget_range AS "orderBudget",
-        pc.category_name AS "categoryName" 
+        pc.category_name AS "categoryName" ,
+        p.amount_kobo AS "totalPaid",
+        p.discount_applied_percentage AS "discount"
       FROM custom_offers co
       JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id -- <--- CORRECTED: Join to get status name
       JOIN orders o ON co.order_id = o.order_id
       JOIN product_categories pc ON o.category_id = pc.category_id
+       LEFT JOIN (
+      SELECT DISTINCT ON (order_id) *
+      FROM payments
+      ORDER BY order_id, created_at DESC
+    ) p ON co.order_id = p.order_id
       WHERE co.offer_id = $1 AND co.user_id = $2; -- Crucial: ensure offer belongs to the user
     `;
     const result = await queryDatabase(queryText, [offerId, userId]);
