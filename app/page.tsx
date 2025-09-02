@@ -139,21 +139,24 @@ export default function Home() {
           <div className="mt-8 flex flex-col items-center">
             <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a
+                <a
                 href="https://www.fiverr.com/ahbideenyusuf?public_mode=true"
                 target="_blank"
                 rel="noopener noreferrer"
-              >
+                className="transition-transform duration-200 hover:scale-125"
+                >
                 <img
                   src="/assets/fiverr-icon.svg"
                   alt="Fiverr"
                   className="h-10 w-10"
                 />
-              </a>
+                </a>
               <a
                 href="https://www.upwork.com/freelancers/~01e0fd25ba6d3353e8?mp_source=share"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="transition-transform duration-200 hover:scale-125"
+
               >
                 <img
                   src="/assets/upwork-icon.svg"
@@ -165,6 +168,8 @@ export default function Home() {
                 href="https://www.freelancer.com/u/ahbideenyusuf?sb=t"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="transition-transform duration-200 hover:scale-125"
+
               >
                 <img
                   src="/assets/freelancer-icon.svg"
@@ -176,7 +181,8 @@ export default function Home() {
                 href="https://www.guru.com/freelancers/ahbideen-yusuf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-2 rounded-sm bg-white"
+                className="px-2 rounded-sm bg-white transition-transform duration-200 hover:scale-125"
+
               >
                 <img
                   src="/assets/guru-icon.svg"

@@ -9,7 +9,6 @@ import Navbar from "../components/Navbar";
 import FilesToUpload from "../components/FilesToUpload";
 import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { currencies } from "@/lib/utils/currencies";
 
 // Hooks
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
@@ -89,9 +88,11 @@ interface ProductCategory {
 function Page() {
   const router = useRouter();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const user = session?.user;
 
-  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
+
+  const { exchangeRates, ratesLoading } = useExchangeRates();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState("");
@@ -114,7 +115,6 @@ function Page() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
-  const searchParams = useSearchParams();
 
   // Get the service from URL parameters and fetch categories
   useEffect(() => {
@@ -122,7 +122,7 @@ function Page() {
     if (serviceTitle) {
       setSelectedService(decodeURIComponent(serviceTitle));
     }
-  }, [searchParams]);
+  }, [searchParams, formData]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -233,11 +233,11 @@ function Page() {
       }
 
       if (user) {
-        formDataToSend.append("first_name", user.name.split(" ")[0] || "");
-        formDataToSend.append("last_name", user.name.split(" ")[1] || "");
+        formDataToSend.append("first_name", user.name.split(" ")[0]);
+        formDataToSend.append("last_name", user.name.split(" ")[1]);
         formDataToSend.append("companyName", user.companyName || "");
         formDataToSend.append("phone", user.phone || "");
-        formDataToSend.append("email", user.email || "");
+        formDataToSend.append("email", user.email);
       } else {
         Object.entries(formData).forEach(([key, value]) => {
           formDataToSend.append(key, value);
