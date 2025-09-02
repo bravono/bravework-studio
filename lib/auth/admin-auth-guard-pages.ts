@@ -18,7 +18,7 @@ export async function verifyAdminPages() {
   
 
   if (!userRoles.includes("admin")) {
-    redirect("/auth/errors?message=forbidden");
+    redirect("/auth/error?message=forbidden");
   }
 
   return session; // Return session if valid and authorized
