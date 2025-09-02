@@ -1,29 +1,9 @@
 // hooks/useExchangeRates.ts
 import { useEffect, useState } from "react";
-import { getCurrency } from "@/lib/utils/getCurrencyRate";
 import { ExchangeRates } from "@/app/types/app";
+import { fetchExchangeRates } from "@/lib/utils/fetchExchangeRate";
 
 const STORAGE_KEY = "exchangeRates";
-
-const fetchExchangeRates = async (): Promise<ExchangeRates> => {
-  try {
-    const result = await getCurrency(1);
-    return {
-      USD: 1,
-      GBP: result.rates.GBP,
-      EUR: result.rates.EUR,
-      NGN: 1550,
-    };
-  } catch (error) {
-    console.error("Error fetching exchange rates:", error);
-    return {
-      USD: 1,
-      NGN: 1550,
-      GBP: 0.00053,
-      EUR: 0.00061,
-    };
-  }
-};
 
 const useExchangeRates = () => {
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(

@@ -25,5 +25,5 @@ export function convertCurrency(
     return `${symbol}${convertedBase}+`;
   }
 
-  return Math.ceil(amount * rate).toLocaleString();
+  return Math.round(amount * rate).toLocaleString();
 }
