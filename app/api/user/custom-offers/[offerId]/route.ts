@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/auth-options"; // Adjusted path as per your update
-import { queryDatabase } from "../../../../../lib/db"; // Adjusted path as per your update
+import { queryDatabase } from "../../../../../lib/db";
+import { verifyUser } from "@/lib/auth/user-auth-guard";
 
 export const runtime = "nodejs";
 
@@ -11,21 +10,16 @@ export async function GET(
 ) {
   try {
     const { offerId } = params;
+    const user = await verifyUser();
+    const isAuthenticated = user.isAuthenticated;
+    const userId = user.userId;
 
-    // 1. Authenticate the user (customer)
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as any).id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID not found in session" },
-        { status: 400 }
+    if (!isAuthenticated || !userId) {
+      console.error("Authentication failed: No valid token or session found.");
+      throw new Error(
+        "Authentication failed. Please log in or use a valid link."
       );
     }
-
     // 2. Fetch the custom offer details, joining with custom_offer_statuses to get the status name
     // and with orders to get associated order details.
     const queryText = `

@@ -29,8 +29,11 @@ import {
   ExternalLink,
   Wallet,
   XCircle,
+  LinkIcon,
+  Calendar,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { format } from "date-fns/format";
 
 import {
   Order,
@@ -181,11 +184,11 @@ function Page() {
       const offerData: CustomOffer[] = await offerRes.json();
       setOffers(offerData);
 
-      // // 3. Fetch Courses
-      // const coursesRes = await fetch("/api/user/courses"); // Create this API route
-      // if (!coursesRes.ok) throw new Error("Failed to fetch courses");
-      // const coursesData: Course[] = await coursesRes.json();
-      // setCourses(coursesData);
+      // 3. Fetch Courses
+      const coursesRes = await fetch("/api/user/courses");
+      if (!coursesRes.ok) throw new Error("Failed to fetch courses");
+      const coursesData: Course[] = await coursesRes.json();
+      setCourses(coursesData);
 
       // // 4. Fetch Invoices
       // const invoicesRes = await fetch("/api/user/invoices"); // Create this API route
@@ -399,7 +402,7 @@ function Page() {
     (order) => order.statusName === "overpayment_detected"
   ).length;
   const coursesInProgress = courses.filter(
-    (course) => course.progress < 100
+    (course) => course.paymentStatus !== 1
   ).length;
   const totalSpent =
     orders.reduce((sum, order) => sum + (order.amount || 0), 0) /
@@ -430,6 +433,42 @@ function Page() {
     invoicesPage * itemsPerPage
   );
   const totalInvoicesPages = Math.ceil(invoices.length / itemsPerPage);
+
+  const getPaymentStatus = (status: number) => {
+    switch (status) {
+      case 1:
+        return {
+          label: "Enrolled",
+          color: "bg-green-100 text-green-800",
+          icon: CheckCircle,
+        };
+      case 4:
+        return {
+          label: "Pending",
+          color: "bg-green-100 text-green-800",
+          icon: Clock,
+        };
+      case 5:
+        return {
+          label: "Pending",
+          color: "bg-green-100 text-green-800",
+          icon: Clock,
+        };
+      case 6:
+        return {
+          label: "Enrolled",
+          color: "bg-green-100 text-green-800",
+          icon: CheckCircle,
+        };
+      // You can add other statuses as needed (e.g., 1: "Pending", 2: "Failed")
+      default:
+        return {
+          label: "Pending",
+          color: "bg-yellow-100 text-yellow-800",
+          icon: Clock,
+        };
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -834,53 +873,126 @@ function Page() {
                         Explore All
                       </Link>
                     </div>
-                    {courses.length > 0 ? (
-                      <div className="space-y-4">
-                        {paginatedCourses.map((course) => (
-                          <div
-                            key={course.id}
-                            className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-                          >
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                              <div className="flex-grow mb-2 sm:mb-0">
-                                <h3 className="font-semibold text-lg text-gray-800">
-                                  {course.title}
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                  Last accessed: {course.lastAccessed}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-4 flex-shrink-0">
-                                <span className="font-medium text-gray-700">
-                                  {course.progress}% Complete
-                                </span>
-                                <Link
-                                  href={course.link}
-                                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                                >
-                                  Go to Course
-                                </Link>
-                              </div>
-                            </div>
-                            <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
+
+                    <div className="container mx-auto p-4 md:p-8 bg-gray-50">
+                      {courses.length > 0 ? (
+                        <div className="w-100">
+                          {paginatedCourses.map((course) => {
+                            const {
+                              label: statusLabel,
+                              color: statusColor,
+                              icon: StatusIcon,
+                            } = getPaymentStatus(course.paymentStatus);
+
+                            return (
                               <div
-                                className="h-full bg-green-500 rounded-full transition-all duration-500"
-                                style={{ width: `${course.progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ))}
-                        <Pagination
-                          currentPage={coursesPage}
-                          totalPages={totalCoursesPages}
-                          onPageChange={setCoursesPage}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">
-                        You haven't enrolled in any courses yet.
-                      </p>
-                    )}
+                                key={course.id}
+                                className=" bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:scale-[1.02]"
+                              >
+                                <div className="p-6">
+                                  {/* Course Title & Status Badge */}
+                                  <div className="flex justify-between items-start mb-4">
+                                    <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
+                                      {course.title}
+                                    </h2>
+                                    <span
+                                      className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${statusColor}`}
+                                    >
+                                      <StatusIcon className="w-3 h-3" />
+                                      {statusLabel}
+                                    </span>
+                                  </div>
+
+                                  {/* Course Description */}
+                                  <p className="text-sm text-gray-500 mb-4">
+                                    {course.description}
+                                  </p>
+
+                                  <div className="space-y-3">
+                                    {/* Price */}
+                                    <div className="flex items-center text-gray-700">
+                                      <span className="text-lg font-bold text-green-600">
+                                        {getCurrencySymbol(selectedCurrency)}
+                                        {convertCurrency(
+                                          course.price / KOBO_PER_NAIRA,
+                                          exchangeRates?.[selectedCurrency],
+                                          getCurrencySymbol(selectedCurrency)
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    {/* Sessions Section */}
+                                    {course.sessions &&
+                                      course.sessions.length > 0 &&
+                                      statusLabel !== "Pending" && (
+                                        <div className="mt-4 border-t pt-4 border-gray-200">
+                                          <h3 className="text-md font-medium text-gray-700 mb-2 flex items-center">
+                                            <BookOpen className="w-4 h-4 text-green-600 mr-2" />
+                                            Your Sessions
+                                          </h3>
+                                          <ul className="space-y-2">
+                                            {course.sessions.map(
+                                              (session, index) => (
+                                                <li
+                                                  key={index}
+                                                  className="flex items-center text-sm text-gray-600"
+                                                >
+                                                  <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                                                  <div className="flex-1">
+                                                    <p>
+                                                      {format(
+                                                        new Date(session.date),
+                                                        "MMMM d, yyyy"
+                                                      )}{" "}
+                                                      at {session.time}
+                                                    </p>
+                                                  </div>
+                                                  <Link
+                                                    href={session.link}
+                                                    className="text-blue-600 hover:underline flex items-center ml-2"
+                                                  >
+                                                    <LinkIcon className="w-4 h-4 mr-1" />
+                                                    Go to Class
+                                                  </Link>
+                                                </li>
+                                              )
+                                            )}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    {statusLabel === "Pending" && (
+                                      <div className="pt-4 border-t border-gray-200 mt-4">
+                                        <button
+                                          onClick={() =>
+                                            router.push(
+                                              `/user/dashboard/payment?courseId=${course.id}`
+                                            )
+                                          }
+                                          className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        >
+                                          Make Payment
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <Pagination
+                            currentPage={coursesPage}
+                            totalPages={totalCoursesPages}
+                            onPageChange={setCoursesPage}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex justify-center items-center h-64">
+                          <p className="text-gray-500 text-lg">
+                            No courses found.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Invoices */}

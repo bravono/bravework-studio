@@ -47,12 +47,6 @@ export async function GET(request: Request) {
 
     console.log("Custom offers fetched for user:", result);
 
-    if (result.length === 0) {
-      return NextResponse.json(
-        { error: "No custom offer found for this user" },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json(result, {
       headers: {

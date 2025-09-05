@@ -15,21 +15,19 @@ import useExchangeRates from "@/hooks/useExchangeRates";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
-const DOLLAR_PER_NAIRA = 0.00065;
 
 // Create a separate component that uses useSearchParams
 function PaymentContent() {
   const searchParams = useSearchParams();
   const offerId = searchParams.get("offerId");
+  const courseId = searchParams.get("courseId");
   const payingBalance = searchParams.get("balance");
   const { data: session } = useSession();
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
 
   const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
-  const [offerAmountInKobo, setOfferAmountInKobo] = useState<number | null>(
-    null
-  );
+  const [offerAmountInKobo, setAmountInKobo] = useState<number | null>(null);
   const [totalPaid, setTotalPaid] = useState<number>(0); // in Naira
   const [serviceName, setServiceName] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
@@ -46,8 +44,8 @@ function PaymentContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [PaystackPop, setPaystackPop] = useState<any>(null);
-  const [offerLoading, setOfferLoading] = useState(true);
-  const [offerError, setOfferError] = useState<string | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   type PaymentOption =
     | "full_100_discount"
@@ -102,41 +100,63 @@ function PaymentContent() {
     }
   }, []);
 
-  // Effect to fetch offer details securely from backend
+  // Effect to fetch offer or course details securely from backend
   useEffect(() => {
     const fetchOfferDetails = async () => {
-      if (!offerId || !session?.user?.id) {
-        setOfferError("Offer ID or user session missing.");
-        setOfferLoading(false);
+      if ((!offerId && !courseId) || !session?.user?.id) {
+        setDataError("Offer/Course ID or user session missing.");
+        setDataLoading(false);
         return;
       }
-      setOfferLoading(true);
-      setOfferError(null);
-      try {
-        const res = await fetch(`/api/user/custom-offers/${offerId}`);
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(
-            errorData.error || "Failed to fetch offer details securely."
-          );
+      setDataLoading(true);
+      setDataError(null);
+
+      if (offerId) {
+        try {
+          const res = await fetch(`/api/user/custom-offers/${offerId}`);
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(
+              errorData.error || "Failed to fetch offer details securely."
+            );
+          }
+          const data = await res.json();
+          setAmountInKobo(data.offerAmount);
+          setTotalPaid(data.totalPaid);
+          setServiceName(data.categoryName);
+          setOrderId(data.orderId);
+        } catch (err: any) {
+          console.error("Error fetching offer details:", err);
+          setDataError(err.message || "Failed to load offer details.");
+        } finally {
+          setDataLoading(false);
         }
-        const data = await res.json();
-        setOfferAmountInKobo(data.offerAmount);
-        setTotalPaid(data.totalPaid);
-        setServiceName(data.categoryName);
-        setOrderId(data.orderId);
-      } catch (err: any) {
-        console.error("Error fetching offer details:", err);
-        setOfferError(err.message || "Failed to load offer details.");
-      } finally {
-        setOfferLoading(false);
+      }
+
+      if (courseId) {
+        try {
+          const res = await fetch(`/api/user/courses/${courseId}`);
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(
+              errorData.error || "Failed to fetch course details securely."
+            );
+          }
+          const data = await res.json();
+          setAmountInKobo(data.offerAmount);
+        } catch (err: any) {
+          console.error("Error fetching course details:", err);
+          setDataError(err.message || "Failed to load course details.");
+        } finally {
+          setDataLoading(false);
+        }
+      }
+
+      if (session?.user?.id) {
+        fetchOfferDetails();
       }
     };
-
-    if (session?.user?.id) {
-      fetchOfferDetails();
-    }
-  }, [offerId, session?.user?.id]);
+  }, [offerId, courseId, session?.user?.id]);
 
   // Effect to convert amount when final amount in kobo or selectedCurrency changes
   useEffect(() => {
@@ -207,8 +227,23 @@ function PaymentContent() {
       return;
     }
 
-    const email = session?.user?.email || "customer@example.com";
-    const customerName = session?.user?.name || "Bravework Customer";
+    const email = session?.user?.email;
+    const customerName = session?.user?.name;
+    const servicePayingFor = offerId ? "offer" : "course";
+    const serviceMetadataInfo = {
+      orderId: orderId,
+      service: serviceName,
+      customer_name: customerName,
+      payment_option: paymentOption,
+      payment_percentage: finalKoboDetails.paymentPercentage,
+      discount_applied: finalKoboDetails.discountPercentage,
+      original_amount_kobo: offerAmountInKobo,
+    };
+    const courseMetadataInfo = {
+      courseId: courseId,
+      customer_name: customerName,
+      payment_option: paymentOption,
+    };
 
     try {
       const handler = PaystackPop.setup({
@@ -216,16 +251,8 @@ function PaymentContent() {
         email: email,
         amount: payingBalance ? balanceToChargeKobo : finalKoboDetails.amount,
         currency: "NGN",
-        ref: `offer_${offerId}_${new Date().getTime()}_${paymentOption}`,
-        metadata: {
-          orderId: orderId,
-          service: serviceName,
-          customer_name: customerName,
-          payment_option: paymentOption,
-          payment_percentage: finalKoboDetails.paymentPercentage,
-          discount_applied: finalKoboDetails.discountPercentage,
-          original_amount_kobo: offerAmountInKobo,
-        },
+        ref: `${servicePayingFor}_${offerId}_${new Date().getTime()}_${paymentOption}`,
+        metadata: offerId ? serviceMetadataInfo : courseMetadataInfo,
         onClose: () => {
           toast.info("Payment window closed.");
           setIsLoading(false);
@@ -234,12 +261,13 @@ function PaymentContent() {
           console.log("Paystack callback received:", response);
 
           try {
+            const id = offerId ? offerId : courseId;
             const res = await fetch("/api/paystack-verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 reference: response.reference,
-                offerId,
+                id,
                 paymentOption,
               }),
             });
@@ -278,6 +306,7 @@ function PaymentContent() {
     publicKey,
     PaystackPop,
     offerId,
+    courseId,
     serviceName,
     session?.user?.email,
     session?.user?.name,
@@ -287,7 +316,7 @@ function PaymentContent() {
     orderId,
   ]);
 
-  if (offerLoading || ratesLoading) {
+  if (dataLoading || ratesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
         Loading payment details...
@@ -295,10 +324,10 @@ function PaymentContent() {
     );
   }
 
-  if (offerError || ratesError) {
+  if (dataError || ratesError) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-red-600">
-        Error: {offerError || ratesError}
+        Error: {dataError || ratesError}
       </div>
     );
   }

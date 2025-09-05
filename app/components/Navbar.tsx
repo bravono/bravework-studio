@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
-import LogoWhite from "../../public/assets/BWS-White.svg";
 import LogoColor from "../../public/assets/BWS-Color.svg";
 import { Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
 
@@ -79,6 +78,14 @@ export default function Navbar() {
               }`}
             >
               Jobs
+            </Link>
+            <Link
+              href="/courses"
+              className={`${commonLinkClasses} ${
+                pathname === "/courses" ? activeLinkClasses : inactiveLinkClasses
+              }`}
+            >
+              Courses
             </Link>
             <Link
               href="/about"

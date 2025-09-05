@@ -166,6 +166,15 @@ interface Course {
   progress: number; // Percentage
   lastAccessed: string; // Date string
   link: string; // Link to the course page
+  paymentStatus: number; // e.g., 1 = pending, 2 = completed, etc.
+  description: string;
+  price: number; // Stored in kobo, convert to currency unit for display
+  preferredSession: string; // ID of the preferred session
+  sessions: Array<{
+    date: string;
+    time: string;
+    link: string;
+  }>;
 }
 
 interface AdminStats {

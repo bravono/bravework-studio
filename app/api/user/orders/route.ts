@@ -28,10 +28,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // 4. Fetch orders from the database where order's user_id matches the current user's ID
-    // Adjust column names (e.g., 'user_id', 'order_id', 'category_id', 'created_at', 'order_status_id', 'total_expected_amount_kobo', 'amount_paid_to_date_kobo')
-    // to match your actual 'orders' table schema.
-    // Use aliases (AS "camelCase") to match your frontend Order interface.
     const queryText = `
       SELECT
         o.order_id AS id,
@@ -52,14 +48,6 @@ export async function GET(request: Request) {
 
     console.log("Orders fetched for user:", result);
 
-    // 5. Return the fetched orders
-    // Add a revalidate option to the response to control caching behavior.
-    // This tells Next.js how long to cache the response of this API route.
-    // For example, revalidate every 60 seconds.
-    // Note: This 'revalidate' option is typically used with `fetch` in Server Components
-    // or when calling `fetch` directly in a Route Handler.
-    // When a client component calls this API route, Next.js will cache its response
-    // based on default caching rules, or you can explicitly control it on the client-side fetch.
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=59", // Cache for 60 seconds, allow stale for another 59s
