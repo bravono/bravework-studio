@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Joi from "joi";
 import {
   User,
@@ -16,7 +17,7 @@ import { toast } from "react-toastify";
 
 // Mock data for courses. In a real app, this would be fetched from your API.
 const courses = [
-  { id: 1, title: "3D for Kids", price: 5000000 }, // Price in Kobo (e.g., N50,000)
+  { id: 1, title: "Intro to 3D Modeling", price: 5000000 }, // Price in Kobo (e.g., N50,000)
   {
     id: 2,
     title: "Web Development for Kids",
@@ -70,11 +71,26 @@ const enrollmentSchema = Joi.object({
   courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
 });
 
+const enrollExistingUserSchema = Joi.object({
+  firstName: Joi.string().min(2).max(50).required().label("First Name"),
+  lastName: Joi.string().min(2).max(50).required().label("Last Name"),
+  email: Joi.string().email({ tlds: false }).required().label("Email"),
+  phone: Joi.string().allow("").optional().label("Phone"),
+  preferredSessionTime: Joi.string().required().label("Preferred Session Time"),
+  courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
+});
+
 export default function Signup() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
   const courseId = searchParams.get("courseId");
+  const KOBO_PER_NAIRA = 100;
+  const { data: session } = useSession();
+  const user = session?.user;
+  const firstName = user?.name ? user.name.split(" ")[0] : "";
+  const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
+  const email = user?.email || "";
 
   const [form, setForm] = useState({
     firstName: "",
@@ -102,7 +118,8 @@ export default function Signup() {
   }, [isEnrollmentPage, courseId]);
 
   const schemaToValidate = useMemo(() => {
-    return isEnrollmentPage ? enrollmentSchema : baseSignupSchema;
+    if (!isEnrollmentPage) return baseSignupSchema;
+    return !user ? enrollmentSchema : enrollExistingUserSchema;
   }, [isEnrollmentPage]);
 
   const handleChange = (
@@ -118,12 +135,29 @@ export default function Signup() {
     // Create a payload with only the necessary fields
     let payloadForValidation;
     let payloadForApi;
+    let payloadExistingUser;
+
+    // For logged in students, we don't send password fields
+    const firstName = user?.name ? user.name.split(" ")[0] : form.firstName;
+    const lastName = user?.name
+      ? user.name.split(" ").slice(1).join(" ")
+      : form.lastName;
+    const email = user?.email || form.email;
 
     if (isEnrollmentPage) {
+      payloadExistingUser = {
+        firstName,
+        lastName,
+        email,
+        phone: form.phone,
+        preferredSessionTime: form.preferredSessionTime,
+        courseId: Number(courseId),
+      };
+
       payloadForValidation = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
+        firstName,
+        lastName,
+        email,
         phone: form.phone,
         password: form.password,
         confirmPassword: form.confirmPassword, // Included for frontend validation
@@ -132,14 +166,17 @@ export default function Signup() {
       };
 
       payloadForApi = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
+        firstName,
+        lastName,
+        email,
         phone: form.phone,
-        password: form.password, // Only send the password to the backend
         preferredSessionTime: form.preferredSessionTime,
         courseId: Number(courseId),
       };
+
+      if (!user) {
+        payloadForApi.password = form.password; // Only send the password to the backend if user is not logged in
+      }
     } else {
       payloadForValidation = {
         firstName: form.firstName,
@@ -162,9 +199,12 @@ export default function Signup() {
     }
 
     // Validate the payload using the Joi schema
-    const { error } = schemaToValidate.validate(payloadForValidation, {
-      abortEarly: false,
-    });
+    const { error } = schemaToValidate.validate(
+      !user ? payloadForValidation : payloadExistingUser,
+      {
+        abortEarly: false,
+      }
+    );
     if (error) {
       setMessage(error.details.map((d) => d.message).join(" "));
       return;
@@ -197,7 +237,7 @@ export default function Signup() {
         });
         // Redirect to verification page after a short delay
         setTimeout(() => {
-          router.push("/auth/verify-email");
+          router.push(user ? "/user/dashboard" : "/auth/verify-email");
         }, 3000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
@@ -224,16 +264,15 @@ export default function Signup() {
         {isEnrollmentPage && selectedCourse && (
           <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              <span className="inline-flex items-center gap-2">
-                <DollarSign className="w-6 h-6 text-green-600" />
-                Enroll in:
-              </span>
+              <span className="inline-flex items-center gap-2"></span>
+
+              <p className="text-lg text-gray-600 font-semibold mb-1">
+                Enroll in: {selectedCourse.title}
+              </p>
             </h3>
-            <p className="text-lg text-gray-600 font-semibold mb-1">
-              {selectedCourse.title}
-            </p>
+
             <p className="text-2xl font-bold text-green-600">
-              ₦{(selectedCourse.price / 100).toLocaleString()}
+              ₦{(selectedCourse.price / KOBO_PER_NAIRA).toLocaleString()}
             </p>
           </div>
         )}
@@ -253,10 +292,11 @@ export default function Signup() {
               name="firstName"
               className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
               placeholder="First Name *"
-              value={form.firstName}
+              value={user ? firstName : form.firstName}
               onChange={handleChange}
               autoComplete="given-name"
               required
+              disabled={!!user}
             />
           </div>
 
@@ -274,10 +314,11 @@ export default function Signup() {
               name="lastName"
               className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
               placeholder="Last Name *"
-              value={form.lastName}
+              value={user ? lastName : form.lastName}
               onChange={handleChange}
               autoComplete="family-name"
               required
+              disabled={!!user}
             />
           </div>
 
@@ -295,7 +336,7 @@ export default function Signup() {
               name="email"
               className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
               placeholder="Email *"
-              value={form.email}
+              value={user ? email : form.email}
               onChange={handleChange}
               autoComplete="email"
               required
@@ -367,46 +408,50 @@ export default function Signup() {
           )}
 
           {/* Password (for both regular and enrollment signup) */}
-          <div className="relative">
-            <label htmlFor="password" className="sr-only">
-              Password *
-            </label>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400" />
+          {!user && (
+            <div className="relative">
+              <label htmlFor="password" className="sr-only">
+                Password *
+              </label>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Lock className="w-5 h-5 text-gray-400" />
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+                placeholder="Password *"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete="new-password"
+                required
+              />
             </div>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-              placeholder="Password *"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="new-password"
-              required
-            />
-          </div>
+          )}
 
           {/* Confirm Password (for both regular and enrollment signup) */}
-          <div className="relative">
-            <label htmlFor="confirmPassword" className="sr-only">
-              Confirm Password *
-            </label>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400" />
+          {!user && (
+            <div className="relative">
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm Password *
+              </label>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Lock className="w-5 h-5 text-gray-400" />
+              </div>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+                placeholder="Confirm Password *"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                autoComplete="new-password"
+                required
+              />
             </div>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-              placeholder="Confirm Password *"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              autoComplete="new-password"
-              required
-            />
-          </div>
+          )}
 
           {/* Company Name (only for regular signup) */}
           {!isEnrollmentPage && (

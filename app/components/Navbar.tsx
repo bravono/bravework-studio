@@ -82,7 +82,9 @@ export default function Navbar() {
             <Link
               href="/courses"
               className={`${commonLinkClasses} ${
-                pathname === "/courses" ? activeLinkClasses : inactiveLinkClasses
+                pathname === "/courses"
+                  ? activeLinkClasses
+                  : inactiveLinkClasses
               }`}
             >
               Courses
@@ -143,7 +145,7 @@ export default function Navbar() {
                           setIsMenuOpen(false);
                           setShowDropdown(false);
                         }}
-                      >
+                      > 
                         <Settings className="w-4 h-4" />
                         My Account
                       </Link> */}
@@ -230,6 +232,14 @@ export default function Navbar() {
             Jobs
           </Link>
           <Link
+            href="/courses"
+            className={`${commonLinkClasses} ${
+              pathname === "/courses" ? activeLinkClasses : inactiveLinkClasses
+            }`}
+          >
+            Courses
+          </Link>
+          <Link
             href="/about"
             className={`${commonLinkClasses} ${
               pathname === "/about" ? activeLinkClasses : inactiveLinkClasses
@@ -251,21 +261,14 @@ export default function Navbar() {
             {status === "authenticated" && session.user.name ? (
               <>
                 <Link
-                  href={isAdmin ? "/admin/dashboard" : "user/dashboard"}
+                  href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Settings className="w-4 h-4" />
-                  My Account
-                </Link>
+
                 <button
                   className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                   onClick={() => {
@@ -275,7 +278,7 @@ export default function Navbar() {
                 >
                   <LogOut className="w-4 h-4" />
                   Logout
-                </button> 
+                </button>
               </>
             ) : (
               <Link

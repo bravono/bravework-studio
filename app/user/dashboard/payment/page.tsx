@@ -1,92 +1,139 @@
-// app/dashboard/payment/page.tsx
 "use client";
 
-import React, { useState, useEffect, Suspense, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  Suspense,
+  useCallback,
+  useMemo,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+
+// Assuming these utility functions and hooks exist
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { cn } from "@/lib/utils/cn"; // Assuming this utility exists
-
-// Hooks
+import { cn } from "@/lib/utils/cn";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import useExchangeRates from "@/hooks/useExchangeRates";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
 
-// Create a separate component that uses useSearchParams
+// A separate component to handle useSearchParams due to Next.js constraints
 function PaymentContent() {
   const searchParams = useSearchParams();
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
-  const payingBalance = searchParams.get("balance");
+  const payingOfferBalance = searchParams.get("balance");
   const { data: session } = useSession();
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+  const [PaystackPop, setPaystackPop] = useState(null);
 
   const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
-  const [offerAmountInKobo, setAmountInKobo] = useState<number | null>(null);
-  const [totalPaid, setTotalPaid] = useState<number>(0); // in Naira
-  const [serviceName, setServiceName] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<number | null>(null);
+  const [offerAmountInKobo, setOfferAmountInKobo] = useState(null);
+  const [courseAmountInKobo, setCourseAmountInNGN] = useState(null);
+  const [courseTitle, setCourseTitle] = useState(null);
+  const [totalPaid, setTotalPaid] = useState(0); // in Kobo
+  const [serviceName, setServiceName] = useState(null);
+  const [orderId, setOrderId] = useState(null);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
-  const [convertedAmountToPay, setConvertedAmountToPay] = useState<
-    number | null
-  >(null);
-  const [convertedOriginalAmount, setConvertedOriginalAmount] = useState<
-    number | null
-  >(null);
-  const [convertedBalanceToPay, setConvertedBalanceToPay] = useState<
-    number | null
-  >(null);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [PaystackPop, setPaystackPop] = useState<any>(null);
   const [dataLoading, setDataLoading] = useState(true);
-  const [dataError, setDataError] = useState<string | null>(null);
+  const [dataError, setDataError] = useState(null);
 
-  type PaymentOption =
-    | "full_100_discount"
-    | "deposit_70_discount"
-    | "deposit_50";
-  const [paymentOption, setPaymentOption] =
-    useState<PaymentOption>("full_100_discount");
+  const [paymentOption, setPaymentOption] = useState("full_100_discount");
 
-  const calculateFinalAmountKobo = useCallback(() => {
-    if (offerAmountInKobo === null) return null;
+  // Use a single memoized calculation for all payment details
+  const paymentDetails = useMemo(() => {
+    // Determine the base amount in Kobo based on whether it's a course or an offer
+    const baseAmountInKobo = courseId
+      ? (courseAmountInKobo ?? 0) * KOBO_PER_NAIRA
+      : offerAmountInKobo ?? 0;
 
-    let calculatedAmount = offerAmountInKobo;
+    let calculatedAmount = baseAmountInKobo;
     let discountPercentage = 0;
     let paymentPercentage = 100;
 
-    switch (paymentOption) {
-      case "deposit_50":
-        calculatedAmount = offerAmountInKobo * 0.5;
-        paymentPercentage = 50;
-        break;
-      case "deposit_70_discount":
-        calculatedAmount = offerAmountInKobo * 0.7;
-        discountPercentage = 5;
-        calculatedAmount *= 1 - discountPercentage / 100;
-        paymentPercentage = 70;
-        break;
-      case "full_100_discount":
-        calculatedAmount = offerAmountInKobo;
-        discountPercentage = 10;
-        calculatedAmount *= 1 - discountPercentage / 100;
-        paymentPercentage = 100;
-        break;
+    if (offerId && !payingOfferBalance) {
+      // Only apply discounts if it's an offer and not a balance payment
+      switch (paymentOption) {
+        case "deposit_50":
+          calculatedAmount = baseAmountInKobo * 0.5;
+          paymentPercentage = 50;
+          break;
+        case "deposit_70_discount":
+          calculatedAmount = baseAmountInKobo * 0.7;
+          discountPercentage = 5;
+          calculatedAmount *= 1 - discountPercentage / 100;
+          paymentPercentage = 70;
+          break;
+        case "full_100_discount":
+          calculatedAmount = baseAmountInKobo;
+          discountPercentage = 10;
+          calculatedAmount *= 1 - discountPercentage / 100;
+          paymentPercentage = 100;
+          break;
+      }
     }
 
-    return {
-      amount: Math.round(calculatedAmount),
-      calculatedAmount,
-      discountPercentage,
-      paymentPercentage,
-    };
-  }, [offerAmountInKobo, paymentOption]);
+    const amountAlreadyPaid = totalPaid;
+    const amountToPay = Math.round(
+      payingOfferBalance
+        ? baseAmountInKobo - amountAlreadyPaid
+        : calculatedAmount
+    );
+
+    // Convert NGN amounts to the selected display currency
+    const originalAmountInNGN = baseAmountInKobo / KOBO_PER_NAIRA;
+
+    if (exchangeRates) {
+      const originalConverted = convertCurrency(
+        originalAmountInNGN,
+        exchangeRates[selectedCurrency],
+        getCurrencySymbol(selectedCurrency)
+      );
+
+      const amountToPayInNGN = amountToPay / KOBO_PER_NAIRA;
+      const amountToPayConverted = convertCurrency(
+        amountToPayInNGN,
+        exchangeRates[selectedCurrency],
+        getCurrencySymbol(selectedCurrency)
+      );
+
+      // Balance to be paid in the future
+      const balanceToPayInNGN =
+        (originalAmountInNGN * paymentPercentage) / 100 - amountToPayInNGN;
+      const balanceToPayConverted = convertCurrency(
+        balanceToPayInNGN,
+        exchangeRates[selectedCurrency],
+        getCurrencySymbol(selectedCurrency)
+      );
+
+      return {
+        amountToPayInKobo: amountToPay,
+        amountToPayInNGN,
+        amountToPayConverted,
+        originalConverted,
+        balanceToPayConverted,
+        discountPercentage,
+        paymentPercentage,
+      };
+    }
+  }, [
+    offerAmountInKobo,
+    courseAmountInKobo,
+    totalPaid,
+    courseId,
+    offerId,
+    payingOfferBalance,
+    paymentOption,
+    exchangeRates,
+    selectedCurrency,
+  ]);
 
   // Effect to dynamically import PaystackPop only on the client
   useEffect(() => {
@@ -102,8 +149,8 @@ function PaymentContent() {
 
   // Effect to fetch offer or course details securely from backend
   useEffect(() => {
-    const fetchOfferDetails = async () => {
-      if ((!offerId && !courseId) || !session?.user?.id) {
+    const fetchPaymentDataDetails = async () => {
+      if (!offerId && !courseId) {
         setDataError("Offer/Course ID or user session missing.");
         setDataLoading(false);
         return;
@@ -120,11 +167,11 @@ function PaymentContent() {
               errorData.error || "Failed to fetch offer details securely."
             );
           }
-          const data = await res.json();
-          setAmountInKobo(data.offerAmount);
-          setTotalPaid(data.totalPaid);
-          setServiceName(data.categoryName);
-          setOrderId(data.orderId);
+          const offer = await res.json();
+          setOfferAmountInKobo(offer.offerAmount);
+          setTotalPaid(offer.totalPaid);
+          setServiceName(offer.categoryName);
+          setOrderId(offer.orderId);
         } catch (err: any) {
           console.error("Error fetching offer details:", err);
           setDataError(err.message || "Failed to load offer details.");
@@ -142,8 +189,9 @@ function PaymentContent() {
               errorData.error || "Failed to fetch course details securely."
             );
           }
-          const data = await res.json();
-          setAmountInKobo(data.offerAmount);
+          const course = await res.json();
+          setCourseAmountInNGN(course[0].price / KOBO_PER_NAIRA);
+          setCourseTitle(course[0].title);
         } catch (err: any) {
           console.error("Error fetching course details:", err);
           setDataError(err.message || "Failed to load course details.");
@@ -151,61 +199,12 @@ function PaymentContent() {
           setDataLoading(false);
         }
       }
-
-      if (session?.user?.id) {
-        fetchOfferDetails();
-      }
     };
-  }, [offerId, courseId, session?.user?.id]);
-
-  // Effect to convert amount when final amount in kobo or selectedCurrency changes
-  useEffect(() => {
-    const finalKoboDetails = calculateFinalAmountKobo();
-    if (finalKoboDetails && exchangeRates && offerAmountInKobo !== null) {
-      // Calculate the original amount and the amount to pay, both in NGN
-      const originalAmountNGN = offerAmountInKobo / KOBO_PER_NAIRA;
-      const amountToPayNGN = finalKoboDetails.amount / KOBO_PER_NAIRA;
-      const balanceNGN = amountToPayNGN - totalPaid / KOBO_PER_NAIRA;
-
-      // Convert the NGN amounts to the selected display currency
-      const convertedOriginal = Number(
-        convertCurrency(
-          totalPaid > 0 ? balanceNGN : originalAmountNGN,
-          exchangeRates[selectedCurrency],
-          getCurrencySymbol(selectedCurrency)
-        ).replace(/,/g, "")
-      );
-      const convertedPayment = Number(
-        convertCurrency(
-          amountToPayNGN,
-          exchangeRates[selectedCurrency],
-          getCurrencySymbol(selectedCurrency)
-        ).replace(/,/g, "")
-      );
-      const convertedBalance = Number(
-        convertCurrency(
-          balanceNGN,
-          exchangeRates[selectedCurrency],
-          getCurrencySymbol(selectedCurrency)
-        ).replace(/,/g, "")
-      );
-
-      setConvertedOriginalAmount(convertedOriginal);
-      setConvertedAmountToPay(convertedPayment);
-      setConvertedBalanceToPay(convertedBalance);
-    }
-  }, [
-    calculateFinalAmountKobo,
-    selectedCurrency,
-    exchangeRates,
-    offerAmountInKobo,
-  ]);
+    fetchPaymentDataDetails();
+  }, [offerId, courseId]);
 
   const handlePaystackPayment = useCallback(async () => {
     setIsLoading(true);
-    const finalKoboDetails = calculateFinalAmountKobo();
-    const amountAlreadyPaidKobo = totalPaid;
-    const balanceToChargeKobo = finalKoboDetails.amount - amountAlreadyPaidKobo;
 
     if (!publicKey) {
       toast.error("Payment gateway not configured. Please contact support.");
@@ -221,7 +220,7 @@ function PaymentContent() {
       return;
     }
 
-    if (finalKoboDetails === null || finalKoboDetails.amount <= 0) {
+    if (paymentDetails.amountToPayInKobo <= 0) {
       toast.error("Invalid amount for payment. Please refresh the page.");
       setIsLoading(false);
       return;
@@ -232,15 +231,16 @@ function PaymentContent() {
     const servicePayingFor = offerId ? "offer" : "course";
     const serviceMetadataInfo = {
       orderId: orderId,
-      service: serviceName,
+      service: "project",
       customer_name: customerName,
       payment_option: paymentOption,
-      payment_percentage: finalKoboDetails.paymentPercentage,
-      discount_applied: finalKoboDetails.discountPercentage,
+      payment_percentage: paymentDetails.paymentPercentage,
+      discount_applied: paymentDetails.discountPercentage,
       original_amount_kobo: offerAmountInKobo,
     };
     const courseMetadataInfo = {
-      courseId: courseId,
+      orderId: orderId,
+      service: "course",
       customer_name: customerName,
       payment_option: paymentOption,
     };
@@ -249,7 +249,7 @@ function PaymentContent() {
       const handler = PaystackPop.setup({
         key: publicKey,
         email: email,
-        amount: payingBalance ? balanceToChargeKobo : finalKoboDetails.amount,
+        amount: paymentDetails.amountToPayInKobo,
         currency: "NGN",
         ref: `${servicePayingFor}_${offerId}_${new Date().getTime()}_${paymentOption}`,
         metadata: offerId ? serviceMetadataInfo : courseMetadataInfo,
@@ -302,20 +302,7 @@ function PaymentContent() {
       toast.error("Failed to initiate payment. Please check your console.");
       setIsLoading(false);
     }
-  }, [
-    publicKey,
-    PaystackPop,
-    offerId,
-    courseId,
-    serviceName,
-    session?.user?.email,
-    session?.user?.name,
-    calculateFinalAmountKobo,
-    paymentOption,
-    offerAmountInKobo,
-    orderId,
-  ]);
-
+  }, [publicKey, PaystackPop, session?.user?.email, paymentDetails]);
   if (dataLoading || ratesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
@@ -332,17 +319,13 @@ function PaymentContent() {
     );
   }
 
-  if (offerAmountInKobo === null) {
+  if (paymentDetails.amountToPayInKobo === null) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-red-600">
-        Could not retrieve offer amount. Please ensure the offer ID is valid.
+        Could not retrieve payment amount. Please ensure the offer ID is valid.
       </div>
     );
   }
-
-  const finalKoboDetails = calculateFinalAmountKobo();
-  const balanceToPayAfterDiscount =
-    (convertedOriginalAmount ?? 0) - (convertedAmountToPay ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 flex items-center justify-center font-sans">
@@ -355,19 +338,14 @@ function PaymentContent() {
           {/* Service Details Card */}
           <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 text-center shadow-inner">
             <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-              Service: {serviceName || "Loading..."}
+              {offerId ? "Service:" : "Course:"}{" "}
+              {offerId ? serviceName : courseTitle}
             </h2>
             <p className="text-lg text-blue-700 dark:text-blue-300">
-              {payingBalance ? "Balance To Pay: " : "Original Amount: "}
+              {payingOfferBalance ? "Balance To Pay: " : "Original Amount: "}
               <span className="font-extrabold text-blue-900 dark:text-blue-100">
                 {getCurrencySymbol(selectedCurrency)}
-                {(payingBalance
-                  ? convertedBalanceToPay
-                  : convertedOriginalAmount
-                )?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {paymentDetails.originalConverted}
               </span>
             </p>
             {offerId && (
@@ -378,7 +356,7 @@ function PaymentContent() {
           </div>
 
           {/* Payment Options Section */}
-          {!payingBalance && (
+          {!payingOfferBalance && !courseId && (
             <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Select Payment Option
@@ -431,52 +409,43 @@ function PaymentContent() {
           )}
 
           {/* Payment Summary */}
-          {finalKoboDetails && !payingBalance && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-2xl p-6 text-center shadow-inner">
-              <h3 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-3">
-                Payment Summary
-              </h3>
-              <p className="text-lg text-yellow-700 dark:text-yellow-300 mb-1">
-                Paying:{" "}
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-2xl p-6 text-center shadow-inner">
+            <h3 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-3">
+              Payment Summary
+            </h3>
+            <p className="text-lg text-yellow-700 dark:text-yellow-300 mb-1">
+              Paying:{" "}
+              <span className="font-extrabold">
+                {paymentDetails.paymentPercentage}%
+              </span>{" "}
+              of Original Amount
+            </p>
+            {paymentDetails.discountPercentage > 0 && (
+              <p className="text-md text-yellow-700 dark:text-yellow-300 mb-1">
+                Discount Applied:{" "}
                 <span className="font-extrabold">
-                  {finalKoboDetails.paymentPercentage}%
-                </span>{" "}
-                of Original Amount
+                  {paymentDetails.discountPercentage}%
+                </span>
               </p>
-              {finalKoboDetails.discountPercentage > 0 && (
-                <p className="text-md text-yellow-700 dark:text-yellow-300 mb-1">
-                  Discount Applied:{" "}
-                  <span className="font-extrabold">
-                    {finalKoboDetails.discountPercentage}%
-                  </span>
-                </p>
-              )}
-              <div className="mt-4 border-t border-yellow-200 dark:border-yellow-600 pt-4 space-y-2">
-                <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
-                  Amount to Pay:{" "}
-                  <span className="font-extrabold">
-                    {getCurrencySymbol(selectedCurrency)}
-                    {(convertedAmountToPay ?? 0).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </p>
-                <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
-                  Balance to Pay:{" "}
-                  <span className="font-extrabold">
-                    {getCurrencySymbol(selectedCurrency)}
-                    {paymentOption === "full_100_discount"
-                      ? 0
-                      : balanceToPayAfterDiscount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                  </span>
-                </p>
-              </div>
+            )}
+            <div className="mt-4 border-t border-yellow-200 dark:border-yellow-600 pt-4 space-y-2">
+              <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
+                Amount to Pay:{" "}
+                <span className="font-extrabold">
+                  {getCurrencySymbol(selectedCurrency)}
+                  {paymentDetails.amountToPayConverted}
+                </span>
+              </p>
+              <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
+                Balance to Pay:{" "}
+                <span className="font-extrabold">
+                  {paymentDetails.paymentPercentage === 100
+                    ? getCurrencySymbol(selectedCurrency) + "0.00"
+                    : paymentDetails.balanceToPayConverted}
+                </span>
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Currency Selector */}
           <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
@@ -509,7 +478,9 @@ function PaymentContent() {
             <button
               onClick={handlePaystackPayment}
               disabled={
-                isLoading || !PaystackPop || convertedAmountToPay === null
+                isLoading ||
+                !PaystackPop ||
+                paymentDetails.amountToPayInKobo <= 0
               }
               className="w-full py-4 px-6 rounded-xl font-extrabold text-white text-lg bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
@@ -517,13 +488,9 @@ function PaymentContent() {
                 ? "Processing Payment..."
                 : !PaystackPop
                 ? "Loading Payment Gateway..."
-                : `Pay ${getCurrencySymbol(selectedCurrency)}${(payingBalance
-                    ? convertedBalanceToPay
-                    : convertedAmountToPay
-                  )?.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`}
+                : `Pay ${getCurrencySymbol(selectedCurrency)}${
+                    paymentDetails.amountToPayConverted
+                  }`}
             </button>
           </div>
         </div>

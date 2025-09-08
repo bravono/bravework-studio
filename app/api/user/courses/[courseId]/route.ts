@@ -49,21 +49,21 @@ export async function GET(
       LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
       LEFT JOIN (
             SELECT
-                course_id,
+                s.course_id,
                 json_agg(json_build_object(
                 'date', session_date,
                 'time', session_time,
                 'link', session_link
                 )) AS sessions
-            FROM sessions
+            FROM sessions s
             GROUP BY course_id
             )  AS s ON ce.course_id = s.course_id
-      WHERE course_id = $1 AND user_id = $2
-      ORDER BY created_at DESC; -- Order by most recent orders first
+      WHERE c.course_id = $1 AND ce.user_id = $2
+      ORDER BY created_at DESC; 
     `;
     const result = await queryDatabase(queryText, [courseId, userId]);
 
-    console.log("Custom offers fetched for user:", result);
+    console.log("Course fetched for user:", result);
 
     return NextResponse.json(result, {
       headers: {
