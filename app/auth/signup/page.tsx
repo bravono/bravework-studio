@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Joi from "joi";
@@ -13,7 +13,6 @@ import {
   DollarSign,
   Building,
 } from "lucide-react";
-import { toast } from "react-toastify";
 
 // Mock data for courses. In a real app, this would be fetched from your API.
 const courses = [
@@ -80,7 +79,7 @@ const enrollExistingUserSchema = Joi.object({
   courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
 });
 
-export default function Signup() {
+function Signup() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
@@ -514,4 +513,10 @@ export default function Signup() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  <Suspense>
+    <Signup />
+  </Suspense>;
 }
