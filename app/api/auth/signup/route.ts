@@ -5,7 +5,7 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { createTrackingId } from "@/lib/utils/tracking";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
-import { sendVerificationEmail } from "@/lib/mailer";
+import { sendOrderReceivedEmail, sendVerificationEmail } from "@/lib/mailer";
 import Joi from "joi";
 
 // Define Joi schemas
@@ -45,8 +45,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log("Body", body);
-
     let validationResult;
     // Determine the correct schema based on the request body and session status
     if (body.courseId) {
@@ -77,6 +75,10 @@ export async function POST(req: Request) {
       preferredSessionTime,
       courseId,
     } = body;
+
+    let course;
+    let isStudent = courseId;
+    const name = `${firstName} ${lastName}`;
 
     // Use a database transaction to ensure data integrity
     const result = await withTransaction(async (client) => {
@@ -146,9 +148,14 @@ export async function POST(req: Request) {
           [userId, verificationToken, expires, "email_verification"]
         );
 
-        const name = `${firstName} ${lastName}`;
         try {
-          await sendVerificationEmail(email, verificationToken, name);
+          await sendVerificationEmail(
+            email,
+            verificationToken,
+            name,
+            (isStudent = false),
+            (course = null)
+          );
           console.log(`Verification email sent to ${email}`);
         } catch (mailError) {
           console.error("Failed to send verification email:", mailError);
@@ -187,6 +194,8 @@ export async function POST(req: Request) {
           end_date: endDate,
         } = courseResult.rows[0];
 
+        course = courseTitle;
+
         // Fetch session ID
         const sessionResult = await client.query(
           `SELECT session_id FROM sessions WHERE course_id = $1 AND session_time = $2`,
@@ -220,10 +229,10 @@ export async function POST(req: Request) {
         const categoryId = categoryResult.rows[0].category_id;
         // Insert into orders table
         const trackingId = createTrackingId(courseTitle);
-        await client.query(
+        const orderResult = await client.query(
           `INSERT INTO orders 
           (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
           [
             userId,
             categoryId,
@@ -237,6 +246,15 @@ export async function POST(req: Request) {
           ]
         );
 
+        const orderId = orderResult.rows[0].order_id;
+        console.log("Course order ID:", orderId)
+
+        try {
+          await sendOrderReceivedEmail(email, name, orderId, course = null);
+          console.log(`Course order email sent to ${email}`);
+        } catch (mailError) {
+          console.error("Failed to send course order email:", mailError);
+        }
         return { userId, isNewUser: !session };
       }
 

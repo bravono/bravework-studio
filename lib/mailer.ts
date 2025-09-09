@@ -99,7 +99,9 @@ export async function sendEmail({
 export async function sendVerificationEmail(
   toEmail: string,
   token: string,
-  userName: string
+  userName: string,
+  isStudent?: boolean,
+  course?: string
 ) {
   console.log(`Verification token for ${userName}: ${token}`);
 
@@ -114,13 +116,19 @@ export async function sendVerificationEmail(
   const subject = "Verify Your Email Address for Our Services";
   const htmlContent = `
     <p>Hello ${userName},</p>
-    <p>Thank you for signing up for our services! Please verify your email address by clicking the link below:</p>
+    <p>Thank you for ${
+      isStudent
+        ? `enrolling in course ${course}`
+        : "signing up for our services"
+    }! Please verify your email address by clicking the link below:</p>
     <p><a href="${verificationLink}">Verify Email Address</a></p>
     <p>This link will expire in 24 hours.</p>
     <p>If you did not sign up for an account, please ignore this email.</p>
     <p>Thanks,<br/>Our Services Team</p>
   `;
-  const textContent = `Hello ${userName},\n\nThank thank you for signing up for our services! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
+  const textContent = `Hello ${userName},\n\nThank you for ${
+    isStudent ? `enrolling in course ${course}` : "signing up for our services"
+  }! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
@@ -133,7 +141,8 @@ export async function sendVerificationEmail(
 export async function sendOrderReceivedEmail(
   toEmail: string,
   userName: string,
-  orderId: string
+  orderId: string,
+  course?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -145,11 +154,20 @@ export async function sendOrderReceivedEmail(
   const htmlContent = `
     <p>Hello ${userName},</p>
     <p>Thank you for placing an order with us! We have successfully received your request (Order ID: <strong>${orderId}</strong>).</p>
-    <p><strong>Please note:</strong> No money has been charged yet. We will review your order details and send you a custom offer for confirmation.</p>
-    <p>Please look out for our email with the custom offer. We're excited to get started!</p>
+    ${
+      course
+        ? `<p>You enrolled in ${course}. Please login to your dashboard to view your more details about your enrollment.</p>`
+        : `<p><strong>Please note:</strong> No money has been charged yet. We will review your order details and send you a custom offer for confirmation.</p>
+    <p>Please look out for our email with the custom offer. We're excited to get started!</p>`
+    }
     <p>Thanks,<br/>The Bravework Studio Team</p>
   `;
-  const textContent = `Hello ${userName},\n\nThank you for placing an order with us! We have successfully received your request (Order ID: ${orderId}).\n\nPlease note: No money has been charged yet. We will review your order details and send you a custom offer for confirmation.\n\nPlease look out for our email with the custom offer. We're excited to get started!\n\nThanks,\nThe Bravework Studio Team`;
+  const textContent = `Hello ${userName},\n\nThank you for placing an order with us! We have successfully received your request (Order ID: ${orderId}).\n\n${
+    course
+      ? `<p>You enrolled in ${course}. Please login to your dashboard to view your more details about your enrollment.</p>`
+      : `<p><strong>Please note:</strong> No money has been charged yet. We will review your order details and send you a custom offer for confirmation.</p>
+    <p>Please look out for our email with the custom offer. We're excited to get started!</p>`
+  }\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
@@ -162,7 +180,8 @@ export async function sendOrderReceivedEmail(
 export async function sendPaymentReceivedEmail(
   toEmail: string,
   userName: string,
-  orderId: string
+  orderId: string,
+  course?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -170,12 +189,18 @@ export async function sendPaymentReceivedEmail(
     return;
   }
 
-  const subject = "Payment Received - Your Project is Underway!";
+  const subject = `Payment Received - ${
+    course ? "You Have Purchase a new Course" : "Your Project is Underway!"
+  }`;
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/orders/${orderId}`;
   const htmlContent = `
     <p>Hello ${userName},</p>
     <p>We have successfully received your payment for Order ID: <strong>${orderId}</strong>.</p>
-    <p>Work will begin on your project right away! To see and track the progress of your current project, please go to your dashboard.</p>
+    ${
+      course
+        ? `Go to your dashboard to view more details about your course ${course}`
+        : `<p>Work will begin on your project right away! To see and track the progress of your current project, please go to your dashboard.</p>`
+    }
     <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Your Dashboard</a></p>
     <p>Thanks,<br/>The Bravework Studio Team</p>
   `;
@@ -267,9 +292,15 @@ export async function sendCustomOfferNotificationEmail(
 
     <p style="margin-top: 30px; font-size: 0.9em; color: #888;">
       Please review our 
-      <a href="${process.env.NEXTAUTH_URL}/privacy-policy" style="color: #008751;">Privacy Policy</a>, 
-      <a href="${process.env.NEXTAUTH_URL}/terms-of-service" style="color: #008751;">Terms of Service</a>, and 
-      <a href="${process.env.NEXTAUTH_URL}/refund-policy" style="color: #008751;">Refund Policy</a>.
+      <a href="${
+        process.env.NEXTAUTH_URL
+      }/privacy-policy" style="color: #008751;">Privacy Policy</a>, 
+      <a href="${
+        process.env.NEXTAUTH_URL
+      }/terms-of-service" style="color: #008751;">Terms of Service</a>, and 
+      <a href="${
+        process.env.NEXTAUTH_URL
+      }/refund-policy" style="color: #008751;">Refund Policy</a>.
     </p>
   `;
   const textContent = `Hello ${userName},\n\nGreat news! We've created a new custom offer for you related to Order ID: ${orderId}.\n\nOffer Amount: $${offerAmount.toLocaleString()}\nDescription: ${offerDescription}\n\n${expiryText.replace(

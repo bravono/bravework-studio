@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
 
   let customerEmail;
   let orderId;
+  let course;
   let clientName;
   // 5. Handle Different Event Types
   switch (event.event) {
@@ -199,6 +200,7 @@ export async function POST(req: NextRequest) {
               throw new Error(`Course with ID ${courseId} not found.`);
             }
             const courseDetails = courseRows.rows[0];
+            course = courseDetails.title;
             totalExpectedOrderAmountKobo = courseDetails.price_kobo;
             orderTitle = courseDetails.title;
             project_duration_days = courseDetails.course_duration_days;
@@ -355,7 +357,7 @@ export async function POST(req: NextRequest) {
               clientName || customerEmail
             } for Order ID: ${order.order_id} (Status: ${finalOrderStatusName})`
           );
-          sendPaymentReceivedEmail(customerEmail, clientName, orderId);
+          sendPaymentReceivedEmail(customerEmail, clientName, orderId, course = null);
 
           return NextResponse.json(
             { message: "Webhook received successfully." },
