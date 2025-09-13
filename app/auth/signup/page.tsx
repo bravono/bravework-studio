@@ -516,7 +516,9 @@ function Signup() {
 }
 
 export default function Page() {
-  <Suspense>
-    <Signup />
-  </Suspense>;
+  return (
+    <Suspense>
+      <Signup />
+    </Suspense>
+  );
 }
