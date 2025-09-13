@@ -71,7 +71,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Error fetching custom offers:", error);
+    console.error("Error fetching course:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
