@@ -170,11 +170,29 @@ interface Course {
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
   preferredSession: string; // ID of the preferred session
+  isActive: boolean;
   sessions: Array<{
     date: string;
     time: string;
     link: string;
   }>;
+}
+
+interface Courses {
+  id: number;
+  title: string;
+  description: string;
+  isActive: boolean;
+  startDate: string;
+  endDate: string;
+  maxStudents: number;
+  thumbnailUrl: string;
+  firstName: string;
+  lastName: string;
+  level: "Beginner" | "Intermediate" | "Advance";
+  language: string;
+  amount: number;
+  bio: string;
 }
 
 interface AdminStats {
