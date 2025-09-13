@@ -29,6 +29,7 @@ export const metadata: Metadata = {
 };
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+const env = process.env.NODE_ENV;
 
 export default async function RootLayout({
   children,
@@ -39,7 +40,7 @@ export default async function RootLayout({
     <html lang="en">
       {/* Google Tag Manager Script (in Head) */}
       {/* Use Next.js Script component for better performance */}
-      {GTM_ID && (
+      {GTM_ID && env !== "development" && (
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
               (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
