@@ -256,11 +256,12 @@ export default function CustomerOfferDetailsPage() {
               <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
               <strong className="text-gray-700">Offer Amount:</strong>
               <span className="ml-2">
-                {convertCurrency(
-                  offer.orderBudget,
-                  exchangeRates[selectedCurrency],
-                  getCurrencySymbol(selectedCurrency)
-                )}
+                {exchangeRates?.[selectedCurrency] &&
+                  convertCurrency(
+                    offer.orderBudget,
+                    exchangeRates?.[selectedCurrency],
+                    getCurrencySymbol(selectedCurrency)
+                  )}
               </span>
             </p>
             <p className="flex items-center">
@@ -315,11 +316,12 @@ export default function CustomerOfferDetailsPage() {
               <p>
                 <strong className="text-gray-700">Original Budget:</strong>
                 <span className="ml-2">
-                  {convertCurrency(
-                    offer.orderBudget,
-                    exchangeRates[selectedCurrency],
-                    getCurrencySymbol(selectedCurrency)
-                  )}
+                  {exchangeRates?.[selectedCurrency] &&
+                    convertCurrency(
+                      offer.orderBudget,
+                      exchangeRates[selectedCurrency],
+                      getCurrencySymbol(selectedCurrency)
+                    )}
                 </span>
               </p>
               <div className="col-span-1 md:col-span-2">
@@ -372,7 +374,6 @@ export default function CustomerOfferDetailsPage() {
           onClose={() => setIsRejectReasonModalOpen(false)}
           onConfirm={handleConfirmReject}
           isLoading={actionLoading}
-          
         />
       )}
 
