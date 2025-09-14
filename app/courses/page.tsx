@@ -37,6 +37,9 @@ export default function coursesPage() {
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const { exchangeRates, ratesError, ratesLoading } = useExchangeRates();
 
+  const rateIsFetched = exchangeRates?.[selectedCurrency];
+
+
   const fetchCourses = useCallback(async () => {
     setIsLoading(true);
 
@@ -146,7 +149,7 @@ export default function coursesPage() {
                           {course.amount === 0
                             ? "Free"
                             : `${getCurrencySymbol(selectedCurrency)} ${
-                                exchangeRates?.[selectedCurrency] &&
+                                rateIsFetched &&
                                 convertCurrency(
                                   course.amount / KOBO_PER_NAIRA,
                                   exchangeRates[selectedCurrency],
