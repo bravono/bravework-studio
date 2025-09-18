@@ -17,7 +17,7 @@ import {
   Hourglass,
   DollarSign,
 } from "lucide-react";
-import { Courses } from "../types/app";
+import { Course } from "../types/app";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
@@ -32,13 +32,12 @@ const icons = [
 
 export default function coursesPage() {
   const KOBO_PER_NAIRA = 100;
-  const [courses, setCourses] = useState<Courses[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const { exchangeRates, ratesError, ratesLoading } = useExchangeRates();
 
   const rateIsFetched = exchangeRates?.[selectedCurrency];
-
 
   const fetchCourses = useCallback(async () => {
     setIsLoading(true);
@@ -114,8 +113,7 @@ export default function coursesPage() {
                       <li className="flex items-center gap-2">
                         <User className="h-4 w-4 text-primary" />
                         <span>
-                          <strong>Instructor:</strong>{" "}
-                          {`${course.firstName} ${course.lastName}`}
+                          <strong>Instructor:</strong> {`${course.instructor}`}
                         </span>
                       </li>
                       <li className="flex items-center gap-2">
