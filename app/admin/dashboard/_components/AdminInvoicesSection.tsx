@@ -1,22 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
-import { toast } from 'react-toastify'; // Using toast for notifications
-
-// Re-import types (or import from a shared types file)
-interface Invoice {
-  id: string;
-  orderId?: string;
-  userId: string;
-  clientName?: string;
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  amountPaid: number;
-  status: 'Paid' | 'Pending' | 'Overdue' | 'Cancelled';
-  paymentLink?: string;
-}
+import React, { useState, useEffect, useCallback } from "react";
+import { format } from "date-fns";
+import { toast } from "react-toastify"; // Using toast for notifications
+import { Invoice } from "@/app/types/app";
 
 // A simple loading spinner component
 const LoadingSpinner = () => (
@@ -27,7 +14,15 @@ const LoadingSpinner = () => (
 );
 
 // A custom confirmation modal component
-const ConfirmationModal = ({ message, onConfirm, onCancel }: { message: string, onConfirm: () => void, onCancel: () => void }) => {
+const ConfirmationModal = ({
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-50">
       <div className="p-6 bg-white rounded-lg shadow-xl max-w-sm w-full">
@@ -55,14 +50,17 @@ export default function AdminInvoicesSection() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{ message: string; action: () => void } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    message: string;
+    action: () => void;
+  } | null>(null);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/invoices'); // NEW API ROUTE (GET all invoices)
-      if (!res.ok) throw new Error('Failed to fetch invoices.');
+      const res = await fetch("/api/admin/invoices"); // NEW API ROUTE (GET all invoices)
+      if (!res.ok) throw new Error("Failed to fetch invoices.");
       const data: Invoice[] = await res.json();
       setInvoices(data);
     } catch (err: any) {
@@ -85,19 +83,23 @@ export default function AdminInvoicesSection() {
         setLoading(true);
         setConfirmModal(null); // Close the modal
         try {
-          const res = await fetch(`/api/admin/invoices/${invoiceId}/status`, { // NEW API ROUTE (PATCH)
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Paid' }),
+          const res = await fetch(`/api/admin/invoices/${invoiceId}/status`, {
+            // NEW API ROUTE (PATCH)
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "Paid" }),
           });
-          if (!res.ok) throw new Error('Failed to mark invoice as paid.');
+          if (!res.ok) throw new Error("Failed to mark invoice as paid.");
 
           // Use react-toastify for non-blocking notifications
-          toast.success('Invoice marked as paid successfully!');
+          toast.success("Invoice marked as paid successfully!");
           fetchInvoices();
         } catch (err: any) {
           console.error("Error marking invoice as paid:", err);
-          toast.error('Error marking invoice as paid: ' + (err.message || 'Unknown error.'));
+          toast.error(
+            "Error marking invoice as paid: " +
+              (err.message || "Unknown error.")
+          );
         } finally {
           setLoading(false);
         }
@@ -106,54 +108,95 @@ export default function AdminInvoicesSection() {
   };
 
   const statusColors = {
-    'Paid': 'bg-green-100 text-green-800',
-    'Pending': 'bg-yellow-100 text-yellow-800',
-    'Overdue': 'bg-red-100 text-red-800',
-    'Cancelled': 'bg-gray-100 text-gray-800',
+    Paid: "bg-green-100 text-green-800",
+    Pending: "bg-yellow-100 text-yellow-800",
+    Overdue: "bg-red-100 text-red-800",
+    Cancelled: "bg-gray-100 text-gray-800",
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg">Error: {error}</div>;
+  if (error)
+    return (
+      <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg">
+        Error: {error}
+      </div>
+    );
 
   return (
     <div className="p-4 bg-gray-50 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Invoices & Payments</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">
+        Invoices & Payments
+      </h2>
       <div className="p-4 bg-white rounded-lg shadow-sm">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">All Invoices</h3>
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+          All Invoices
+        </h3>
         {invoices.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full leading-normal table-auto">
               <thead>
                 <tr className="text-left text-gray-600 bg-gray-100">
                   <th className="px-5 py-3 border-b-2 border-gray-200">ID</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Order ID</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Client</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Issue Date</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Due Date</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Amount</th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Order ID
+                  </th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Client
+                  </th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Issue Date
+                  </th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Due Date
+                  </th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Amount
+                  </th>
                   <th className="px-5 py-3 border-b-2 border-gray-200">Paid</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Status</th>
-                  <th className="px-5 py-3 border-b-2 border-gray-200">Actions</th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Status
+                  </th>
+                  <th className="px-5 py-3 border-b-2 border-gray-200">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {invoices.map(invoice => (
+                {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.id}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.orderId || 'N/A'}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.clientName || 'N/A'}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{format(new Date(invoice.issueDate), 'MMM dd, yyyy')}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">${invoice.amount.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">${invoice.amountPaid.toLocaleString()}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColors[invoice.status]}`}>
+                      {invoice.id}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      {invoice.orderId || "N/A"}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      {invoice.clientName || "N/A"}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      {format(new Date(invoice.issueDate), "MMM dd, yyyy")}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      {format(new Date(invoice.dueDate), "MMM dd, yyyy")}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      ${invoice.amount.toLocaleString()}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      ${invoice.amountPaid.toLocaleString()}
+                    </td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          statusColors[invoice.status]
+                        }`}
+                      >
                         {invoice.status}
                       </span>
                     </td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
                       <div className="flex items-center space-x-2">
-                        {invoice.status !== 'Paid' && (
+                        {invoice.status !== "Paid" && (
                           <button
                             onClick={() => handleMarkInvoiceAsPaid(invoice.id)}
                             className="px-3 py-1 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors duration-200"
@@ -192,5 +235,3 @@ export default function AdminInvoicesSection() {
     </div>
   );
 }
-
-

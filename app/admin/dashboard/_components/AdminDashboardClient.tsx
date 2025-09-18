@@ -8,7 +8,7 @@ import {
   Briefcase,
   Gift,
   FileText,
-  User,
+  Book,
   Eye,
   Settings,
   LogOut,
@@ -33,6 +33,7 @@ import AdminJobApplicationsSection from "./AdminJobApplicationsSection";
 import AdminInvoicesSection from "./AdminInvoicesSection";
 import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
+import AdminCourseSection from "./AdminCourseSection";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -43,8 +44,13 @@ const navItems = [
   { id: "orders", label: "Orders & Projects", icon: <FileText size={20} /> },
   { id: "custom-offers", label: "Custom Offers", icon: <Gift size={20} /> },
   { id: "users", label: "Users", icon: <Users size={20} /> },
+  { id: "courses", label: "Courses", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
-  { id: "job-applications", label: "Job Applications", icon: <Briefcase size={20} /> },
+  {
+    id: "job-applications",
+    label: "Job Applications",
+    icon: <Briefcase size={20} />,
+  },
   { id: "notifications", label: "Notifications", icon: <Bell size={20} /> },
   { id: "settings", label: "Settings", icon: <Settings size={20} /> },
 ];
@@ -192,6 +198,12 @@ export default function AdminDashboardClient({
                 </button>
                 <button
                   className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  onClick={() => setActiveTab("courses")}
+                >
+                  Manage Courses
+                </button>
+                <button
+                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => setActiveTab("job-applications")}
                 >
                   Manage Job Apps
@@ -202,10 +214,16 @@ export default function AdminDashboardClient({
                 >
                   Manage Invoices
                 </button>
-                <Link href="/admin/reports" className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center">
+                <Link
+                  href="/admin/reports"
+                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
+                >
                   View Reports
                 </Link>
-                <Link href="/admin/discounts" className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center">
+                <Link
+                  href="/admin/discounts"
+                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
+                >
                   Manage Discounts
                 </Link>
               </div>
@@ -219,7 +237,10 @@ export default function AdminDashboardClient({
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Monitor server status, API performance, and database health.
               </p>
-              <Link href="/admin/system-health" className="mt-auto self-start text-indigo-500 hover:text-indigo-600 font-semibold transition-colors">
+              <Link
+                href="/admin/system-health"
+                className="mt-auto self-start text-indigo-500 hover:text-indigo-600 font-semibold transition-colors"
+              >
                 View System Health
               </Link>
             </div>
@@ -231,6 +252,8 @@ export default function AdminDashboardClient({
         return <AdminCustomOffersSection />;
       case "users":
         return <AdminUsersSection />;
+      case "courses":
+        return <AdminCourseSection />;
       case "invoices":
         return <AdminInvoicesSection />;
       case "job-applications":
@@ -259,7 +282,10 @@ export default function AdminDashboardClient({
                 <span className="text-gray-600 dark:text-gray-400">
                   {adminProfile.email}
                 </span>
-                <Link href="/profile" className="text-indigo-500 hover:text-indigo-600 font-semibold mt-2">
+                <Link
+                  href="/profile"
+                  className="text-indigo-500 hover:text-indigo-600 font-semibold mt-2"
+                >
                   Edit Profile
                 </Link>
               </div>
@@ -286,9 +312,25 @@ export default function AdminDashboardClient({
   if (loadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-gray-700 dark:text-gray-300">
-        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <svg
+          className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
         </svg>
         Loading admin dashboard overview...
       </div>
@@ -296,12 +338,20 @@ export default function AdminDashboardClient({
   }
 
   if (dataError) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-red-500 dark:text-red-400">Error: {dataError}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg text-red-500 dark:text-red-400">
+        Error: {dataError}
+      </div>
+    );
   }
 
   // Fallback for session status (should be authenticated due to server-side check)
   if (status === "loading" || status === "unauthenticated") {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700 dark:text-gray-300">Authenticating...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg text-gray-700 dark:text-gray-300">
+        Authenticating...
+      </div>
+    );
   }
 
   return (
@@ -309,16 +359,16 @@ export default function AdminDashboardClient({
       {/* Sidebar Navigation */}
       <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 pt-10 mt-8 shadow-xl flex flex-col">
         <div className="flex items-center justify-center md:justify-start">
-            <Image
-                src="/assets/Braveword_Studio-Logo-Color.png" // Replace with your logo
-                alt="Logo"
-                width={50}
-                height={50}
-                className="mb-4 hidden md:block"
-            />
-            <div className="text-xl font-bold text-gray-800 dark:text-white mb-6 hidden md:block ml-2">
-                Admin
-            </div>
+          <Image
+            src="/assets/Braveword_Studio-Logo-Color.png" // Replace with your logo
+            alt="Logo"
+            width={50}
+            height={50}
+            className="mb-4 hidden md:block"
+          />
+          <div className="text-xl font-bold text-gray-800 dark:text-white mb-6 hidden md:block ml-2">
+            Admin
+          </div>
         </div>
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => (
@@ -327,44 +377,60 @@ export default function AdminDashboardClient({
               onClick={() => setActiveTab(item.id)}
               className={cn(
                 "flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors duration-200 relative",
-                activeTab === item.id && "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+                activeTab === item.id &&
+                  "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700"
               )}
             >
               <span
                 className={cn(
                   "mr-3",
-                  activeTab === item.id ? "text-white" : "text-gray-400 dark:text-gray-500"
+                  activeTab === item.id
+                    ? "text-white"
+                    : "text-gray-400 dark:text-gray-500"
                 )}
               >
                 {item.icon}
               </span>
 
-              <span className={cn("font-medium", activeTab === item.id ? "text-white" : "text-gray-800 dark:text-gray-200")}>{item.label}</span>
-              {item.label.toLowerCase() === "notifications" && stats.totalUnreadNotifications > 0 &&(
-                <span className="absolute top-1 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
-                  {stats.totalUnreadNotifications}
-                </span>
-              )}
+              <span
+                className={cn(
+                  "font-medium",
+                  activeTab === item.id
+                    ? "text-white"
+                    : "text-gray-800 dark:text-gray-200"
+                )}
+              >
+                {item.label}
+              </span>
+              {item.label.toLowerCase() === "notifications" &&
+                stats.totalUnreadNotifications > 0 && (
+                  <span className="absolute top-1 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                    {stats.totalUnreadNotifications}
+                  </span>
+                )}
             </button>
           ))}
         </nav>
         {/* Logout button */}
         <div className="mt-auto border-t border-gray-200 dark:border-gray-700 pt-4">
-            <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 transition-colors duration-200"
-            >
-                <LogOut size={20} className="mr-3 text-gray-400 dark:text-gray-500" />
-                <span className="font-medium text-gray-800 dark:text-gray-200">Logout</span>
-            </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 transition-colors duration-200"
+          >
+            <LogOut
+              size={20}
+              className="mr-3 text-gray-400 dark:text-gray-500"
+            />
+            <span className="font-medium text-gray-800 dark:text-gray-200">
+              Logout
+            </span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="w-full">
-          {renderContent()}
-        </div>
+        <div className="w-full">{renderContent()}</div>
       </main>
     </div>
   );

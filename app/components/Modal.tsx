@@ -25,13 +25,13 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 transition-opacity duration-300"
+      className="fixed inset-0 z-[100] max-h-[100vh] overflow-y-auto flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 transition-opacity duration-300"
       onClick={onClose}
     >
       {/* The modal content is the main container for the modal's body.
           We stop propagation here so clicks inside the modal don't close it. */}
       <div
-        className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transform transition-transform duration-300 ease-out scale-95  animate-scale-up"
+        className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transform transition-transform duration-300 ease-out scale-95  animate-scale-up max-h-screen overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -52,5 +52,3 @@ export default function Modal({
     </div>
   );
 }
-
-

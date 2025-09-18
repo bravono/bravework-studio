@@ -1289,6 +1289,7 @@ function Page() {
         return <UserNotificationsSection />;
       case "custom-offers":
         return <UserCustomOffersSection />;
+      case "courses":
     }
   };
   return renderContent();
