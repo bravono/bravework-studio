@@ -49,7 +49,7 @@ export async function GET(request: Request) {
             FROM sessions
             GROUP BY course_id
             )  AS s ON ce.course_id = s.course_id
-      WHERE user_id = $1
+      WHERE c.user_id = $1
       ORDER BY created_at DESC; -- Order by most recent orders first
     `;
 
