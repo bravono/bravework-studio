@@ -4,7 +4,7 @@ import { queryDatabase } from "@/lib/db";
 export async function GET(request: Request) {
   try {
     const courseResults = await queryDatabase(`SELECT 
-        course_id AS id,
+        c.course_id AS id,
         title,
         description,
         is_active AS "isActive",
@@ -19,6 +19,16 @@ export async function GET(request: Request) {
         price_in_kobo AS amount,
         i.bio
         FROM courses c
+        LEFT JOIN (
+        SELECT
+          course_id,
+          json_agg(json_build_object(
+            'datetime', session_timestamp,
+            'link', session_link
+          )) AS sessions
+        FROM sessions
+        GROUP BY course_id
+      ) s ON c.course_id = s.course_id
         LEFT JOIN instructors i ON c.instructor_id = i.instructor_id`);
 
     return NextResponse.json(courseResults, { status: 200 });

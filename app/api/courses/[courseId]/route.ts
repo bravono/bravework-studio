@@ -14,16 +14,28 @@ export async function GET(
 
     console.log("Fetching course details", courseId);
     const queryText = `
-      SELECT
-        course_id,
+    SELECT
+        c.course_id AS id,
         title,
         description,
-        created_at AS date,
+        created_at AS "createdAt",
+        start_Date AS "startDate",
+        end_date AS endDate,
         price_in_kobo AS price,
-        is_active AS "isActive"
-      FROM courses 
-      WHERE course_id = $1
-      ORDER BY created_at DESC; 
+        is_active AS "isActive",
+        s.sessions
+      FROM courses c
+      LEFT JOIN (
+        SELECT
+          course_id,
+          json_agg(json_build_object(
+            'datetime', session_timestamp,
+            'link', session_link
+          )) AS sessions
+        FROM sessions
+        GROUP BY course_id
+      ) s ON c.course_id = s.course_id
+    WHERE c.course_id = $1;
     `;
     const result = await queryDatabase(queryText, [courseId]);
 
