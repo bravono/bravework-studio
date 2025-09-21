@@ -51,8 +51,7 @@ export async function GET(
             SELECT
                 s.course_id,
                 json_agg(json_build_object(
-                'date', session_date,
-                'time', session_time,
+                'datetime', session_timestamp,
                 'link', session_link
                 )) AS sessions
             FROM sessions s
