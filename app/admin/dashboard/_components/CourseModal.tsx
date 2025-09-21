@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Course } from "../../../types/app";
 import Modal from "@/app/components/Modal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import { FileUpIcon } from "lucide-react";
 
 interface CourseModalProps {
   onClose: () => void;
@@ -15,9 +16,10 @@ interface CourseModalProps {
 export default function CourseModal({
   existingCourse,
   onClose,
-  onCourseUpdated
+  onCourseUpdated,
 }: CourseModalProps) {
   const KOBO_PER_NAIRA = 100;
+  const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
   const [price, setPrice] = useState<number>(existingCourse?.price || 0);
   const [description, setDescription] = useState<string>(
@@ -52,6 +54,15 @@ export default function CourseModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileInfo, setFileInfo] = useState<{
+    fileName: string;
+    fileSize: string;
+    fileUrl: string;
+  } | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
 
   const [formData, setFormData] = useState({
     title: existingCourse?.title || "",
@@ -107,8 +118,48 @@ export default function CourseModal({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSubmitStatus("idle");
 
-    console.log("Existing Course", existingCourse);
+    // Prepare file upload if a file is selected
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        formData.append("category", "course");
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Rename-Duplicate": "true",
+          },
+        });
+
+        if (response.ok) {
+          const blobDataRaw = await response.json();
+          const blobData = {
+            url: blobDataRaw.url,
+            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
+            size: blobDataRaw.size || file.size,
+          };
+
+          setFileInfo({
+            fileName: file.name,
+            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
+            fileUrl: blobData.url,
+          });
+
+          toast.success(`File ${file.name} uploaded successfully!`);
+        } else {
+          const errorData = await response.json();
+          toast(`Error uploading ${file.name}`);
+          setSubmitStatus("error");
+        }
+      } catch (err) {
+        toast("Error uploading file:", err);
+        setSubmitStatus("error");
+      }
+    }
 
     try {
       const method = existingCourse ? "PATCH" : "POST";
@@ -139,7 +190,7 @@ export default function CourseModal({
       if (!res.ok) throw new Error(`Failed to update course.`);
 
       toast.success(`Course "updated" successfully!`);
-      onCourseUpdated?.()
+      onCourseUpdated?.();
       onClose(); // Close the modal
     } catch (err: any) {
       console.error("Error saving course:", err.message);
@@ -147,6 +198,27 @@ export default function CourseModal({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile =
+      e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    setFile(selectedFile);
+
+    if (!selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target && typeof event.target.result === "string") {
+        setFileInfo({
+          fileName: selectedFile.name,
+          fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
+          fileUrl: event.target.result,
+        });
+        toast.success(`File ${selectedFile.name} has been attached!`);
+      }
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   return (
@@ -158,10 +230,7 @@ export default function CourseModal({
       >
         {
           <form onSubmit={handleSubmit} className="p-4 space-y-6">
-            <label
-              htmlFor="title"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="title" className={labelStyle}>
               Title
             </label>
             <input
@@ -172,10 +241,7 @@ export default function CourseModal({
               required
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
-            <label
-              htmlFor="coursePrice"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="coursePrice" className={labelStyle}>
               ₦ Price
             </label>
             <input
@@ -188,37 +254,36 @@ export default function CourseModal({
               step="10"
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
-            <label
-              htmlFor="startDate"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="startDate" className={labelStyle}>
               Start Date
             </label>
             <input
-              type="date"
+              type="datetime-local"
               id="startDate"
-              value={new Date(startDate).toISOString().split("T")[0]}
+              value={
+                existingCourse
+                  ? new Date(startDate).toISOString().split("T")[0]
+                  : startDate
+              }
               onChange={(e) => setStartDate(e.target.value)}
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
             <label className="block"></label>
-            <label
-              htmlFor="endDate"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="endDate" className={labelStyle}>
               End Date
             </label>
             <input
-              type="date"
+              type="datetime-local"
               id="endDate"
-              value={new Date(endDate).toISOString().split("T")[0]}
+              value={
+                existingCourse
+                  ? new Date(endDate).toISOString().split("T")[0]
+                  : endDate
+              }
               onChange={(e) => setEndDate(e.target.value)}
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
-            <label
-              htmlFor="instructor"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="instructor" className={labelStyle}>
               Instructor
             </label>
             <select
@@ -235,10 +300,7 @@ export default function CourseModal({
               <option value="Adeshina Atanda">Adeshina Atanda</option>
             </select>
 
-            <label
-              htmlFor="isActive"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="isActive" className={labelStyle}>
               Is Active
             </label>
             <input
@@ -248,10 +310,7 @@ export default function CourseModal({
               onChange={(e) => setIsActive(e.target.checked)}
               className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
             />
-            <label
-              htmlFor="maxStudents"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="maxStudents" className={labelStyle}>
               Max Students
             </label>
             <input
@@ -264,23 +323,7 @@ export default function CourseModal({
               onChange={(e) => setMaxStudents(e.target.value)}
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
-            <label
-              htmlFor="thumbnailUrl"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
-              Thumbnail Url
-            </label>
-            <input
-              type="text"
-              id="thumbnailUrl"
-              value={thumbnailUrl}
-              onChange={(e) => setThumbnailUrl(e.target.value)}
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-            <label
-              htmlFor="category"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="category" className={labelStyle}>
               Category
             </label>
             <select
@@ -294,10 +337,7 @@ export default function CourseModal({
               </option>
               <option value="3D Animation">3D Animation</option>
             </select>
-            <label
-              htmlFor="level"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="level" className={labelStyle}>
               Level
             </label>
             <select
@@ -314,10 +354,7 @@ export default function CourseModal({
               <option value="Intermediate">Intermediate</option>
               <option value="Advance">Advance</option>
             </select>
-            <label
-              htmlFor="language"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="language" className={labelStyle}>
               Language
             </label>
             <select
@@ -333,10 +370,7 @@ export default function CourseModal({
               <option value="English">English</option>
               <option value="Yoruba">Yoruba</option>
             </select>
-            <label
-              htmlFor="description"
-              className="flex items-center text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="description" className={labelStyle}>
               Description
             </label>
             <textarea
@@ -347,6 +381,35 @@ export default function CourseModal({
               required
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             ></textarea>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Upload Thumbnail
+              </label>
+              <div className="relative border-2 border-dashed border-gray-300 rounded-md p-6 text-center transition-colors duration-200 hover:border-gray-400">
+                <input
+                  type="file"
+                  id="resume"
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center justify-center">
+                  <FileUpIcon />
+                  <p className="mt-2 text-gray-500">
+                    Drag and drop files here or{" "}
+                    <span className="text-blue-600 font-medium">
+                      click to browse
+                    </span>
+                  </p>
+                  {
+                    <small className="mt-1 text-xs text-gray-400">
+                      Accepted formats: Webp
+                    </small>
+                  }
+                </div>
+              </div>
+            </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <div className="flex justify-end space-x-2">
