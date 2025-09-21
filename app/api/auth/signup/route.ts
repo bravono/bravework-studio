@@ -174,7 +174,7 @@ export async function POST(req: Request) {
         const studentRoleId = studentRoleResult.rows[0].role_id;
         // Assign 'student' role to the user, this also handles the case for a logged-in user
         await client.query(
-          "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+          "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING",
           [userId, studentRoleId]
         );
 
@@ -247,10 +247,10 @@ export async function POST(req: Request) {
         );
 
         const orderId = orderResult.rows[0].order_id;
-        console.log("Course order ID:", orderId)
+        console.log("Course order ID:", orderId);
 
         try {
-          await sendOrderReceivedEmail(email, name, orderId, course = null);
+          await sendOrderReceivedEmail(email, name, orderId, (course = null));
           console.log(`Course order email sent to ${email}`);
         } catch (mailError) {
           console.error("Failed to send course order email:", mailError);

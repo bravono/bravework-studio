@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  Suspense,
+  useCallback,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Joi from "joi";
@@ -13,26 +19,7 @@ import {
   DollarSign,
   Building,
 } from "lucide-react";
-
-// Mock data for courses. In a real app, this would be fetched from your API.
-const courses = [
-  { id: 1, title: "Intro to 3D Modeling", price: 5000000 }, // Price in Kobo (e.g., N50,000)
-  {
-    id: 2,
-    title: "Web Development for Kids",
-    price: 6000000,
-  },
-  {
-    id: 3,
-    title: "UI/UX Design for Kids",
-    price: 5500000,
-  },
-  {
-    id: 4,
-    title: "Game Development for Kids",
-    price: 7500000,
-  },
-];
+import { Course } from "@/app/types/app";
 
 const preferredSessionOptions = [
   { value: "18:00:00", label: "Friday (2:30 PM - 3:10 PM)" },
@@ -101,20 +88,40 @@ function Signup() {
     companyName: "",
     preferredSessionTime: "",
   });
+  const [course, setCourse] = useState<Course>();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  const fetchCourse = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/courses/${courseId}`);
+
+      if (!res.ok) {
+        throw new Error("Failed to get course");
+      }
+
+      const data = await res.json();
+      setCourse(data[0]);
+    } catch (error) {
+      console.log("Internal error fetching course: ", error.message);
+    }
+  }, [course]);
 
   useEffect(() => {
     if (isEnrollmentPage && courseId) {
-      const course = courses.find((c) => c.id === Number(courseId));
-      if (course) {
-        setSelectedCourse(course);
-      } else {
+      if (course?.id && courseId !== course?.id) {
         setMessage("Invalid course selected. Please go back.");
       }
     }
+
+    setMessage("");
+``
+    fetchCourse();
   }, [isEnrollmentPage, courseId]);
+
+  useEffect(() => {
+    console.log("My Course: ", course?.sessions);
+  }, [course]);
 
   const schemaToValidate = useMemo(() => {
     if (!isEnrollmentPage) return baseSignupSchema;
@@ -260,18 +267,18 @@ function Signup() {
           </p>
         </div>
 
-        {isEnrollmentPage && selectedCourse && (
+        {isEnrollmentPage && course && (
           <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-2">
               <span className="inline-flex items-center gap-2"></span>
 
               <p className="text-lg text-gray-600 font-semibold mb-1">
-                Enroll in: {selectedCourse.title}
+                Enroll in: {course.title}
               </p>
             </h3>
 
             <p className="text-2xl font-bold text-green-600">
-              ₦{(selectedCourse.price / KOBO_PER_NAIRA).toLocaleString()}
+              ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
             </p>
           </div>
         )}
