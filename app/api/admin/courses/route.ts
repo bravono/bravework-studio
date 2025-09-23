@@ -56,30 +56,23 @@ export async function POST(request: Request) {
     if (guardResponse) return guardResponse;
 
     const body = await request.json(); // Admin Panel will send JSON, not formData for course creation
-    console.log(body);
+    console.log("Body", body);
     const {
       title,
-      price,
+      price_in_kobo: price,
       description,
-      startDate,
-      endDate,
+      start_date: startDate,
+      end_date: endDate,
       instructor,
       isActive,
-      maxStudents,
-      thumbnailUrl,
-      category,
+      max_students: maxStudents,
+      thumbnail_url: thumbnailUrl,
+      course_category: category,
       level,
       language,
     } = body;
 
-    if (
-      !title ||
-      !description ||
-      !instructor ||
-      !maxStudents ||
-      !level ||
-      !language
-    ) {
+    if (!title || !description || !instructor) {
       return NextResponse.json(
         {
           error:
@@ -88,16 +81,21 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    console.log("Passed missing field checks");
     if (isNaN(price) || price < 0) {
+      console.log("Price", price);
       return NextResponse.json(
         { error: "Invalid offer amount" },
         { status: 400 }
       );
     }
 
+    console.log("Passed isNaN check");
     const instructorName = instructor.split(" ");
 
     return await withTransaction(async (client) => {
+      console.log("Now inside transaction");
       const instructorResult = await client.query(
         `
         SELECT * FROM instructors WHERE first_name = $1 AND last_name = $2
@@ -165,6 +163,7 @@ export async function POST(request: Request) {
 
       const courseResult = await client.query(insertOfferQuery, courseParams);
 
+      console.log("Course Result", courseResult);
       if (courseResult.rows.length === 0) {
         throw new Error("Failed to create course.");
       }
@@ -179,5 +178,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-
