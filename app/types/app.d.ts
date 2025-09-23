@@ -185,10 +185,10 @@ interface Course {
     link: string;
   }>;
   // Join with instructor table
-  instructor: string;
+  firstName: string;
+  lastName: string;
   bio: string;
 }
-
 
 interface AdminStats {
   totalOrders: number;

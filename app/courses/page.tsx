@@ -63,7 +63,7 @@ export default function coursesPage() {
     <main className="bg-gray-50 min-h-screen">
       <Navbar />
       <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-extrabold text-secondary-dark mb-4">
               Available Courses
@@ -73,11 +73,11 @@ export default function coursesPage() {
               through fun and engaging courses.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center">
             {courses.map((course, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105"
+                className="bg-white w-full max-w-sm mx-auto rounded-2xl shadow-lg overflow-hidden flex flex-col transition-transform duration-500 hover:scale-105"
               >
                 <div className="relative">
                   <img
@@ -94,7 +94,6 @@ export default function coursesPage() {
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
                   <div className="flex items-center gap-4 mb-3">
-                    {icons[0]}
                     <h3 className="text-xl font-bold text-secondary">
                       {course.title}
                     </h3>
@@ -113,7 +112,8 @@ export default function coursesPage() {
                       <li className="flex items-center gap-2">
                         <User className="h-4 w-4 text-primary" />
                         <span>
-                          <strong>Instructor:</strong> {`${course.instructor}`}
+                          <strong>Instructor:</strong>{" "}
+                          {`${course.firstName} ${course.lastName}`}
                         </span>
                       </li>
                       <li className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function coursesPage() {
                                   exchangeRates[selectedCurrency],
                                   getCurrencySymbol(selectedCurrency)
                                 )
-                              },`}
+                              }`}
                         </span>
                       </li>
                     </ul>
