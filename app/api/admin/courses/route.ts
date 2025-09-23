@@ -82,20 +82,16 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log("Passed missing field checks");
     if (isNaN(price) || price < 0) {
-      console.log("Price", price);
       return NextResponse.json(
         { error: "Invalid offer amount" },
         { status: 400 }
       );
     }
 
-    console.log("Passed isNaN check");
     const instructorName = instructor.split(" ");
 
     return await withTransaction(async (client) => {
-      console.log("Now inside transaction");
       const instructorResult = await client.query(
         `
         SELECT * FROM instructors WHERE first_name = $1 AND last_name = $2
