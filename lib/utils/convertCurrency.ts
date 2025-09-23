@@ -5,8 +5,6 @@ export function convertCurrency(
 ): string {
   const amountStr = amount.toString();
 
-  console.log("Amount", amount);
-
   if (amountStr.includes("-")) {
     // Handle "100 - 500" format
     const [minStr, maxStr] = amountStr.split("-").map((s) => s.trim());

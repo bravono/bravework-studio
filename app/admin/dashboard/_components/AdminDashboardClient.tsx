@@ -123,7 +123,7 @@ export default function AdminDashboardClient({
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Admin Overview Stats Card */}
             <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl col-span-full">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 mt-6">
                 Admin Overview
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
@@ -358,18 +358,7 @@ export default function AdminDashboardClient({
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900 font-sans">
       {/* Sidebar Navigation */}
       <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 pt-10 mt-8 shadow-xl flex flex-col">
-        <div className="flex items-center justify-center md:justify-start">
-          <Image
-            src="/assets/Braveword_Studio-Logo-Color.png" // Replace with your logo
-            alt="Logo"
-            width={50}
-            height={50}
-            className="mb-4 hidden md:block"
-          />
-          <div className="text-xl font-bold text-gray-800 dark:text-white mb-6 hidden md:block ml-2">
-            Admin
-          </div>
-        </div>
+        <div className="flex items-center justify-center md:justify-start"></div>
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => (
             <button
