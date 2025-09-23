@@ -30,8 +30,9 @@ export default function CourseModal({
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
   const [instructor, setInstructor] = useState<string>(
-    existingCourse?.instructor || ""
+    existingCourse?.firstName + existingCourse?.lastName || ""
   );
+
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false
   );
@@ -70,7 +71,7 @@ export default function CourseModal({
     description: existingCourse?.description || "",
     start_date: existingCourse?.startDate || null,
     end_date: existingCourse?.endDate || null,
-    instructor: existingCourse?.instructor || "",
+    instructor: existingCourse?.firstName + existingCourse?.lastName || "",
     is_active: existingCourse?.isActive || false,
     max_students: existingCourse?.maxStudents || 0,
     thumbnail_url: existingCourse?.thumbnailUrl || "",
@@ -88,7 +89,7 @@ export default function CourseModal({
         description: existingCourse.description,
         start_date: existingCourse.startDate,
         end_date: existingCourse.endDate,
-        instructor: existingCourse.instructor,
+        instructor: existingCourse.firstName + existingCourse.lastName,
         is_active: existingCourse.isActive,
         max_students: existingCourse.maxStudents,
         thumbnail_url: existingCourse.thumbnailUrl,
@@ -163,7 +164,9 @@ export default function CourseModal({
 
     try {
       const method = existingCourse ? "PATCH" : "POST";
-
+      const url = existingCourse
+        ? `/api/admin/courses/${existingCourse?.id}`
+        : "/api/admin/courses";
       const body = {
         title,
         price_in_kobo: price * KOBO_PER_NAIRA,
@@ -179,8 +182,9 @@ export default function CourseModal({
         language,
       };
 
-      console.log("ID", existingCourse.id);
-      const res = await fetch(`/api/admin/courses/${existingCourse.id}`, {
+      console.log("ID", existingCourse?.id);
+      console.log("URL", url);
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -317,7 +321,7 @@ export default function CourseModal({
               type="number"
               id="maxStudents"
               min="1"
-              max="20"
+              max="100"
               value={maxStudents}
               required
               onChange={(e) => setMaxStudents(e.target.value)}
