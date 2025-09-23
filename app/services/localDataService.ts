@@ -1,3 +1,15 @@
+import {
+  Shapes,
+  Home,
+  Car,
+  Plane,
+  Ghost,
+  Trees,
+  GraduationCapIcon,
+  Film,
+  Award,
+  BookOpen,
+} from "lucide-react";
 interface Testimonial {
   id: number;
   avatar: string;
@@ -763,3 +775,483 @@ const projects: Project[] = [
 ];
 
 export { testimonials, portfolios, services, projects };
+
+export const coursesData = [
+  {
+    id: 1,
+    tagline: "Program Title: 3D Animation Adventure for Kids",
+    targetAudience: "7–14 years",
+    duration: "7 weeks",
+    software: "Blender (free, open-source)",
+    overview:
+      "This beginner-friendly program introduces kids to 3D animation through fun, hands-on projects using Blender. From creating simple shapes to animating flying cars and mysterious characters, kids will build their own 3D world while learning valuable STEM/STEAM skills. No prior experience is required. Just curiosity and creativity!",
+    levels: [
+      {
+        level: "Level 1",
+        title: "Getting Started with Blender",
+        objective:
+          "Learn to install and navigate Blender’s interface, building confidence in 3D software.",
+        description:
+          "Download and install Blender with step-by-step guidance. Explore the Blender interface through a fun, guided tour, learning basic tools like moving, scaling, and rotating objects.",
+        activity:
+          "Create a simple 3D cube and transform it into a colorful toy block to understand the workspace.",
+        why: "Kids personalize their block with colors, making their first 3D creation in minutes!",
+        outcomes: [
+          "Understand software installation",
+          "master basic navigation",
+          "create a simple 3D object.",
+        ],
+        info: "Builds technical literacy and problem-solving skills, setting a foundation for future tech learning.",
+        icon: Shapes,
+      },
+      {
+        level: "Level 2",
+        title: "Building a 3D Village Street",
+        objective:
+          "Create a simple 3D scene using basic shapes and learn lighting basics.",
+        description:
+          "Build a charming 3D village street using basic shapes (cubes, cylinders) in Blender. Learn to combine shapes to form houses and trees, and change lighting to turn day into night with one click.",
+        activity:
+          "Design a colorful street scene, experimenting with colors and lighting effects.",
+        why: "Kids create their own mini-world and see how a single click transforms their scene, sparking creativity!",
+        outcomes: [
+          "Master basic modeling",
+          "apply colors/textures",
+          "adjust lighting settings.",
+        ],
+        info: "Encourages artistic expression and introduces kids to environmental design concepts used in games and films.",
+        icon: Home,
+      },
+      {
+        level: "Level 3",
+        title: "Crafting a Hovering Car",
+        objective:
+          "Customize shapes to create a fantasy vehicle and introduce basic animation.",
+        description:
+          "Modify basic shapes to design a futuristic hovering car, learning to edit vertices and edges. Animate the car to “fly” out of the village street from Level 2.",
+        activity:
+          "Create and animate a unique hovering car, choosing its colors and style.",
+        why: "Kids bring their sci-fi dreams to life, making their car soar through their 3D world!",
+        outcomes: [
+          "Understand shape editing",
+          "apply basic animation techniques",
+          "integrate objects into a scene.",
+        ],
+        info: "Fosters problem-solving and introduces animation principles used in professional studios.",
+        icon: Car,
+      },
+      {
+        level: "Level 4",
+        title: "Designing a Village Island",
+        objective:
+          "Build a complex 3D environment and encourage creative storytelling.",
+        description:
+          "Expand their world by creating a 3D island village where their hovering car lands. Add details like trees, water, and houses, and share ideas for what their island includes (e.g., a park, a castle).",
+        activity:
+          "Design a unique island village, customizing elements based on their imagination.",
+        why: "Kids become world-builders, shaping a unique island and sharing their creative ideas with the group.",
+        outcomes: [
+          "Master scene composition",
+          "apply advanced modeling techniques",
+          "practice creative collaboration.",
+        ],
+        info: "Enhances teamwork and storytelling skills, preparing kids for creative and technical careers.",
+        icon: Trees,
+      },
+      {
+        level: "Level 5",
+        title: "Creating Mysterious Characters",
+        objective:
+          "Design and animate a custom 3D character to enhance storytelling skills.",
+        description:
+          "Create a mysterious character (e.g., a pirate, alien, or magical creature) to inhabit their island. Learn basic character modeling and simple animation (e.g., walking or waving) with instructor guidance.",
+        activity:
+          "Design a unique character and animate it to interact with the island village, sharing their character’s story.",
+        why: "Kids invent their own character and bring it to life, telling a story through animation!",
+        outcomes: [
+          "Learn character modeling",
+          "basic rigging",
+          "storytelling through animation.",
+        ],
+        info: "Boosts creativity and narrative skills, aligning with media and game design industries.",
+        icon: Ghost,
+      },
+      {
+        level: "Level 6",
+        title: "Animating a Flying Aircraft",
+        objective:
+          "Master advanced modeling and animation to create a dynamic 3D scene.",
+        description:
+          "Build and animate a detailed 3D aircraft (e.g., a spaceship or plane) that flies across their island. Add advanced effects like camera animation and motion blur, and optionally place a character inside.",
+        activity:
+          "Create a short animated sequence of their aircraft flying, choosing its design and flight path.",
+        why: "Kids produce a professional-looking animation, deciding their aircraft’s story and style!",
+        outcomes: [
+          "Master advanced modeling",
+          "animation",
+          "camera techniques",
+          "rendering.",
+        ],
+        info: "Prepares kids for advanced STEM/STEAM careers in animation, gaming, or film production.",
+        icon: Plane,
+      },
+      {
+        level: "Bonus",
+        title: "FAQ & Graduation",
+        objective:
+          "Master advanced modeling and animation to create a dynamic 3D scene.",
+        description:
+          "Build and animate a detailed 3D aircraft (e.g., a spaceship or plane) that flies across their island. Add advanced effects like camera animation and motion blur, and optionally place a character inside.",
+        activity:
+          "Create a short animated sequence of their aircraft flying, choosing its design and flight path.",
+        why: "Kids produce a professional-looking animation, deciding their aircraft’s story and style!",
+        outcomes: [
+          "Master advanced modeling",
+          "animation",
+          "camera techniques",
+          "rendering.",
+        ],
+        info: "Prepares kids for advanced STEM/STEAM careers in animation, gaming, or film production.",
+        icon: GraduationCapIcon,
+      },
+    ],
+    details: {
+      prerequisites:
+        "No prior experience needed; just a computer (Windows/Mac/Linux) and enthusiasm!",
+      duration:
+        "8 weeks, with one 1-hour session per week (flexible for online via Zoom).",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize: "Small groups (5–10 kids) for personalized attention.",
+      feedback:
+        "Weekly opportunities for kids to share ideas and showcase projects, fostering creativity and confidence.",
+      certification:
+        "Kids receive a Bravework Studio 3D Animation Certificate upon completion, celebrating their new skills!",
+      cost: "Check www.braveworkstudio.com/courses for the updated price.",
+    },
+    whyChooseUs: [
+      {
+        title: "Fun and Engaging",
+        description:
+          "Projects like flying cars and mysterious characters keep kids excited and motivated.",
+      },
+      {
+        title: "STEM/STEAM Focus",
+        description:
+          "Builds skills in science, technology, engineering, arts, and math, preparing kids for future careers.",
+      },
+      {
+        title: "Tailored for Kids",
+        description:
+          "Designed for ages 8–14, with beginner-friendly steps and expert guidance from Ahbideen Yusuf, a 3D generalist and Bravework Studio founder.",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of Bravework Studio’s mission is to empower local kids with creative and technical skills.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Bravework_studio for updates and kid-created 3D showcases!",
+    ],
+  },
+
+  // Medical Course
+  {
+    id: 2,
+    tagline: "Unlocking the Power of 3D Animation in Healthcare",
+    targetAudience: "18 years above",
+    duration: "4 weeks",
+    software: "Blender (free, open-source)",
+    overview:
+      "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
+    levels: [
+      {
+        level: "Level 1 & 2",
+        title: "Introduction to Blender & Modeling",
+        objective:
+          "Master Blender installation and interface navigation for medical applications & Create a basic 3D anatomical model and apply simple textures for visualization.",
+        description:
+          " Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for medical modeling. Build a 3D model of a heart using basic shapes (spheres, cylinders) in Blender. Learn to apply colors and basic textures to represent heart tissue, and adjust lighting to highlight details.",
+        activity:
+          "Create a short animation of a beating heart, customizing its rhythm and style for educational use. Design a spine model for surgical planning, customizing it based on a specific medical scenario (e.g., scoliosis correction).",
+        why: "Doctors gain confidence in navigating 3D software, preparing them to visualize anatomical structures. Doctors learn to create clear, visual representations for patient education or teaching.",
+        outcomes: [
+          "Install Blender",
+          "navigate the interface",
+          "create a basic 3D model relevant to medicine",
+          "Master basic modeling",
+          "apply textures",
+          "and adjust lighting for medical visualizations.",
+        ],
+        info: "Install Blender, navigate the interface, and create a basic 3D model relevant to medicine. Builds a foundation for creating precise medical visualizations, enhancing diagnostic and educational capabilities.",
+        icon: Shapes,
+      },
+      {
+        level: "Level 3 & 4",
+        title: "Animation & Surgical Planning",
+        objective:
+          "Animate a medical process to enhance understanding of dynamic systems. Build a complex 3D anatomical model for surgical planning or education.",
+        description:
+          "Create a detailed 3D model of a spine or joint, combining multiple shapes and adding details (e.g., vertebrae, ligaments). Introduce importing medical imaging data (e.g., DICOM files via 3D Slicer) for real-world applications. Doctors share ideas for their model’s clinical use. Modify the heart model from Level 2 to animate a heartbeat cycle, learning basic keyframing techniques. Explore how to edit shapes for accuracy (e.g., adjusting heart chambers).",
+        activity: "Learn animation basics and apply to surgical planning.",
+        why: "Doctors can visualize dynamic processes (e.g., blood flow, heart function) for teaching or patient explanations. Doctors learn to create precise models for pre-surgical visualization, reducing risks and improving outcomes.",
+        outcomes: [
+          "Understand basic animation",
+          "shape editing",
+          "keyframing for medical applications",
+          "apply 3D to clinical scenarios",
+          "integrate medical imaging",
+          "Master complex modeling",
+        ],
+        info: "Enhances ability to demonstrate physiological processes, supporting medical education and patient consultations. Supports surgical precision and enhances collaboration with colleagues and patients.",
+        icon: Film,
+      },
+      {
+        level: "Level 5 & 6",
+        title: "Patient Education & 3D Printing",
+        objective:
+          "Create a 3D model for printing and master advanced animation techniques. Develop a 3D animation to explain a&rdquo; medical procedures to patients.",
+        description:
+          "Design a simple 3D model of an organ (e.g., a lung or kidney) and animate a medical procedure (e.g., stent placement or tumor removal). Learn basic rigging and animation to simulate the procedure. Design a 3D model of a custom prosthetic (e.g., a hand or foot) suitable for 3D printing. Learn advanced techniques like camera animation and rendering for high-quality visuals, and animate the prosthetic’s movement.",
+        activity:
+          "Create an animated sequence showing a stent placement in a blood vessel, tailored for patient education. Create and animate a 3D prosthetic hand model, simulating its use in a clinical scenario, and prepare it for 3D printing.",
+        why: "Doctors gain skills to produce custom medical devices and professional visualizations, advancing patient care. Doctors can produce engaging visuals to explain treatments, improving patient understanding and compliance.",
+        outcomes: [
+          "storytelling through medical visuals",
+          "basic rigging",
+          "Learn advanced animation",
+          "rendering for medical applications",
+          "advanced animation",
+          "Master 3D printing preparation",
+        ],
+        info: " Enhances patient communication and medical training with professional-grade animations. Enables creation of patient-specific prosthetics and high-quality educational content, enhancing clinical practice.",
+        icon: BookOpen,
+      },
+      {
+        level: "Bonus",
+        title: "FAQ, Career Pathways, and Graduation Celebration",
+        objective:
+          "Address remaining questions, provide clear growth pathways, and celebrate achievements with professional networking.",
+        description:
+          "Expand their world by creating a 3D island village where their hovering car lands. Add details like trees, water, and houses, and share ideas for what their island includes (e.g., a park, a castle).",
+        activity:
+          "Graduation Celebration & Networking, group photograph, casual video interviews",
+        why: "Addressing remaining questions, providing clear growth pathways, and celebrating achievements with professional networking opportunities.",
+        outcomes: [
+          "Gain clarity on next steps and future opportunities",
+          "Have doubts and questions addressed",
+          "Connect with peers and industry professionals through networking",
+        ],
+        info: "Expand professional networks, gain insights into creative and technical careers, and celebrate the completion of the 3D design journey with a sense of accomplishment and newfound confidence.",
+        icon: Award,
+      },
+    ],
+    details: {
+      prerequisites:
+        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
+      duration: "4 weeks, with one 3-hour session per week",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize:
+        "Small groups (5-10 professionals) for personalized attention.",
+      feedback:
+        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+      certification:
+        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+      cost: "Check www.braveworkstudio.com/courses for the updated price.",
+    },
+    whyChooseUs: [
+      {
+        title: "Practical and Professional",
+        description:
+          "Tailored projects (e.g., heart animations, prosthetics) directly apply to clinical practice, patient education, and surgical planning.",
+      },
+      {
+        title: "Beginner-Friendly",
+        description:
+          "Designed for doctors with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+      },
+      {
+        title: "Medical Innovation",
+        description:
+          "Equips doctors with cutting-edge skills to create custom visualizations and devices, aligning with modern healthcare advancements.",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of Tryotek’s mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Bravework_studio for updates and doctor-created 3D showcases!",
+    ],
+  },
+  {
+    id: 3,
+    tagline: "Unlocking the Power of 3D Animation in Healthcare",
+    targetAudience: "18 years above",
+    duration: "2 hours",
+    software: "Blender (free, open-source)",
+    overview:
+      "Demonstrate immediate value through a practical 3D medical visualization project, build excitement for your full program, and generate leads for paid training.",
+    levels: [
+      {
+        level: "10 minutes",
+        title: "Welcome & Icebreaker",
+        objective:
+          "Set professional tone, build rapport, and understand audience needs.",
+        description:
+          " Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for medical modeling. Build a 3D model of a heart using basic shapes (spheres, cylinders) in Blender. Learn to apply colors and basic textures to represent heart tissue, and adjust lighting to highlight details.",
+        activity: `Step-by-Step Demo: Live screen share building a simplified heart
+Guided Practice: "Follow along: Build your heart model. I'll help troubleshoot."  
+`,
+        why: "",
+        outcomes: [],
+        info: "Every doctor has a basic 3D heart model by session end.",
+        icon: Shapes,
+      },
+      {
+        level: "15 minutes",
+        title: "The Medical 3D Revolution",
+        objective:
+          "Show why 3D visualization is essential for modern medical practice.",
+        description: "",
+        activity: `Professional Edge: "Be the doctor who brings cutting-edge visualization to your practice."
+
+`,
+        why: "",
+        outcomes: [],
+        info: "You'll create what takes most doctors months to learn",
+        icon: Film,
+      },
+      {
+        level: "30 minutes",
+        title: "Blender Crash Course: From Zero to Medical Modeling",
+        objective: "Blender Crash Course: From Zero to Medical Modeling",
+        description: "",
+        activity: `Download: "If you haven't, download Blender now (blender.org)—it's free and works on any computer."  
+Guided Tour: Live demo of Blender interface. Hands-On: "Everyone: Add a cube, change its color to red, and rotate it. Perfect!"
+Step-by-Step Demo: Live screen share building a simplified heart
+Guided Practice: "Follow along: Build your heart model. I'll help troubleshoot."  
+`,
+        why: "",
+        outcomes: [],
+        info: "Every doctor has a basic 3D heart model by session end.",
+        icon: BookOpen,
+      },
+      {
+        level: "25 minutes",
+        title: "Animate Your Heart: Bring Anatomy to Life",
+        objective:
+          "Demonstrate animation power through a simple heartbeat cycle.",
+        description: "",
+        activity: `Medical Application: "This same technique visualizes blood flow, stent placement, or tumor growth. Keyframing Introduction: "Animation shows dynamic processes—like a beating heart.
+Live Demo: Animate the heart model. Guided Practice: "Animate your heart"  
+Customization: "Make it yours—change the beat speed, add color pulses for oxygen flow."  
+Troubleshooting: Live help for common issues (wrong keyframes, timeline confusion).
+          `,
+        why: "",
+        outcomes: [],
+        info: "Doctors see their 3D heart model animate—a true 'wow' moment!",
+        icon: Award,
+      },
+      {
+        level: "15 minutes",
+        title: "Medical Applications: From Patient Bedside to Operating Room",
+        objective:
+          "Connect skills to real medical applications, building excitement for advanced training.",
+        description: "",
+        activity: `Patient Education: "Use your heart model to explain arrhythmias—patients understand 3D better than diagrams."  
+Surgical Planning: "Scale this up to full anatomical models from CT scans for pre-op visualization."  
+Medical Training: "Animate procedures for residents—3D reduces training time by 30%."  
+Research & Publication: "Create publication-ready 3D models for journals and conferences."
+
+`,
+        why: "",
+        outcomes: [],
+        info: "In our 4-week program, you'll learn: CT scan integration, 3D printing prosthetics, VR surgical simulation.",
+        icon: Award,
+      },
+      {
+        level: "15 minutes",
+        title: "Hands-On Challenge & Peer Review",
+        objective:
+          "Build confidence through peer interaction and immediate application.",
+        description: "",
+        activity: `Mini-Challenge: "Enhance your heart model: Add a simple blood vessel or change the lighting for surgical viewing."  
+Peer Review: "Share screens (or pass models in-person). What did you learn from each other's approaches?"  
+Group Discussion: "How could you use this in your practice tomorrow?"  
+Collect Feedback: Quick Google Form: "On a scale of 1-10, how likely are you to use 3D visualization?"
+
+`,
+        why: "",
+        outcomes: [],
+        info: "Doctors feel ownership of their creation and see practical applications.",
+        icon: Award,
+      },
+      {
+        level: "10 minutes",
+        title: "Q&A, Next Steps, and Call-to-Action",
+        objective:
+          "Answer questions, present clear enrollment path, and close strong.",
+        description: "",
+        activity: `Immediate Action: "Download our Medical 3D Starter Kit (templates, textures, tutorials)."  
+Full Program: "Join our 4-week Medical Visualization Mastery program—next cohort starts [date]. Early bird pricing ends [date]."  
+Special Offer: "Session attendees get 20% off the full program + free 1:1 consultation."  
+Networking: "Stay for 15 minutes of coffee and conversation—connect with fellow 3D-curious doctors."
+
+`,
+        why: "",
+        outcomes: [],
+        info: "You've just created something that could change patient lives. Imagine what you'll do with 4 weeks of training. Thank you for joining Tryotek's medical 3D revolution",
+        icon: Award,
+      },
+    ],
+    details: {
+      prerequisites:
+        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
+      duration: "4 weeks, with one 3-hour session per week",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize:
+        "Small groups (5-10 professionals) for personalized attention.",
+      feedback:
+        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+      certification:
+        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+      cost: "Check www.braveworkstudio.com/courses for the updated price.",
+    },
+    whyChooseUs: [
+      {
+        title: "Practical and Professional",
+        description:
+          "Tailored projects (e.g., heart animations, prosthetics) directly apply to clinical practice, patient education, and surgical planning.",
+      },
+      {
+        title: "Beginner-Friendly",
+        description:
+          "Designed for doctors with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+      },
+      {
+        title: "Medical Innovation",
+        description:
+          "Equips doctors with cutting-edge skills to create custom visualizations and devices, aligning with modern healthcare advancements.",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of Tryotek’s mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Bravework_studio for updates and doctor-created 3D showcases!",
+    ],
+  },
+];
