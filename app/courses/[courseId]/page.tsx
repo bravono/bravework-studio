@@ -42,14 +42,12 @@ export default function CoursePage() {
   }, [fetchCourse]);
 
   useEffect(() => {
-    console.log("Viewing Course", course?.id);
-    console.log("Match Course", coursesData);
+    console.log("Viewing Course", course?.title);
+    console.log("Match Course", coursesData[0].title);
   }, [course]);
 
   // Find the current course based on the courseId
-  const currentCourse = coursesData.find(
-    (c) => c.title === course?.title
-  );
+  const currentCourse = coursesData.find((c) => c.id.toString() === courseId);
 
   if (!currentCourse) {
     return (
@@ -65,10 +63,10 @@ export default function CoursePage() {
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl mt-10 font-extrabold text-secondary-dark leading-tight mb-2 rounded-xl">
-            {course.title}
+            {course?.title}
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 font-medium">
-            {currentCourse.tagline}
+            {currentCourse?.tagline}
           </p>
         </div>
 
@@ -84,21 +82,21 @@ export default function CoursePage() {
                 <Users className="text-secondary" />
                 <span className="text-gray-700 font-medium">Age:</span>
                 <span className="font-bold text-gray-900">
-                  {currentCourse.targetAudience}
+                  {currentCourse?.targetAudience}
                 </span>
               </div>
               <div className="flex items-center space-x-4">
                 <Clock className="text-secondary" />
                 <span className="text-gray-700 font-medium">Duration:</span>
                 <span className="font-bold text-gray-900">
-                  {currentCourse.duration}
+                  {currentCourse?.duration}
                 </span>
               </div>
               <div className="flex items-center space-x-4">
                 <Github className="text-secondary" />
                 <span className="text-gray-700 font-medium">Software:</span>
                 <span className="font-bold text-gray-900">
-                  {currentCourse.software}
+                  {currentCourse?.software}
                 </span>
               </div>
               <div className="mt-4 border-t pt-4">
@@ -106,14 +104,14 @@ export default function CoursePage() {
                   <span className="font-semibold text-secondary-dark">
                     Instructor:
                   </span>{" "}
-                  {course.firstName + course.lastName}
+                  {course?.firstName + course?.lastName}
                 </p>
               </div>
             </div>
             {/* Overview paragraph */}
             <div>
               <p className="text-gray-700 leading-relaxed text-base sm:text-lg rounded-xl bg-primary-light/10 border-l-4 border-primary p-4 shadow-inner">
-                {currentCourse.overview}
+                {currentCourse?.overview}
               </p>
             </div>
           </div>

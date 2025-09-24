@@ -20,7 +20,7 @@ export async function GET(
         description,
         created_at AS "createdAt",
         start_Date AS "startDate",
-        end_date AS endDate,
+        end_date AS "endDate",
         price_in_kobo AS price,
         is_active AS "isActive",
         s.sessions

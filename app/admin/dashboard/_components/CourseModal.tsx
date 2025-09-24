@@ -167,20 +167,25 @@ export default function CourseModal({
       const url = existingCourse
         ? `/api/admin/courses/${existingCourse?.id}`
         : "/api/admin/courses";
-      const body = {
-        title,
-        price_in_kobo: price * KOBO_PER_NAIRA,
-        description,
-        start_date: startDate,
-        end_date: endDate,
-        instructor,
-        is_active: isActive,
-        max_students: maxStudents,
-        thumbnail_url: thumbnailUrl,
-        course_category: category,
-        level,
-        language,
-      };
+      const body = Object.fromEntries(
+        Object.entries({
+          title,
+          price_in_kobo: price * KOBO_PER_NAIRA,
+          description,
+          start_date: startDate,
+          end_date: endDate,
+          instructor,
+          is_active: isActive,
+          max_students: maxStudents,
+          thumbnail_url: thumbnailUrl,
+          course_category: category,
+          level,
+          language,
+        }).map(([key, value]) => [
+          key,
+          typeof value === "string" ? value.trim() : value,
+        ])
+      );
 
       console.log("ID", existingCourse?.id);
       console.log("URL", url);
@@ -191,7 +196,10 @@ export default function CourseModal({
       });
 
       console.log("Response", res);
-      if (!res.ok) throw new Error(`Failed to update course.`);
+      if (!res.ok)
+        throw new Error(
+          `Failed to ${method === "PATCH" ? "update" : "create"} course.`
+        );
 
       toast.success(`Course "updated" successfully!`);
       onCourseUpdated?.();

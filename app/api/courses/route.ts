@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         description,
         is_active AS "isActive",
         start_Date AS "startDate",
-        end_date AS endDate,
+        end_date AS "endDate",
         max_students AS "maxStudents",
         thumbnail_url AS "thumbnailUrl",
         i.first_name AS "firstName",
@@ -36,21 +36,6 @@ export async function GET(request: Request) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { message: "Error fetching courses" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const {} = await request.json();
-    await queryDatabase(
-      `INSERT INTO (title, description, is_active, start_date, end_date, instructor_id, max_students, thumbnail_url, course_category_id, level, language, price_in_kobo, created_at)`,
-      []
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Error creating course" },
       { status: 500 }
     );
   }
