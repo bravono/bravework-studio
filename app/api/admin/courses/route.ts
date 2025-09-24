@@ -90,7 +90,6 @@ export async function POST(request: Request) {
     }
 
     const instructorName = instructor.split(" ");
-    console.log("Instructor's name", instructorName);
 
     return await withTransaction(async (client) => {
       const instructorResult = await client.query(
