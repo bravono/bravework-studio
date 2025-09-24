@@ -9,6 +9,13 @@ import {
   Film,
   Award,
   BookOpen,
+  Handshake,
+  Hospital,
+  Wrench,
+  Heart,
+  Stethoscope,
+  Puzzle,
+  HelpCircle,
 } from "lucide-react";
 interface Testimonial {
   id: number;
@@ -779,6 +786,7 @@ export { testimonials, portfolios, services, projects };
 export const coursesData = [
   {
     id: 1,
+    title: "3D Animation Training for Kids",
     tagline: "Program Title: 3D Animation Adventure for Kids",
     targetAudience: "7–14 years",
     duration: "7 weeks",
@@ -961,6 +969,7 @@ export const coursesData = [
   // Medical Course
   {
     id: 2,
+    title: "3D Visualization for Medical Professionals",
     tagline: "Unlocking the Power of 3D Animation in Healthcare",
     targetAudience: "18 years above",
     duration: "4 weeks",
@@ -1093,6 +1102,7 @@ export const coursesData = [
   },
   {
     id: 3,
+    title: "Medical 3D Visualization in Just 2 Hours",
     tagline: "Unlocking the Power of 3D Animation in Healthcare",
     targetAudience: "18 years above",
     duration: "2 hours",
@@ -1113,7 +1123,7 @@ Guided Practice: "Follow along: Build your heart model. I'll help troubleshoot."
         why: "",
         outcomes: [],
         info: "Every doctor has a basic 3D heart model by session end.",
-        icon: Shapes,
+        icon: Handshake,
       },
       {
         level: "15 minutes",
@@ -1127,11 +1137,11 @@ Guided Practice: "Follow along: Build your heart model. I'll help troubleshoot."
         why: "",
         outcomes: [],
         info: "You'll create what takes most doctors months to learn",
-        icon: Film,
+        icon: Hospital,
       },
       {
         level: "30 minutes",
-        title: "Blender Crash Course: From Zero to Medical Modeling",
+        title: "From Zero to Medical Modeling",
         objective: "Blender Crash Course: From Zero to Medical Modeling",
         description: "",
         activity: `Download: "If you haven't, download Blender now (blender.org)—it's free and works on any computer."  
@@ -1142,11 +1152,11 @@ Guided Practice: "Follow along: Build your heart model. I'll help troubleshoot."
         why: "",
         outcomes: [],
         info: "Every doctor has a basic 3D heart model by session end.",
-        icon: BookOpen,
+        icon: Wrench,
       },
       {
         level: "25 minutes",
-        title: "Animate Your Heart: Bring Anatomy to Life",
+        title: "Bring Anatomy to Life",
         objective:
           "Demonstrate animation power through a simple heartbeat cycle.",
         description: "",
@@ -1158,11 +1168,11 @@ Troubleshooting: Live help for common issues (wrong keyframes, timeline confusio
         why: "",
         outcomes: [],
         info: "Doctors see their 3D heart model animate—a true 'wow' moment!",
-        icon: Award,
+        icon: Heart,
       },
       {
         level: "15 minutes",
-        title: "Medical Applications: From Patient Bedside to Operating Room",
+        title: "Applications: From Bedside to Operating Room",
         objective:
           "Connect skills to real medical applications, building excitement for advanced training.",
         description: "",
@@ -1175,7 +1185,7 @@ Research & Publication: "Create publication-ready 3D models for journals and con
         why: "",
         outcomes: [],
         info: "In our 4-week program, you'll learn: CT scan integration, 3D printing prosthetics, VR surgical simulation.",
-        icon: Award,
+        icon: Stethoscope,
       },
       {
         level: "15 minutes",
@@ -1192,7 +1202,7 @@ Collect Feedback: Quick Google Form: "On a scale of 1-10, how likely are you to 
         why: "",
         outcomes: [],
         info: "Doctors feel ownership of their creation and see practical applications.",
-        icon: Award,
+        icon: Puzzle,
       },
       {
         level: "10 minutes",
@@ -1209,7 +1219,7 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
         why: "",
         outcomes: [],
         info: "You've just created something that could change patient lives. Imagine what you'll do with 4 weeks of training. Thank you for joining Tryotek's medical 3D revolution",
-        icon: Award,
+        icon: HelpCircle,
       },
     ],
     details: {
