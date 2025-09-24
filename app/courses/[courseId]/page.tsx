@@ -48,7 +48,7 @@ export default function CoursePage() {
 
   // Find the current course based on the courseId
   const currentCourse = coursesData.find(
-    (c) => Number(c.id) === Number(course?.id)
+    (c) => c.title === course?.title
   );
 
   if (!currentCourse) {
