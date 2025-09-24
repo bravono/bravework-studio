@@ -90,6 +90,7 @@ export async function POST(request: Request) {
     }
 
     const instructorName = instructor.split(" ");
+    console.log("Instructor's name", instructorName);
 
     return await withTransaction(async (client) => {
       const instructorResult = await client.query(
@@ -99,17 +100,18 @@ export async function POST(request: Request) {
         [instructorName[0], instructorName[1]]
       );
 
-      const instructorId = instructorResult.rows[0].instructor_id;
+      console.log("Instructor Result", instructorResult);
+      const instructorId = instructorResult.rows[0]?.instructor_id;
 
       const categoryResult = await client.query(
         `
-        SELECT * FROM course_categories WHERE category_name = $1
-        `,
+        SELECT * FROM course_categories 
+        `
         [category]
       );
 
       console.log("Category Result", categoryResult);
-      const categoryId = categoryResult.rows[0].category_id;
+      const categoryId = categoryResult.rows[0]?.category_id;
 
       const insertOfferQuery = `
         INSERT INTO courses (
