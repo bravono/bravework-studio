@@ -106,7 +106,8 @@ export async function POST(request: Request) {
       const categoryResult = await client.query(
         `
         SELECT * FROM course_categories WHERE category_name = $1
-        `[category]
+        `,
+        [category]
       );
 
       console.log("Category Result", categoryResult);
