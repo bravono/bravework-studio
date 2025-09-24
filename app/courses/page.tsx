@@ -22,6 +22,7 @@ import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import useExchangeRates from "@/hooks/useExchangeRates";
+import getWeeksBtwDates from "@/lib/utils/getWeeksBtwDays";
 
 const icons = [
   <Paintbrush className="w-8 h-8 text-secondary" />,
@@ -105,8 +106,9 @@ export default function coursesPage() {
                         <Calendar className="h-4 w-4 text-primary" />
                         <span>
                           <strong>Start Date:</strong>{" "}
-                          {/* {course.start_date.toLocaleString()} */}
-                          N/A
+                          {course.isActive
+                            ? new Date(course.startDate).toLocaleDateString()
+                            : "Coming Soon"}
                         </span>
                       </li>
                       <li className="flex items-center gap-2">
@@ -119,7 +121,11 @@ export default function coursesPage() {
                       <li className="flex items-center gap-2">
                         <Hourglass className="h-4 w-4 text-primary" />
                         <span>
-                          <strong>Duration:</strong> 8 weeks
+                          <strong>Duration:</strong>{" "}
+                          {getWeeksBtwDates(
+                            new Date(course.startDate),
+                            new Date(course.endDate)
+                          )}
                         </span>
                       </li>
                       <li className="flex items-center gap-2">
