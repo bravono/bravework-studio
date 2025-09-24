@@ -89,7 +89,7 @@ export async function PATCH(
     if (body.course_category) {
       const categoryQuery = `
         SELECT category_id FROM course_categories
-        WHERE name = $1
+        WHERE category_name = $1
         LIMIT 1;
       `;
       const categoryResult = await queryDatabase(categoryQuery, [
