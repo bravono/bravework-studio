@@ -3,10 +3,6 @@ export default function getWeeksBtwDates(startDate, endDate) {
   const start = typeof startDate === "string" ? new Date(startDate) : startDate;
   const end = typeof endDate === "string" ? new Date(endDate) : endDate;
 
-  console.log("Start Date:", start);
-  console.log("End Date:", end);
-  console.log("EndDate:", endDate);
-
   // Validate that both inputs are valid Date objects
   if (!(start instanceof Date) || !(end instanceof Date)) {
     console.error("Invalid input. Please provide valid Date objects.");
