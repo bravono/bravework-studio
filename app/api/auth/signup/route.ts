@@ -198,7 +198,7 @@ export async function POST(req: Request) {
 
         // Fetch session ID
         const sessionResult = await client.query(
-          `SELECT session_id FROM sessions WHERE course_id = $1 AND session_time = $2`,
+          `SELECT session_id FROM sessions WHERE course_id = $1 AND session_timestamp = $2::timestamptz`,
           [courseId, preferredSessionTime]
         );
         if (sessionResult.length === 0) {
@@ -206,10 +206,12 @@ export async function POST(req: Request) {
         }
         const sessionId = sessionResult.session_id;
 
+        const paymentStatus = price === 0 ? "paid" : "pending";
+
         // Fetch 'pending' order status
         const paymentStatusResult = await client.query(
-          "SELECT order_status_id FROM order_statuses WHERE name = 'pending'",
-          []
+          "SELECT order_status_id FROM order_statuses WHERE name = $1",
+          [paymentStatus]
         );
 
         const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
