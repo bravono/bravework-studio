@@ -115,13 +115,11 @@ function Signup() {
     }
 
     setMessage("");
-``
+    ``;
     fetchCourse();
   }, [isEnrollmentPage, courseId]);
 
-  useEffect(() => {
-    console.log("My Course: ", course?.sessions);
-  }, [course]);
+  useEffect(() => {}, [course]);
 
   const schemaToValidate = useMemo(() => {
     if (!isEnrollmentPage) return baseSignupSchema;
@@ -388,11 +386,38 @@ function Signup() {
                   required
                 >
                   <option value="">Select a preferred time *</option>
-                  {preferredSessionOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                  {course?.sessions?.map((session) => {
+                    const date = new Date(session.datetime);
+                    const durationHours = session.duration / 60 || 2; // default to 2 hours if not provided
+
+                    const endDate = new Date(
+                      date.getTime() + durationHours * 60 * 60 * 1000
+                    );
+
+                    const startTime = date.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    });
+
+                    const endTime = endDate.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    });
+
+                    const hour = date.getHours();
+                    const prefix = hour < 12 ? "Morning" : "Night";
+
+                    const display = `${prefix} - ${startTime} to ${endTime}`;
+                    const value = date.toISOString();
+
+                    return (
+                      <option key={value} value={value}>
+                        {display}
+                      </option>
+                    );
+                  })}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg
