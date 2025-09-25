@@ -205,15 +205,8 @@ export default function UserOrdersSection() {
 
   return (
     <div className="p-6 bg-gray-50 rounded-xl shadow-lg border border-gray-200">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 mt-10">
         <h2 className="text-3xl font-bold text-gray-800">Orders & Projects</h2>
-        <button
-          onClick={handleCreateOrder}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Create Order
-        </button>
       </div>
 
       {/* Active Projects */}
@@ -298,9 +291,6 @@ export default function UserOrdersSection() {
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Created
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
@@ -335,46 +325,6 @@ export default function UserOrdersSection() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">
                       {format(new Date(order.date), "MMM dd, yyyy")}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800 space-y-1 sm:space-y-0 sm:space-x-1 flex flex-col sm:flex-row">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="flex items-center justify-center px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-                      >
-                        <Pencil className="w-4 h-4 mr-1" />
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteOrder(order.id)}
-                        className="flex items-center justify-center px-2 py-1 text-xs text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </button>
-                      {order.statusName === "paid" && (
-                        <button
-                          onClick={() => handleMarkAsPortfolio(order)}
-                          className={`flex items-center justify-center px-2 py-1 text-xs rounded-lg transition-colors ${
-                            order.isPortfolio
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                          }`}
-                        >
-                          <CheckSquare className="w-4 h-4 mr-1" />
-                          {order.isPortfolio
-                            ? "Unmark Portfolio"
-                            : "Mark Portfolio"}
-                        </button>
-                      )}
-                      {order.statusName === "pending" && (
-                        <button
-                          onClick={() => handleCreateCustomOffer(order)}
-                          className="flex items-center justify-center px-2 py-1 text-xs text-purple-600 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
-                        >
-                          <Tag className="w-4 h-4 mr-1" />
-                          Create Offer
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}
