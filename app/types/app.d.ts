@@ -169,7 +169,6 @@ interface Course {
   paymentStatus: number; // e.g., 1 = pending, 2 = completed, etc.
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
-  preferredSession: string; // ID of the preferred session
   isActive: boolean;
   startDate: string;
   endDate: string;
@@ -179,10 +178,15 @@ interface Course {
   language: string;
   amount: number;
   category: string;
-  sessions: Array<{
-    date: string;
-    time: string;
+  session?: {
+    timestamp: string;
     link: string;
+    duration: number;
+  };
+  sessions: Array<{
+    datetime: string;
+    link: string;
+    duration: number; // Duration in minutes
   }>;
   // Join with instructor table
   firstName: string;

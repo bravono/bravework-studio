@@ -27,29 +27,24 @@ export async function GET(request: Request) {
     }
 
     const queryText = `
-      SELECT
-        c.course_id AS id,
-        title,
-        description,
-        created_at AS date,
-        price_in_kobo AS price,
-        ce.payment_status AS "paymentStatus",
-        ce.preferred_session_id AS "preferredSession",
-        s.sessions AS sessions
-      FROM courses c
-      LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
-      LEFT JOIN (
-            SELECT
-                course_id,
-                json_agg(json_build_object(
-                'datetime', session_timestamp,
-                'link', session_link
-                )) AS sessions
-            FROM sessions
-            GROUP BY course_id
-            )  AS s ON ce.course_id = s.course_id
-      WHERE c.course_id = $1
-      ORDER BY created_at DESC; -- Order by most recent orders first
+    SELECT
+      c.course_id AS id,
+      c.title,
+      c.description,
+      c.created_at AS date,
+      c.price_in_kobo AS price,
+      ce.payment_status AS "paymentStatus",
+      ce.preferred_session_id AS "preferredSession",
+      json_build_object(
+        'link', s.session_link,
+        'timestamp', s.session_timestamp,
+        'duration', s.duration
+      ) AS session
+    FROM course_enrollments ce
+    JOIN courses c ON c.course_id = ce.course_id
+    LEFT JOIN sessions s ON ce.preferred_session_id = s.session_id
+    WHERE ce.user_id = $1
+    ORDER BY c.created_at DESC;
     `;
 
     const params = [userId];

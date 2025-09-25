@@ -105,6 +105,7 @@ function Page() {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
   const { data: session, status } = useSession();
 
   const { exchangeRates } = useExchangeRates();
@@ -218,6 +219,10 @@ function Page() {
       router.push("/auth/login");
     }
   }, [status, fetchDashboardData, router]);
+
+  useEffect(() => {
+    console.log("Courses:", courses);
+  }, [courses]);
 
   // Handle profile edit changes
   const handleProfileChange = (
@@ -922,41 +927,47 @@ function Page() {
                                     </div>
 
                                     {/* Sessions Section */}
-                                    {course.sessions &&
-                                      course.sessions.length > 0 &&
+                                    {course.session &&
                                       statusLabel !== "Pending" && (
                                         <div className="mt-4 border-t pt-4 border-gray-200">
                                           <h3 className="text-md font-medium text-gray-700 mb-2 flex items-center">
                                             <BookOpen className="w-4 h-4 text-green-600 mr-2" />
                                             Your Sessions
                                           </h3>
-                                          <ul className="space-y-2">
-                                            {course.sessions.map(
-                                              (session, index) => (
-                                                <li
-                                                  key={index}
-                                                  className="flex items-center text-sm text-gray-600"
-                                                >
-                                                  <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                                                  <div className="flex-1">
-                                                    <p>
-                                                      {format(
-                                                        new Date(session.date),
-                                                        "MMMM d, yyyy"
-                                                      )}{" "}
-                                                      at {session.time}
-                                                    </p>
-                                                  </div>
-                                                  <Link
-                                                    href={session.link}
-                                                    className="text-blue-600 hover:underline flex items-center ml-2"
-                                                  >
-                                                    <LinkIcon className="w-4 h-4 mr-1" />
-                                                    Go to Class
-                                                  </Link>
-                                                </li>
-                                              )
-                                            )}
+                                          <ul className="space-y-2 mb-10">
+                                            <li className="flex items-center text-sm text-gray-600">
+                                              <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                                              <div className="flex-1">
+                                                <p>
+                                                  {format(
+                                                    new Date(
+                                                      course.session.timestamp
+                                                    ),
+                                                    "MMMM d, yyyy"
+                                                  )}{" "}
+                                                  at{" "}
+                                                  {format(
+                                                    new Date(
+                                                      course.session.timestamp
+                                                    ),
+                                                    "hh:mm a"
+                                                  )}{" "}
+                                                  for {course.session.duration}{" "}
+                                                  hour
+                                                  {course.session.duration > 1
+                                                    ? "s"
+                                                    : ""}
+                                                </p>
+                                              </div>
+
+                                              <Link
+                                                href={course.session.link}
+                                                className="text-blue-600 hover:underline flex items-center ml-2"
+                                              >
+                                                <LinkIcon className="w-4 h-4 mr-1" />
+                                                Go to Class
+                                              </Link>
+                                            </li>
                                           </ul>
                                         </div>
                                       )}
