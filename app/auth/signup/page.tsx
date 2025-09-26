@@ -528,7 +528,7 @@ function Signup() {
             {loading
               ? "Processing..."
               : isEnrollmentPage
-              ? "Enroll & Pay"
+              ? "Enroll"
               : "Sign Up"}
           </button>
         </form>
