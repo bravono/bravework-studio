@@ -618,7 +618,7 @@ function Page() {
                                   "overpayment_detected") && (
                                 <Link
                                   href={`/orders/track/${
-                                    order.trackingId || order.id
+                                    order?.trackingId && order?.trackingId
                                   }`}
                                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                                 >
@@ -960,13 +960,15 @@ function Page() {
                                                 </p>
                                               </div>
 
-                                              <Link
-                                                href={course.session.link}
-                                                className="text-blue-600 hover:underline flex items-center ml-2"
-                                              >
-                                                <LinkIcon className="w-4 h-4 mr-1" />
-                                                Go to Class
-                                              </Link>
+                                              {course?.session?.link ? (
+                                                <Link
+                                                  href={course.session.link}
+                                                  className="text-blue-600 hover:underline flex items-center ml-2"
+                                                >
+                                                  <LinkIcon className="w-4 h-4 mr-1" />
+                                                  Join Session
+                                                </Link>
+                                              ) : null}
                                             </li>
                                           </ul>
                                         </div>
