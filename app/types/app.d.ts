@@ -187,6 +187,7 @@ interface Course {
     datetime: string;
     link: string;
     duration: number; // Duration in minutes
+    number?: number;
   }>;
   // Join with instructor table
   firstName: string;

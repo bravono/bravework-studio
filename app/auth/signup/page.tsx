@@ -410,7 +410,7 @@ function Signup() {
                     const prefix = hour < 12 ? "Morning" : "Night";
 
                     const display = `${prefix} - ${startTime} to ${endTime}`;
-                    const value = date.toISOString();
+                    const value = session.number;
 
                     return (
                       <option key={value} value={value}>

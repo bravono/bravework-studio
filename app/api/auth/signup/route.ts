@@ -198,13 +198,16 @@ export async function POST(req: Request) {
 
         // Fetch session ID
         const sessionResult = await client.query(
-          `SELECT session_id FROM sessions WHERE course_id = $1 AND session_timestamp = $2::timestamptz`,
-          [courseId, preferredSessionTime]
+          `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
+          [courseId, Number(preferredSessionTime)]
         );
         if (sessionResult.length === 0) {
           throw new Error("No session found for the selected time.");
         }
-        const sessionId = sessionResult.session_id;
+
+        const { session_id: sessionId, session_number: sessionNumber } =
+          sessionResult.rows[0];
+        console.log("Session Id", sessionId);
 
         const paymentStatus = price === 0 ? "paid" : "pending";
 
@@ -215,6 +218,7 @@ export async function POST(req: Request) {
         );
 
         const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
+        console.log("Preferred session time:", preferredSessionTime);
 
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
         await queryDatabase(
@@ -228,6 +232,7 @@ export async function POST(req: Request) {
           ["Course"]
         );
 
+        console.log("Category Result:", categoryResult);
         const categoryId = categoryResult.rows[0].category_id;
         // Insert into orders table
         const trackingId = createTrackingId(courseTitle);
