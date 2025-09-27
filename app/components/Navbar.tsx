@@ -16,6 +16,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  // Prevent background scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
+
   // Extend the user type to include 'roles'
   type UserWithRoles = typeof session extends { user: infer U }
     ? U & { roles?: string[] }
@@ -43,6 +55,7 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out bg-white shadow-lg md:bg-white`}
+      aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -197,15 +210,23 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden ${
-          isMenuOpen ? "block" : "hidden"
-        } bg-green-600 shadow-lg`}
+        className={`md:hidden fixed inset-0 top-16 transition-transform duration-300 ease-in-out ${
+          isMenuOpen
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-4 opacity-0 pointer-events-none"
+        } bg-green-700/95 shadow-lg backdrop-blur-sm`}
+        style={{ zIndex: 60 }}
+        role="dialog"
+        aria-modal={isMenuOpen}
+        tabIndex={isMenuOpen ? 0 : -1}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <Link
             href="/"
             className={`${commonLinkClasses} ${
-              pathname === "/" ? activeLinkClasses : inactiveLinkClasses
+              pathname === "/"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -215,8 +236,8 @@ export default function Navbar() {
             href="/portfolio"
             className={`${commonLinkClasses} ${
               pathname === "/portfolio"
-                ? activeLinkClasses
-                : inactiveLinkClasses
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -225,7 +246,9 @@ export default function Navbar() {
           <Link
             href="/job"
             className={`${commonLinkClasses} ${
-              pathname === "/job" ? activeLinkClasses : inactiveLinkClasses
+              pathname === "/job"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -234,15 +257,20 @@ export default function Navbar() {
           <Link
             href="/courses"
             className={`${commonLinkClasses} ${
-              pathname === "/courses" ? activeLinkClasses : inactiveLinkClasses
+              pathname === "/courses"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
+            onClick={() => setIsMenuOpen(false)}
           >
             Courses
           </Link>
           <Link
             href="/about"
             className={`${commonLinkClasses} ${
-              pathname === "/about" ? activeLinkClasses : inactiveLinkClasses
+              pathname === "/about"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -251,18 +279,20 @@ export default function Navbar() {
           <Link
             href="/contact"
             className={`${commonLinkClasses} ${
-              pathname === "/contact" ? activeLinkClasses : inactiveLinkClasses
+              pathname === "/contact"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Contact
           </Link>
-          <div className="border-t border-gray-200 mt-2 pt-2">
+          <div className="border-t border-green-300 mt-2 pt-2">
             {status === "authenticated" && session.user.name ? (
               <>
                 <Link
                   href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  className="flex items-center gap-2 px-3 py-2 text-base font-medium text-white hover:bg-green-600"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <LayoutDashboard className="w-4 h-4" />
@@ -270,7 +300,7 @@ export default function Navbar() {
                 </Link>
 
                 <button
-                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-base font-medium text-red-100 hover:bg-red-600 hover:text-white"
                   onClick={() => {
                     signOut({ callbackUrl: "/auth/login" });
                     setIsMenuOpen(false);
@@ -283,7 +313,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/login"
-                className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className="block px-3 py-2 text-base font-medium text-white hover:bg-green-600"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Sign In/Up
