@@ -100,7 +100,6 @@ export async function sendVerificationEmail(
   toEmail: string,
   token: string,
   userName: string,
-  isStudent?: boolean,
   course?: string
 ) {
   console.log(`Verification token for ${userName}: ${token}`);
@@ -117,9 +116,7 @@ export async function sendVerificationEmail(
   const htmlContent = `
     <p>Hello ${userName},</p>
     <p>Thank you for ${
-      isStudent
-        ? `enrolling in course ${course}`
-        : "signing up for our services"
+      course ? `enrolling in course ${course}` : "signing up for our services"
     }! Please verify your email address by clicking the link below:</p>
     <p><a href="${verificationLink}">Verify Email Address</a></p>
     <p>This link will expire in 24 hours.</p>
@@ -127,7 +124,7 @@ export async function sendVerificationEmail(
     <p>Thanks,<br/>Our Services Team</p>
   `;
   const textContent = `Hello ${userName},\n\nThank you for ${
-    isStudent ? `enrolling in course ${course}` : "signing up for our services"
+    course ? `enrolling in course ${course}` : "signing up for our services"
   }! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
   try {
@@ -156,7 +153,7 @@ export async function sendOrderReceivedEmail(
     <p>Thank you for placing an order with us! We have successfully received your request (Order ID: <strong>${orderId}</strong>).</p>
     ${
       course
-        ? `<p>You enrolled in ${course}. Please login to your dashboard to view your more details about your enrollment.</p>`
+        ? `<p>You enrolled in ${course}. Please login to your dashboard to view more details about your enrollment.</p>`
         : `<p><strong>Please note:</strong> No money has been charged yet. We will review your order details and send you a custom offer for confirmation.</p>
     <p>Please look out for our email with the custom offer. We're excited to get started!</p>`
     }
