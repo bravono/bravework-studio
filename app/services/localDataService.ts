@@ -790,7 +790,7 @@ export const coursesData = [
     tagline: "Program Title: 3D Animation Adventure for Kids",
     targetAudience: "7–14 years",
     duration: "7 weeks",
-    software: "Blender (free, open-source)",
+    software: "Blender and 3D Slicer(free, open-source)",
     overview:
       "This beginner-friendly program introduces kids to 3D animation through fun, hands-on projects using Blender. From creating simple shapes to animating flying cars and mysterious characters, kids will build their own 3D world while learning valuable STEM/STEAM skills. No prior experience is required. Just curiosity and creativity!",
     levels: [
@@ -1091,7 +1091,7 @@ export const coursesData = [
       {
         title: "Community Impact",
         description:
-          "Part of Tryotek’s mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
       },
     ],
     howToJoin: [
@@ -1218,7 +1218,7 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
 `,
         why: "",
         outcomes: [],
-        info: "You've just created something that could change patient lives. Imagine what you'll do with 4 weeks of training. Thank you for joining Tryotek's medical 3D revolution",
+        info: "You've just created something that could change patient lives. Imagine what you'll do with 4 weeks of training. Thank you for joining Bravework Studio's medical 3D revolution",
         icon: HelpCircle,
       },
     ],
@@ -1255,7 +1255,7 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
       {
         title: "Community Impact",
         description:
-          "Part of Tryotek’s mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
       },
     ],
     howToJoin: [
