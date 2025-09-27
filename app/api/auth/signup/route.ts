@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     let validationResult;
     // Determine the correct schema based on the request body and session status
     if (body.courseId) {
-      console.log(session);
+      console.log("Session", session);
       if (session && session.user) {
         validationResult = enrollExistingUserSchema.validate(body);
       } else {
@@ -76,13 +76,12 @@ export async function POST(req: Request) {
       courseId,
     } = body;
 
-    let course;
-    let isStudent = courseId;
-    const name = `${firstName} ${lastName}`;
-
     // Use a database transaction to ensure data integrity
     const result = await withTransaction(async (client) => {
       let userId;
+      let orderId;
+      let course;
+      const name = `${firstName} ${lastName}`;
 
       // Scenario 1: Existing, authenticated user enrolling in a course
       if (session && session.user) {
@@ -104,7 +103,7 @@ export async function POST(req: Request) {
           [email]
         );
 
-        if (existingUserResult.length > 0) {
+        if (existingUserResult.rows.length > 0) {
           throw new Error("A user with this email already exists.");
         }
 
@@ -149,13 +148,7 @@ export async function POST(req: Request) {
         );
 
         try {
-          await sendVerificationEmail(
-            email,
-            verificationToken,
-            name,
-            (isStudent = false),
-            (course = null)
-          );
+          await sendVerificationEmail(email, verificationToken, name, course);
           console.log(`Verification email sent to ${email}`);
         } catch (mailError) {
           console.error("Failed to send verification email:", mailError);
@@ -221,7 +214,7 @@ export async function POST(req: Request) {
         console.log("Preferred session time:", preferredSessionTime);
 
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
-        await queryDatabase(
+        await client.query(
           `INSERT INTO course_enrollments (user_id, payment_status, course_id, preferred_session_id, enrollment_date) 
           VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
           [userId, paymentStatusId, courseId, sessionId]
@@ -232,7 +225,6 @@ export async function POST(req: Request) {
           ["Course"]
         );
 
-        console.log("Category Result:", categoryResult);
         const categoryId = categoryResult.rows[0].category_id;
         // Insert into orders table
         const trackingId = createTrackingId(courseTitle);
@@ -253,16 +245,23 @@ export async function POST(req: Request) {
           ]
         );
 
-        const orderId = orderResult.rows[0].order_id;
+        orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
 
         try {
-          await sendOrderReceivedEmail(email, name, orderId, (course = null));
+          await sendOrderReceivedEmail(email, name, orderId, course);
           console.log(`Course order email sent to ${email}`);
         } catch (mailError) {
           console.error("Failed to send course order email:", mailError);
         }
         return { userId, isNewUser: !session };
+      }
+
+      try {
+        await sendOrderReceivedEmail(email, name, orderId, course);
+        console.log(`Course order email sent to ${email}`);
+      } catch (mailError) {
+        console.error("Failed to send course order email:", mailError);
       }
 
       return { userId, isNewUser: !session };
