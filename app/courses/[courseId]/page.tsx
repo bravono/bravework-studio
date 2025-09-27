@@ -104,7 +104,7 @@ export default function CoursePage() {
                   <span className="font-semibold text-secondary-dark">
                     Instructor:
                   </span>{" "}
-                  {course?.firstName + course?.lastName}
+                  Ahbideen Yusuf
                 </p>
               </div>
             </div>
