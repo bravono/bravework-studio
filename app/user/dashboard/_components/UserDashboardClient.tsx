@@ -571,7 +571,7 @@ function Page() {
                         View All
                       </button>
                     </div>
-                    {orders.length > 0 ? (
+                    {orders.length > 0 && (
                       <div className="space-y-4">
                         {paginatedOrders.map((order) => (
                           <div
@@ -634,8 +634,6 @@ function Page() {
                           onPageChange={setOrdersPage}
                         />
                       </div>
-                    ) : (
-                      <p className="text-gray-500">No recent orders found.</p>
                     )}
                   </div>
                   {/* Custom Offers */}
@@ -652,7 +650,7 @@ function Page() {
                         View All
                       </button>
                     </div>
-                    {offers.length > 0 ? (
+                    {offers.length > 0 && (
                       <div className="space-y-4">
                         {paginatedOffers.map((offer) => {
                           // Status color mapping
@@ -859,8 +857,6 @@ function Page() {
                           onPageChange={setOffersPage}
                         />
                       </div>
-                    ) : (
-                      <p className="text-gray-500">No custom offer found.</p>
                     )}
                   </div>
 
@@ -880,7 +876,7 @@ function Page() {
                     </div>
 
                     <div className="container mx-auto p-4 md:p-8 bg-gray-50">
-                      {courses.length > 0 ? (
+                      {courses.length > 0 && (
                         <div className="w-100">
                           {paginatedCourses.map((course) => {
                             const {
@@ -966,7 +962,7 @@ function Page() {
                                                   className="text-blue-600 hover:underline flex items-center ml-2"
                                                 >
                                                   <LinkIcon className="w-4 h-4 mr-1" />
-                                                  Join Session
+                                                  Join Class
                                                 </Link>
                                               ) : null}
                                             </li>
@@ -998,12 +994,6 @@ function Page() {
                             onPageChange={setCoursesPage}
                           />
                         </div>
-                      ) : (
-                        <div className="flex justify-center items-center h-64">
-                          <p className="text-gray-500 text-lg">
-                            No courses found.
-                          </p>
-                        </div>
                       )}
                     </div>
                   </div>
@@ -1022,7 +1012,7 @@ function Page() {
                         View All
                       </button>
                     </div>
-                    {invoices.length > 0 ? (
+                    {invoices.length > 0 && (
                       <div className="space-y-4">
                         {paginatedInvoices.map((invoice) => (
                           <div
@@ -1072,8 +1062,6 @@ function Page() {
                           onPageChange={setInvoicesPage}
                         />
                       </div>
-                    ) : (
-                      <p className="text-gray-500">No invoices found.</p>
                     )}
                   </div>
                 </div>
@@ -1248,9 +1236,7 @@ function Page() {
                               </li>
                             ))}
                           </ul>
-                        ) : (
-                          <p className="text-gray-500">No active coupons.</p>
-                        )}
+                        ) : null}
                         <Link
                           href="/coupons"
                           className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
