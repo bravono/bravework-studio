@@ -123,19 +123,19 @@ export default function Navbar() {
 
             {/* User Dropdown */}
             <div className="relative ml-4">
-              <button
-                className={`p-2 rounded-full ${
-                  isScrolled
-                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    : "bg-gray-700 text-white hover:bg-gray-800"
-                } focus:outline-none transition-colors duration-200`}
-                onClick={() => setShowDropdown(!showDropdown)}
+              <Link
+                href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
+                onMouseEnter={() => setShowDropdown(!showDropdown)}
               >
-                <User className="w-6 h-6" />
-              </button>
+                <div className="flex items-center justify-center gap-2 p-2 rounded-sm hover:bg-gray-100">
+                  Dashboard
+                  <User className="w-6 h-6" />
+                </div>
+              </Link>
+
               {showDropdown && (
                 <div
-                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  className="absolute right-[-3] mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none"
                   onMouseLeave={() => setShowDropdown(false)}
                 >
                   {status === "authenticated" && session.user.name ? (
@@ -151,17 +151,7 @@ export default function Navbar() {
                         <LayoutDashboard className="w-4 h-4" />
                         Dashboard
                       </Link>
-                      {/* <Link
-                        href="/profile"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setShowDropdown(false);
-                        }}
-                      > 
-                        <Settings className="w-4 h-4" />
-                        My Account
-                      </Link> */}
+
                       <button
                         className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                         onClick={() => {
