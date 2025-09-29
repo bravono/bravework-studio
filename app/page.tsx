@@ -41,6 +41,20 @@ export default function Home() {
   const { data: session } = useSession();
   const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
 
+  // Redirect logged-in users to dashboard after 2 seconds
+  useEffect(() => {
+    if (session?.user.roles.includes("student")) {
+      const hasVisited = sessionStorage.getItem("visit");
+      if (!hasVisited) {
+        const timeout = setTimeout(() => {
+          sessionStorage.setItem("visit", "true");
+          window.location.href = "/user/dashboard";
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [session]);
+
   // Effect to cycle through the taglines every 5 seconds
   useEffect(() => {
     const intervalId = setInterval(() => {
