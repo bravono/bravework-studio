@@ -557,6 +557,144 @@ function Page() {
                     </div>
                   </div>
 
+                  {/* Course Progress */}
+                  {session.user.roles.includes("student") && <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                        <BookOpen size={24} className="text-green-600" />
+                        My Courses
+                      </h2>
+                      <Link
+                        href="/courses"
+                        className="text-green-600 hover:underline font-medium"
+                      >
+                        Explore More
+                      </Link>
+                    </div>
+
+                    <div className="container mx-auto p-4 md:p-8 bg-gray-50">
+                      {courses.length > 0 && (
+                        <div className="w-100">
+                          {paginatedCourses.map((course) => {
+                            const {
+                              label: statusLabel,
+                              color: statusColor,
+                              icon: StatusIcon,
+                            } = getPaymentStatus(course.paymentStatus);
+
+                            return (
+                              <div
+                                key={course.id}
+                                className=" bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:scale-[1.02]"
+                              >
+                                <div className="p-6">
+                                  {/* Course Title & Status Badge */}
+                                  <div className="flex justify-between items-start mb-4">
+                                    <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
+                                      {course.title}
+                                    </h2>
+                                    <span
+                                      className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${statusColor}`}
+                                    >
+                                      <StatusIcon className="w-3 h-3" />
+                                      {statusLabel}
+                                    </span>
+                                  </div>
+
+                                  {/* Course Description */}
+                                  <p className="text-sm text-gray-500 mb-4">
+                                    {course.description}
+                                  </p>
+
+                                  <div className="space-y-3">
+                                    {/* Price */}
+                                    <div className="flex items-center text-gray-700">
+                                      <span className="text-lg font-bold text-green-600">
+                                        {getCurrencySymbol(selectedCurrency)}
+                                        {convertCurrency(
+                                          course.price / KOBO_PER_NAIRA,
+                                          exchangeRates?.[selectedCurrency],
+                                          getCurrencySymbol(selectedCurrency)
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    {/* Sessions Section */}
+                                    {course.session &&
+                                      statusLabel !== "Pending" && (
+                                        <div className="mt-4 border-t pt-4 border-gray-200">
+                                          <h3 className="text-md font-medium text-gray-700 mb-2 flex items-center">
+                                            <BookOpen className="w-4 h-4 text-green-600 mr-2" />
+                                            Your Sessions
+                                          </h3>
+                                          <ul className="space-y-2 mb-10">
+                                            <li className="flex items-center text-sm text-gray-600">
+                                              <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                                              <div className="flex-1">
+                                                <p>
+                                                  {format(
+                                                    new Date(
+                                                      course.session.timestamp
+                                                    ),
+                                                    "MMMM d, yyyy"
+                                                  )}{" "}
+                                                  at{" "}
+                                                  {format(
+                                                    new Date(
+                                                      course.session.timestamp
+                                                    ),
+                                                    "hh:mm a"
+                                                  )}{" "}
+                                                  for {course.session.duration}{" "}
+                                                  hour
+                                                  {course.session.duration > 1
+                                                    ? "s"
+                                                    : ""}
+                                                </p>
+                                              </div>
+
+                                              {course?.session?.link ? (
+                                                <Link
+                                                  href={course.session.link}
+                                                  className="text-blue-600 hover:underline flex items-center ml-2"
+                                                >
+                                                  <LinkIcon className="w-4 h-4 mr-1" />
+                                                  Join Class
+                                                </Link>
+                                              ) : null}
+                                            </li>
+                                          </ul>
+                                        </div>
+                                      )}
+                                    {statusLabel === "Pending" && (
+                                      <div className="pt-4 border-t border-gray-200 mt-4">
+                                        <button
+                                          onClick={() =>
+                                            router.push(
+                                              `/user/dashboard/payment?courseId=${course.id}`
+                                            )
+                                          }
+                                          className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        >
+                                          Make Payment
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <Pagination
+                            currentPage={coursesPage}
+                            totalPages={totalCoursesPages}
+                            onPageChange={setCoursesPage}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>}
+
                   {/* Recent Orders */}
                   <div className="bg-white p-6 rounded-xl shadow-lg">
                     <div className="flex items-center justify-between mb-4">
@@ -858,144 +996,6 @@ function Page() {
                         />
                       </div>
                     )}
-                  </div>
-
-                  {/* Course Progress */}
-                  <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                        <BookOpen size={24} className="text-green-600" />
-                        My Courses
-                      </h2>
-                      <Link
-                        href="/courses"
-                        className="text-green-600 hover:underline font-medium"
-                      >
-                        Explore All
-                      </Link>
-                    </div>
-
-                    <div className="container mx-auto p-4 md:p-8 bg-gray-50">
-                      {courses.length > 0 && (
-                        <div className="w-100">
-                          {paginatedCourses.map((course) => {
-                            const {
-                              label: statusLabel,
-                              color: statusColor,
-                              icon: StatusIcon,
-                            } = getPaymentStatus(course.paymentStatus);
-
-                            return (
-                              <div
-                                key={course.id}
-                                className=" bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:scale-[1.02]"
-                              >
-                                <div className="p-6">
-                                  {/* Course Title & Status Badge */}
-                                  <div className="flex justify-between items-start mb-4">
-                                    <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
-                                      {course.title}
-                                    </h2>
-                                    <span
-                                      className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${statusColor}`}
-                                    >
-                                      <StatusIcon className="w-3 h-3" />
-                                      {statusLabel}
-                                    </span>
-                                  </div>
-
-                                  {/* Course Description */}
-                                  <p className="text-sm text-gray-500 mb-4">
-                                    {course.description}
-                                  </p>
-
-                                  <div className="space-y-3">
-                                    {/* Price */}
-                                    <div className="flex items-center text-gray-700">
-                                      <span className="text-lg font-bold text-green-600">
-                                        {getCurrencySymbol(selectedCurrency)}
-                                        {convertCurrency(
-                                          course.price / KOBO_PER_NAIRA,
-                                          exchangeRates?.[selectedCurrency],
-                                          getCurrencySymbol(selectedCurrency)
-                                        )}
-                                      </span>
-                                    </div>
-
-                                    {/* Sessions Section */}
-                                    {course.session &&
-                                      statusLabel !== "Pending" && (
-                                        <div className="mt-4 border-t pt-4 border-gray-200">
-                                          <h3 className="text-md font-medium text-gray-700 mb-2 flex items-center">
-                                            <BookOpen className="w-4 h-4 text-green-600 mr-2" />
-                                            Your Sessions
-                                          </h3>
-                                          <ul className="space-y-2 mb-10">
-                                            <li className="flex items-center text-sm text-gray-600">
-                                              <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                                              <div className="flex-1">
-                                                <p>
-                                                  {format(
-                                                    new Date(
-                                                      course.session.timestamp
-                                                    ),
-                                                    "MMMM d, yyyy"
-                                                  )}{" "}
-                                                  at{" "}
-                                                  {format(
-                                                    new Date(
-                                                      course.session.timestamp
-                                                    ),
-                                                    "hh:mm a"
-                                                  )}{" "}
-                                                  for {course.session.duration}{" "}
-                                                  hour
-                                                  {course.session.duration > 1
-                                                    ? "s"
-                                                    : ""}
-                                                </p>
-                                              </div>
-
-                                              {course?.session?.link ? (
-                                                <Link
-                                                  href={course.session.link}
-                                                  className="text-blue-600 hover:underline flex items-center ml-2"
-                                                >
-                                                  <LinkIcon className="w-4 h-4 mr-1" />
-                                                  Join Class
-                                                </Link>
-                                              ) : null}
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      )}
-                                    {statusLabel === "Pending" && (
-                                      <div className="pt-4 border-t border-gray-200 mt-4">
-                                        <button
-                                          onClick={() =>
-                                            router.push(
-                                              `/user/dashboard/payment?courseId=${course.id}`
-                                            )
-                                          }
-                                          className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                        >
-                                          Make Payment
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          <Pagination
-                            currentPage={coursesPage}
-                            totalPages={totalCoursesPages}
-                            onPageChange={setCoursesPage}
-                          />
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   {/* Invoices */}
