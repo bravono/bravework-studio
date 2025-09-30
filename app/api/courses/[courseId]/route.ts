@@ -23,6 +23,10 @@ export async function GET(
         end_date AS "endDate",
         price_in_kobo AS price,
         is_active AS "isActive",
+        early_bird_discount AS "discount",
+        discount_start_date AS "discountStartDate",
+        discount_end_date AS "discountEndDate",
+        hour_per_session AS "hours",
         s.sessions
       FROM courses c
       LEFT JOIN (

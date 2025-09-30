@@ -3,11 +3,9 @@ import Navbar from "../components/Navbar";
 import {
   CreditCard,
   DollarSign,
-  Undo,
   CircleCheck,
   CircleX,
   RefreshCcw,
-  BadgeDollarSign,
 } from "lucide-react";
 
 export default function RefundPolicyPage() {
@@ -101,7 +99,7 @@ export default function RefundPolicyPage() {
                 </h2>
               </div>
               <ul className="space-y-4 text-gray-700">
-                <li className="flex items-center gap-3 p-4 bg-gray-100 rounded-lg">
+                <li className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
                   <CircleCheck className="h-6 w-6 text-green-600 flex-shrink-0" />
                   <div>
                     <strong className="text-gray-900">
@@ -110,7 +108,18 @@ export default function RefundPolicyPage() {
                     A full refund is available (minus any applied discounts).
                   </div>
                 </li>
-                <li className="flex items-center gap-3 p-4 bg-gray-100 rounded-lg">
+                <li className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                  <CircleCheck className="h-6 w-6 text-green-600 flex-shrink-0" />
+                  <div>
+                    <strong className="text-gray-900">
+                      Live Zoom Courses:
+                    </strong>{" "}
+                    If you are not happy after attending the first class, you
+                    are eligible for a full refund of your payment for the
+                    course.
+                  </div>
+                </li>
+                <li className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
                   <CircleCheck className="h-6 w-6 text-green-600 flex-shrink-0" />
                   <div>
                     <strong className="text-gray-900">
@@ -120,7 +129,7 @@ export default function RefundPolicyPage() {
                     50% of the payment made to cover completed work.
                   </div>
                 </li>
-                <li className="flex items-center gap-3 p-4 bg-gray-100 rounded-lg">
+                <li className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
                   <CircleX className="h-6 w-6 text-red-600 flex-shrink-0" />
                   <div>
                     <strong className="text-gray-900">

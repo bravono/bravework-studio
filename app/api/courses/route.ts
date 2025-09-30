@@ -17,6 +17,10 @@ export async function GET(request: Request) {
         level,
         language,
         price_in_kobo AS amount,
+        early_bird_discount AS "discount",
+        discount_start_date AS "discountStartDate",
+        discount_end_date AS "discountEndDate",
+        hour_per_session AS "hours",
         i.bio
         FROM courses c
         LEFT JOIN (
