@@ -1230,7 +1230,7 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
       classSize:
         "Small groups (5-10 professionals) for personalized attention.",
       feedback:
-        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+        "Weekly opportunities for participants to discuss applications and share project ideas, fostering collaboration.",
       certification:
         "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
     },
@@ -1265,128 +1265,116 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
 
   {
     id: 5,
-    title: "Chef 3D",
-    tagline: "Unlocking the Power of 3D Animation in Healthcare",
-    targetAudience: "18 years above",
-    duration: "4 weeks",
+    title: "3D Culinary Creation Bootcamp for Chefs",
+    tagline: "",
+    targetAudience:
+      "Chefs and small chop chefs with little to no 3D experience",
+    duration:
+      "4 weeks (3 weeks intensive training + 1 week bonus celebration), 2 hours per session",
     software: "Blender (free, open-source)",
     overview:
-      "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
+      "This beginner-friendly bootcamp teaches chefs to create 3D food models, design kitchen tools, and craft virtual catering demos using Blender. No prior 3D skills are needed—just a love for culinary innovation and a computer. Perfect for enhancing menus, marketing, and sustainable kitchen planning.",
     levels: [
       {
         level: "Level 1 & 2",
-        title: "Introduction to Blender & Modeling",
+        title: " Blender Basics for Food Modeling",
         objective:
-          "Master Blender installation and interface navigation for medical applications & Create a basic 3D anatomical model and apply simple textures for visualization.",
+          "Install Blender and explore the interface (3D Viewport, Tools, Timeline).",
         description:
-          " Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for medical modeling. Build a 3D model of a heart using basic shapes (spheres, cylinders) in Blender. Learn to apply colors and basic textures to represent heart tissue, and adjust lighting to highlight details.",
+          "Build a basic 3D food model (e.g., a sphere for a meatball) using simple shapes. Apply a free food texture (e.g., dough or sauce) from online resources.",
         activity:
-          "Create a short animation of a beating heart, customizing its rhythm and style for educational use. Design a spine model for surgical planning, customizing it based on a specific medical scenario (e.g., scoliosis correction).",
-        why: "Doctors gain confidence in navigating 3D software, preparing them to visualize anatomical structures. Doctors learn to create clear, visual representations for patient education or teaching.",
+          "Design a 3D cupcake model, adjusting shape and adding a basic icing layer.",
         outcomes: [
-          "Install Blender",
-          "navigate the interface",
-          "create a basic 3D model relevant to medicine",
-          "Master basic modeling",
+          "Navigate Blender",
+          "construct basic food shapes",
           "apply textures",
-          "and adjust lighting for medical visualizations.",
         ],
-        info: "Install Blender, navigate the interface, and create a basic 3D model relevant to medicine. Builds a foundation for creating precise medical visualizations, enhancing diagnostic and educational capabilities.",
+        info: " Visualize plated dishes for menu planning without physical prep.",
         icon: Shapes,
       },
       {
         level: "Level 3 & 4",
-        title: "Animation & Surgical Planning",
+        title: "Advanced Food Modeling and Texturing",
         objective:
-          "Animate a medical process to enhance understanding of dynamic systems. Build a complex 3D anatomical model for surgical planning or education.",
+          "Use sculpting tools to add details (e.g., ridges on a bread roll or frosting swirls).",
         description:
-          "Create a detailed 3D model of a spine or joint, combining multiple shapes and adding details (e.g., vertebrae, ligaments). Introduce importing medical imaging data (e.g., DICOM files via 3D Slicer) for real-world applications. Doctors share ideas for their model’s clinical use. Modify the heart model from Level 2 to animate a heartbeat cycle, learning basic keyframing techniques. Explore how to edit shapes for accuracy (e.g., adjusting heart chambers).",
-        activity: "Learn animation basics and apply to surgical planning.",
-        why: "Doctors can visualize dynamic processes (e.g., blood flow, heart function) for teaching or patient explanations. Doctors learn to create precise models for pre-surgical visualization, reducing risks and improving outcomes.",
+          "Simulate food stacking (e.g., a sandwich) with free physics add-ons. Enhance realism with free high-res textures (e.g., glossy chocolate, crumbly pastry).",
+        activity:
+          "Create a 3D layered cake with multiple textures and stacked tiers.",
         outcomes: [
-          "Understand basic animation",
-          "shape editing",
-          "keyframing for medical applications",
-          "apply 3D to clinical scenarios",
-          "integrate medical imaging",
-          "Master complex modeling",
+          "Sculpt food details",
+          "simulate stacking",
+          "apply advanced textures",
         ],
-        info: "Enhances ability to demonstrate physiological processes, supporting medical education and patient consultations. Supports surgical precision and enhances collaboration with colleagues and patients.",
+        info: "Develop realistic virtual dishes for marketing or client pitches.",
         icon: Film,
       },
       {
         level: "Level 5 & 6",
-        title: "Patient Education & 3D Printing",
+        title: "Animation and Virtual Presentation",
         objective:
-          "Create a 3D model for printing and master advanced animation techniques. Develop a 3D animation to explain a&rdquo; medical procedures to patients.",
+          "Animate food preparation and prepare digital catering demos.",
         description:
-          "Design a simple 3D model of an organ (e.g., a lung or kidney) and animate a medical procedure (e.g., stent placement or tumor removal). Learn basic rigging and animation to simulate the procedure. Design a 3D model of a custom prosthetic (e.g., a hand or foot) suitable for 3D printing. Learn advanced techniques like camera animation and rendering for high-quality visuals, and animate the prosthetic’s movement.",
+          "Animate a food process (e.g., pouring sauce over a dish) using keyframes. Set up a virtual table scene with lighting and camera angles for presentations. Export renders for menus or social media.",
         activity:
-          "Create an animated sequence showing a stent placement in a blood vessel, tailored for patient education. Create and animate a 3D prosthetic hand model, simulating its use in a clinical scenario, and prepare it for 3D printing.",
-        why: "Doctors gain skills to produce custom medical devices and professional visualizations, advancing patient care. Doctors can produce engaging visuals to explain treatments, improving patient understanding and compliance.",
+          "Animate a small chop tray (e.g., samosas) being assembled, ready for a virtual demo.",
         outcomes: [
-          "storytelling through medical visuals",
-          "basic rigging",
-          "Learn advanced animation",
-          "rendering for medical applications",
-          "advanced animation",
-          "Master 3D printing preparation",
+          "Master animation",
+          "lighting",
+          "and rendering for culinary use",
         ],
-        info: " Enhances patient communication and medical training with professional-grade animations. Enables creation of patient-specific prosthetics and high-quality educational content, enhancing clinical practice.",
+        info: " Create engaging video content to attract catering clients.",
         icon: BookOpen,
       },
       {
         level: "Bonus",
-        title: "FAQ, Career Pathways, and Graduation Celebration",
+        title: "Bonus Celebration - Portfolio Showcase and Next Steps",
         objective:
-          "Address remaining questions, provide clear growth pathways, and celebrate achievements with professional networking.",
+          "Q&A (30 minutes): Address chef-specific queries (e.g., “How do I model steam?”) with live demos.",
         description:
-          "Expand their world by creating a 3D island village where their hovering car lands. Add details like trees, water, and houses, and share ideas for what their island includes (e.g., a park, a castle).",
+          "Introduce advanced topics (e.g., 3D kitchen tool design, virtual cooking shows) and provide a “Culinary 3D Toolkit” (free tutorial links, texture packs).",
         activity:
           "Graduation Celebration & Networking, group photograph, casual video interviews",
-        why: "Addressing remaining questions, providing clear growth pathways, and celebrating achievements with professional networking opportunities.",
         outcomes: [
-          "Gain clarity on next steps and future opportunities",
-          "Have doubts and questions addressed",
-          "Connect with peers and industry professionals through networking",
+          "Showcase portfolios (1-2 minute presentations per chef).",
+          "Award Tryotek 3D Culinary Design Certificates with a fun 3D graphic (e.g., a plated dish).",
+          "Take photos and encourage social media sharing.",
         ],
-        info: "Expand professional networks, gain insights into creative and technical careers, and celebrate the completion of the 3D design journey with a sense of accomplishment and newfound confidence.",
+        info: "Chefs feel proud, network with peers, and get inspired!",
         icon: Award,
       },
     ],
     details: {
       prerequisites:
-        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
-      duration: "4 weeks, with one 3-hour session per week",
+        "Basic culinary knowledge (e.g., plating), no 3D experience needed. A computer with Blender installed.",
+      duration:
+        "4 weeks, 1.5-2 hours/week (6-8 hours total) + 1.5-2 hours bonus.",
       materials:
-        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
-      classSize:
-        "Small groups (5-10 professionals) for personalized attention.",
+        " Free Blender software; optional free add-ons (e.g., Cloth Simulator for food physics).",
+      classSize: "5-10 chefs for personalized guidance.",
       feedback:
-        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+        "Weekly opportunities for participants to discuss applications and share project ideas, fostering collaboration.",
       certification:
-        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+        "Bravework Studio's 3D Culinary Design Certificate upon completion.",
     },
     whyChooseUs: [
       {
-        title: "Practical and Professional",
+        title: "Practical Skills",
         description:
-          "Tailored projects (e.g., heart animations, prosthetics) directly apply to clinical practice, patient education, and surgical planning.",
+          "Craft virtual food models and animations for real-world use.",
       },
       {
-        title: "Beginner-Friendly",
-        description:
-          "Designed for doctors with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+        title: "Marketing Edge",
+        description: "Enhance menus and catering demos with 3D visuals.",
       },
       {
-        title: "Medical Innovation",
-        description:
-          "Equips doctors with cutting-edge skills to create custom visualizations and devices, aligning with modern healthcare advancements.",
+        title: "Sustainable Approach",
+        description: "Reduce food waste with digital prototyping.",
       },
       {
-        title: "Community Impact",
+        title: "Community Focus",
         description:
-          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+          " Part of Bravework's mission to empower local culinary talent.",
       },
     ],
     howToJoin: [
@@ -1398,128 +1386,113 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
 
   {
     id: 6,
-    title: "Fashion Presentation in 3D",
+    title: "3D Fashion Design Bootcamp",
     tagline: "Unlocking the Power of 3D Animation in Healthcare",
-    targetAudience: "18 years above",
-    duration: "4 weeks",
+    targetAudience: "Fashion designers with little to no 3D experience",
+    duration:
+      "4 weeks (3 weeks intensive training + 1 week bonus celebration), 2 hours per session",
     software: "Blender (free, open-source)",
     overview:
-      "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
+      "This beginner-friendly bootcamp teaches fashion designers to create virtual garments, simulate fabrics, and build digital portfolios using Blender. No prior 3D skills are needed—just a passion for fashion innovation and a computer. Perfect for reducing physical sampling costs and exploring sustainable design.",
     levels: [
       {
         level: "Level 1 & 2",
-        title: "Introduction to Blender & Modeling",
+        title: "Blender Basics for Fashion",
         objective:
-          "Master Blender installation and interface navigation for medical applications & Create a basic 3D anatomical model and apply simple textures for visualization.",
+          "Master Blender’s interface and create a simple 3D garment base.",
         description:
-          " Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for medical modeling. Build a 3D model of a heart using basic shapes (spheres, cylinders) in Blender. Learn to apply colors and basic textures to represent heart tissue, and adjust lighting to highlight details.",
+          "Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for fashion modeling. Apply a basic fabric texture (e.g., cotton) using free texture resources.",
         activity:
-          "Create a short animation of a beating heart, customizing its rhythm and style for educational use. Design a spine model for surgical planning, customizing it based on a specific medical scenario (e.g., scoliosis correction).",
-        why: "Doctors gain confidence in navigating 3D software, preparing them to visualize anatomical structures. Doctors learn to create clear, visual representations for patient education or teaching.",
+          "Design a 3D T-shirt model, adjusting proportions to fit a virtual mannequin. Create a basic 3D dress form using simple shapes (cubes, spheres).",
         outcomes: [
-          "Install Blender",
-          "navigate the interface",
-          "create a basic 3D model relevant to medicine",
-          "Master basic modeling",
+          "Navigate Blender",
+          "build basic garment shapes",
           "apply textures",
-          "and adjust lighting for medical visualizations.",
         ],
-        info: "Install Blender, navigate the interface, and create a basic 3D model relevant to medicine. Builds a foundation for creating precise medical visualizations, enhancing diagnostic and educational capabilities.",
+        info: "Start visualizing designs without physical fabric waste.",
         icon: Shapes,
       },
       {
         level: "Level 3 & 4",
-        title: "Animation & Surgical Planning",
+        title:
+          "Convert 2D sketches into 3D garments with basic sewing techniques.",
         objective:
-          "Animate a medical process to enhance understanding of dynamic systems. Build a complex 3D anatomical model for surgical planning or education.",
+          "Use Blender’s sculpting tools to refine garment shapes (e.g., sleeves, collars)",
         description:
-          "Create a detailed 3D model of a spine or joint, combining multiple shapes and adding details (e.g., vertebrae, ligaments). Introduce importing medical imaging data (e.g., DICOM files via 3D Slicer) for real-world applications. Doctors share ideas for their model’s clinical use. Modify the heart model from Level 2 to animate a heartbeat cycle, learning basic keyframing techniques. Explore how to edit shapes for accuracy (e.g., adjusting heart chambers).",
+          "Simulate basic sewing by joining mesh parts (e.g., front and back panels). Add free fabric physics add-ons (e.g., Cloth Simulator) for realistic draping.",
         activity: "Learn animation basics and apply to surgical planning.",
-        why: "Doctors can visualize dynamic processes (e.g., blood flow, heart function) for teaching or patient explanations. Doctors learn to create precise models for pre-surgical visualization, reducing risks and improving outcomes.",
         outcomes: [
-          "Understand basic animation",
-          "shape editing",
-          "keyframing for medical applications",
-          "apply 3D to clinical scenarios",
-          "integrate medical imaging",
-          "Master complex modeling",
+          "Sculpt garments",
+          "simulate sewing",
+          "apply fabric physics",
         ],
-        info: "Enhances ability to demonstrate physiological processes, supporting medical education and patient consultations. Supports surgical precision and enhances collaboration with colleagues and patients.",
+        info: "Learn to test fits virtually, reducing prototyping costs.",
         icon: Film,
       },
       {
         level: "Level 5 & 6",
-        title: "Patient Education & 3D Printing",
+        title: "Advanced Garment Animation and Presentation",
         objective:
-          "Create a 3D model for printing and master advanced animation techniques. Develop a 3D animation to explain a&rdquo; medical procedures to patients.",
+          "Animate a garment (e.g., a flowing dress) using keyframes for movement.",
         description:
-          "Design a simple 3D model of an organ (e.g., a lung or kidney) and animate a medical procedure (e.g., stent placement or tumor removal). Learn basic rigging and animation to simulate the procedure. Design a 3D model of a custom prosthetic (e.g., a hand or foot) suitable for 3D printing. Learn advanced techniques like camera animation and rendering for high-quality visuals, and animate the prosthetic’s movement.",
+          "Set up a virtual runway with lighting and camera angles. Export renders for portfolios or client presentations.",
         activity:
-          "Create an animated sequence showing a stent placement in a blood vessel, tailored for patient education. Create and animate a 3D prosthetic hand model, simulating its use in a clinical scenario, and prepare it for 3D printing.",
-        why: "Doctors gain skills to produce custom medical devices and professional visualizations, advancing patient care. Doctors can produce engaging visuals to explain treatments, improving patient understanding and compliance.",
+          "Animate a dress walking down a runway, customizing colors and fabrics.  ",
         outcomes: [
-          "storytelling through medical visuals",
-          "basic rigging",
-          "Learn advanced animation",
-          "rendering for medical applications",
-          "advanced animation",
-          "Master 3D printing preparation",
+          "Master animation",
+          "lighting",
+          "and rendering for fashion use.",
         ],
-        info: " Enhances patient communication and medical training with professional-grade animations. Enables creation of patient-specific prosthetics and high-quality educational content, enhancing clinical practice.",
+        info: " Create dynamic digital lookbooks to impress clients or brands.",
         icon: BookOpen,
       },
       {
         level: "Bonus",
-        title: "FAQ, Career Pathways, and Graduation Celebration",
+        title: "Bonus Celebration - Portfolio Showcase and Next Steps",
         objective:
-          "Address remaining questions, provide clear growth pathways, and celebrate achievements with professional networking.",
-        description:
-          "Expand their world by creating a 3D island village where their hovering car lands. Add details like trees, water, and houses, and share ideas for what their island includes (e.g., a park, a castle).",
+          " Celebrate achievements, answer questions, and inspire future projects.",
+        description: "",
         activity:
           "Graduation Celebration & Networking, group photograph, casual video interviews",
-        why: "Addressing remaining questions, providing clear growth pathways, and celebrating achievements with professional networking opportunities.",
         outcomes: [
-          "Gain clarity on next steps and future opportunities",
-          "Have doubts and questions addressed",
-          "Connect with peers and industry professionals through networking",
+          "Showcase portfolios (1-2 minute presentations per designer).",
+          "Award Bravework Studio 3D Fashion Design Certificates with a stylish 3D graphic (e.g., a dress silhouette).",
+          "Take photos and encourage social media sharing.",
         ],
-        info: "Expand professional networks, gain insights into creative and technical careers, and celebrate the completion of the 3D design journey with a sense of accomplishment and newfound confidence.",
+        info: "Designers feel accomplished, network with peers, and get inspired!",
         icon: Award,
       },
     ],
     details: {
       prerequisites:
-        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
-      duration: "4 weeks, with one 3-hour session per week",
+        "Basic fashion design knowledge (e.g., sketching), no 3D experience needed. A computer with Blender installed.",
+      duration: "4 weeks, 2 hours/week (8 hours total) + 2 hours bonus.",
       materials:
-        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
-      classSize:
-        "Small groups (5-10 professionals) for personalized attention.",
+        "Free Blender software; optional free add-ons (e.g., Cloth Simulator, Rigify).",
+      classSize: "5-10 designers for personalized guidance.",
       feedback:
         "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
       certification:
-        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+        "Bravework Studio 3D Fashion Design Certificate upon completion.",
     },
     whyChooseUs: [
       {
-        title: "Practical and Professional",
+        title: "Practical Skills",
         description:
-          "Tailored projects (e.g., heart animations, prosthetics) directly apply to clinical practice, patient education, and surgical planning.",
+          "Create virtual garments and animations for real-world use.",
       },
       {
-        title: "Beginner-Friendly",
-        description:
-          "Designed for doctors with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+        title: "Sustainable Design",
+        description: "Reduce fabric waste with digital prototypes.",
       },
       {
-        title: "Medical Innovation",
+        title: "Tailored Teaching",
         description:
-          "Equips doctors with cutting-edge skills to create custom visualizations and devices, aligning with modern healthcare advancements.",
+          " Led by Ahbideen Yusuf, leveraging Blender’s free power for fashion innovation.",
       },
       {
-        title: "Community Impact",
-        description:
-          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+        title: "Community Focus",
+        description: "Part of Tryotek’s mission to empower local creatives.",
       },
     ],
     howToJoin: [
