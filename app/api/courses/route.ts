@@ -20,7 +20,6 @@ export async function GET(request: Request) {
         early_bird_discount AS "discount",
         discount_start_date AS "discountStartDate",
         discount_end_date AS "discountEndDate",
-        sessions.hour_per_session AS "hours",
         i.bio
         FROM courses c
         LEFT JOIN (
@@ -28,7 +27,8 @@ export async function GET(request: Request) {
           course_id,
           json_agg(json_build_object(
             'datetime', session_timestamp,
-            'link', session_link
+            'link', session_link,
+            'duration, hour_per_session'
           )) AS sessions
         FROM sessions
         GROUP BY course_id
