@@ -26,7 +26,6 @@ export async function GET(
         early_bird_discount AS "discount",
         discount_start_date AS "discountStartDate",
         discount_end_date AS "discountEndDate",
-        hour_per_session AS "hours",
         s.sessions
       FROM courses c
       LEFT JOIN (
