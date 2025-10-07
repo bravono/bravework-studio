@@ -215,6 +215,20 @@ function Signup() {
         setMessage(
           "Signup successful! Please check your email to verify your account and proceed with your enrollment."
         );
+
+         fetch("https://api.sender.net/v2/subscribers", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${senderAPIKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: form.email,
+            name: `${form.firstName}  ${form.lastName}`,
+            tags: ["student"],
+          }),
+         });
+        
         // Reset form to initial state
         setForm({
           firstName: "",
