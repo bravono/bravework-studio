@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Import your PostgreSQL database query function
 import { queryDatabase, withTransaction } from "../../../lib/db"; // Ensure withTransaction is imported
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
@@ -82,7 +80,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Frontend sends the Paystack reference and a key to identify the product
-  const { reference, productId, paymentOption } = await req.json();
+  const { reference, id: productId, paymentOption } = await req.json();
+  console.log("Product ID from metadata:", productId);
 
   if (!reference) {
     return NextResponse.json(
@@ -184,7 +183,7 @@ export async function POST(req: NextRequest) {
 
         // Fetch course details
         const courseRows = await client.query(
-          "SELECT price_kobo, title, course_duration_days FROM courses WHERE course_id = $1",
+          "SELECT price_in_kobo, title, start_date, end_date FROM courses WHERE course_id = $1",
           [courseId]
         );
         if (courseRows.rows.length === 0) {
@@ -192,9 +191,21 @@ export async function POST(req: NextRequest) {
         }
         const courseDetails = courseRows.rows[0];
 
-        totalExpectedOrderAmountKobo = courseDetails.price_kobo;
+        console.log(
+          "Original Amount from Metadata:",
+          originalAmountKoboFromMetadata
+        );
+        totalExpectedOrderAmountKobo = discountApplied
+          ? (courseDetails.price_in_kobo / 100) * paymentPercentage
+          : actualAmountKobo;
         orderTitle = courseDetails.title;
-        project_duration_days = courseDetails.course_duration_days;
+        project_duration_days = courseDetails.end_date
+          ? Math.ceil(
+              (new Date(courseDetails.end_date).getTime() -
+                new Date(courseDetails.start_date).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null;
 
         // Verify amount
         if (actualAmountKobo !== totalExpectedOrderAmountKobo) {
@@ -205,6 +216,16 @@ export async function POST(req: NextRequest) {
 
         // --- Grant Access & Update Status for Course ---
         newOrderStatusId = orderStatusMap["paid"]; // Assuming course payments are always full
+
+        await client.query(
+          `UPDATE course_enrollments
+           SET payment_status = $1
+           WHERE course_id = $2`,
+          [newOrderStatusId, courseId]
+        );
+        console.log(
+          `Course enrollment for course ${courseId} and customer ${customerName} updated with payment_status ${newOrderStatusId}.`
+        );
         console.log(
           `TODO: Grant access to course ${courseId} for ${customerName}`
         );
@@ -278,7 +299,11 @@ export async function POST(req: NextRequest) {
       }
 
       let order = orderRows.rows[0];
-      const amountPaidToDateKobo = order.amount_paid_to_date_kobo || 0;
+      const amountPaidToDateKobo = order.amount_paid_to_date_kobo;
+
+      console.log(
+        `Order fetched: ID ${orderId}, Current Amount Paid: ${amountPaidToDateKobo} kobo`
+      );
 
       // 4. Insert record into `payments` table
       await client.query(

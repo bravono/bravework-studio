@@ -10,22 +10,8 @@ import React, {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Joi from "joi";
-import {
-  User,
-  Mail,
-  Lock,
-  Phone,
-  Clock,
-  DollarSign,
-  Building,
-} from "lucide-react";
+import { User, Mail, Lock, Phone, Clock, Building } from "lucide-react";
 import { Course } from "@/app/types/app";
-
-const preferredSessionOptions = [
-  { value: "18:00:00", label: "Friday (2:30 PM - 3:10 PM)" },
-  { value: "20:00:00", label: "Saturday (10:00 AM - 10:40 AM)" },
-  { value: "22:00:00", label: "Sunday (5:30 PM - 6:10 PM)" },
-];
 
 // Joi Schemas
 const baseSignupSchema = Joi.object({
@@ -77,6 +63,7 @@ function Signup() {
   const firstName = user?.name ? user.name.split(" ")[0] : "";
   const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
   const email = user?.email || "";
+  const senderAPIKey = process.env.SENDER_API_KEY;
 
   const [form, setForm] = useState({
     firstName: "",
@@ -276,7 +263,23 @@ function Signup() {
             </h3>
 
             <p className="text-2xl font-bold text-green-600">
-              ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
+              {course.discount && course.discount > 0 ? (
+                <>
+                  <span className="line-through text-gray-400 mr-2">
+                    ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
+                  </span>
+                  ₦
+                  {(
+                    (course.price * (1 - course.discount / 100)) /
+                    KOBO_PER_NAIRA
+                  ).toLocaleString()}
+                  <span className="ml-2 text-sm text-green-500 font-semibold">
+                    ({course.discount}% off)
+                  </span>
+                </>
+              ) : (
+                <>₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}</>
+              )}
             </p>
           </div>
         )}
@@ -388,7 +391,7 @@ function Signup() {
                   <option value="">Select a preferred time *</option>
                   {course?.sessions?.map((session) => {
                     const date = new Date(session.datetime);
-                    const durationHours = session.duration / 60 || 2; // default to 2 hours if not provided
+                    const durationHours = session.duration || 2; // default to 2 hours if not provided
 
                     const endDate = new Date(
                       date.getTime() + durationHours * 60 * 60 * 1000
@@ -407,7 +410,7 @@ function Signup() {
                     });
 
                     const hour = date.getHours();
-                    const prefix = hour < 12 ? "Morning" : "Night";
+                    const prefix = hour < 12 ? "Morning" : "Evening";
 
                     const display = `${prefix} - ${startTime} to ${endTime}`;
                     const value = session.number;

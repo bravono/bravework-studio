@@ -38,13 +38,17 @@ export async function GET(
     const queryText = `
       SELECT
         c.course_id,
-        title,
-        description,
-        created_at AS date,
-        price_in_kobo AS price,
+        c.title,
+        c.description,
+        c.created_at AS date,
+        c.price_in_kobo AS price,
+        c.early_bird_discount AS "discount",
+        c.discount_start_date AS "discountStartDate",
+        c.discount_end_date AS "discountEndDate",
         ce.payment_status AS "paymentStatus",
         ce.preferred_session_id AS "preferredSession",
-        s.sessions AS sessions
+        s.sessions AS sessions,
+        o.order_id AS "orderId"
       FROM courses c
       LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
       LEFT JOIN (
@@ -57,8 +61,9 @@ export async function GET(
             FROM sessions s
             GROUP BY course_id
             )  AS s ON ce.course_id = s.course_id
+      LEFT JOIN orders o ON c.title = o.title
       WHERE c.course_id = $1 AND ce.user_id = $2
-      ORDER BY created_at DESC; 
+      ORDER BY c.created_at DESC; 
     `;
     const result = await queryDatabase(queryText, [courseId, userId]);
 

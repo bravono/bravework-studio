@@ -69,7 +69,7 @@ function PaymentFailureContent() {
 
         <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
           <button
-            onClick={() => router.push("/payment")}
+            onClick={() => router.back()}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-base bg-red-600 text-white hover:bg-red-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
           >
             <ArrowLeft className="w-5 h-5" />

@@ -10,6 +10,7 @@ import React, {
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // Assuming these utility functions and hooks exist
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
@@ -17,6 +18,7 @@ import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { cn } from "@/lib/utils/cn";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import useExchangeRates from "@/hooks/useExchangeRates";
+import Loader from "@/app/components/Loader";
 
 // Define the amount of kobo in a Naira
 const KOBO_PER_NAIRA = 100;
@@ -24,6 +26,7 @@ const KOBO_PER_NAIRA = 100;
 // A separate component to handle useSearchParams due to Next.js constraints
 function PaymentContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
   const payingOfferBalance = searchParams.get("balance");
@@ -34,12 +37,16 @@ function PaymentContent() {
 
   const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
   const [offerAmountInKobo, setOfferAmountInKobo] = useState(null);
-  const [courseAmountInKobo, setCourseAmountInNGN] = useState(null);
-  const [courseTitle, setCourseTitle] = useState(null);
   const [totalPaid, setTotalPaid] = useState(0); // in Kobo
   const [serviceName, setServiceName] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
+
+  //Course Data
+  const [courseAmountInNGN, setCourseAmountInNGN] = useState(null);
+  const [courseTitle, setCourseTitle] = useState(null);
+  const [courseDiscount, setCourseDiscount] = useState(0);
+  const [discountEndDate, setDiscountEndDate] = useState(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -51,7 +58,7 @@ function PaymentContent() {
   const paymentDetails = useMemo(() => {
     // Determine the base amount in Kobo based on whether it's a course or an offer
     const baseAmountInKobo = courseId
-      ? (courseAmountInKobo ?? 0) * KOBO_PER_NAIRA
+      ? (courseAmountInNGN ?? 0) * KOBO_PER_NAIRA
       : offerAmountInKobo ?? 0;
 
     let calculatedAmount = baseAmountInKobo;
@@ -78,6 +85,14 @@ function PaymentContent() {
           paymentPercentage = 100;
           break;
       }
+    } else if (
+      courseId &&
+      courseDiscount &&
+      new Date().getTime() < new Date(discountEndDate).getTime()
+    ) {
+      calculatedAmount = baseAmountInKobo * (1 - courseDiscount / 100);
+      discountPercentage = courseDiscount;
+      paymentPercentage = 100 - courseDiscount;
     }
 
     const amountAlreadyPaid = totalPaid;
@@ -125,7 +140,7 @@ function PaymentContent() {
     }
   }, [
     offerAmountInKobo,
-    courseAmountInKobo,
+    courseAmountInNGN,
     totalPaid,
     courseId,
     offerId,
@@ -190,8 +205,12 @@ function PaymentContent() {
             );
           }
           const course = await res.json();
-          setCourseAmountInNGN(course[0].price / KOBO_PER_NAIRA);
-          setCourseTitle(course[0].title);
+          const courseData = course[0];
+          setCourseAmountInNGN(courseData.price / KOBO_PER_NAIRA);
+          setCourseTitle(courseData.title);
+          setCourseDiscount(courseData.discount);
+          setDiscountEndDate(courseData.discountEndDate);
+          setOrderId(courseData.orderId);
         } catch (err: any) {
           console.error("Error fetching course details:", err);
           setDataError(err.message || "Failed to load course details.");
@@ -229,20 +248,16 @@ function PaymentContent() {
     const email = session?.user?.email;
     const customerName = session?.user?.name;
     const servicePayingFor = offerId ? "offer" : "course";
-    const serviceMetadataInfo = {
+    const metadataInfo = {
       orderId: orderId,
-      service: "project",
+      service: offerId ? "project" : "course",
       customer_name: customerName,
       payment_option: paymentOption,
       payment_percentage: paymentDetails.paymentPercentage,
       discount_applied: paymentDetails.discountPercentage,
-      original_amount_kobo: offerAmountInKobo,
-    };
-    const courseMetadataInfo = {
-      orderId: orderId,
-      service: "course",
-      customer_name: customerName,
-      payment_option: paymentOption,
+      original_amount_kobo: offerId
+        ? offerAmountInKobo
+        : courseAmountInNGN * KOBO_PER_NAIRA,
     };
 
     try {
@@ -251,45 +266,44 @@ function PaymentContent() {
         email: email,
         amount: paymentDetails.amountToPayInKobo,
         currency: "NGN",
-        ref: `${servicePayingFor}_${offerId}_${new Date().getTime()}_${paymentOption}`,
-        metadata: offerId ? serviceMetadataInfo : courseMetadataInfo,
+        ref: `${servicePayingFor}_${
+          offerId ? offerId : courseId
+        }_${new Date().getTime()}_${paymentOption}`,
+        metadata: metadataInfo,
         onClose: () => {
           toast.info("Payment window closed.");
           setIsLoading(false);
         },
         callback: async (response: any) => {
-          console.log("Paystack callback received:", response);
+          const id = offerId ? offerId : courseId;
+          if (id) {
+            try {
+              const res = await fetch("/api/paystack-verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  reference: response.reference,
+                  id,
+                  paymentOption,
+                }),
+              });
+              const data = await res.json();
 
-          try {
-            const id = offerId ? offerId : courseId;
-            const res = await fetch("/api/paystack-verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                reference: response.reference,
-                id,
-                paymentOption,
-              }),
-            });
-            const data = await res.json();
-
-            if (data.success) {
-              toast.success("Payment confirmed and service granted!");
-              // Optionally redirect to orders or another page
-              window.location.href = "/user/dashboard";
-            } else {
+              if (data.success) {
+                console.log("Payment verified successfully:", data.success);
+                router.push("/user/dashboard/payment/success");
+              } else {
+                router.push("/user/dashboard/payment/failure");
+                console.error("Backend verification failed:", data.message);
+              }
+            } catch (error) {
               toast.error(
-                "Payment could not be confirmed. Please contact support."
+                "Error during payment confirmation. Please contact support."
               );
-              console.error("Backend verification failed:", data.message);
+              console.error("Error calling backend verification:", error);
+            } finally {
+              setIsLoading(false);
             }
-          } catch (error) {
-            toast.error(
-              "Error during payment confirmation. Please contact support."
-            );
-            console.error("Error calling backend verification:", error);
-          } finally {
-            setIsLoading(false);
           }
         },
       });
@@ -306,7 +320,7 @@ function PaymentContent() {
   if (dataLoading || ratesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
-        Loading payment details...
+        <Loader />
       </div>
     );
   }
@@ -420,14 +434,14 @@ function PaymentContent() {
               </span>{" "}
               of Original Amount
             </p>
-            {paymentDetails.discountPercentage > 0 && (
+            {
               <p className="text-md text-yellow-700 dark:text-yellow-300 mb-1">
                 Discount Applied:{" "}
                 <span className="font-extrabold">
                   {paymentDetails.discountPercentage}%
                 </span>
               </p>
-            )}
+            }
             <div className="mt-4 border-t border-yellow-200 dark:border-yellow-600 pt-4 space-y-2">
               <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
                 Amount to Pay:{" "}

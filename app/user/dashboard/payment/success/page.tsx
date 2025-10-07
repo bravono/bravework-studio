@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import { CheckCircle, ShoppingBag } from "lucide-react";
+import { CheckCircle, ShoppingBag, LayoutDashboard } from "lucide-react";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -52,7 +52,8 @@ function PaymentSuccessContent() {
                 <span className="ml-2 font-bold text-green-600">{orderId}</span>
               </p>
               <p className="text-sm text-gray-500">
-                You will receive an email confirmation shortly with all the details.
+                You will receive an email confirmation shortly with all the
+                details.
               </p>
             </div>
           </div>
@@ -66,11 +67,18 @@ function PaymentSuccessContent() {
         <div className="mt-8">
           <button
             onClick={() => router.push("/")}
-            className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+            className="flex mb-2 items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
           >
             <ShoppingBag className="w-5 h-5" />
             Continue Shopping
           </button>
+            <button
+            onClick={() => router.push("/user/dashboard")}
+            className="flex mb-2 items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+            >
+            <LayoutDashboard className="w-5 h-5" />
+            View Dashboard
+            </button>
         </div>
       </div>
     </div>

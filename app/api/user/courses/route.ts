@@ -33,12 +33,15 @@ export async function GET(request: Request) {
       c.description,
       c.created_at AS date,
       c.price_in_kobo AS price,
+      c.early_bird_discount AS "discount",
+      c.discount_start_date AS "discountStartDate",
+      c.discount_end_date AS "discountEndDate",
       ce.payment_status AS "paymentStatus",
       ce.preferred_session_id AS "preferredSession",
       json_build_object(
         'link', s.session_link,
         'timestamp', s.session_timestamp,
-        'duration', s.duration
+        'duration', s.hour_per_session
       ) AS session
     FROM course_enrollments ce
     JOIN courses c ON c.course_id = ce.course_id
