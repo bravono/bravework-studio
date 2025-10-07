@@ -256,7 +256,7 @@ export default function CoursePage() {
                 <Calendar className="text-secondary" />
                 <span className="text-gray-700 font-medium">Start Date:</span>
                 <span className="font-bold text-gray-900">
-                  {course?.isActive
+                  {isActive
                     ? `${new Date(course.startDate).toLocaleDateString()} at ${
                         localStartTime || startTime
                       }`
