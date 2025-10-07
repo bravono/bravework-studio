@@ -136,6 +136,18 @@ export default function AdminCourseSection() {
                 Title
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Instructor
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tags
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Language
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amount
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -144,6 +156,7 @@ export default function AdminCourseSection() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 End Date
               </th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -159,18 +172,29 @@ export default function AdminCourseSection() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {course.title}
                   </td>
-
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {`${course.firstName} ${course.lastName}`}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {course.isActive ?? "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {/* {Array.isArray(course.tags)
+                ? course.tags.join(", ")
+                : course.tags ?? "-"} */}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {course.language ?? "-"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
                   </td>
-
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(course.startDate), "dd MMM yyyy")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(course.endDate), "dd MMM yyyy")}
                   </td>
-
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleEditCourse(course)}
@@ -191,7 +215,10 @@ export default function AdminCourseSection() {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td
+                  colSpan={10}
+                  className="px-6 py-4 text-center text-gray-500"
+                >
                   No courses found.
                 </td>
               </tr>
@@ -239,8 +266,7 @@ export default function AdminCourseSection() {
         <CourseModal
           onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
-           onCourseUpdated={fetchCourses}
-
+          onCourseUpdated={fetchCourses}
         />
       )}
       <ConfirmationModal
