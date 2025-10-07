@@ -662,7 +662,7 @@ const services: Services[] = [
   {
     title: "Training Services",
     description:
-      "You or your kids will love to learn 3D modeling and animation with our simple and easy to understand training services.",
+      "Interactive and engaging training programs for individuals and organizations in all the service we offer.",
     icon: "🤼‍♂️",
   },
 ];
