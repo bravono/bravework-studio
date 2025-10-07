@@ -27,6 +27,11 @@ async function loadOrderStatusMap() {
       console.log("Attempting to load order statuses into cache...");
       // Querying 'order_statuses' as confirmed by user
       const statusResult = await queryDatabase("SELECT * FROM order_statuses");
+
+      if (statusResult.length === 0) {
+        throw new Error("No order statuses found in the database.");
+      }
+
       statusResult.forEach((row: { order_status_id: number; name: string }) => {
         orderStatusMap[row.name] = row.order_status_id;
       });
@@ -134,7 +139,7 @@ export async function POST(req: NextRequest) {
     const paystackPaymentOption = metadata?.payment_option;
     const paymentPercentage = parseFloat(metadata?.payment_percentage);
     const discountApplied = parseFloat(metadata?.discount_applied);
-    const originalAmountKoboFromMetadata = parseFloat(
+    const metaDataOriginalAmountKobo = parseFloat(
       metadata?.original_amount_kobo
     );
 
@@ -193,7 +198,7 @@ export async function POST(req: NextRequest) {
 
         console.log(
           "Original Amount from Metadata:",
-          originalAmountKoboFromMetadata
+          metaDataOriginalAmountKobo
         );
         totalExpectedOrderAmountKobo = discountApplied
           ? (courseDetails.price_in_kobo / 100) * paymentPercentage
@@ -235,7 +240,7 @@ export async function POST(req: NextRequest) {
           !paystackPaymentOption ||
           isNaN(paymentPercentage) ||
           isNaN(discountApplied) ||
-          isNaN(originalAmountKoboFromMetadata)
+          isNaN(metaDataOriginalAmountKobo)
         ) {
           throw new Error("Missing or invalid metadata for custom offer.");
         }

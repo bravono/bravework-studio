@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto"; // Node.js built-in module for cryptographic functions
 import { sendPaymentReceivedEmail } from "lib/mailer";
 
-// Import your PostgreSQL database query function and the transaction wrapper
 import { queryDatabase, withTransaction } from "../../../lib/db";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
@@ -27,14 +26,18 @@ async function loadOrderStatusMap() {
     return orderStatusLoadPromise;
   }
 
-  // Start a new load operation
   orderStatusLoadPromise = (async () => {
     try {
       console.log("Attempting to load order statuses into cache...");
-      const { rows } = await queryDatabase(
-        "SELECT order_status_id, name FROM order_statuses"
-      );
-      rows.forEach((row: { order_status_id: number; name: string }) => {
+      // Querying 'order_statuses' as confirmed by user
+
+      const statusResult = await queryDatabase("SELECT * FROM order_statuses");
+
+      if (statusResult.length === 0) {
+        throw new Error("No order statuses found in the database.");
+      };
+      
+      statusResult.forEach((row: { order_status_id: number; name: string }) => {
         orderStatusMap[row.name] = row.order_status_id;
       });
       isOrderStatusMapLoaded = true;
@@ -44,10 +47,10 @@ async function loadOrderStatusMap() {
         "Failed to load order statuses from DB on startup/request:",
         error
       );
-      isOrderStatusMapLoaded = false; // Ensure it's false if loading failed
-      orderStatusMap = {}; // Clear map on failure
+      isOrderStatusMapLoaded = false;
+      orderStatusMap = {};
     } finally {
-      orderStatusLoadPromise = null; // Reset the promise after completion (success or failure)
+      orderStatusLoadPromise = null;
     }
   })();
 
@@ -140,14 +143,17 @@ export async function POST(req: NextRequest) {
       orderId = metadata?.orderId;
       clientName = metadata?.customer_name;
       const paystackPaymentOption = metadata?.payment_option;
-      const discountApplied = parseFloat(metadata?.discount_applied);
-      const originalAmountKoboFromMetadata = parseFloat(
+      const paystackPaymentPercentage = parseFloat(
+        metadata?.payment_percentage
+      );
+      const paystackDiscountApplied = parseFloat(metadata?.discount_applied);
+      const paystackmetaDataOriginalAmountKobo = parseFloat(
         metadata?.original_amount_kobo
       );
       const courseId = metadata?.courseId;
       const offerId = metadata?.offerId;
 
-      if (!orderId) {
+      if (!orderId || !serviceType) {
         console.error(
           `Webhook for reference ${paystackReference} missing order_id in metadata.`
         );
@@ -193,17 +199,29 @@ export async function POST(req: NextRequest) {
               );
             }
             const courseRows = await client.query(
-              "SELECT price_kobo, title, course_duration_days FROM courses WHERE course_id = $1",
+              "SELECT price_in_kobo, title, start_date, end_date FROM courses WHERE course_id = $1",
               [courseId]
             );
             if (courseRows.rows.length === 0) {
               throw new Error(`Course with ID ${courseId} not found.`);
             }
             const courseDetails = courseRows.rows[0];
-            course = courseDetails.title;
-            totalExpectedOrderAmountKobo = courseDetails.price_kobo;
+
+            console.log(
+              "Original Amount from Metadata:",
+              paystackmetaDataOriginalAmountKobo
+            );
+            totalExpectedOrderAmountKobo = paystackDiscountApplied
+              ? (courseDetails.price_in_kobo / 100) * paystackPaymentPercentage
+              : paystackAmountKobo;
             orderTitle = courseDetails.title;
-            project_duration_days = courseDetails.course_duration_days;
+            project_duration_days = courseDetails.end_date
+              ? Math.ceil(
+                  (new Date(courseDetails.end_date).getTime() -
+                    new Date(courseDetails.start_date).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                )
+              : null;
 
             if (paystackAmountKobo !== totalExpectedOrderAmountKobo) {
               throw new Error(
@@ -211,6 +229,13 @@ export async function POST(req: NextRequest) {
               );
             }
             newOrderStatusId = orderStatusMap["paid"];
+
+            await client.query(
+              `UPDATE course_enrollments
+           SET payment_status = $1
+           WHERE course_id = $2`,
+              [newOrderStatusId, courseId]
+            );
             console.log(
               `TODO: Grant access to course ${courseId} for ${clientName}`
             );
@@ -301,7 +326,7 @@ export async function POST(req: NextRequest) {
               customerEmail,
               false, // is_fraudulent
               paystackPaymentOption,
-              discountApplied,
+              paystackDiscountApplied,
             ]
           );
           console.log(
@@ -357,7 +382,12 @@ export async function POST(req: NextRequest) {
               clientName || customerEmail
             } for Order ID: ${order.order_id} (Status: ${finalOrderStatusName})`
           );
-          sendPaymentReceivedEmail(customerEmail, clientName, orderId, course = null);
+          sendPaymentReceivedEmail(
+            customerEmail,
+            clientName,
+            orderId,
+            (course = null)
+          );
 
           return NextResponse.json(
             { message: "Webhook received successfully." },
