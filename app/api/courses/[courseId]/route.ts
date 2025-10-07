@@ -35,7 +35,8 @@ export async function GET(
           json_agg(json_build_object(
             'datetime', session_timestamp,
             'link', session_link,
-            'number', session_number
+            'number', session_number,
+            'duration', hour_per_session
           )) AS sessions
         FROM sessions
         GROUP BY course_id

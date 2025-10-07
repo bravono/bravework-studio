@@ -12,7 +12,7 @@ import {
   Calendar,
   Layers,
   GraduationCap,
-  Sparkles,
+  Award,
   Tag,
   Hourglass,
   DollarSign,
@@ -23,6 +23,7 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import useExchangeRates from "@/hooks/useExchangeRates";
 import getWeeksBtwDates from "@/lib/utils/getWeeksBtwDays";
+import CurrencySelector from "../components/CurrencySelector";
 
 const icons = [
   <Paintbrush className="w-8 h-8 text-secondary" />,
@@ -64,7 +65,7 @@ export default function coursesPage() {
     <main className="bg-gray-50 min-h-screen">
       <Navbar />
       <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 mt-10 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-extrabold text-secondary-dark mb-4">
               Available Courses
@@ -73,6 +74,16 @@ export default function coursesPage() {
               Empowering young minds and professionals with technology education
               through fun and engaging courses.
             </p>
+          </div>
+          {/* Currency selection */}
+          <div className="mb-20">
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Select Currency
+            </p>
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onSelect={(currency) => updateSelectedCurrency(currency)}
+            />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center">
             {courses.map((course, index) => (
@@ -152,7 +163,7 @@ export default function coursesPage() {
                           <strong>Price:</strong>{" "}
                           {course.amount === 0
                             ? "Free"
-                            : `${getCurrencySymbol(selectedCurrency)} ${
+                            : `${getCurrencySymbol(selectedCurrency)}${
                                 rateIsFetched &&
                                 convertCurrency(
                                   course.amount / KOBO_PER_NAIRA,
@@ -164,6 +175,43 @@ export default function coursesPage() {
                       </li>
                     </ul>
                   </div>
+                  {/* Early Bird Discount (Unchanged) */}
+                  {course?.discount &&
+                    new Date(course.discountEndDate) > new Date() && (
+                      <div className="mt-4">
+                        <div className="flex items-center space-x-3 bg-green-50 border-l-4 border-green-500 rounded-lg p-3 shadow">
+                          <Award className="text-green-500 w-6 h-6" />
+                          <div>
+                            <span className="font-semibold text-green-700">
+                              Early Bird Discount:
+                            </span>{" "}
+                            <span className="text-green-800 font-bold">
+                              {course.discount}% OFF
+                            </span>
+                            <span className="ml-2 text-green-700">
+                              (
+                              {(() => {
+                                const end = new Date(course.discountEndDate);
+                                const now = new Date();
+                                const diff = end.getTime() - now.getTime();
+                                if (diff <= 0) return "Discount ended";
+                                const days = Math.floor(
+                                  diff / (1000 * 60 * 60 * 24)
+                                );
+                                const hours = Math.floor(
+                                  (diff / (1000 * 60 * 60)) % 24
+                                );
+                                const minutes = Math.floor(
+                                  (diff / (1000 * 60)) % 60
+                                );
+                                return `ends in ${days}d ${hours}h ${minutes}m`;
+                              })()}
+                              )
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   {course.isActive && (
                     <div className="mt-6">
                       <Link

@@ -3,7 +3,8 @@ import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Course } from "@/app/types/app";
-import { coursesData } from "@/app/services/localDataService"; // Assuming this is for fallback/static data
+import { coursesData } from "@/app/services/localDataService";
+import { CourseNotFound } from "@/app/components/CourseNotFound";
 
 import {
   Users,
@@ -48,7 +49,7 @@ const useLocalTimezone = (dateTimeString) => {
 
 // --- Level Card Component (Kept the same for brevity, but moved outside of CoursePage) ---
 const LevelCard = ({ level }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   // This assumes the level object provides an icon component directly
   // In a real scenario, you'd likely map a string to an icon component
   const LevelIcon = level.icon;
@@ -159,11 +160,7 @@ export default function CoursePage() {
   }, [fetchCourse]);
 
   if (!currentCourse) {
-    return (
-      <div className="text-center sm:text-5xl py-12 h-full">
-        Course not found
-      </div>
-    );
+    return <CourseNotFound courseId={courseId} />;
   }
 
   // Placeholder data for new sections
@@ -250,7 +247,8 @@ export default function CoursePage() {
                 <Clock className="text-secondary" />
                 <span className="text-gray-700 font-medium">Duration:</span>
                 <span className="font-bold text-gray-900">
-                  {currentCourse?.duration} • {course?.hours}hrs/week • On Zoom
+                  {currentCourse?.duration} • {course?.sessions[0].duration}
+                  hrs/week • On Zoom
                 </span>
               </div>
               {/* Start Date and Timezone conversion */}
@@ -294,17 +292,30 @@ export default function CoursePage() {
                           {course.discount}% OFF
                         </span>
                         <span className="ml-2 text-green-700">
-                          (until{" "}
-                          {new Date(
-                            course.discountEndDate
-                          ).toLocaleDateString()}
+                          (
+                          {(() => {
+                            const end = new Date(course.discountEndDate);
+                            const now = new Date();
+                            const diff = end.getTime() - now.getTime();
+                            if (diff <= 0) return "Discount ended";
+                            const days = Math.floor(
+                              diff / (1000 * 60 * 60 * 24)
+                            );
+                            const hours = Math.floor(
+                              (diff / (1000 * 60 * 60)) % 24
+                            );
+                            const minutes = Math.floor(
+                              (diff / (1000 * 60)) % 60
+                            );
+                            return `ends in ${days}d ${hours}h ${minutes}m`;
+                          })()}
                           )
                         </span>
                       </div>
                     </div>
                   </div>
                 )}
-              {/* Instructor (Unchanged) */}
+              {/* Instructor*/}
               <div className="mt-4 border-t pt-4">
                 <div className="flex items-center space-x-4">
                   <img
@@ -335,6 +346,45 @@ export default function CoursePage() {
               <p className="text-gray-700 leading-relaxed text-base sm:text-lg rounded-xl bg-primary-light/10 border-l-4 border-primary p-4 shadow-inner">
                 {currentCourse?.overview}
               </p>
+              <div className="mt-10 flex flex-col items-center">
+                {isActive ? (
+                  <>
+                    <Link
+                      className="mt-8 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-primary hover:bg-primary-dark transition-colors duration-200"
+                      href={`/auth/signup?enroll=true&courseId=${courseId}`}
+                    >
+                      Enroll Now
+                    </Link>
+                    <p className="text-gray-700 mt-2 text-center">
+                      Not ready to enroll? Stay updated with course news and
+                      tips!
+                    </p>
+                    <Link
+                      href={`/newsletter?isActive=${
+                        isActive ? "true" : "false"
+                      }`}
+                      className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                    >
+                      Join Newsletter
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-700 mb-2 text-center">
+                      Enrollment opens soon. Get notified when registration
+                      starts!
+                    </p>
+                    <Link
+                      href={`/newsletter?isActive=${
+                        isActive ? "true" : "false"
+                      }`}
+                      className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                    >
+                      Notify Me
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -476,6 +526,34 @@ export default function CoursePage() {
                 Enroll Now
               </Link>
             )}
+            <div className="mt-8 flex flex-col items-center">
+              {isActive ? (
+                <>
+                  <p className="text-gray-700 mb-2 text-center">
+                    Not ready to enroll? Stay updated with course news and tips!
+                  </p>
+                  <Link
+                    href="/newsletter"
+                    className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                  >
+                    Join Newsletter
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-700 mb-2 text-center">
+                    Enrollment opens soon. Get notified when registration
+                    starts!
+                  </p>
+                  <Link
+                    href="/newsletter"
+                    className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                  >
+                    Notify Me
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
