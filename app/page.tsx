@@ -234,7 +234,7 @@ export default function Home() {
                   {service.description}
                 </p>
                 <a
-                  href={`/order?service=${encodeURIComponent(service.title)}`}
+                  href="/courses"
                   className="inline-flex items-center text-green-600 font-semibold hover:text-green-500 transition-colors duration-200 group"
                 >
                   Order Service
