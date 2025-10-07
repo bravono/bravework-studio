@@ -211,7 +211,6 @@ export async function POST(req: Request) {
         );
 
         const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
-        console.log("Preferred session time:", preferredSessionTime);
 
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
         await client.query(

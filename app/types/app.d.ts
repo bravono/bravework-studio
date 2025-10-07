@@ -178,7 +178,6 @@ interface Course {
   language: string;
   amount: number;
   category: string;
-  hours: number;
   discount?: number; // Early bird discount percentage
   discountStartDate?: string;
   discountEndDate?: string;
