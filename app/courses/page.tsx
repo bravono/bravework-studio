@@ -77,7 +77,7 @@ export default function coursesPage() {
             </p>
           </div>
           {/* Currency selection */}
-          <div className="mb-20">
+          <div className="mb-20 flex flex-col items-center">
             <p className="text-sm font-medium text-gray-700 mb-2">
               Select Currency
             </p>
