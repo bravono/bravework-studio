@@ -235,7 +235,7 @@ function Page() {
 
       return () => clearTimeout(timer);
     }
-  }, [redirectRef.current]);
+  }, []);
 
   useEffect(() => {
     console.log("Courses:", courses);
