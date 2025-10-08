@@ -282,16 +282,16 @@ export default function CoursePage() {
               {course?.discount &&
                 new Date(course.discountEndDate) > new Date() && (
                   <div className="mt-4">
-                    <div className="flex items-center space-x-3 bg-green-50 border-l-4 border-green-500 rounded-lg p-3 shadow">
-                      <Award className="text-green-500 w-6 h-6" />
+                    <div className="flex items-center space-x-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-3 shadow">
+                      <Award className="text-yellow-500 w-6 h-6" />
                       <div>
-                        <span className="font-semibold text-green-700">
+                        <span className="font-semibold text-yellow-700">
                           Early Bird Discount:
                         </span>{" "}
-                        <span className="text-green-800 font-bold">
+                        <span className="text-yellow-800 font-bold">
                           {course.discount}% OFF
                         </span>
-                        <span className="ml-2 text-green-700">
+                        <span className="ml-2 text-yellow-700">
                           (
                           {(() => {
                             const end = new Date(course.discountEndDate);
