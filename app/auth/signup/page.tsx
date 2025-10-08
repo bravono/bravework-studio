@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import Joi from "joi";
 import { User, Mail, Lock, Phone, Clock, Building } from "lucide-react";
 import { Course } from "@/app/types/app";
+import { is } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 // Joi Schemas
 const baseSignupSchema = Joi.object({
@@ -212,23 +213,38 @@ function Signup() {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage(
-          "Signup successful! Please check your email to verify your account and proceed with your enrollment."
-        );
+        if (isEnrollmentPage && course) {
+          fetch("https://api.sender.net/v2/subscribers", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${senderAPIKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: form.email,
+              name: `${form.firstName}  ${form.lastName}`,
+              tags: ["student"],
+            }),
+          });
+        }
 
-         fetch("https://api.sender.net/v2/subscribers", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${senderAPIKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: form.email,
-            name: `${form.firstName}  ${form.lastName}`,
-            tags: ["student"],
-          }),
-         });
-        
+        if (!user?.email) {
+          if (isEnrollmentPage) {
+            setMessage(
+              "Signup successful! Please check your email to verify your account and proceed with your enrollment."
+            );
+          }
+          setMessage(
+            "Signup successful! Please check your email to verify your account and log in."
+          );
+        } else {
+          const paymentPrompt =
+            course.price > 0 ? " Please proceed to payment." : "";
+          setMessage(
+            `Enrollment successful! You have been enrolled in ${course.title}.${paymentPrompt}`
+          );
+        }
+
         // Reset form to initial state
         setForm({
           firstName: "",
@@ -243,7 +259,7 @@ function Signup() {
         // Redirect to verification page after a short delay
         setTimeout(() => {
           router.push(user ? "/user/dashboard" : "/auth/verify-email");
-        }, 3000);
+        }, 4000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
       }
