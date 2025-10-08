@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense, use } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Suspense,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +22,6 @@ import {
   KeyRound,
   Mail,
   Package,
-  BadgeEuro,
   Gift,
   FileText,
   BadgeDollarSign,
@@ -158,6 +163,8 @@ function Page() {
 
   const notificationCount = notifications.filter((n) => !n.isRead).length;
 
+  const redirectRef = useRef(null);
+
   // Function to fetch all dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (status !== "authenticated") return; // Only fetch if authenticated
@@ -221,6 +228,16 @@ function Page() {
   }, [status, fetchDashboardData, router]);
 
   useEffect(() => {
+    if (redirectRef.current) {
+      const timer = setTimeout(() => {
+        router.push(`/user/dashboard/payment?courseId=${redirectRef.current}`);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [redirectRef.current]);
+
+  useEffect(() => {
     console.log("Courses:", courses);
   }, [courses]);
 
@@ -278,8 +295,6 @@ function Page() {
       if (!offer.id) return;
 
       const currentOfferStatus = offer.status?.toLowerCase();
-      const isExpired =
-        offer.expiresAt && new Date(offer.expiresAt) < new Date();
 
       if (currentOfferStatus !== "pending") {
         toast.error(
@@ -582,6 +597,14 @@ function Page() {
                                 color: statusColor,
                                 icon: StatusIcon,
                               } = getPaymentStatus(course.paymentStatus);
+
+                              // Redirect to payment page
+                              if (
+                                statusLabel === "Pending" &&
+                                !redirectRef.current
+                              ) {
+                                redirectRef.current = course.id;
+                              }
 
                               return (
                                 <div
