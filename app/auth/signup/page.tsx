@@ -542,7 +542,7 @@ function Signup() {
           {message && (
             <div
               className={`p-3 rounded-lg text-sm text-center ${
-                message.startsWith("Signup successful")
+                message.includes("successful")
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
