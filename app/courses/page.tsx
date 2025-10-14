@@ -98,7 +98,7 @@ export default function coursesPage() {
                   <div className="relative">
                     <img
                       src={
-                        // course.thumbnail_url ||
+                        course.thumbnailUrl ||
                         "assets/Bravework_Studio-Logo-Color.png"
                       }
                       alt={course.title}
