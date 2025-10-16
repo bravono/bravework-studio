@@ -8,10 +8,7 @@ declare module "next-auth" {
       roles?: string[]; // If you store multiple roles as an array
       email_verified?: boolean;
     } & DefaultSession["user"];
-  }
-}
-
-// Your existing UserProfile, updated for admin context
+  }// Your existing UserProfile, updated for admin context
 interface AdminProfile {
   id: string;
   fullName: string;

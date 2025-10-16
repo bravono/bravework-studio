@@ -72,13 +72,15 @@ function PaymentSuccessContent() {
             <ShoppingBag className="w-5 h-5" />
             Continue Shopping
           </button>
-            <button
-            onClick={() => router.push("/user/dashboard")}
+          <button
+            onClick={() => {
+              window.location.href = "/user/dashboard"; // Full page reload
+            }}
             className="flex mb-2 items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
-            >
+          >
             <LayoutDashboard className="w-5 h-5" />
             View Dashboard
-            </button>
+          </button>
         </div>
       </div>
     </div>
