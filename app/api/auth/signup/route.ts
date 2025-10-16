@@ -247,20 +247,16 @@ export async function POST(req: Request) {
         orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
 
+        return { userId, isNewUser: !session };
+      }
+
+      if (orderId) {
         try {
           await sendOrderReceivedEmail(email, name, orderId, course);
           console.log(`Course order email sent to ${email}`);
         } catch (mailError) {
           console.error("Failed to send course order email:", mailError);
         }
-        return { userId, isNewUser: !session };
-      }
-
-      try {
-        await sendOrderReceivedEmail(email, name, orderId, course);
-        console.log(`Course order email sent to ${email}`);
-      } catch (mailError) {
-        console.error("Failed to send course order email:", mailError);
       }
 
       return { userId, isNewUser: !session };
