@@ -56,8 +56,8 @@ export async function GET(req: Request) {
     );
     // Make sure your email_verified column is BOOLEAN. If it's TIMESTAMP, use `now` instead of `true`.
     await queryDatabase(
-      'UPDATE users SET "email_verified" = $1 WHERE user_id = $2',
-      [true, verificationToken.user_id] // Assuming 'email_verified' is BOOLEAN based on our previous discussion
+      'UPDATE users SET "email_verified" = NOW() WHERE user_id = $1',
+      [verificationToken.user_id]
     );
     console.log(
       `LOG: User ${verificationToken.user_id}'s email marked as verified.`
