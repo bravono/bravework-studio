@@ -1,7 +1,7 @@
 import { Session } from "next-auth"; // For extending Session type
 
 // Extend NextAuth's Session type to include custom properties
-declare module "next-auth" {
+declare module "next-auth" 
   interface Session {
     user: {
       id: string; // Assuming you've added 'id' to the session
