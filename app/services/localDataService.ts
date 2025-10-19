@@ -1010,7 +1010,6 @@ Collect Feedback: Quick Google Form: "On a scale of 1-10, how likely are you to 
         activity: `Immediate Action: "Download our Medical 3D Starter Kit (templates, textures, tutorials)."  
 Full Program: "Join our 4-week Medical Visualization Mastery program—next cohort starts [date]. Early bird pricing ends [date]."  
 Special Offer: "Session attendees get 20% off the full program + free 1:1 consultation."  
-Networking: "Stay for 15 minutes of coffee and conversation—connect with fellow 3D-curious doctors."
 
 `,
         why: "",
@@ -1319,7 +1318,7 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
   // Fashion Designer
   {
     id: 6,
-    title: "3D Fashion Design Bootcamp",
+    title: "3D For Fashion Designers",
     tagline: "Unlocking the Power of 3D Animation in Healthcare",
     targetAudience: "Fashion designers with little to no 3D experience",
     duration:
@@ -1432,6 +1431,146 @@ Networking: "Stay for 15 minutes of coffee and conversation—connect with fello
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
       "Sign up for our next workshop at www.braveworkstudio.com/courses.",
       "Follow us on Facebook @Bravework Academy for updates and doctor-created 3D showcases!",
+    ],
+  },
+
+  // Fashion & Chef
+  {
+    id: 7,
+    title: " From Kitchen to Runway: 3D Design in Just 2 Hours",
+    tagline: "",
+    targetAudience:
+      "Chefs and fashion designers (beginners with no 3D experience)",
+    duration: "2 hours (90 minutes content + 30 minutes Q&A/networking)",
+    software: "Blender (free, open-source)",
+    overview:
+      "Demonstrate practical 3D skills for food modeling and garment design, build excitement for Bravework Studio’s full programs, and collect leads.",
+    levels: [
+      {
+        level: "10 minutes",
+        title: "Welcome & Icebreaker",
+        objective:
+          "In 2 hours, you’ll create a 3D food model or garment using Blender—free tools to transform your craft!",
+        description:
+          " Download and install Blender with guided support. Explore the Blender interface, learning essential tools like object manipulation (move, scale, rotate) tailored for medical modeling. Build a 3D model of a heart using basic shapes (spheres, cylinders) in Blender. Learn to apply colors and basic textures to represent heart tissue, and adjust lighting to highlight details.",
+        activity: `We’ll cover Blender basics, build a model (food or fashion), add animation, and explore how this boosts your business.`,
+        why: "",
+        outcomes: [],
+        info: "Bring your laptops with Blender installed. No experience needed—ask anytime!",
+        icon: Handshake,
+      },
+      {
+        level: "15 minutes",
+        title: "The 3D Creative Revolution (15 minutes)",
+        objective:
+          "3D visualization cuts costs by 30-50% and speeds up creativity. Chefs can demo dishes; designers can pitch virtually.",
+        description: "",
+        activity: `Learn About Impact: A chef used a 3D cake model to win a ₦500,000 catering deal. A designer saved ₦200,000 in fabric with a virtual dress prototype.`,
+        why: "",
+        outcomes: [],
+        info: "Stand out with digital skills in Nigeria’s growing creative market.",
+        icon: Hospital,
+      },
+      {
+        level: "30 minutes",
+        title: "Blender Crash Course: Food and Fashion Modeling",
+        objective: "Teach essential Blender skills with dual-track projects.",
+        description: "",
+        activity: `Everyone: Add a cube, color it (red for food, blue for fashion), and rotate. Great start!`,
+        why: "",
+        outcomes: [],
+        info: "Chefs have a 3D cupcake; designers have a 3D skirt",
+        icon: Wrench,
+      },
+      {
+        level: "25 minutes",
+        title: "Animate Your Creation: Bring Food and Fashion to Life",
+        objective: "Demonstrate animation power for both fields.",
+        description: "",
+        activity: `Animation shows action—pouring sauce or a dress flowing`,
+        why: "",
+        outcomes: [],
+        info: "Participants see their 3D models animate—a “wow” moment!",
+        icon: Heart,
+      },
+      {
+        level: "15 minutes",
+        title: "Culinary & Fashion Applications: From Plate to Catwalk",
+        objective: "Connect skills to real-world uses",
+        description: "",
+        activity: `Use your cupcake model for a menu or catering pitch—clients love visuals. Turn your skirt into a virtual collection for brands, saving fabric costs.`,
+        why: "",
+        outcomes: [],
+        info: "Today’s just 10% of what you’ll master in 4 weeks with Bravework Studio.",
+        icon: Stethoscope,
+      },
+      {
+        level: "15 minutes",
+        title: " Hands-On Challenge & Peer Review",
+        objective: "Build confidence through interaction and application.",
+        description: "",
+        activity: `Enhance your model: Chefs—add a topping; designers—add a belt or pattern.`,
+        why: "",
+        outcomes: [],
+        info: "Participants feel ownership and see practical value.",
+        icon: Puzzle,
+      },
+      {
+        level: "10 minutes",
+        title: "Q&A, Next Steps, and Call-to-Action",
+        objective:
+          "Answer questions, present clear enrollment path, and close strong.",
+        description: "",
+        activity: `Immediate Action: "Download our Medical 3D Starter Kit (templates, textures, tutorials)."  
+Full Program: Join our 4-week Culinary or Fashion Design bootcamps—next cohort starts [e.g., November 8, 2025]. Early bird pricing ends [e.g., October 25, 2025].  
+Special Offer: "Session attendees get 20% off the full program + free 1:1 consultation."  
+
+`,
+        why: "",
+        outcomes: [],
+        info: "You've just created something that could change patient lives. Imagine what you'll do with 4 weeks of training. Thank you for joining Bravework Studio's medical 3D revolution",
+        icon: HelpCircle,
+      },
+    ],
+    details: {
+      prerequisites:
+        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
+      duration: "4 weeks, with one 3-hour session per week",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize:
+        "Small groups (5-10 professionals) for personalized attention.",
+      feedback:
+        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+      certification:
+        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+    },
+    whyChooseUs: [
+      {
+        title: "Practical and Professional",
+        description:
+          "Tailored projects directly apply to culinary and fashion design",
+      },
+      {
+        title: "Beginner-Friendly",
+        description:
+          "Designed for people with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+      },
+      {
+        title: "Medical Innovation",
+        description:
+          "Equips you with cutting-edge skills to create custom visualizations to drive growith for your business",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
     ],
   },
 ];
