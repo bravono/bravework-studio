@@ -147,6 +147,7 @@ export default function CoursePage() {
       }
 
       const data = await res.json();
+      console.log("Data", data);
       setCourse(data[0]);
     } catch (error) {
       console.error("Error fetching course:", error);
@@ -195,12 +196,7 @@ export default function CoursePage() {
     },
   ];
 
-  const studentRenders = [
-    "/assets/render1.jpg",
-    "/assets/render2.jpg",
-    "/assets/render3.jpg",
-    "/assets/render4.jpg",
-  ];
+  const studentRenders = [];
 
   // Custom friendly feedback structure
   const friendlyFeedbackBullets = [
@@ -247,7 +243,8 @@ export default function CoursePage() {
                 <Clock className="text-secondary" />
                 <span className="text-gray-700 font-medium">Duration:</span>
                 <span className="font-bold text-gray-900">
-                  {currentCourse?.duration} • {course?.sessions[0].duration}
+                  {currentCourse?.duration} •{" "}
+                  {course?.sessions !== null && course?.sessions[0].duration}
                   hrs/week • On Zoom
                 </span>
               </div>
@@ -455,29 +452,31 @@ export default function CoursePage() {
         )}
 
         {/* --- NEW: Student Gallery Section (Above CTA) --- */}
-        <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-            Student Renders & Creations
-          </h2>
-          <p className="text-center text-gray-600 mb-6 italic">
-            A selection of incredible work created by students in this course
-            (shared with full consent).
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {studentRenders.map((src, index) => (
-              <div
-                key={index}
-                className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
-              >
-                <img
-                  src={src}
-                  alt={`Student Render ${index + 1}`}
-                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            ))}
+        {studentRenders.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
+              Student Renders & Creations
+            </h2>
+            <p className="text-center text-gray-600 mb-6 italic">
+              A selection of incredible work created by students in this course
+              (shared with full consent).
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {studentRenders.map((src, index) => (
+                <div
+                  key={index}
+                  className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  <img
+                    src={src}
+                    alt={`Student Render ${index + 1}`}
+                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Why Choose Us & How to Join Section (Modified Why Choose Us) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
