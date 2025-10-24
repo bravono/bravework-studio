@@ -169,34 +169,32 @@ export default function CoursePage() {
     {
       type: "parent",
       quote:
-        "My daughter loves the project-based learning! It's the only screen time I don't worry about.",
-      name: "Sarah M.",
+        "Mr Yusuf was very patient and focused on results.  He was also very helpful with tangentially related IT issues.",
+      name: "Lawrence.",
       title: "Parent",
+      image: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     },
     {
       type: "parent",
       quote:
-        "The instructor's background check gave me huge peace of mind. Excellent and secure program.",
-      name: "David L.",
+        "I frequently recommend this training to people.  Shaka is developing an advanced appreciation for film and film production.  He has also sold some models to commercial clients.  Not bad for a 13 year old!",
+      name: "Lawrence",
       title: "Parent",
+      image: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     },
     {
       type: "student",
       quote:
-        "I finally understand how to use all the tools. My renders look so much better now!",
-      name: "Alex B.",
-      title: "Student (14)",
-    },
-    {
-      type: "student",
-      quote:
-        "The class chat is super helpful. Everyone is respectful, and I learned a lot from other students' questions.",
-      name: "Maya R.",
-      title: "Student (12)",
+        "The thing I enjoy most about the lessons is that it was quite easy to learn even with all of the complicated buttons. Originally I didn't want to do Blender but then it become my favorite thing to do everyday",
+      name: "Shaka L.",
+      title: "Student (13)",
+      image: "",
     },
   ];
 
-  const studentRenders = [];
+  const studentRenders = [
+    `https://live.staticflickr.com/65535/54877391770_bdca4c1889_b.jpg" width="1024" height="1019" alt="Shaka_render-1`,
+  ];
 
   // Custom friendly feedback structure
   const friendlyFeedbackBullets = [
@@ -401,6 +399,11 @@ export default function CoursePage() {
                     : "bg-secondary-light/10"
                 }`}
               >
+                <img
+                  className="w-14 h-14 mb-4 rounded-full object-cover border-2 border-primary"
+                  src={t.image || "/assets/Bravework_Studio-Logo-Black.png"}
+                  alt=""
+                />
                 <p className="text-lg italic text-gray-800">" {t.quote} "</p>
                 <div className="mt-4 border-t pt-3 flex justify-between items-center">
                   <p className="font-semibold text-primary-dark">{t.name}</p>
