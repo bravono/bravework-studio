@@ -712,9 +712,7 @@ const projects: Project[] = [
   },
 ];
 
-export { testimonials, portfolios, services, projects };
-
-export const coursesData = [
+const coursesData = [
   {
     id: 1,
     title: "3D Animation Training for Kids",
@@ -1437,7 +1435,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
   // Fashion & Chef
   {
     id: 7,
-    title: " From Kitchen to Runway: 3D Design in Just 2 Hours",
+    title: "From Kitchen to Runway: 3D Design in Just 2 Hours",
     tagline: "",
     targetAudience:
       "Chefs and fashion designers (beginners with no 3D experience)",
@@ -1574,3 +1572,5 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
   },
 ];
+
+export { testimonials, portfolios, services, projects, coursesData };
