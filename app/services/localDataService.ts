@@ -1435,14 +1435,14 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
   // Fashion & Chef
   {
     id: 7,
-    title: "From Kitchen to Runway: 3D Design in Just 2 Hours",
+    title: "Free 3D Tech Training for Fashion Designers and Chefs",
     tagline: "",
     targetAudience:
       "Chefs and fashion designers (beginners with no 3D experience)",
     duration: "2 hours (90 minutes content + 30 minutes Q&A/networking)",
     software: "Blender (free, open-source)",
     overview:
-      "Demonstrate practical 3D skills for food modeling and garment design, build excitement for Bravework Studio’s full programs, and collect leads.",
+      "This immersive 2-hour introduction equips participants with hands-on, practical 3D modeling skills specifically tailored for food visualization and garment design, empowering creative professionals to leverage 3D technology for marketing, design prototyping, and digital content creation.",
     levels: [
       {
         level: "10 minutes",
