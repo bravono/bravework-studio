@@ -170,15 +170,15 @@ export default function CoursePage() {
       type: "parent",
       quote:
         "Mr Yusuf was very patient and focused on results.  He was also very helpful with tangentially related IT issues.",
-      name: "Lawrence.",
+      name: "Parker Van Lawrence",
       title: "Parent",
-      image: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
+      image: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Parker Van Lawrence`,
     },
     {
       type: "parent",
       quote:
         "I frequently recommend this training to people.  Shaka is developing an advanced appreciation for film and film production.  He has also sold some models to commercial clients.  Not bad for a 13 year old!",
-      name: "Lawrence",
+      name: "Parker Van Lawrence",
       title: "Parent",
       image: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     },
@@ -194,6 +194,8 @@ export default function CoursePage() {
 
   const studentRenders = [
     `https://live.staticflickr.com/65535/54877391770_bdca4c1889_b.jpg" width="1024" height="1019" alt="Shaka_render-1`,
+    `https://live.staticflickr.com/65535/54883334764_d3a826c9ce_b.jpg" width="1024" height="1024" alt="Shaka_render-2`,
+    `https://live.staticflickr.com/65535/54883334754_dc0fd5961e_b.jpg" width="1024" height="1024" alt="Shaka_render-3`,
   ];
 
   // Custom friendly feedback structure
