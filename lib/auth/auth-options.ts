@@ -135,5 +135,5 @@ export const authOptions = {
     signIn: "/auth/login", // Custom sign-in page path
     error: "/auth/error", // Custom error page
   },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 };

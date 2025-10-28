@@ -24,10 +24,24 @@ export default withAuth(
       };
       console.log("Middleware Request", req.nextauth);
     }
+
+     // The token is NULL if the user is unauthenticated (and authorized: () => true)
+  if (!token) {
+    // Redirect unauthenticated users away from protected routes like /admin
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+        return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+    // For other routes (if not matched by config.matcher) or if you want to allow 
+    // access to unprotected pages, simply continue.
+    return NextResponse.next();
+    }
+    
     console.log("Auth Token", token);
     const userRoles = Array.isArray((token as any)?.roles)
       ? (token as any).roles.map((role: string) => role.toLowerCase())
       : [];
+    
+    
 
     const includesAdmin = req.nextUrl.pathname.includes("/admin");
 
@@ -37,6 +51,8 @@ export default withAuth(
         new URL("/auth/error?message=forbidden", req.url)
       );
     }
+
+    
 
     // If no specific authorization rule is met, continue to the next handler
     return NextResponse.next();
@@ -49,7 +65,7 @@ export default withAuth(
         // Return false to redirect them to the sign-in page.
         // Or return true if you want to allow unauthenticated access to some pages
         // (and handle specific page protection in the middleware function itself).
-        return true; // Only allow if a token exists (i.e., user is authenticated)
+        return !!token; // Only allow if a token exists (i.e., user is authenticated)
       },
     },
     // Specify pages that should NOT be protected by default by the authorized callback
@@ -65,3 +81,4 @@ export const config = {
     "/admin/:path*", // Protect all routes under /admin
   ],
 };
+
