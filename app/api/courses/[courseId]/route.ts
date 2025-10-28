@@ -14,33 +14,41 @@ export async function GET(
 
     console.log("Fetching course details", courseId);
     const queryText = `
-    SELECT
+      SELECT
         c.course_id AS id,
-        title,
-        description,
-        created_at AS "createdAt",
-        start_Date AS "startDate",
-        end_date AS "endDate",
-        price_in_kobo AS price,
-        is_active AS "isActive",
-        early_bird_discount AS "discount",
-        discount_start_date AS "discountStartDate",
-        discount_end_date AS "discountEndDate",
+        c.title,
+        c.description,
+        c.created_at AS "createdAt",
+        c.start_date AS "startDate",
+        c.end_date AS "endDate",
+        c.price_in_kobo AS price,
+        c.is_active AS "isActive",
+        c.early_bird_discount AS "discount",
+        c.discount_start_date AS "discountStartDate",
+        c.discount_end_date AS "discountEndDate",
+        s.session_number AS "sessionOption",
+        CASE s.session_number
+          WHEN 1 THEN 'Morning'
+          WHEN 2 THEN 'Evening'
+          ELSE 'Unknown'
+        END AS "sessionLabel",
         s.sessions
       FROM courses c
-      LEFT JOIN (
+      JOIN (
         SELECT
           course_id,
+          session_number,
           json_agg(json_build_object(
             'datetime', session_timestamp,
             'link', session_link,
-            'number', session_number,
             'duration', hour_per_session
           )) AS sessions
         FROM sessions
-        GROUP BY course_id
+        WHERE session_number IN (1, 2)
+        GROUP BY course_id, session_number
       ) s ON c.course_id = s.course_id
-    WHERE c.course_id = $1;
+      WHERE c.course_id = $1
+      ORDER BY c.created_at DESC, s.session_number;
     `;
     const result = await queryDatabase(queryText, [courseId]);
 

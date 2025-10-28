@@ -162,7 +162,6 @@ interface Course {
   title: string;
   progress: number; // Percentage
   lastAccessed: string; // Date string
-  link: string; // Link to the course page
   paymentStatus: number; // e.g., 1 = pending, 2 = completed, etc.
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
@@ -178,12 +177,18 @@ interface Course {
   discount?: number; // Early bird discount percentage
   discountStartDate?: string;
   discountEndDate?: string;
+  sessionOption?: number;
   // Current or next upcoming session
   session?: {
     timestamp: string;
     link: string;
     duration: number;
   };
+  sessions: Array<{
+    datetime: string;
+    link: string;
+    duration: number; // Duration in minutes
+  }>;
   sessionGroup: Array<{
     datetime: string;
     link: string;

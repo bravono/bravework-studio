@@ -443,7 +443,7 @@ function Signup() {
                     const prefix = hour < 12 ? "Morning" : "Evening";
 
                     const display = `${prefix} - ${startTime} to ${endTime}`;
-                    const value = session.number;
+                    const value = course.sessionOption;
 
                     return (
                       <option key={value} value={value}>
