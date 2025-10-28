@@ -47,7 +47,7 @@ export async function GET(
         c.discount_end_date AS "discountEndDate",
         ce.payment_status AS "paymentStatus",
         ce.preferred_session_id AS "preferredSession",
-        s.sessions AS sessions,
+        s.sessions,
         o.order_id AS "orderId"
       FROM courses c
       LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id

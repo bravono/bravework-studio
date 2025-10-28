@@ -1,14 +1,14 @@
 import { Session } from "next-auth"; // For extending Session type
 
 // Extend NextAuth's Session type to include custom properties
-declare module "next-auth" 
-  interface Session {
-    user: {
-      id: string; // Assuming you've added 'id' to the session
-      roles?: string[]; // If you store multiple roles as an array
-      email_verified?: boolean;
-    } & DefaultSession["user"];
-  }// Your existing UserProfile, updated for admin context
+declare module "next-auth";
+interface Session {
+  user: {
+    id: string; // Assuming you've added 'id' to the session
+    roles?: string[]; // If you store multiple roles as an array
+    email_verified?: boolean;
+  } & DefaultSession["user"];
+} // Your existing UserProfile, updated for admin context
 interface AdminProfile {
   id: string;
   fullName: string;
@@ -184,11 +184,11 @@ interface Course {
     link: string;
     duration: number;
   };
-  sessions: Array<{
+  sessionGroup: Array<{
     datetime: string;
     link: string;
     duration: number; // Duration in minutes
-    number?: number;
+    label: "Morning" | "Evening";
   }>;
   // Join with instructor table
   firstName: string;

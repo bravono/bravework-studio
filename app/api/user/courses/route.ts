@@ -38,14 +38,13 @@ export async function GET(request: Request) {
       c.discount_end_date AS "discountEndDate",
       ce.payment_status AS "paymentStatus",
       ce.preferred_session_id AS "preferredSession",
-      json_build_object(
-        'link', s.session_link,
-        'timestamp', s.session_timestamp,
-        'duration', s.hour_per_session
-      ) AS session
+      csbp.session_option AS "sessionOption",
+      csbp.session_label AS "sessionLabel",
+      csbp.sessions AS "sessionGroup"
     FROM course_enrollments ce
     JOIN courses c ON c.course_id = ce.course_id
-    LEFT JOIN sessions s ON ce.preferred_session_id = s.session_id
+    LEFT JOIN course_sessions_by_preference csbp
+      ON csbp.course_id = ce.course_id AND csbp.user_id = ce.user_id
     WHERE ce.user_id = $1
     ORDER BY c.created_at DESC;
     `;
