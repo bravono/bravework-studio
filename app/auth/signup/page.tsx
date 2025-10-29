@@ -293,7 +293,9 @@ function Signup() {
             </h3>
 
             <p className="text-2xl font-bold text-green-600">
-              {course.discount && course.discount > 0 ? (
+              {course.discount &&
+              course.discount > 0 &&
+              Date.now() < new Date(course.discountEndDate).getTime() ? (
                 <>
                   <span className="line-through text-gray-400 mr-2">
                     ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
