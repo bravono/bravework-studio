@@ -15,7 +15,7 @@ export async function getCurrency(amount: number) {
   return {
     amount,
     conversions: {
-      NGN: amount * rates.NGN,
+      NGN: amount * (rates.NGN ?? 1),
       USD: amount * rates.USD,
       GBP: amount * rates.GBP,
       EUR: amount * rates.EUR,

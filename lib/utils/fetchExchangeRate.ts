@@ -4,7 +4,7 @@ export async function fetchExchangeRates() {
   try {
     const result = await getCurrency(1); // Get rates for 1 naira
     return {
-      NGN: result.rates.NGN,
+      NGN: result.rates.NGN ?? 0,
       USD: result.rates.USD,
       GBP: result.rates.GBP,
       EUR: result.rates.EUR,
