@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Nosifer, Inter } from "next/font/google";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import ProjectCarousel from "./components/ProjectCarousel";
 import { services } from "./services/localDataService";
@@ -39,6 +40,7 @@ const taglines = [
 
 export default function Home() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
 
   // Redirect logged-in users to dashboard after 2 seconds
@@ -48,7 +50,7 @@ export default function Home() {
       if (!hasVisited) {
         const timeout = setTimeout(() => {
           sessionStorage.setItem("visit", "true");
-          window.location.href = "/user/dashboard";
+          router.push("/user/dashboard");
         }, 2000);
         return () => clearTimeout(timeout);
       }
@@ -234,7 +236,11 @@ export default function Home() {
                   {service.description}
                 </p>
                 <a
-                  href={service.title === "Training Services" ? "/courses" : `/order?service=${encodeURIComponent(service.title)}`}
+                  href={
+                    service.title === "Training Services"
+                      ? "/courses"
+                      : `/order?service=${encodeURIComponent(service.title)}`
+                  }
                   className="inline-flex items-center text-green-600 font-semibold hover:text-green-500 transition-colors duration-200 group"
                 >
                   Order Service
