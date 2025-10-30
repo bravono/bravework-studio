@@ -258,8 +258,10 @@ function Signup() {
         });
         // Redirect to verification page after a short delay
         setTimeout(() => {
-          router.push(user ? "/user/dashboard" : "/auth/verify-email");
-        }, 4000);
+          user
+            ? (window.location.href = "/user/dashboard")
+            : router.push("/auth/verify-email");
+        }, 1000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
       }
