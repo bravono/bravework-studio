@@ -397,7 +397,9 @@ export default function AdminOrdersSection() {
 
       {isOfferModalOpen && selectedOrder && (
         <CustomOfferModal
-          order={selectedOrder}
+          offer={null}
+          orders={orders}
+          isOpen={isConfirmModalOpen}
           onClose={() => {
             setIsOfferModalOpen(false);
             setSelectedOrder(null);

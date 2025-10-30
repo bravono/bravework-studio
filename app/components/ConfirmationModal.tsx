@@ -1,15 +1,21 @@
+import { CustomOffer, Order } from "@/app/types/app";
+
 export default function ConfirmationModal({
   isOpen,
-  message,
-  onConfirm,
   onCancel,
+  offer,
+  onConfirm,
+  orders,
+  message,
   isLoading,
 }: {
   isOpen: boolean;
+  onCancel: () => void;
+  offer?: CustomOffer | null;
+  onConfirm: () => void;
+  orders?: Order[];
   message: string;
   isLoading?: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
 }) {
   if (!isOpen) return null;
   return (
@@ -34,73 +40,3 @@ export default function ConfirmationModal({
     </div>
   );
 }
-
-// Custom modal for confirming deletion
-// const ConfirmationModal = ({
-//   isOpen,
-//   onClose,
-//   onConfirm,
-//   message,
-// }: {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   onConfirm: () => void;
-//   message: string;
-// }) => {
-//   if (!isOpen) return null;
-
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 animate-fade-in-down">
-//       <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-all duration-300 transform scale-95 opacity-0 animate-scale-in">
-//         <div className="flex flex-col items-center justify-center space-y-4">
-//           <AlertTriangle size={48} className="text-red-500" />
-//           <h3 className="text-xl font-bold text-gray-800">Confirm Deletion</h3>
-//           <p className="text-center text-gray-600">{message}</p>
-//           <div className="flex justify-center w-full space-x-4">
-//             <button
-//               onClick={onClose}
-//               className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex-1"
-//             >
-//               Cancel
-//             </button>
-//             <button
-//               onClick={onConfirm}
-//               className="px-4 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors flex-1"
-//             >
-//               Delete
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// Confirmation modal for accepting the offer
-// const ConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
-//   return (
-//     <Modal isOpen={isOpen} onClose={onClose} title="Accept Offer">
-//       <div className="p-4">
-//         <p className="text-gray-700 mb-4">
-//           Are you sure you want to accept this offer?
-//         </p>
-//         <div className="flex justify-end space-x-2">
-//           <button
-//             onClick={onClose}
-//             className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-//             disabled={isLoading}
-//           >
-//             Cancel
-//           </button>
-//           <button
-//             onClick={onConfirm}
-//             className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-//             disabled={isLoading}
-//           >
-//             {isLoading ? "Accepting..." : "Confirm Accept"}
-//           </button>
-//         </div>
-//       </div>
-//     </Modal>
-//   );
-// };

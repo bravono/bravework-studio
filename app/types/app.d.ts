@@ -188,17 +188,34 @@ interface Course {
     datetime: string;
     link: string;
     duration: number; // Duration in minutes
+    options: SessionOption[];
   }>;
-  sessionGroup: Array<{
-    datetime: string;
-    link: string;
-    duration: number; // Duration in minutes
-    label: "Morning" | "Evening";
-  }>;
+  sessionGroup: SessionOption[];
   // Join with instructor table
   firstName: string;
   lastName: string;
   bio: string;
+}
+
+interface CourseSession {
+  id: number; // Used for React key and easy state management
+  options: SessionOption[];
+}
+
+interface SessionFormProps {
+    session: CourseSession;
+    index: number;
+    sessionsLength: number;
+    removeSession: (id: number) => void;
+    handleOptionChange: (sessionId: number, optionNumber: number, field: keyof SessionOption, value: any) => void;
+}
+
+interface SessionOption {
+  optionNumber: number;
+  label: string; // e.g., "Morning", "Monday"
+  datetime: string;
+  link: string;
+  duration: number; // Duration in minutes
 }
 
 interface AdminStats {
@@ -209,4 +226,18 @@ interface AdminStats {
   totalUsers: number;
   pendingJobApplications: number;
   totalUnreadNotifications: number;
+}
+
+interface CourseModalProps {
+  onClose: () => void;
+  existingCourse?: Course;
+  onSave: () => void;
+}
+
+interface CustomOfferModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  offer: CustomOffer | null;
+  onSave: (data: any) => void;
+  orders: Order[];
 }

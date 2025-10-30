@@ -266,7 +266,7 @@ export default function AdminCourseSection() {
         <CourseModal
           onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
-          onCourseUpdated={fetchCourses}
+          onSave={fetchCourses}
         />
       )}
       <ConfirmationModal
