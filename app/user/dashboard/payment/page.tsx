@@ -29,28 +29,28 @@ function PaymentContent() {
   const router = useRouter();
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
-  const payingOfferBalance = searchParams.get("balance");
+  const payingOfferBalance = searchParams.get("balance") || "";
   const { data: session } = useSession();
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
   const [PaystackPop, setPaystackPop] = useState(null);
 
   const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
-  const [offerAmountInKobo, setOfferAmountInKobo] = useState(null);
+  const [offerAmountInKobo, setOfferAmountInKobo] = useState(0);
   const [totalPaid, setTotalPaid] = useState(0); // in Kobo
-  const [serviceName, setServiceName] = useState(null);
+  const [serviceName, setServiceName] = useState("");
   const [orderId, setOrderId] = useState(null);
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
 
   //Course Data
-  const [courseAmountInNGN, setCourseAmountInNGN] = useState(null);
-  const [courseTitle, setCourseTitle] = useState(null);
+  const [courseAmountInNGN, setCourseAmountInNGN] = useState(0);
+  const [courseTitle, setCourseTitle] = useState("");
   const [courseDiscount, setCourseDiscount] = useState(0);
-  const [discountEndDate, setDiscountEndDate] = useState(null);
+  const [discountEndDate, setDiscountEndDate] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
-  const [dataError, setDataError] = useState(null);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   const [paymentOption, setPaymentOption] = useState("full_100_discount");
 
@@ -88,6 +88,7 @@ function PaymentContent() {
     } else if (
       courseId &&
       courseDiscount &&
+      discountEndDate &&
       new Date().getTime() < new Date(discountEndDate).getTime()
     ) {
       calculatedAmount = baseAmountInKobo * (1 - courseDiscount / 100);
@@ -98,7 +99,7 @@ function PaymentContent() {
     const amountAlreadyPaid = totalPaid;
     const amountToPay = Math.round(
       payingOfferBalance
-        ? baseAmountInKobo - amountAlreadyPaid
+        ? Math.max(0, baseAmountInKobo - amountAlreadyPaid)
         : calculatedAmount
     );
 
@@ -138,6 +139,18 @@ function PaymentContent() {
         paymentPercentage,
       };
     }
+
+    // FIX 11 (Cont.): Return a safe default object if exchangeRates is null/undefined
+    // This prevents `paymentDetails` from being `undefined`.
+    return {
+      amountToPayInKobo: amountToPay,
+      amountToPayInNGN: amountToPay / KOBO_PER_NAIRA,
+      amountToPayConverted: "0.00",
+      originalConverted: "0.00",
+      balanceToPayConverted: "0.00",
+      discountPercentage: 0,
+      paymentPercentage: 100,
+    };
   }, [
     offerAmountInKobo,
     courseAmountInNGN,
@@ -148,6 +161,8 @@ function PaymentContent() {
     paymentOption,
     exchangeRates,
     selectedCurrency,
+    courseDiscount,
+    discountEndDate,
   ]);
 
   // Effect to dynamically import PaystackPop only on the client
@@ -183,10 +198,10 @@ function PaymentContent() {
             );
           }
           const offer = await res.json();
-          setOfferAmountInKobo(offer.offerAmount);
-          setTotalPaid(offer.totalPaid);
-          setServiceName(offer.categoryName);
-          setOrderId(offer.orderId);
+          setOfferAmountInKobo(offer.offerAmount ?? 0);
+          setTotalPaid(offer.totalPaid ?? 0);
+          setServiceName(offer.categoryName ?? "");
+          setOrderId(offer.orderId ?? null);
         } catch (err: any) {
           console.error("Error fetching offer details:", err);
           setDataError(err.message || "Failed to load offer details.");
@@ -205,12 +220,12 @@ function PaymentContent() {
             );
           }
           const course = await res.json();
-          const courseData = course[0];
-          setCourseAmountInNGN(courseData.price / KOBO_PER_NAIRA);
-          setCourseTitle(courseData.title);
-          setCourseDiscount(courseData.discount);
-          setDiscountEndDate(courseData.discountEndDate);
-          setOrderId(courseData.orderId);
+          const courseData = course?.[0];
+          setCourseAmountInNGN((courseData?.price ?? 0) / KOBO_PER_NAIRA);
+          setCourseTitle(courseData?.title ?? "");
+          setCourseDiscount(courseData?.discount ?? 0);
+          setDiscountEndDate(courseData?.discountEndDate ?? null);
+          setOrderId(courseData?.orderId ?? null);
         } catch (err: any) {
           console.error("Error fetching course details:", err);
           setDataError(err.message || "Failed to load course details.");
@@ -247,6 +262,17 @@ function PaymentContent() {
 
     const email = session?.user?.email;
     const customerName = session?.user?.name;
+
+    if (!email) {
+      toast.error("User session email is missing. Please log in again.");
+      setIsLoading(false);
+      return;
+    }
+
+    const originalAmountKobo = offerId
+      ? offerAmountInKobo ?? 0
+      : (courseAmountInNGN ?? 0) * KOBO_PER_NAIRA;
+
     const servicePayingFor = offerId ? "offer" : "course";
     const metadataInfo = {
       orderId: orderId,
@@ -255,9 +281,7 @@ function PaymentContent() {
       payment_option: paymentOption,
       payment_percentage: paymentDetails.paymentPercentage,
       discount_applied: paymentDetails.discountPercentage,
-      original_amount_kobo: offerId
-        ? offerAmountInKobo
-        : courseAmountInNGN * KOBO_PER_NAIRA,
+      original_amount_kobo: originalAmountKobo,
     };
 
     try {
@@ -316,7 +340,22 @@ function PaymentContent() {
       toast.error("Failed to initiate payment. Please check your console.");
       setIsLoading(false);
     }
-  }, [publicKey, PaystackPop, session?.user?.email, paymentDetails]);
+  }, [
+    publicKey,
+    PaystackPop,
+    session?.user?.email,
+    session?.user?.name,
+    paymentDetails,
+    offerId,
+    courseId,
+    orderId,
+    offerAmountInKobo,
+    courseAmountInNGN,
+    paymentOption,
+  ]);
+
+  // RENDER SAFETY CHECKS
+  // The existing loading/error checks are excellent.
   if (dataLoading || ratesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
@@ -333,14 +372,21 @@ function PaymentContent() {
     );
   }
 
-  if (paymentDetails.amountToPayInKobo === null) {
+  if (
+    paymentDetails.amountToPayInKobo === 0 &&
+    !offerId &&
+    !courseId &&
+    !dataLoading
+  ) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg text-red-600">
-        Could not retrieve payment amount. Please ensure the offer ID is valid.
+        Could not retrieve payment amount. Please ensure a valid Offer ID or
+        Course ID is provided.
       </div>
     );
   }
 
+  // RENDERING LOGIC
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 flex items-center justify-center font-sans">
       <div className="max-w-xl w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 sm:p-10 transition-colors duration-200">
@@ -353,7 +399,7 @@ function PaymentContent() {
           <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 text-center shadow-inner">
             <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
               {offerId ? "Service:" : "Course:"}{" "}
-              {offerId ? serviceName : courseTitle}
+              {offerId ? serviceName : courseTitle || "Loading..."}
             </h2>
             <p className="text-lg text-blue-700 dark:text-blue-300">
               {payingOfferBalance ? "Balance To Pay: " : "Original Amount: "}
