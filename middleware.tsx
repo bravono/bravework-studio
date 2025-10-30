@@ -6,7 +6,7 @@ export default withAuth(
   function middleware(req) {
     const isLocalDev = req.nextUrl.hostname === "localhost";
     console.log("Next URL Hostname", req.nextUrl.hostname);
-    let token = req.nextauth.token;
+    let token = req.nextauth?.token || {};
 
     if (isLocalDev) {
       // Bypass auth checks in local development
