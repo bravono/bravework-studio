@@ -24,10 +24,7 @@ export default function Modal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] max-h-[100vh] overflow-y-auto flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 transition-opacity duration-300"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[100] max-h-[100vh] overflow-y-auto flex items-center justify-center bg-gray-900 bg-opacity-50 p-4 transition-opacity duration-300">
       {/* The modal content is the main container for the modal's body.
           We stop propagation here so clicks inside the modal don't close it. */}
       <div
