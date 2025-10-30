@@ -127,7 +127,14 @@ export default function Navbar() {
                 href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                 onMouseEnter={() => setShowDropdown(!showDropdown)}
               >
-                <div className="flex items-center justify-center gap-2 p-2 rounded-sm hover:bg-gray-100">
+                <div
+                  className={`flex items-center justify-center gap-2 p-2 rounded-sm hover:bg-gray-100 ${commonLinkClasses} ${
+                    pathname === "/user/dashboard" ||
+                    pathname === "/admin/dashboard"
+                      ? activeLinkClasses
+                      : inactiveLinkClasses
+                  }`}
+                >
                   Dashboard
                   <User className="w-6 h-6" />
                 </div>
