@@ -92,7 +92,7 @@ const CustomOfferModal = ({
           <X size={24} />
         </button>
         <h3 className="text-xl font-bold mb-4">
-          -{offer ? "Edit Custom Offer" : "Create New Custom Offer"}
+          {offer ? "Edit Custom Offer" : "Create New Custom Offer"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
