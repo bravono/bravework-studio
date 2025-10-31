@@ -203,11 +203,16 @@ interface CourseSession {
 }
 
 interface SessionFormProps {
-    session: CourseSession;
-    index: number;
-    sessionsLength: number;
-    removeSession: (id: number) => void;
-    handleOptionChange: (sessionId: number, optionNumber: number, field: keyof SessionOption, value: any) => void;
+  session: CourseSession;
+  index: number;
+  sessionsLength: number;
+  removeSession: (id: number) => void;
+  handleOptionChange: (
+    sessionId: number,
+    optionNumber: number,
+    field: keyof SessionOption,
+    value: any
+  ) => void;
 }
 
 interface SessionOption {
@@ -240,4 +245,10 @@ interface CustomOfferModalProps {
   offer: CustomOffer | null;
   onSave: (data: any) => void;
   orders: Order[];
+}
+
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
