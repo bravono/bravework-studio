@@ -214,9 +214,9 @@ export async function POST(req: Request) {
 
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
         await client.query(
-          `INSERT INTO course_enrollments (user_id, payment_status, course_id, preferred_session_id, enrollment_date) 
-          VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
-          [userId, paymentStatusId, courseId, sessionId]
+          `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
+          VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
+          [userId, courseId, sessionId]
         );
 
         const categoryResult = await client.query(
@@ -230,7 +230,7 @@ export async function POST(req: Request) {
         const orderResult = await client.query(
           `INSERT INTO orders 
           (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (user_id, category_id) DO NOTHING RETURNING order_id`,
           [
             userId,
             categoryId,
@@ -244,7 +244,7 @@ export async function POST(req: Request) {
           ]
         );
 
-        orderId = orderResult.rows[0].order_id;
+        if (orderResult.rows.length > 0) orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
 
         return { userId, isNewUser: !session };
