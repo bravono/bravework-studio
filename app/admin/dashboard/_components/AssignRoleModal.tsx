@@ -6,17 +6,13 @@ import { toast } from "react-toastify";
 import { User, UserCheck } from "lucide-react";
 import Modal from "@/app/components/Modal";
 
-
-// Re-import types
-interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  role: string;
-}
-
 interface AssignRoleModalProps {
-  user: User;
+  user: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    user_id: number;
+  };
   onClose: () => void;
   onSave: () => void;
 }
@@ -26,12 +22,22 @@ export default function AssignRoleModal({
   onClose,
   onSave,
 }: AssignRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState<string>(user.role);
+  const [selectedRole, setSelectedRole] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  console.log("Received user ID", user.user_id);
+
   // Define available roles (customize as per your application's roles)
-  const availableRoles = ["user", "client", "student", "editor", "admin"];
+  const availableRoles = [
+    "user",
+    "customer",
+    "student",
+    "instructor",
+    "admin",
+    "freelancer",
+    "guest",
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +45,7 @@ export default function AssignRoleModal({
     setError(null);
 
     try {
-      const res = await fetch(`/api/admin/users/${user.id}/role`, {
-        // NEW API ROUTE (PATCH)
+      const res = await fetch(`/api/admin/roles/${user.user_id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole }),
@@ -49,7 +54,7 @@ export default function AssignRoleModal({
       if (!res.ok) throw new Error("Failed to assign role.");
 
       toast.success(
-        `Role for ${user.fullName} updated to ${selectedRole} successfully!`
+        `Role for ${user.first_name} ${user.last_name} updated to ${selectedRole} successfully!`
       );
       onSave(); // Trigger data re-fetch in parent
       onClose(); // Close the modal
@@ -66,7 +71,7 @@ export default function AssignRoleModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={`Assign Role to ${user.fullName}`}
+      title={`Assign Role to ${user.first_name} ${user.last_name}`}
     >
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <div className="flex items-center space-x-3 text-gray-700">

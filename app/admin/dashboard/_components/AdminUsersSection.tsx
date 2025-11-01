@@ -8,7 +8,6 @@ import { User } from "../../../types/app";
 import { UserPlus, Tag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "@/app/components/Modal";
 
-
 // Reusable Loading Spinner component
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center p-8 text-gray-500">
@@ -17,59 +16,17 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Reusable Custom Modal component to replace alert() and confirm()
-const CustomModal = ({
-  title,
-  message,
-  isOpen,
-  onClose,
-  onConfirm,
-  isConfirm = false,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-      <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-auto transform transition-all duration-300 scale-95 md:scale-100">
-        <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
-        <div className="flex justify-end gap-3">
-          {isConfirm && (
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors hover:bg-gray-300"
-            >
-              {cancelText}
-            </button>
-          )}
-          <button
-            onClick={() => {
-              if (onConfirm) onConfirm();
-              onClose();
-            }}
-            className={`px-6 py-2 rounded-lg font-bold text-white transition-colors
-              ${
-                isConfirm
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-blue-500 hover:bg-blue-600"
-              }`}
-          >
-            {isConfirm ? confirmText : "OK"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function AdminUsersSection() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{
+    first_name: string,
+    last_name: string,
+    user_id: number,
+    email: string,
+  } | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,12 +71,13 @@ export default function AdminUsersSection() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleAssignRole = (user: User) => {
+  const handleAssignRole = (user) => {
+    console.log("User", user);
     setSelectedUser(user);
     setIsAssignRoleModalOpen(true);
   };
 
-  const handleDeleteUser = (user: User) => {
+  const handleDeleteUser = (user) => {
     setConfirmModalContent({
       title: "Confirm Deletion",
       message: `Are you sure you want to delete user ${user.fullName} (${user.email})? This action cannot be undone.`,
