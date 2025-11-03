@@ -26,7 +26,7 @@ const StatusIcon = ({ status, className }) => {
   return <Calendar className={className} />; // Pending or Next Class
 };
 
-const isPast = (datetime) => datetime < Date.now();
+const isPast = (datetime) => new Date(datetime).getTime() < Date.now();
 
 const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
   const [isExpanded, setIsExpanded] = useState(false);
