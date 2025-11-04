@@ -34,6 +34,9 @@ import {
   ExternalLink,
   Wallet,
   XCircle,
+  PlusCircle,
+  Plus,
+  List,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -62,6 +65,7 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import RejectReasonModal from "./RejectReasonModal";
 
 import CourseDetailCard from "@/app/components/CourseDetailCard";
+import CourseModal from "@/app/components/CourseModal";
 
 const Pagination = ({
   currentPage,
@@ -110,6 +114,8 @@ function Page() {
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // State for user profile data (initially empty or from session if available)
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -150,6 +156,7 @@ function Page() {
   const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
   const [selectedOfferForRejection, setSelectedOfferForRejection] =
     useState<CustomOffer | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const KOBO_PER_NAIRA = 100;
   const PERCENT_100 = 100;
@@ -501,6 +508,11 @@ function Page() {
     }
   };
 
+  const handleCreateCourse = () => {
+    setSelectedCourse(null);
+    setIsModalOpen(true);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
@@ -613,6 +625,37 @@ function Page() {
                           No courses found.
                         </p>
                       )}
+                    </div>
+                  )}
+
+                  {session?.user?.roles?.includes("instructor") && (
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                      <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-2xl font-bold text-gray-800 mb-4 md:mb-0">
+                          Course Management
+                        </div>
+
+                        <button
+                          onClick={handleCreateCourse}
+                          className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center gap-2"
+                        >
+                          <Plus size={20} />
+                          Create New Course
+                        </button>
+                      </div>
+                      <p className="text-gray-500 mt-2 text-center md:text-left">
+                        Start building your next educational masterpiece.
+                      </p>
+                      existing courses
+                      <div className="mt-4 border-t pt-4">
+                        <Link
+                          href="/instructor/courses"
+                          className="text-gray-600 hover:text-blue-600 hover:underline font-medium flex items-center gap-1"
+                        >
+                          <List size={18} />
+                          View All Drafts & Published Courses
+                        </Link>
+                      </div>
                     </div>
                   )}
 
@@ -1194,6 +1237,17 @@ function Page() {
                           </span>
                         )}
                       </button>
+
+                      {isModalOpen && (
+                        <CourseModal
+                          onClose={() => setIsModalOpen(false)}
+                          existingCourse={selectedCourse}
+                          onSave={null}
+                          userRole="instructor"
+                          currentInstructorName={session.user.name}
+                          currentInstructorId={session.user.id}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1201,6 +1255,7 @@ function Page() {
             </div>
           </div>
         );
+
       case "orders":
         return <UserOrdersSection />;
       case "invoices":
