@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { queryDatabase } from "../../../../lib/db";
-import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
+import { queryDatabase } from "@/lib/db";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   try {
-    const guardResponse = await verifyAdmin(request);
-    if (guardResponse) return guardResponse;
 
     const queryText = `
      SELECT category_name AS "name" FROM course_categories
