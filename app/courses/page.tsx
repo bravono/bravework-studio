@@ -216,7 +216,7 @@ export default function coursesPage() {
                           </div>
                         </div>
                       )}
-                    {course.isActive && (
+                    {course.isActive ? (
                       <div className="mt-6">
                         <Link
                           href={
@@ -227,6 +227,21 @@ export default function coursesPage() {
                           Enroll Now
                         </Link>
                       </div>
+                    ) : (
+                      <>
+                        <p className="text-gray-700 mb-2 text-center">
+                          Enrollment opens soon. Get notified when registration
+                          starts!
+                        </p>
+                        <Link
+                          href={`/newsletter?isActive=${
+                            course.isActive ? "true" : "false"
+                          }`}
+                          className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                        >
+                          Notify Me
+                        </Link>
+                      </>
                     )}
                     <div className="mt-6">
                       <Link
