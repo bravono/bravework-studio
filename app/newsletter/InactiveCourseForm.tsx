@@ -60,7 +60,7 @@ export default function InactiveCourseForm() {
         className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 transform transition-all duration-300 hover:shadow-xl border-t-4 border-blue-600"
       >
         <h2 className="text-3xl font-extrabold text-center text-blue-600 tracking-tight">
-          Course Temporarily Closed
+          Course Coming Soon
         </h2>
         <p className="text-center text-gray-500 text-lg">
           Get notified when this course becomes available.

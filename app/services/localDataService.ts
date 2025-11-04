@@ -1435,7 +1435,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
   // Fashion & Chef
   {
     id: 7,
-    title: "Free 3D Tech Training for Fashion Designers and Chefs",
+    title: "Generic 3D Tech Training for Fashion Designers and Chefs",
     tagline: "",
     targetAudience:
       "Chefs and fashion designers (beginners with no 3D experience)",

@@ -183,7 +183,7 @@ export default function Footer() {
                   size={20}
                   className="flex-shrink-0 text-green-500 mt-0.5"
                 />
-                <span>Abuja, Nigeria</span>
+                <span>Katsina, Nigeria</span>
               </li>
               <li className="flex items-start gap-2">
                 <Link
