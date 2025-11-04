@@ -180,7 +180,6 @@ const SessionForm = ({
                 e.target.value
               )
             }
-            required
             placeholder="https://zoom.us/j/..."
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
           />
@@ -194,6 +193,9 @@ export default function CourseModal({
   existingCourse,
   onClose,
   onSave,
+  userRole,
+  currentInstructorName,
+  currentInstructorId,
 }: CourseModalProps) {
   const KOBO_PER_NAIRA = 100;
   const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
@@ -208,9 +210,13 @@ export default function CourseModal({
     existingCourse?.startDate || ""
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
-  const [instructor, setInstructor] = useState<string>(
-    (existingCourse?.firstName || "") + (existingCourse?.lastName || "")
-  );
+
+  const initialInstructorName =
+    userRole === "admin"
+      ? (existingCourse?.firstName || "") + (existingCourse?.lastName || "")
+      : currentInstructorName || ""; // Use the logged-in instructor's name for instructor role
+
+  const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false
   );
@@ -308,7 +314,7 @@ export default function CourseModal({
         const instructorsData = await instructorRes.json();
         setAvailableInstructors(instructorsData);
 
-        const categoryRes = await fetch("/api/admin/course-categories");
+        const categoryRes = await fetch("/api/course-categories");
         const categoriesData = await categoryRes.json();
         setAvailableCategories(categoriesData);
       } catch (e) {
@@ -349,9 +355,10 @@ export default function CourseModal({
 
     try {
       const method = existingCourse ? "PATCH" : "POST";
-      const url = existingCourse
-        ? `/api/admin/courses/${existingCourse?.id}`
-        : "/api/admin/courses";
+      const baseUrl =
+        userRole === "admin" ? "/api/admin/courses" : "/api/instructor/courses";
+
+      const url = existingCourse ? `${baseUrl}/${existingCourse?.id}` : baseUrl;
 
       // Include sessionsPayload in the body
       const body = Object.fromEntries(
@@ -376,6 +383,7 @@ export default function CourseModal({
       );
 
       console.log("Payload:", body); // Log the payload including sessions
+      console.log("Url:", url); // Log the payload including sessions
 
       const res = await fetch(url, {
         method,
@@ -491,37 +499,60 @@ export default function CourseModal({
               />
             </div>
 
-            {/* Instructor Select (Now uses availableInstructors) */}
-            <label htmlFor="instructor" className={labelStyle}>
-              Instructor
-            </label>
-            <select
-              id="instructor"
-              value={instructor}
-              onChange={(e) => setInstructor(e.target.value)}
-              required
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="" disabled>
-                Select an instructor
-              </option>
-              {availableInstructors.map((inst, ind) => (
-                <option key={ind + 1} value={inst.fullName}>
-                  {inst.fullName}
-                </option>
-              ))}
-            </select>
+            {userRole === "admin" ? (
+              // ADMIN VIEW: Show the Select dropdown for all instructors
+              <div>
+                <label htmlFor="instructor" className={labelStyle}>
+                  Instructor
+                </label>
+                {/* Your existing select dropdown for all instructors */}
+                <select
+                  id="instructor"
+                  value={instructor}
+                  onChange={(e) => setInstructor(e.target.value)}
+                  required
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  <option value="" disabled>
+                    Select an instructor
+                  </option>
+                  {availableInstructors.map((inst, ind) => (
+                    <option key={ind + 1} value={inst.fullName}>
+                      {inst.fullName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              // INSTRUCTOR VIEW: Show the name as read-only text
+              <div>
+                <label className={labelStyle}>Instructor</label>
+                <p className="mt-1 block w-full py-2 px-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 sm:text-sm font-medium">
+                  {currentInstructorName}
+                </p>
+                {/* Optional: Hidden input to ensure the data is still submitted */}
+                <input
+                  type="hidden"
+                  name="instructor"
+                  value={currentInstructorName}
+                />
+              </div>
+            )}
 
-            <label htmlFor="isActive" className={labelStyle}>
-              Is Active
-            </label>
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-            />
+            {userRole === "admin" && (
+              <div>
+                <label htmlFor="isActive" className={labelStyle}>
+                  Is Active
+                </label>
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+              </div>
+            )}
             <label htmlFor="maxStudents" className={labelStyle}>
               Max Students
             </label>

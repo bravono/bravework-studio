@@ -237,6 +237,9 @@ interface CourseModalProps {
   onClose: () => void;
   existingCourse?: Course;
   onSave: () => void;
+  userRole: 'admin' | 'instructor';
+  currentInstructorName?: string,
+  currentInstructorId?: number,
 }
 
 interface CustomOfferModalProps {

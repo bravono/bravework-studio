@@ -8,15 +8,13 @@ import {
   PlusCircle,
   Edit,
   Trash2,
-  X,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle,
 } from "lucide-react";
 
 import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import CourseModal from "./CourseModal";
+import CourseModal from "../../../components/CourseModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
@@ -267,6 +265,7 @@ export default function AdminCourseSection() {
           onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
           onSave={fetchCourses}
+          userRole="admin"
         />
       )}
       <ConfirmationModal
