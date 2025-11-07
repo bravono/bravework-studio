@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 import Joi from "joi";
 import { Lock, Mail } from "lucide-react";
-import { set } from "date-fns";
 
 const resendVeriSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required().label("Email"),
@@ -37,9 +35,9 @@ export default function ForgetPasswordPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage(data.message);
+        setMessage(data?.message);
       } else {
-        setMessage(data.error || "Something went wrong");
+        setMessage(data?.error || "Something went wrong");
       }
     } catch (err) {
       setMessage("Network error");

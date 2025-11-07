@@ -55,7 +55,7 @@ function ResetPassword() {
       abortEarly: false,
     });
     if (error) {
-      setMessage(error.details.map((d) => d.message).join(" "));
+      setMessage(error?.details.map((d) => d.message).join(" "));
       return;
     }
 
@@ -80,7 +80,7 @@ function ResetPassword() {
           confirmPassword: "",
         });
       } else {
-        setMessage(data.message || "Failed to reset. Please try again.");
+        setMessage(data?.message || "Failed to reset. Please try again.");
       }
     } catch (error) {
       console.error("Reset password error:", error);
@@ -102,7 +102,7 @@ function ResetPassword() {
 
       if (response.ok) {
         setMessage(
-          data.message ||
+          data?.message ||
             "Your password has been reset successfully. You can now log in."
         );
         setTimeout(() => router.push("/auth/login"), 3000);
@@ -110,7 +110,7 @@ function ResetPassword() {
       } else {
         // Handle server-side errors (e.g., invalid token, expired token)
         setError(
-          data.error ||
+          data?.error ||
             "Failed to reset password. Please check your link or try again."
         );
       }
