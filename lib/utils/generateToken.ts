@@ -12,11 +12,11 @@ const SECRET_KEY = process.env.STACK_SECRET_SERVER_KEY;
  */
 
 export async function generateSecureToken(
-  offerId: string | number,
   userId: string | number,
-  action: "accept" | "reject",
+  offerId?: string | number,
+  action?: "accept" | "reject",
   expiresInMinutes: number = 60
-): Promise<string> {
+): Promise<{ token: string; expiration: number }> {
   const expiration = Date.now() + expiresInMinutes * 60 * 1000;
   const payload = `${userId}:${offerId}:${action}:${expiration}`;
   const signature = crypto
@@ -29,10 +29,17 @@ export async function generateSecureToken(
 
   await queryDatabase(
     "INSERT INTO secure_tokens ( token, offer_id, action, expires_at, used, user_id) VALUES ($1, $2, $3, $4, $5, $6)",
-    [ token, offerId, action, newTimeStamp, false, userId]
+    [token, offerId, action, newTimeStamp, false, userId]
   );
 
-  return token;
+  if (!offerId && !action) {
+    await queryDatabase(
+      "INSERT INTO verification_tokens (user_id, token, expires, type, created_at ) VALUES ($1, $2, $3, $4, NOW() )",
+      [userId, token, newTimeStamp, "password_reset"]
+    );
+  }
+
+  return { token, expiration: expiresInMinutes / 60 };
 }
 
 /**

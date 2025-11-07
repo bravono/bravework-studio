@@ -171,6 +171,12 @@ function LoginForm() {
           </button>
         </form>
 
+        <a
+          href="/auth/forget-password"
+          className="text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Forget Password?
+        </a>
         <div className="text-center text-sm text-gray-600">
           Don't have an account?{" "}
           <a

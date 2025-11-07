@@ -133,6 +133,36 @@ export async function sendVerificationEmail(
     console.log(error.message);
   }
 }
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  userName: string,
+  resetLink: string,
+  expiration: number
+) {
+
+  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
+  if (!currentTransporter) {
+    console.error("Email transporter not initialized! Cannot send email.");
+    return;
+  }
+
+  const subject = "Reset Your Password";
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    <p>You have requested to reset your password</p>
+    <p><a href="${resetLink}">Reset Password</a></p>
+    <p>This link will expire in ${expiration} hours.</p>
+    <p>If you did not initiate the password reset, please ignore this email.</p>
+    <p>Thanks,<br/>Bravework Studio Services Team</p>
+  `;
+  const textContent = `Hello ${userName} You have requested to reset your password! Proceed by clicking the link below:\n\n${resetLink}\n\nThis link will expire in ${expiration} hours.\n\nIf you did not initiate the password reset, please ignore this email.\n\nThanks,\nBravework Studio Services Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
 
 // NEW: Function to send a confirmation email when an order is received
 export async function sendOrderReceivedEmail(
@@ -234,14 +264,14 @@ export async function sendCustomOfferNotificationEmail(
   // Example of a more secure approach (requires backend token generation/verification):
   const dateToNumber = new Date(expiresAt).getTime() / 1000; // Convert to seconds for token generation
   const acceptToken = await generateSecureToken(
-    offerId,
     userId,
+    offerId,
     "accept",
     dateToNumber
   );
   const rejectToken = await generateSecureToken(
-    offerId,
     userId,
+    offerId,
     "reject",
     dateToNumber
   );
