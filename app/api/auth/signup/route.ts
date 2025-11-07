@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
-import { queryDatabase, withTransaction } from "@/lib/db";
+import { withTransaction } from "@/lib/db";
 import { createTrackingId } from "@/lib/utils/tracking";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";

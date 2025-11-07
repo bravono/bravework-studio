@@ -12,7 +12,6 @@ import { useSession } from "next-auth/react";
 import Joi from "joi";
 import { User, Mail, Lock, Phone, Clock, Building } from "lucide-react";
 import { Course } from "@/app/types/app";
-import { is } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 // Joi Schemas
 const baseSignupSchema = Joi.object({
