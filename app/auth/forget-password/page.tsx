@@ -81,7 +81,11 @@ export default function ForgetPasswordPage() {
             </div>
             {message && (
               <div
-                className={`p-3 rounded-lg text-sm text-center bg-blue-100 text-blue-700`}
+                className={`p-3 rounded-lg text-sm text-center ${
+                  message.includes("Error")
+                    ? "bg-red-100 text-red-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
               >
                 {message}
               </div>
