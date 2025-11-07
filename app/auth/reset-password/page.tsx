@@ -19,13 +19,10 @@ function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const [form, setForm] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFormDisabled, setIsFormDisabled] = useState(true);
 
@@ -34,28 +31,25 @@ function ResetPassword() {
     if (token) {
       setIsFormDisabled(false);
     } else {
-      setError("Password reset token is missing from the URL.");
+      setMessage("Password reset token is missing from the URL.");
     }
   }, [token]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage("");
-    setError("");
 
-    // Validate the payload using the Joi schema
-    const { error } = resetPasswordSchema.validate(form, {
-      abortEarly: false,
-    });
-    if (error) {
-      setMessage(error?.details.map((d) => d.message).join(" "));
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Basic password strength check (optional, but good practice)
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters long.");
+      setIsLoading(false);
       return;
     }
 
@@ -63,7 +57,7 @@ function ResetPassword() {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, form }), // Send the new, clean API payload
+        body: JSON.stringify({ token, newPassword: password }),
       });
 
       const data = await res.json();
@@ -74,51 +68,15 @@ function ResetPassword() {
         );
 
         setIsFormDisabled(true); // Disable form after success
-        // Reset form to initial state
-        setForm({
-          password: "",
-          confirmPassword: "",
-        });
+        setTimeout(() => router.push("/auth/login"), 3000);
       } else {
         setMessage(data?.message || "Failed to reset. Please try again.");
       }
     } catch (error) {
       console.error("Reset password error:", error);
-      setError("An unexpected network error occurred.");
+      setMessage("An unexpected network error occurred.");
     } finally {
       setLoading(false);
-    }
-
-    try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token, form }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(
-          data?.message ||
-            "Your password has been reset successfully. You can now log in."
-        );
-        setTimeout(() => router.push("/auth/login"), 3000);
-        setIsFormDisabled(true); // Disable form after success
-      } else {
-        // Handle server-side errors (e.g., invalid token, expired token)
-        setError(
-          data?.error ||
-            "Failed to reset password. Please check your link or try again."
-        );
-      }
-    } catch (err) {
-      console.error("Reset password error:", err);
-      setError("An unexpected network error occurred.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -142,15 +100,14 @@ function ResetPassword() {
                 <Lock className="w-5 h-5 text-gray-400" />
               </div>
               <input
-                type="password"
                 id="password"
-                name="password"
-                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-                placeholder="Password *"
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="new-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
+                placeholder="Password *"
+                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
               />
             </div>
           }
@@ -163,16 +120,16 @@ function ResetPassword() {
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Lock className="w-5 h-5 text-gray-400" />
               </div>
+
               <input
-                type="password"
                 id="confirmPassword"
-                name="confirmPassword"
-                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-                placeholder="Confirm Password *"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                placeholder="Confirm Password *"
+                disabled={isLoading}
+                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
               />
             </div>
           }

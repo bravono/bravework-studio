@@ -6,10 +6,10 @@ import { hash } from "bcryptjs";
  * Handle POST request to reset the password.
  */
 export async function POST(req: Request) {
-    console.log("Request", req);
   try {
-      const { token, form } = await req.json();
-      const newPassword = form?.password;
+    const { token, newPassword } = await req.json();
+    console.log("Token received:", token);
+    console.log("New password received:", newPassword ? "****" : "No password");
 
     if (!token || !newPassword) {
       return NextResponse.json(
@@ -37,23 +37,23 @@ export async function POST(req: Request) {
 
     // 2. Check if the token has expired
     if (expiresAt < new Date()) {
-      await queryDatabase(
-        "DELETE FROM verification_tokens WHERE token = $1",
-        [token]
-      );
+      await queryDatabase("DELETE FROM verification_tokens WHERE token = $1", [
+        token,
+      ]);
       return NextResponse.json(
         { error: "Token has expired. Please request a new link." },
         { status: 410 }
       ); // 410 Gone
     }
 
-    const hashedPassword = hash(newPassword, 12);
+    const hashedPassword = await hash(newPassword, 12);
+    console.log("Hashed password:", hashedPassword);
 
     // 4. Update the user's password in the 'users' table
-    await queryDatabase(
-      "UPDATE users SET password = $1 WHERE user_id = $2",
-      [hashedPassword, userId]
-    );
+    await queryDatabase("UPDATE users SET password = $1 WHERE user_id = $2", [
+      hashedPassword,
+      userId,
+    ]);
 
     await queryDatabase("DELETE FROM verification_tokens WHERE token = $1", [
       token,
