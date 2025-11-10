@@ -9,9 +9,10 @@ import { Nosifer, Inter } from "next/font/google";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import TestimonialCarousel from "./components/TestimonialCarousel";
-import ProjectCarousel from "./components/ProjectCarousel";
 import { services } from "./services/localDataService";
 import { ArrowRight } from "lucide-react";
+import CourseList from "./components/CourseList";
+import ArrowButton from "./components/ArrowButton";
 
 const nosifer = Nosifer({
   subsets: ["latin"],
@@ -142,15 +143,7 @@ export default function Home() {
             included.
           </motion.p>
 
-          <div className="mt-12">
-            <a
-              href="/order"
-              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 group"
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
-            </a>
-          </div>
+          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"}/>
           {/* Freelance Platforms Order Options */}
           <div className="mt-8 flex flex-col items-center">
             <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
@@ -208,8 +201,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Project Carousel */}
-      <ProjectCarousel />
+      {/* Courses Section */}
+      <CourseList page="home" />
 
       {/* Services Section */}
       <section id="services" className="py-20 bg-gray-50">
@@ -255,15 +248,7 @@ export default function Home() {
       {/* Testimonials Section */}
       <TestimonialCarousel />
 
-      <div className="flex justify-center my-16">
-        <a
-          href="/order"
-          className="inline-flex items-center px-10 py-5 border border-transparent text-xl font-bold rounded-full shadow-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 group"
-        >
-          Get Started
-          <ArrowRight className="ml-2 h-6 w-6 transition-transform duration-200 group-hover:translate-x-1" />
-        </a>
-      </div>
+      <ArrowButton label={"Get Started"} link={"/courses"} style={"my-16"} />
     </main>
   );
 }
