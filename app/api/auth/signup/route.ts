@@ -212,6 +212,17 @@ export async function POST(req: Request) {
 
         const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
 
+        const existingCourse = await client.query(
+          "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
+          [userId, courseId]
+        );
+
+        console.log("Existing Course", existingCourse)
+        if (existingCourse.rows.length > 0)
+          return NextResponse.json({
+            message: "You are already enrolled in this course",
+          });
+
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
         await client.query(
           `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
@@ -227,10 +238,11 @@ export async function POST(req: Request) {
         const categoryId = categoryResult.rows[0].category_id;
         // Insert into orders table
         const trackingId = createTrackingId(courseTitle);
+
         const orderResult = await client.query(
           `INSERT INTO orders 
           (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (user_id, category_id) DO NOTHING RETURNING order_id`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
           [
             userId,
             categoryId,
@@ -244,7 +256,11 @@ export async function POST(req: Request) {
           ]
         );
 
-        if (orderResult.rows.length > 0) orderId = orderResult.rows[0].order_id;
+        console.log("Order Result", orderResult);
+        if (orderResult.rows.length === 0)
+          return NextResponse.json({ message: "Now order was inserted" });
+
+        orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
 
         return { userId, isNewUser: !session };
