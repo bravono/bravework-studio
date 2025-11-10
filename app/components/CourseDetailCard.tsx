@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import Link from "next/link";
@@ -73,9 +73,10 @@ const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
 
   // Calculate dynamic properties
   const nextSession = useMemo(
-    () => findNextSession(course?.sessionGroup), // ADDED ?.
+    () => findNextSession(course?.sessionGroup),
     [course] // Changed to just course to simplify dependency list
   );
+
   const isCertificationEnabled = useMemo(
     () =>
       statusLabel === "Completed" || areAllClassesPassed(course?.sessionGroup), // ADDED ?.
@@ -188,7 +189,7 @@ const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
 
           {/* Sessions List */}
           {statusLabel !== "Pending" &&
-            course?.sessionGroup && // ADDED ?.
+            course?.sessionGroup &&
             course.sessionGroup.length > 0 && (
               <div className="mb-6">
                 <h4 className="text-md font-medium text-gray-700 mb-3 flex items-center">
@@ -197,10 +198,10 @@ const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
                 </h4>
                 <ul className="space-y-3 pl-0">
                   {course.sessionGroup.map((session, index) => {
-                    const sessionDate = new Date(session?.datetime); // ADDED ?.
-                    const isSessionPast = isPast(session?.datetime); // ADDED ?.
+                    const sessionDate = new Date(session?.datetime);
+                    const isSessionPast = isPast(session?.datetime);
                     const isNext =
-                      nextSession && nextSession.id === session?.id; // ADDED ?. to session.id
+                      nextSession && nextSession.id === session?.id;
 
                     return (
                       <li
@@ -216,7 +217,7 @@ const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900">
                             Session {index + 1}
-                            {isNext && (
+                            {isNext && !isSessionPast && (
                               <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-500 text-white">
                                 UPCOMING
                               </span>
@@ -237,26 +238,24 @@ const CourseDetailCard = ({ course, selectedCurrency, exchangeRates }) => {
                         </div>
 
                         <div className="mt-2 sm:mt-0 flex items-center space-x-3 text-sm">
-                          {isSessionPast &&
-                            session?.recordingLink && ( // ADDED ?.
-                              <Link
-                                href={session.recordingLink ?? "#"} // ADDED ?? "#"
-                                className="text-purple-600 hover:text-purple-800 flex items-center"
-                              >
-                                <Video className="w-4 h-4 mr-1" />
-                                Watch Recording
-                              </Link>
-                            )}
-                          {!isSessionPast &&
-                            session?.link && ( // ADDED ?.
-                              <Link
-                                href={session.link ?? "#"} // ADDED ?? "#"
-                                className="text-green-600 hover:text-green-800 flex items-center"
-                              >
-                                <LinkIcon className="w-4 h-4 mr-1" />
-                                Class Link
-                              </Link>
-                            )}
+                          {isSessionPast && session?.recordingLink && (
+                            <Link
+                              href={session.recordingLink ?? "#"} // ADDED ?? "#"
+                              className="text-purple-600 hover:text-purple-800 flex items-center"
+                            >
+                              <Video className="w-4 h-4 mr-1" />
+                              Watch Recording
+                            </Link>
+                          )}
+                          {!isSessionPast && session?.link && (
+                            <Link
+                              href={session.link ?? "#"} // ADDED ?? "#"
+                              className="text-green-600 hover:text-green-800 flex items-center"
+                            >
+                              <LinkIcon className="w-4 h-4 mr-1" />
+                              Class Link
+                            </Link>
+                          )}
                           {isSessionPast && !session.recordingLink && (
                             <span className="text-gray-500">Recording N/A</span>
                           )}

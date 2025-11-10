@@ -439,8 +439,11 @@ function Page() {
   const activeOrders = orders.filter(
     (order) => order.statusName === "overpayment_detected"
   ).length;
-  const coursesInProgress = courses.filter(
-    (course) => course.paymentStatus !== 1
+  const projectOrders = orders.filter(
+    (order) => order.serviceName !== "Course"
+  ).length;
+  const coursesInProgress = orders.filter(
+    (order) => order.serviceName === "Course"
   ).length;
   const totalSpent =
     orders.reduce((sum, order) => sum + (order.amount || 0), 0) /
@@ -553,7 +556,7 @@ function Page() {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <div className="flex items-center justify-between">
                           <span className="text-3xl font-bold text-green-700">
-                            {orders.length}
+                            {projectOrders}
                           </span>
                           <Package size={28} className="text-green-500" />
                         </div>
@@ -578,7 +581,7 @@ function Page() {
                           <span className="text-3xl font-bold text-green-700">
                             {getCurrencySymbol(selectedCurrency)}
                             {convertCurrency(
-                              totalSpent / KOBO_PER_NAIRA,
+                              totalSpent,
                               exchangeRates?.[selectedCurrency] ?? 1, // ADDED ?? 1 as fallback rate
                               getCurrencySymbol(selectedCurrency)
                             ).toLocaleString()}
