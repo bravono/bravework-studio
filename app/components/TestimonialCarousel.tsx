@@ -137,7 +137,7 @@ export default function TestimonialCarousel() {
                 className="absolute inset-0 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 sm:p-12 flex flex-col justify-center items-center"
               >
                 <div className="absolute -top-10 mb-8 flex-shrink-0">
-                  <Image
+                  <img
                     src={testimonials[currentIndex].avatar}
                     alt={testimonials[currentIndex].heading}
                     width={120}
