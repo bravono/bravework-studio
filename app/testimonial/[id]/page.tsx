@@ -19,8 +19,8 @@ export default async function TestimonialDetailPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-xl w-full mx-auto p-6 sm:p-8 md:p-10 bg-white rounded-2xl shadow-xl space-y-8">
+    <div className="min-h-screen min-w-screen mt-10 bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-5xl w-full mx-auto p-6 sm:p-8 md:p-10 bg-white rounded-2xl shadow-xl space-y-8">
         {/* Company Header */}
         <div className="flex flex-col items-center text-center">
           <img
