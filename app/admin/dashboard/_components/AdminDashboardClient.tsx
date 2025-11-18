@@ -19,8 +19,6 @@ import { Session } from "next-auth";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-// The custom CSS file is no longer needed as we are using Tailwind CSS
-// import "../../../css/dashboard.css";
 
 import { AdminProfile, AdminStats } from "../../../types/app";
 import { cn } from "@/lib/utils/cn";
@@ -43,8 +41,8 @@ const navItems = [
   { id: "overview", label: "Overview", icon: <Eye size={20} /> },
   { id: "orders", label: "Orders & Projects", icon: <FileText size={20} /> },
   { id: "custom-offers", label: "Custom Offers", icon: <Gift size={20} /> },
-  { id: "users", label: "Users", icon: <Users size={20} /> },
-  { id: "courses", label: "Courses", icon: <Book size={20} /> },
+  { id: "users", label: "Users Management", icon: <Users size={20} /> },
+  { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
   {
     id: "job-applications",
