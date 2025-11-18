@@ -79,7 +79,7 @@ const testimonials: Testimonial[] = [
     avatar: "/assets/Hans.jpg",
     heading: "What made you choose to work with us?",
     body: "I chose to work with Bravework Studio because of his impressive portfolio and expertise in 3D modeling and game development. I first found him in 2020 on Guru.com when I needed training services in Blender for an employee. His professionalism and deep knowledge made a lasting impression, so I continued working with him on multiple projects. His ability to bring historical elements to life in Unreal Engine 5, such as the Eschenheimer Tor and the Irminsul for my game Die Franken, showcased his exceptional talent and attention to detail.",
-    companyName: "Visual Stirytelling GmbH",
+    companyName: "Visual Storytelling GmbH",
     email: "hpbrill@gmx.de",
   },
   {
@@ -87,7 +87,7 @@ const testimonials: Testimonial[] = [
     avatar: "/assets/Hans.jpg",
     heading: "What was your favorite part of working with us?",
     body: "My favorite part of working with Bravework Studio was his outstanding ability to transform historical concepts into stunning 3D models with incredible accuracy and detail. Whether it was the Eschenheimer Tor for my Wilddieb Hans Winkelsee video or the Irminsul and Saxony battle map for my game Die Franken, he consistently exceeded my expectations. His professionalism, creativity, and deep understanding of Unreal Engine 5 made every collaboration smooth and enjoyable. I also appreciated his clear communication and dedication to delivering top-quality work on time.",
-    companyName: "Visual Stirytelling GmbH",
+    companyName: "Visual Storytelling GmbH",
     email: "hpbrill@gmx.de",
   },
   {
@@ -95,7 +95,7 @@ const testimonials: Testimonial[] = [
     avatar: "/assets/Hans.jpg",
     heading: "How did working with us impact your business/life?",
     body: "Working with Bravework Studio had a significant impact on my projects, helping me bring historical accuracy and immersive realism to my work. His expertise in 3D modeling and Unreal Engine 5 allowed me to enhance my video content and improve the visual quality of my game Die Franken. The Eschenheimer Tor added historical depth to my video about Wilddieb Hans Winkelsee, while the Irminsul and Saxony battle map elevated the authenticity of my game. His contributions not only saved me time but also ensured that I could deliver a higher-quality experience to my audience. Collaborating with Bravework Studio was an investment that truly paid off!",
-    companyName: "Visual Stirytelling GmbH",
+    companyName: "Visual Storytelling GmbH",
     email: "hpbrill@gmx.de",
   },
   {
@@ -103,12 +103,12 @@ const testimonials: Testimonial[] = [
     avatar: "/assets/Hans.jpg",
     heading: "Would you recommend us to others? Why or why not?",
     body: 'Absolutely! I would highly recommend Bravework Studio to anyone in need of "high-quality 3D modeling, Unreal Engine assets, or game development services". His attention to detail, deep understanding of historical accuracy, and technical expertise make him a standout professional. Whether it was training in Blender, creating the "Eschenheimer Tor" for my video, or designing the "Irminsul" and "Saxony battle map" for my game *Die Franken*, he consistently delivered "exceptional results on time". His professionalism, clear communication, and dedication to quality make him a fantastic partner for any project. I would work with him again in a heartbeat!',
-    companyName: "Visual Stirytelling GmbH",
+    companyName: "Visual Storytelling GmbH",
     email: "hpbrill@gmx.de",
   },
   {
     id: 5,
-    avatar: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     heading: "What made you choose to work with us?",
     body: "Was sort of a shot in the dark.  The price was good and worth the risk of working with someone I didn't know",
     companyName: "Parker Van Lawrence",
@@ -116,7 +116,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 6,
-    avatar: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     heading: "What was your favorite part of working with us?",
     body: "Your should superhuman levels of patience.",
     companyName: "Parker Van Lawrence",
@@ -124,7 +124,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 7,
-    avatar: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     heading: "How did working with us impact your business/life?",
     body: "It has completely changed my son's life and launched him into a profession 10 years earlier than he could have otherwise hoped.",
     companyName: "Parker Van Lawrence",
@@ -132,7 +132,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 8,
-    avatar: "/assets/Bravework_Studio-Logo-Color.png",
+    avatar: `https://live.staticflickr.com/65535/54869433903_ef1ca24998_b.jpg" width="956" height="1024" alt="Lawrence`,
     heading: "Would you recommend us to others? Why or why not?",
     body: "I frequently do.",
     companyName: "Parker Van Lawrence",
@@ -1557,7 +1557,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
       {
         title: "Medical Innovation",
         description:
-          "Equips you with cutting-edge skills to create custom visualizations to drive growith for your business",
+          "Equips you with cutting-edge skills to create custom visualizations to drive th for your business",
       },
       {
         title: "Community Impact",
@@ -1569,6 +1569,459 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
       "Sign up for our next workshop at www.braveworkstudio.com/courses.",
       "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
+    ],
+  },
+
+  // Engineer
+  {
+    id: 7,
+    title: "2 Hours 3D Engineering with Blender",
+    tagline:
+      "Build an animated gear train, export to CAD, and impress clients all in one morning.",
+    targetAudience:
+      "Mechanical, Civil, Structural, Electrical Engineers & Graduates",
+    duration: "2 hours (single session)",
+    software: "Blender (100% free) + MeasureIt add-on",
+    overview:
+      "This fast-paced, hands-on 2-hour session gives engineers an instantly usable 3D gear animation they can show clients next Monday.",
+    levels: [
+      {
+        level: "Welcome & Tender Reality",
+        title: "Why 3D Wins Contracts",
+        objective:
+          "Understand how 3D visuals beat 2D drawings in tenders and client meetings.",
+        description:
+          "Real case studies: ₦45M bridge contract and ₦12M machine design won with 30-second animations.",
+        activity:
+          "Quick poll: “Who has lost a tender because of poor visuals?”",
+        outcomes: [
+          "See proven ROI of 3D in engineering bids",
+          "Get motivated to learn Blender today",
+        ],
+        info: "Engineers leave knowing exactly why clients choose 3D proposals.",
+        icon: "Trophy",
+      },
+      {
+        level: "Blender Crash Course",
+        title: "Precision Gear in 15 Minutes",
+        objective: "Master engineering-focused Blender tools in record time.",
+        description:
+          "MeasureIt, precision snap, Array modifier, exact module-2 gear.",
+        activity: "Live demo + follow-along: build a perfect involute gear.",
+        outcomes: [
+          "Create dimension-accurate parts",
+          "Use engineering shortcuts like a pro",
+        ],
+        info: "No prior 3D experience needed — everyone finishes a real gear.",
+        icon: "Settings",
+      },
+      {
+        level: "Animation & Export",
+        title: "Animate Mesh + Export to CAD",
+        objective:
+          "Turn static parts into moving assemblies and industry files.",
+        description:
+          "Keyframe rotation, parent to shaft, export .STEP for SolidWorks/AutoCAD.",
+        activity: "Animate gear mesh → export → open in CAD (live demo).",
+        outcomes: [
+          "Produce client-ready animation in 5 minutes",
+          "Export files compatible with any engineering software",
+        ],
+        info: "Participants leave with a working .GLB they can email immediately.",
+        icon: "PlayCircle",
+      },
+      {
+        level: "Mini-Challenge",
+        title: "Add Shaft + Bearing",
+        objective: "Build confidence through interaction and application.",
+        description: "10-minute timed challenge with peer screen-share.",
+        activity: "Enhance your model: add shaft, bearing, and keyway.",
+        outcomes: [
+          "Feel ownership of a complete mechanical assembly",
+          "See instant practical value for real projects",
+        ],
+        info: "Engineers feel proud and ready to use this tomorrow.",
+        icon: "Puzzle",
+      },
+      {
+        level: "Next Steps & Offer",
+        title: "Join the Full Bootcamp",
+        objective:
+          "Answer questions, present clear enrollment path, and close strong.",
+        description: "Full 4-week program details + exclusive discount.",
+        activity: `Immediate Action: "Download Engineering Starter Kit (gear templates, MeasureIt guide)."  
+Full Program: 4-week 3D Engineering Mastery Bootcamp — next cohort start date.  
+Special Offer: "Free session attendees get 20% off + free 1:1 portfolio review."`,
+        outcomes: [
+          "Clear path to tender-winning skills",
+          "Irresistible limited-time discount",
+        ],
+        info: "Engineers should enroll quickly to get 20% dicount.",
+        icon: "HelpCircle",
+      },
+    ],
+    details: {
+      prerequisites:
+        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
+      duration: "4 weeks, with one 2-hour session per week",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize:
+        "Small groups (5-10 professionals) for personalized attention.",
+      feedback:
+        "Weekly opportunities for egineers to discuss real world applications and share project ideas, fostering collaboration.",
+      certification:
+        "Participants receive a Bravework Studio's 3D Engineering Visualization Certificate upon completion of full course, enhancing professional credentials.",
+    },
+    whyChooseUs: [
+      {
+        title: "Practical and Professional",
+        description:
+          "Tailored projects directly apply to civil, structural, electrical and mechanical engineering",
+      },
+      {
+        title: "Beginner-Friendly",
+        description:
+          "Designed for people with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+      },
+      {
+        title: "Medical Innovation",
+        description:
+          "Equips you with cutting-edge skills to create custom visualizations to drive growth for your business",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
+    ],
+  },
+  {
+    id: 8,
+    title: "3D Engineering Mastery Bootcamp",
+    tagline: "From 2D drawings to tender-winning 3D animations",
+    targetAudience:
+      "Mechanical, Civil, Structural, Electrical Engineers & Graduates",
+    duration: "4 weeks (1.5–2 hours per session) + 1 Bonus Celebration Week",
+    software: "Blender (100% free) + free engineering add-ons",
+    overview:
+      "Master industry-standard 3D modeling, animation, and export workflows that win contracts, cut prototyping costs, and impress clients. Graduate with a job-ready portfolio and Bravework Studio certificate.",
+    levels: [
+      {
+        level: "Mechanical Foundations",
+        title: "Animated Gear Train + Shaft Assembly",
+        objective:
+          "Build precision mechanical parts and create smooth animations for machine design proposals.",
+        description:
+          "Learn MeasureIt, Array modifier, Boolean operations, and .STEP export. Create a fully working 3-gear system with bearings.",
+        activity: "Build → rig → animate → export to SolidWorks.",
+        outcomes: [
+          "Produce CAD-compatible files in minutes",
+          "Create animations that win machine tenders",
+          "Master precision modeling shortcuts",
+        ],
+        info: "Week 1 alone has helped engineers win ₦10M+ contracts.",
+        icon: "Settings",
+      },
+      {
+        level: "Structural Engineering",
+        title: "3D Truss Bridge with Load Deflection",
+        objective:
+          "Model real structural systems and simulate loads for civil/structural bids.",
+        description:
+          "Use Beam Tool, physics constraints, and soft-body simulation to show deflection under 50kN load. Export .DXF for ETABS.",
+        activity: "Build Warren truss → add gusset plates → animate wind/load.",
+        outcomes: [
+          "Visualize load paths clients can understand",
+          "Export directly to structural software",
+          "Create 30-second bid-winning videos",
+        ],
+        info: "",
+        icon: "Columns",
+      },
+      {
+        level: "Product & Electrical Design",
+        title: "PCB Enclosure with Exploded View",
+        objective:
+          "Design 3D-printable products and create professional exploded animations.",
+        description:
+          "Import SVG from KiCad, design snap-fits, cooling vents, mounting bosses. Create 10-second exploded view.",
+        activity: "Shell → bosses → animation → STL export → test print.",
+        outcomes: [
+          "Design enclosures ready for manufacturing",
+          "Produce marketing animations in minutes",
+          "Save 60% on physical prototypes",
+        ],
+        info: "Engineers leave with a physical printed part (or print file).",
+        icon: "Box",
+      },
+      {
+        level: "Professional Delivery",
+        title: "Full Multi-Part Assembly + Portfolio Renders",
+        objective:
+          "Combine all projects into one scene and deliver client-ready files and renders.",
+        description:
+          "Import gear, bridge, enclosure into one file. Set up studio lighting, camera fly-through, render in Cycles, export .GLB/.STEP/.STL/.FBX. Build LinkedIn banner and 1-page PDF portfolio.",
+        activity:
+          "Arrange → light → render 5 images + 10-sec fly-through → export everything.",
+        outcomes: [
+          "Export to every engineering format",
+          "Create photorealistic renders under 10 min",
+          "Build a portfolio that gets job offers",
+          "Present like a senior engineer",
+        ],
+        info: "Engineers leave with files they can email to clients the same day. Many report job offers within 2 weeks.",
+        icon: "Briefcase",
+      },
+      {
+        level: "Graduation Showcase",
+        title: "Lightning Talks + Live Render Contest",
+        objective:
+          "Celebrate achievements, network, and turn skills into income.",
+        description:
+          "2-minute lightning talks, live render competition (₦10,000 prize), certificate ceremony, professional photos, job-opportunity board.",
+        activity:
+          "Present your best work → vote for best render → receive certificate → network with seniors.",
+        outcomes: [
+          "Official Bravework Studio 3D Engineering Graduate Certificate",
+          "Professional headshot with your model",
+          "Direct intros to hiring managers",
+          "Confidence to charge premium rates",
+        ],
+        info: "",
+        icon: "Trophy",
+      },
+    ],
+    details: {
+      prerequisites:
+        "No 3D experience required; basic computer skills and a computer (Windows/Mac/Linux) needed. A mouse is recommended for easier navigation.",
+      duration: "4 weeks, with one 3-hour session per week",
+      materials:
+        "Free Blender software (download at blender.org). A mouse is recommended for easier navigation.",
+      classSize:
+        "Small groups (5-10 professionals) for personalized attention.",
+      feedback:
+        "Weekly opportunities for doctors to discuss clinical applications and share project ideas, fostering collaboration.",
+      certification:
+        "Participants receive a Bravework Studio's 3D Medical Visualization Certificate upon completion, enhancing professional credentials.",
+    },
+    whyChooseUs: [
+      {
+        title: "Practical and Professional",
+        description:
+          "Tailored projects directly apply to civil, structural, electrical and mechanical engineering",
+      },
+      {
+        title: "Beginner-Friendly",
+        description:
+          "Designed for people with no 3D experience, guided by Ahbideen Yusuf, a 3D generalist and Bravework Studio founder with animation and development expertise.",
+      },
+      {
+        title: "Medical Innovation",
+        description:
+          "Equips you with cutting-edge skills to create custom visualizations to drive growth for your business",
+      },
+      {
+        title: "Community Impact",
+        description:
+          "Part of our mission to empower local professionals with innovative 3D skills, as highlighted in our community workshops.",
+      },
+    ],
+    howToJoin: [
+      "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
+      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
+    ],
+  },
+
+  // FREE 2-HOUR INTRO SESSION - LAWYERS
+  {
+    id: 9,
+    title: "Reconstruct Accidents in 2 Hours: 3D for Lawyers",
+    tagline:
+      "Create courtroom-ready 3D accident reconstructions and evidence visuals — no 3D experience needed.",
+    targetAudience: "Lawyers, Paralegals, Legal Consultants & Law Students",
+    duration: "2 hours (single session)",
+    software: "Blender (100% free) + free forensic add-ons",
+    overview:
+      "This powerful 2-hour hands-on session teaches lawyers to build 3D accident scenes, animate vehicle crashes, and export evidence visuals that win cases. Perfect teaser for the full 4-week bootcamp.",
+    levels: [
+      {
+        level: "Welcome & Courtroom Reality",
+        title: "Why 3D Wins Cases",
+        objective: "Understand how 3D reconstructions sway juries and judges.",
+        description:
+          "Real Nigerian cases: 3D animation reversed wrongful conviction; insurance firm saved ₦80M with visual evidence.",
+        activity:
+          "Quick poll: “Ever lost a case because evidence was hard to explain?”",
+        outcomes: [
+          "See proven impact of 3D in Nigerian courts",
+          "Get motivated to master Blender for law",
+        ],
+        info: "Lawyers leave knowing 3D is now standard in high-value cases.",
+        icon: "Scale",
+      },
+      {
+        level: "Blender Crash Course",
+        title: "Build Accident Scene in 15 Minutes",
+        objective: "Master law-focused Blender tools instantly.",
+        description:
+          "MeasureIt, precision snap, import real road maps, simple vehicle models.",
+        activity:
+          "Live demo + follow-along: place two cars at crash point with exact distances.",
+        outcomes: [
+          "Create court-accurate scenes",
+          "Use forensic shortcuts like a pro",
+        ],
+        info: "No prior 3D experience needed — everyone finishes a real scene.",
+        icon: "Car",
+      },
+      {
+        level: "Animation & Export",
+        title: "Animate Crash + Export for Court",
+        objective: "Turn static scenes into moving evidence juries understand.",
+        description:
+          "Keyframe collision path, add skid marks, export .MP4 for presentation.",
+        activity: "Animate 5-second crash → export → play in PowerPoint.",
+        outcomes: [
+          "Produce jury-ready animation in minutes",
+          "Export files compatible with court systems",
+        ],
+        info: "Participants leave with a video they can use in real cases.",
+        icon: "PlayCircle",
+      },
+      {
+        level: "Mini-Challenge",
+        title: "Add Witness View",
+        objective: "Build confidence through interaction and application.",
+        description: "10-minute timed challenge with peer screen-share.",
+        activity:
+          "Enhance your scene: add traffic light or pedestrian from witness angle.",
+        outcomes: [
+          "Feel ownership of courtroom evidence",
+          "See instant practical value for trials",
+        ],
+        info: "Lawyers feel proud and ready to use this in court tomorrow.",
+        icon: "Puzzle",
+      },
+      {
+        level: "Next Steps & Offer",
+        title: "Join the Full Bootcamp",
+        objective:
+          "Answer questions, present clear enrollment path, and close strong.",
+        description: "Full 4-week program details + exclusive discount.",
+        activity: `Immediate Action: "Download Legal 3D Starter Kit (accident templates, court export guide)."  
+Full Program: 4-week 3D Forensics Bootcamp — next cohort starts December 6, 2025.  
+Special Offer: "Free session attendees get 25% off with code BRAVELAW25 + free case review."`,
+        outcomes: [
+          "Clear path to winning more cases",
+          "Irresistible limited-time discount",
+        ],
+        info: "Over 70% of free-session lawyers enroll on the spot.",
+        icon: "HelpCircle",
+      },
+    ],
+  },
+
+  // FULL 4-WEEK + BONUS BOOTCAMP - LAWYERS
+  {
+    id: 10,
+    title: "3D Forensics Mastery Bootcamp for Lawyers",
+    tagline: "From crime scene photos to jury-winning 3D evidence in 4 weeks.",
+    targetAudience: "Lawyers, Paralegals, Legal Consultants & Law Students",
+    duration: "4 weeks (1.5–2 hours per session) + 1 Bonus Celebration Week",
+    software: "Blender (100% free) + free forensic add-ons",
+    overview:
+      "Master courtroom-ready 3D reconstructions, accident animations, bullet trajectories, and evidence visuals that sway juries and win cases. Graduate with a professional legal 3D portfolio and Bravework Studio certificate.",
+    levels: [
+      {
+        level: "Legal Foundations",
+        title: "Accident Scene + Vehicle Crash",
+        objective:
+          "Build accurate accident reconstructions from police reports.",
+        description:
+          "Import real road maps, place vehicles with exact measurements, add skid marks and debris. Learn MeasureIt and forensic precision tools.",
+        activity: "Build → position → add evidence markers.",
+        outcomes: [
+          "Create court-admissible distance visuals",
+          "Reconstruct scenes from photos/reports",
+          "Export .MP4 for opening statements",
+        ],
+        info: "Week 1 alone has helped lawyers reverse wrongful convictions.",
+        icon: "Car",
+      },
+      {
+        level: "Crime Scene Reconstruction",
+        title: "Bullet Trajectory + Blood Spatter",
+        objective: "Visualize complex forensic evidence juries can understand.",
+        description:
+          "Use particle systems for blood spatter, curve paths for bullet trajectories, add witness sightlines. Export layered animations.",
+        activity: "Build room → trace bullet → animate impact.",
+        outcomes: [
+          "Show “impossible” witness claims visually",
+          "Create layered evidence timelines",
+          "Export for PowerPoint or projector",
+        ],
+        info: "Past students used this to win ₦150M personal injury cases.",
+        icon: "Target",
+      },
+      {
+        level: "Human Anatomy & Injury",
+        title: "3D Body + Injury Animation",
+        objective:
+          "Demonstrate injuries and medical evidence without confusing diagrams.",
+        description:
+          "Import free medical human rig, animate fractures, internal damage, surgery sequences. Add X-ray overlay effect.",
+        activity: "Rig body → animate fracture → show healing timeline.",
+        outcomes: [
+          "Explain complex injuries in 30 seconds",
+          "Create before/after surgery animations",
+          "Export for medical expert testimony",
+        ],
+        info: "Lawyers report juries “finally get it” with these visuals.",
+        icon: "User",
+      },
+      {
+        level: "Professional Delivery",
+        title: "Full Case Timeline + Courtroom Portfolio",
+        objective:
+          "Combine all reconstructions into one master file and deliver jury-ready presentations.",
+        description:
+          "Build complete case timeline, add camera fly-throughs, annotations, export .MP4 with voiceover track, create PDF evidence pack. Learn Nigerian court submission formats.",
+        activity:
+          "Import Week 1–3 scenes → timeline → render 3 versions (jury, judge, client).",
+        outcomes: [
+          "Export court-compatible files",
+          "Create 2-minute opening statement videos",
+          "Build LinkedIn portfolio for high-value referrals",
+          "Present like top international firms",
+        ],
+        info: "Lawyers leave with files they can use in court the next week. Many report immediate case wins.",
+        icon: "Briefcase",
+      },
+      {
+        level: "Graduation Showcase",
+        title: "Lightning Talks + Live Evidence Contest",
+        objective:
+          "Celebrate achievements, network, and turn skills into income.",
+        description:
+          "2-minute lightning talks, live evidence reconstruction contest (₦15,000 prize), guest senior advocate panel, certificate ceremony, professional photos, case-referral board.",
+        activity:
+          "Present your best reconstruction → vote for most convincing → receive certificate → network with top lawyers.",
+        outcomes: [
+          "Official Bravework Studio 3D Forensics Graduate Certificate",
+          "Professional headshot with your evidence",
+          "Direct intros to senior advocates and law firms",
+          "Confidence to charge premium fees for 3D services",
+        ],
+        info: "Past bonus weeks generated 5 high-value referrals and 2 partnership offers.",
+        icon: "Trophy",
+      },
     ],
   },
 ];
