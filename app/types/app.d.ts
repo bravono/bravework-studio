@@ -192,8 +192,8 @@ interface Course {
   }>;
   sessionGroup: SessionOption[];
   // Join with instructor table
-  firstName: string;
-  lastName: string;
+  
+  instructor: string;
   bio: string;
 }
 

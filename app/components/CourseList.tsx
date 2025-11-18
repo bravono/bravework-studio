@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
+import { ShowMore } from "@re-dev/react-truncate";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import {
   Paintbrush,
   Laptop,
@@ -113,6 +115,7 @@ export default function coursesPage({ page }) {
                 <div
                   key={index}
                   className="bg-white w-full max-w-lg mx-auto rounded-2xl shadow-lg overflow-hidden flex flex-col transition-transform duration-500 hover:scale-105"
+                  // onClick={ () => router.push("/courses/" + course.id)}
                 >
                   <div className="relative">
                     <img
@@ -133,8 +136,14 @@ export default function coursesPage({ page }) {
                         {course.title}
                       </h3>
                     </div>
-                    <p className="text-gray-600 mb-4">{course.description}</p>
-                    <div className="flex-grow">
+                    <ShowMore
+                      className="text-gray-600"
+                      lines={4}
+                      more="Show more"
+                    >
+                      <div>{course.description}</div>
+                    </ShowMore>
+                    <div className="flex-grow mt-4">
                       <ul className="space-y-2 text-sm text-gray-600">
                         <li className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-primary" />
@@ -143,13 +152,6 @@ export default function coursesPage({ page }) {
                             {course.isActive
                               ? new Date(course.startDate).toLocaleDateString()
                               : "Coming Soon"}
-                          </span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-primary" />
-                          <span>
-                            <strong>Instructor:</strong>{" "}
-                            {`${course.firstName} ${course.lastName}`}
                           </span>
                         </li>
                         <li className="flex items-center gap-2">

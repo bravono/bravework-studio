@@ -12,6 +12,7 @@
   "dependencies": {
     "@paystack/inline-js": "^2.22.6",
     "@prisma/client": "^6.7.0",
+    "@re-dev/react-truncate": "^0.5.2",
     "@react-three/drei": "^9.97.0",
     "@react-three/fiber": "^8.15.16",
     "@tabler/icons-react": "^3.34.1",

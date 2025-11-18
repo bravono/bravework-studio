@@ -1,7 +1,7 @@
 // app/api/admin/custom-offers/[courseId]/route.ts
 import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
-import { queryDatabase } from "@/lib/db";
+import { queryDatabase, withTransaction } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -114,13 +114,13 @@ export async function GET(
 // PATCH (Update Course and Sessions)
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { courseId: string } }
 ) {
   try {
-    // const guardResponse = await verifyAdmin(request);
-    // if (guardResponse) return guardResponse;
-
-    const courseId = params.id;
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse;
+    console.log("Params", params);
+    const courseId = params.courseId;
     const body = await request.json();
 
     const {
@@ -139,6 +139,7 @@ export async function PATCH(
       sessions, // Array of session groups
     } = body;
 
+    console.log("Course ID", courseId);
     // Input Validation (Same as POST but checks for required fields only for updates)
     if (!courseId || isNaN(parseInt(courseId))) {
       return NextResponse.json({ error: "Invalid Course ID" }, { status: 400 });
@@ -171,29 +172,10 @@ export async function PATCH(
     }
 
     const instructorName = instructor.split(" ");
+    console.log("Instructors Name", instructorName);
     if (instructorName.length < 2) {
       throw new Error("Instructor name must include first and last name.");
     }
-
-    // Placeholder for database transaction logic - replace with your actual implementation
-    const withTransaction = async (callback: (client: any) => Promise<any>) => {
-      const client = {
-        query: async (sql: string, params: any[]) => {
-          // Mock database responses for demonstration
-          if (sql.includes("SELECT instructor_id")) {
-            return { rows: [{ instructor_id: 101 }] };
-          }
-          if (sql.includes("SELECT category_id")) {
-            return { rows: [{ category_id: 202 }] };
-          }
-          if (sql.includes("UPDATE courses")) {
-            return { rowCount: 1 };
-          }
-          return { rows: [] };
-        },
-      };
-      return await callback(client);
-    };
 
     return await withTransaction(async (client) => {
       // 1. Find Instructor and Category IDs (required for update)
@@ -281,13 +263,16 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { courseId: string } }
+) {
   try {
     const guardResponse = await verifyAdmin(request);
     if (guardResponse) return guardResponse;
 
-    const { searchParams } = new URL(request.url);
-    const courseId = searchParams.get("id");
+    const courseId = params.courseId;
+    console.log("Course to delete", courseId);
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
@@ -297,8 +282,8 @@ export async function DELETE(request: Request) {
 
     const queryText = `
       DELETE FROM courses
-      WHERE courseId = $1
-      RETURNING courseId;
+      WHERE course_id = $1
+      RETURNING course_id;
     `;
 
     const result = await queryDatabase(queryText, [courseId]);

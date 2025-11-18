@@ -171,7 +171,7 @@ export default function AdminCourseSection() {
                     {course.title}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {`${course.firstName} ${course.lastName}`}
+                    {course.instructor}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {course.isActive ?? "-"}

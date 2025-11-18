@@ -121,8 +121,8 @@ export async function GET(request: Request) {
 // POST remains largely unchanged as its logic correctly flattens the nested input
 export async function POST(request: Request) {
   try {
-    // const guardResponse = await verifyAdmin(request);
-    // if (guardResponse) return guardResponse;
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse;
 
     const body = await request.json();
     console.log("Incoming Course Body", body);
@@ -169,7 +169,6 @@ export async function POST(request: Request) {
           (option: any) =>
             !option.duration ||
             isNaN(parseInt(option.duration)) || // Ensure duration is a valid number
-            !option.link ||
             !option.time ||
             !option.label ||
             !option.optionNumber
@@ -193,7 +192,6 @@ export async function POST(request: Request) {
 
     return await withTransaction(async (client) => {
       console.log("Now in Transaction");
-      // 1. Find Instructor and Category IDs
       const instructorResult = await client.query(
         `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
         [instructorName[0], instructorName[1]]

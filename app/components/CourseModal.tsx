@@ -202,7 +202,9 @@ export default function CourseModal({
 
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
-  const [price, setPrice] = useState<number>(existingCourse?.price || 0);
+  const [price, setPrice] = useState<number>(
+    existingCourse?.price / KOBO_PER_NAIRA || 0
+  );
   const [description, setDescription] = useState<string>(
     existingCourse?.description || ""
   );
@@ -213,7 +215,7 @@ export default function CourseModal({
 
   const initialInstructorName =
     userRole === "admin"
-      ? (existingCourse?.firstName || "") + (existingCourse?.lastName || "")
+      ? existingCourse?.instructor
       : currentInstructorName || ""; // Use the logged-in instructor's name for instructor role
 
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
@@ -233,7 +235,7 @@ export default function CourseModal({
     existingCourse?.level || "Beginner"
   );
   const [language, setLanguage] = useState<string>(
-    existingCourse?.language || ""
+    existingCourse?.language || "English"
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -329,7 +331,7 @@ export default function CourseModal({
     if (existingCourse) {
       setTitle(existingCourse.title);
       setPrice(existingCourse.price);
-      // ... other existing state updates
+      setInstructor(existingCourse.instructor);
     }
   }, [existingCourse]);
 
@@ -458,7 +460,7 @@ export default function CourseModal({
             </div>
             <div>
               <label htmlFor="coursePrice" className={labelStyle}>
-                Price
+                Price(NGN)
               </label>
               <input
                 type="number"
