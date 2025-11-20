@@ -10,12 +10,18 @@ import {
 } from "@/app/types/app";
 import Modal from "@/app/components/Modal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import { Trash2, PlusCircle, FileUpIcon } from "lucide-react";
+import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
+
+// Helper to generate a unique Jitsi link
+const generateJitsiLink = () => {
+  const uniqueId = Math.random().toString(36).substring(2, 10);
+  return `https://meet.jit.si/BraveWorkStudio-${uniqueId}`;
+};
 
 // Helper to create an option
 const createDefaultOption = (optionNumber: number): SessionOption => ({
   optionNumber,
-  link: "",
+  link: generateJitsiLink(),
   datetime: "",
   label: optionNumber === 1 ? "Morning" : "Evening",
   duration: 60,
@@ -45,6 +51,35 @@ const formatDateTimeLocal = (isoString: string | undefined): string => {
     console.error("Date formatting error:", e);
     return "";
   }
+};
+
+// Helper to generate Google Calendar Link
+const generateGoogleCalendarLink = (
+  title: string,
+  datetime: string,
+  duration: number,
+  details: string,
+  location: string
+) => {
+  if (!datetime) return "";
+
+  const startDate = new Date(datetime);
+  const endDate = new Date(startDate.getTime() + duration * 60000);
+
+  const formatDate = (date: Date) =>
+    date.toISOString().replace(/-|:|\.\d+/g, "");
+
+  const startStr = formatDate(startDate);
+  const endStr = formatDate(endDate);
+
+  const url = new URL("https://calendar.google.com/calendar/render");
+  url.searchParams.append("action", "TEMPLATE");
+  url.searchParams.append("text", title);
+  url.searchParams.append("dates", `${startStr}/${endStr}`);
+  url.searchParams.append("details", details);
+  url.searchParams.append("location", location);
+
+  return url.toString();
 };
 
 const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
@@ -171,6 +206,22 @@ const SessionForm = ({
             required
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
           />
+          {option.datetime && (
+            <a
+              href={generateGoogleCalendarLink(
+                `Course Session: ${option.label}`,
+                option.datetime,
+                option.duration,
+                `Join the session here: ${option.link}`,
+                option.link
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+            >
+              <Calendar className="w-3 h-3 mr-1" /> Add to Google Calendar
+            </a>
+          )}
         </div>
 
         {/* Link Input */}
@@ -181,21 +232,38 @@ const SessionForm = ({
           >
             Session Link (URL)
           </label>
-          <input
-            type="url"
-            id={`session-${session.id}-opt-${option.optionNumber}-link`}
-            value={option.link}
-            onChange={(e) =>
-              handleOptionChange(
-                session.id,
-                option.optionNumber,
-                "link",
-                e.target.value
-              )
-            }
-            placeholder="https://zoom.us/j/..."
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
-          />
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="url"
+              id={`session-${session.id}-opt-${option.optionNumber}-link`}
+              value={option.link}
+              onChange={(e) =>
+                handleOptionChange(
+                  session.id,
+                  option.optionNumber,
+                  "link",
+                  e.target.value
+                )
+              }
+              placeholder="https://meet.jit.si/..."
+              className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+            <button
+              type="button"
+              onClick={() =>
+                handleOptionChange(
+                  session.id,
+                  option.optionNumber,
+                  "link",
+                  generateJitsiLink()
+                )
+              }
+              className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600"
+              title="Generate Jitsi Meeting Link"
+            >
+              <Video className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     ))}
