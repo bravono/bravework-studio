@@ -213,6 +213,8 @@ interface SessionFormProps {
     field: keyof SessionOption,
     value: any
   ) => void;
+  addOption: (sessionId: number) => void;
+  removeOption: (sessionId: number, optionNumber: number) => void;
 }
 
 interface SessionOption {

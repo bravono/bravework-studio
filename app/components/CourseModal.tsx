@@ -21,10 +21,10 @@ const createDefaultOption = (optionNumber: number): SessionOption => ({
   duration: 60,
 });
 
-// Helper to create a session with two options and a unique ID
+// Helper to create a session with one default option
 const createInitialSession = (): CourseSession => ({
   id: Date.now() + Math.random(), // Unique ID for key
-  options: [createDefaultOption(1), createDefaultOption(2)],
+  options: [createDefaultOption(1)],
 });
 
 // Helper to correctly format ISO string for datetime-local input (YYYY-MM-DDTHH:MM)
@@ -56,6 +56,8 @@ const SessionForm = ({
   sessionsLength,
   removeSession,
   handleOptionChange,
+  addOption,
+  removeOption,
 }: SessionFormProps) => (
   <div
     key={session.id}
@@ -75,9 +77,20 @@ const SessionForm = ({
 
     {session.options.map((option, optIndex) => (
       <div key={optIndex} className="p-3 border rounded-md bg-white shadow-sm">
-        <h5 className="text-sm font-semibold text-gray-600 mb-2">
-          Option {option.optionNumber}
-        </h5>
+        <div className="flex justify-between items-center mb-2">
+          <h5 className="text-sm font-semibold text-gray-600">
+            Option {option.optionNumber}
+          </h5>
+          {session.options.length > 1 && (
+            <button
+              type="button"
+              onClick={() => removeOption(session.id, option.optionNumber)}
+              className="text-red-500 hover:text-red-700 text-xs flex items-center"
+            >
+              <Trash2 className="w-4 h-4 mr-1" /> Remove Option
+            </button>
+          )}
+        </div>
 
         {/* Label Input (FIXED: Moved component definition out) */}
         <div className="mb-3">
@@ -146,7 +159,7 @@ const SessionForm = ({
           <input
             type="datetime-local" // Changed to datetime-local
             id={`session-${session.id}-opt-${option.optionNumber}-time`}
-            value={option.datetime}
+            value={formatDateTimeLocal(option.datetime)}
             onChange={(e) =>
               handleOptionChange(
                 session.id,
@@ -186,6 +199,15 @@ const SessionForm = ({
         </div>
       </div>
     ))}
+    {session.options.length < 2 && (
+      <button
+        type="button"
+        onClick={() => addOption(session.id)}
+        className="mt-2 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+      >
+        <PlusCircle className="w-4 h-4 mr-1" /> Add Option
+      </button>
+    )}
   </div>
 );
 
@@ -263,7 +285,9 @@ export default function CourseModal({
     existingCourse?.sessions && existingCourse.sessions.length > 0
       ? existingCourse.sessions.map((s, index) => ({
           id: index + 1, // Simple ID for existing
-          options: s.options,
+          options: s.options.map((opt: any) => ({
+            ...opt,
+          })),
         }))
       : [createInitialSession()]
   );
@@ -308,6 +332,44 @@ export default function CourseModal({
     );
   };
 
+  const addOptionToSession = (sessionId: number) => {
+    setSessions((prevSessions) =>
+      prevSessions.map((session) => {
+        if (session.id === sessionId && session.options.length < 2) {
+          const existingNumbers = session.options.map((o) => o.optionNumber);
+          // If option 1 exists, add option 2. If option 2 exists, add option 1.
+          // If neither (shouldn't happen if length > 0), add 1.
+          const nextNumber = !existingNumbers.includes(1) ? 1 : 2;
+          return {
+            ...session,
+            options: [...session.options, createDefaultOption(nextNumber)],
+          };
+        }
+        return session;
+      })
+    );
+  };
+
+  const removeOptionFromSession = (sessionId: number, optionNumber: number) => {
+    setSessions((prevSessions) =>
+      prevSessions.map((session) => {
+        if (session.id === sessionId) {
+          if (session.options.length <= 1) {
+            toast.error("A session must have at least one option.");
+            return session;
+          }
+          return {
+            ...session,
+            options: session.options.filter(
+              (o) => o.optionNumber !== optionNumber
+            ),
+          };
+        }
+        return session;
+      })
+    );
+  };
+
   // NEW: useEffect for fetching Instructors and Categories from backend
   useEffect(() => {
     const fetchData = async () => {
@@ -332,6 +394,27 @@ export default function CourseModal({
       setTitle(existingCourse.title);
       setPrice(existingCourse.price);
       setInstructor(existingCourse.instructor);
+      setIsActive(existingCourse.isActive);
+      setMaxStudents(existingCourse.maxStudents);
+      setThumbnailUrl(existingCourse.thumbnailUrl);
+      setCategory(existingCourse.category);
+      setLevel(existingCourse.level);
+      setLanguage(existingCourse.language);
+      setDescription(existingCourse.description);
+      setStartDate(existingCourse.startDate);
+      setEndDate(existingCourse.endDate);
+
+      if (existingCourse.sessions && existingCourse.sessions.length > 0) {
+        setSessions(
+          existingCourse.sessions.map((s, index) => ({
+            id: index + 1,
+            options: s.options.map((opt: any) => ({
+              ...opt,
+              datetime: opt.datetime || opt.time || "",
+            })),
+          }))
+        );
+      }
     }
   }, [existingCourse]);
 
@@ -677,6 +760,8 @@ export default function CourseModal({
                     sessionsLength={sessions.length}
                     removeSession={removeSession}
                     handleOptionChange={handleSessionOptionChange}
+                    addOption={addOptionToSession}
+                    removeOption={removeOptionFromSession}
                   />
                 ))}
               </div>

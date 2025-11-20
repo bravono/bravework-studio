@@ -16,21 +16,31 @@ function groupSessionOptions(sessionRows: any[]) {
   let sessionGroup: any[] = [];
 
   for (const row of sessionRows) {
-    sessionGroup.push({
-      optionNumber: row.sessionNumber,
-      link: row.link,
-      time: row.time,
-      label: row.label,
-      duration: row.duration,
-    });
-
-    if (sessionGroup.length === 2) {
+    // If we encounter a new "Option 1" and we already have a group building,
+    // it means the previous session is done.
+    if (row.sessionNumber === 1 && sessionGroup.length > 0) {
       sessions.push({
         id: sessions.length + 1,
         options: sessionGroup,
       });
       sessionGroup = [];
     }
+
+    sessionGroup.push({
+      optionNumber: row.sessionNumber,
+      link: row.link,
+      datetime: row.datetime, // Fixed: Map from SQL alias 'datetime'
+      label: row.label,
+      duration: row.duration,
+    });
+  }
+
+  // Push the last group if it exists
+  if (sessionGroup.length > 0) {
+    sessions.push({
+      id: sessions.length + 1,
+      options: sessionGroup,
+    });
   }
 
   return sessions;
@@ -149,7 +159,8 @@ export async function PATCH(
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
-        sessionGroup.options.length !== 2 ||
+        sessionGroup.options.length < 1 || // Allow 1 or more options
+        sessionGroup.options.length > 2 || // Max 2 options
         sessionGroup.options.some(
           (option: any) =>
             !option.duration ||
@@ -165,7 +176,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error:
-            "Each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
+            "Each session group must contain 1 or 2 options, each with valid duration, link, time, and label.",
         },
         { status: 400 }
       );
