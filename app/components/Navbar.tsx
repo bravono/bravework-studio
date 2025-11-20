@@ -103,6 +103,16 @@ export default function Navbar() {
               Courses
             </Link>
             <Link
+              href="/rentals"
+              className={`${commonLinkClasses} ${
+                pathname === "/rentals"
+                  ? activeLinkClasses
+                  : inactiveLinkClasses
+              }`}
+            >
+              Rentals
+            </Link>
+            <Link
               href="/about"
               className={`${commonLinkClasses} ${
                 pathname === "/about" ? activeLinkClasses : inactiveLinkClasses
@@ -261,6 +271,17 @@ export default function Navbar() {
             onClick={() => setIsMenuOpen(false)}
           >
             Courses
+          </Link>
+          <Link
+            href="/rentals"
+            className={`${commonLinkClasses} ${
+              pathname === "/rentals"
+                ? "bg-white text-green-700 hover:bg-green-100"
+                : "text-white hover:bg-green-600"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Rentals
           </Link>
           <Link
             href="/about"
