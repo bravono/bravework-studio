@@ -1184,12 +1184,12 @@ function Page() {
                         <p className="text-sm text-gray-500 mt-1">
                           Share your unique referral link to earn rewards!
                         </p>
-                        <Link
-                          href="/referrals"
+                        <button
+                        onClick={() => setActiveTab("referrals")}
                           className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Manage Referrals
-                        </Link>
+                        </button>
                       </div>
                       <hr className="border-gray-200" />
                       <div>
@@ -1276,6 +1276,8 @@ function Page() {
         return <UserNotificationsSection />;
       case "custom-offers":
         return <UserCustomOffersSection />;
+      case "referrals":
+        return <UserReferralsSection />;
       case "courses":
     }
   };
