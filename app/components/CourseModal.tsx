@@ -93,6 +93,7 @@ const SessionForm = ({
   handleOptionChange,
   addOption,
   removeOption,
+  courseTitle
 }: SessionFormProps) => (
   <div
     key={session.id}
@@ -209,7 +210,7 @@ const SessionForm = ({
           {option.datetime && (
             <a
               href={generateGoogleCalendarLink(
-                `Course Session: ${option.label}`,
+                `${courseTitle}:  ${option.label} Session`,
                 option.datetime,
                 option.duration,
                 `Join the session here: ${option.link}`,
@@ -293,7 +294,7 @@ export default function CourseModal({
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
   const [price, setPrice] = useState<number>(
-    existingCourse?.price / KOBO_PER_NAIRA || 0
+    existingCourse?.price || 0
   );
   const [description, setDescription] = useState<string>(
     existingCourse?.description || ""
@@ -460,7 +461,7 @@ export default function CourseModal({
   useEffect(() => {
     if (existingCourse) {
       setTitle(existingCourse.title);
-      setPrice(existingCourse.price);
+      setPrice(existingCourse.price / KOBO_PER_NAIRA);
       setInstructor(existingCourse.instructor);
       setIsActive(existingCourse.isActive);
       setMaxStudents(existingCourse.maxStudents);
@@ -830,6 +831,7 @@ export default function CourseModal({
                     handleOptionChange={handleSessionOptionChange}
                     addOption={addOptionToSession}
                     removeOption={removeOptionFromSession}
+                    courseTitle={title}
                   />
                 ))}
               </div>
