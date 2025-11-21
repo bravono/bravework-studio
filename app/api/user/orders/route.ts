@@ -4,6 +4,7 @@ import { createTrackingId } from "../../../../lib/utils/tracking";
 import { sendOrderReceivedEmail } from "lib/mailer";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
+import { createZohoLead } from "@/lib/zoho";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
@@ -188,6 +189,20 @@ export async function POST(request: Request) {
         await sendOrderReceivedEmail(userEmail, clientName, newOrderId);
       } catch (error) {
         console.log("Couldn't send order confirmation email");
+      }
+
+      // Integrate Zoho CRM
+      try {
+        const leadData = {
+          Last_Name: clientName || "Unknown",
+          Email: userEmail,
+          Description: `Order ID: ${newOrderId}\nService: ${serviceType}\nBudget: ${budget}\nTimeline: ${timeline}\nDescription: ${projectDescription}`,
+          Lead_Source: "Service Order",
+        };
+        await createZohoLead(leadData);
+        console.log(`Zoho Lead created for order ${newOrderId}`);
+      } catch (zohoError) {
+        console.error("Failed to create Zoho Lead:", zohoError);
       }
 
       return NextResponse.json(newOrderId, { status: 201 });
