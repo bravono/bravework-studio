@@ -58,6 +58,7 @@ import UserCustomOffersSection from "./UserCustomOfferSection";
 import UserInvoicesSection from "./UserInvoicesSection";
 import UserNotificationsSection from "./UserNotificationsSection";
 import UserOrdersSection from "./UserOrdersSection";
+import UserReferralsSection from "./UserReferralsSection";
 
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
@@ -1239,6 +1240,14 @@ function Page() {
                             {notificationCount}
                           </span>
                         )}
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab("referrals")}
+                        className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
+                      >
+                        <HeartHandshake size={20} />
+                        Referrals
                       </button>
 
                       {isModalOpen && (

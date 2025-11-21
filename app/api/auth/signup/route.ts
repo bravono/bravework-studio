@@ -16,6 +16,7 @@ const baseSignupSchema = Joi.object({
   password: Joi.string().min(7).max(100).required(),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
+  referralCode: Joi.string().allow("").optional(),
 });
 
 const enrollmentSchema = Joi.object({
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
       phone,
       preferredSessionTime,
       courseId,
+      referralCode,
     } = body;
 
     // Use a database transaction to ensure data integrity
@@ -125,6 +127,38 @@ export async function POST(req: Request) {
         );
 
         userId = insertUserResult.rows[0].user_id;
+
+        // Handle Referral
+        if (referralCode) {
+          const referrerResult = await client.query(
+            "SELECT user_id FROM users WHERE referral_code = $1",
+            [referralCode]
+          );
+          if (referrerResult.rows.length > 0) {
+            const referrerId = referrerResult.rows[0].user_id;
+            await client.query(
+              "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
+              [referrerId, userId]
+            );
+            console.log(`User ${userId} referred by ${referrerId}`);
+          }
+        }
+
+        // Handle Referral
+        if (referralCode) {
+          const referrerResult = await client.query(
+            "SELECT user_id FROM users WHERE referral_code = $1",
+            [referralCode]
+          );
+          if (referrerResult.rows.length > 0) {
+            const referrerId = referrerResult.rows[0].user_id;
+            await client.query(
+              "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
+              [referrerId, userId]
+            );
+            console.log(`User ${userId} referred by ${referrerId}`);
+          }
+        }
         console.log("New user created with ID:", userId);
 
         // Assign 'user' role

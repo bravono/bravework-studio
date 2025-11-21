@@ -1,575 +1,469 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  Suspense,
-  useCallback,
-  useMemo,
-} from "react";
-import { useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
-// Assuming these utility functions and hooks exist
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { cn } from "@/lib/utils/cn";
-import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+import PaystackPop from "@paystack/inline-js";
+import { toast } from "react-toastify";
+import {
+  CreditCard,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  CheckCircle,
+  Wallet,
+} from "lucide-react";
 import useExchangeRates from "@/hooks/useExchangeRates";
-import Loader from "@/app/components/Loader";
 
-// Define the amount of kobo in a Naira
-const KOBO_PER_NAIRA = 100;
+interface Course {
+  id: number;
+  title: string;
+  price: number; // in Kobo
+  description: string;
+  startDate: string;
+  endDate: string;
+}
 
-// A separate component to handle useSearchParams due to Next.js constraints
-function PaymentContent() {
+interface CustomOffer {
+  id: number;
+  description: string;
+  amount: number; // in Kobo
+  status: string;
+  projectDurationDays: number;
+}
+
+export default function PaymentPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+  const {
+    convertAmount,
+    loading: ratesLoading,
+  } = useExchangeRates();
+
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
-  const payingOfferBalance = searchParams.get("balance") || "";
-  const { data: session } = useSession();
 
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
-  const [PaystackPop, setPaystackPop] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orderData, setOrderData] = useState<{
+    type: "course" | "custom-offer";
+    data: Course | CustomOffer;
+    orderId: number;
+  } | null>(null);
 
-  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
-  const [offerAmountInKobo, setOfferAmountInKobo] = useState(0);
-  const [totalPaid, setTotalPaid] = useState(0); // in Kobo
-  const [serviceName, setServiceName] = useState("");
-  const [orderId, setOrderId] = useState(null);
-  const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
+  const [paymentOption, setPaymentOption] = useState<
+    "full" | "deposit_50" | "deposit_70"
+  >("full");
 
-  //Course Data
-  const [courseAmountInNGN, setCourseAmountInNGN] = useState(0);
-  const [courseTitle, setCourseTitle] = useState("");
-  const [courseDiscount, setCourseDiscount] = useState(0);
-  const [discountEndDate, setDiscountEndDate] = useState<string | null>(null);
+  // Wallet State
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [useWallet, setUseWallet] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [dataError, setDataError] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      if (sessionStatus !== "authenticated") return;
 
-  const [paymentOption, setPaymentOption] = useState("full_100_discount");
+      try {
+        // Fetch Wallet Balance
+        const walletRes = await fetch("/api/user/wallet");
+        const walletData = await walletRes.json();
+        setWalletBalance(walletData.balance || 0);
 
-  // Use a single memoized calculation for all payment details
+        let url = "";
+        if (offerId) {
+          url = `/api/user/custom-offers/${offerId}/payment-details`;
+        } else if (courseId) {
+          url = `/api/courses/${courseId}/payment-details`;
+        } else {
+          setError("Invalid payment link.");
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(url);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Failed to load payment details.");
+        }
+
+        const data = await res.json();
+        setOrderData(data);
+      } catch (err: any) {
+        console.error("Error loading payment details:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (sessionStatus === "authenticated") {
+      fetchOrderDetails();
+    } else if (sessionStatus === "unauthenticated") {
+      router.push(`/auth/login?callbackUrl=${window.location.href}`);
+    }
+  }, [sessionStatus, offerId, courseId, router]);
+
   const paymentDetails = useMemo(() => {
-    // Determine the base amount in Kobo based on whether it's a course or an offer
-    const baseAmountInKobo = courseId
-      ? (courseAmountInNGN ?? 0) * KOBO_PER_NAIRA
-      : offerAmountInKobo ?? 0;
+    if (!orderData) return null;
 
-    let calculatedAmount = baseAmountInKobo;
-    let discountPercentage = 0;
-    let paymentPercentage = 100;
+    const baseAmount =
+      orderData.type === "course"
+        ? (orderData.data as Course).price
+        : (orderData.data as CustomOffer).amount;
 
-    if (offerId && !payingOfferBalance) {
-      // Only apply discounts if it's an offer and not a balance payment
+    let amountToPay = baseAmount;
+    let discount = 0;
+    let label = "Full Payment";
+
+    if (orderData.type === "custom-offer") {
       switch (paymentOption) {
         case "deposit_50":
-          calculatedAmount = baseAmountInKobo * 0.5;
-          paymentPercentage = 50;
+          amountToPay = Math.round(baseAmount * 0.5);
+          label = "50% Deposit";
           break;
-        case "deposit_70_discount":
-          calculatedAmount = baseAmountInKobo * 0.7;
-          discountPercentage = 5;
-          calculatedAmount *= 1 - discountPercentage / 100;
-          paymentPercentage = 70;
+        case "deposit_70":
+          amountToPay = Math.round(baseAmount * 0.7 * 0.95); // 5% discount on 70%
+          discount = 5;
+          label = "70% Deposit (5% Discount)";
           break;
-        case "full_100_discount":
-          calculatedAmount = baseAmountInKobo;
-          discountPercentage = 10;
-          calculatedAmount *= 1 - discountPercentage / 100;
-          paymentPercentage = 100;
+        case "full":
+          amountToPay = Math.round(baseAmount * 0.9); // 10% discount
+          discount = 10;
+          label = "Full Payment (10% Discount)";
           break;
       }
-    } else if (
-      courseId &&
-      courseDiscount &&
-      discountEndDate &&
-      new Date().getTime() < new Date(discountEndDate).getTime()
-    ) {
-      calculatedAmount = baseAmountInKobo * (1 - courseDiscount / 100);
-      discountPercentage = courseDiscount;
-      paymentPercentage = 100 - courseDiscount;
     }
 
-    const amountAlreadyPaid = totalPaid;
-    const amountToPay = Math.round(
-      payingOfferBalance
-        ? Math.max(0, baseAmountInKobo - amountAlreadyPaid)
-        : calculatedAmount
-    );
+    // Wallet Logic
+    let walletDeduction = 0;
+    let finalPaystackAmount = amountToPay;
 
-    // Convert NGN amounts to the selected display currency
-    const originalAmountInNGN = baseAmountInKobo / KOBO_PER_NAIRA;
-
-    if (exchangeRates) {
-      const originalConverted = convertCurrency(
-        originalAmountInNGN,
-        exchangeRates[selectedCurrency],
-        getCurrencySymbol(selectedCurrency)
-      );
-
-      const amountToPayInNGN = amountToPay / KOBO_PER_NAIRA;
-      const amountToPayConverted = convertCurrency(
-        amountToPayInNGN,
-        exchangeRates[selectedCurrency],
-        getCurrencySymbol(selectedCurrency)
-      );
-
-      // Balance to be paid in the future
-      const balanceToPayInNGN =
-        (originalAmountInNGN * paymentPercentage) / 100 - amountToPayInNGN;
-      const balanceToPayConverted = convertCurrency(
-        balanceToPayInNGN,
-        exchangeRates[selectedCurrency],
-        getCurrencySymbol(selectedCurrency)
-      );
-
-      return {
-        amountToPayInKobo: amountToPay,
-        amountToPayInNGN,
-        amountToPayConverted,
-        originalConverted,
-        balanceToPayConverted,
-        discountPercentage,
-        paymentPercentage,
-      };
+    if (useWallet) {
+      walletDeduction = Math.min(walletBalance, amountToPay);
+      finalPaystackAmount = amountToPay - walletDeduction;
     }
 
-    // FIX 11 (Cont.): Return a safe default object if exchangeRates is null/undefined
-    // This prevents `paymentDetails` from being `undefined`.
     return {
-      amountToPayInKobo: amountToPay,
-      amountToPayInNGN: amountToPay / KOBO_PER_NAIRA,
-      amountToPayConverted: "0.00",
-      originalConverted: "0.00",
-      balanceToPayConverted: "0.00",
-      discountPercentage: 0,
-      paymentPercentage: 100,
+      baseAmount,
+      amountToPay, // Total expected for this transaction
+      discount,
+      label,
+      walletDeduction,
+      finalPaystackAmount,
     };
-  }, [
-    offerAmountInKobo,
-    courseAmountInNGN,
-    totalPaid,
-    courseId,
-    offerId,
-    payingOfferBalance,
-    paymentOption,
-    exchangeRates,
-    selectedCurrency,
-    courseDiscount,
-    discountEndDate,
-  ]);
+  }, [orderData, paymentOption, useWallet, walletBalance]);
 
-  // Effect to dynamically import PaystackPop only on the client
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      import("@paystack/inline-js")
-        .then((module) => setPaystackPop(() => module.default))
-        .catch((error) => {
-          console.error("Failed to load PaystackPop:", error);
-          toast.error("Failed to load payment gateway. Please try again.");
-        });
-    }
-  }, []);
+  const handlePayment = async () => {
+    if (!orderData || !paymentDetails || !session?.user?.email) return;
 
-  // Effect to fetch offer or course details securely from backend
-  useEffect(() => {
-    const fetchPaymentDataDetails = async () => {
-      if (!offerId && !courseId) {
-        setDataError("Offer/Course ID or user session missing.");
-        setDataLoading(false);
-        return;
-      }
-      setDataLoading(true);
-      setDataError(null);
-
-      if (offerId) {
-        try {
-          const res = await fetch(`/api/user/custom-offers/${offerId}`);
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(
-              errorData.error || "Failed to fetch offer details securely."
-            );
-          }
-          const offer = await res.json();
-          setOfferAmountInKobo(offer.offerAmount ?? 0);
-          setTotalPaid(offer.totalPaid ?? 0);
-          setServiceName(offer.categoryName ?? "");
-          setOrderId(offer.orderId ?? null);
-        } catch (err: any) {
-          console.error("Error fetching offer details:", err);
-          setDataError(err.message || "Failed to load offer details.");
-        } finally {
-          setDataLoading(false);
-        }
-      }
-
-      if (courseId) {
-        try {
-          const res = await fetch(`/api/user/courses/${courseId}`);
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(
-              errorData.error || "Failed to fetch course details securely."
-            );
-          }
-          const course = await res.json();
-          const courseData = course?.[0];
-          setCourseAmountInNGN((courseData?.price ?? 0) / KOBO_PER_NAIRA);
-          setCourseTitle(courseData?.title ?? "");
-          setCourseDiscount(courseData?.discount ?? 0);
-          setDiscountEndDate(courseData?.discountEndDate ?? null);
-          setOrderId(courseData?.orderId ?? null);
-        } catch (err: any) {
-          console.error("Error fetching course details:", err);
-          setDataError(err.message || "Failed to load course details.");
-        } finally {
-          setDataLoading(false);
-        }
-      }
-    };
-    fetchPaymentDataDetails();
-  }, [offerId, courseId]);
-
-  const handlePaystackPayment = useCallback(async () => {
-    setIsLoading(true);
-
-    if (!publicKey) {
-      toast.error("Payment gateway not configured. Please contact support.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!PaystackPop) {
-      toast.warn(
-        "Payment gateway is still loading. Please try again in a moment."
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    if (paymentDetails.amountToPayInKobo <= 0) {
-      toast.error("Invalid amount for payment. Please refresh the page.");
-      setIsLoading(false);
-      return;
-    }
-
-    const email = session?.user?.email;
-    const customerName = session?.user?.name;
-
-    if (!email) {
-      toast.error("User session email is missing. Please log in again.");
-      setIsLoading(false);
-      return;
-    }
-
-    const originalAmountKobo = offerId
-      ? offerAmountInKobo ?? 0
-      : (courseAmountInNGN ?? 0) * KOBO_PER_NAIRA;
-
-    const servicePayingFor = offerId ? "offer" : "course";
-    const metadataInfo = {
-      orderId: orderId,
-      service: offerId ? "project" : "course",
-      customer_name: customerName,
-      payment_option: paymentOption,
-      payment_percentage: paymentDetails.paymentPercentage,
-      discount_applied: paymentDetails.discountPercentage,
-      original_amount_kobo: originalAmountKobo,
-    };
+    setProcessingPayment(true);
 
     try {
-      const handler = PaystackPop.setup({
-        key: publicKey,
-        email: email,
-        amount: paymentDetails.amountToPayInKobo,
-        currency: "NGN",
-        ref: `${servicePayingFor}_${
-          offerId ? offerId : courseId
-        }_${new Date().getTime()}_${paymentOption}`,
-        metadata: metadataInfo,
-        onClose: () => {
-          toast.info("Payment window closed.");
-          setIsLoading(false);
-        },
-        callback: async (response: any) => {
-          const id = offerId ? offerId : courseId;
-          if (id) {
-            try {
-              const res = await fetch("/api/paystack-verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  reference: response.reference,
-                  id,
-                  paymentOption,
-                }),
-              });
-              const data = await res.json();
+      // Scenario 1: Full Payment via Wallet
+      if (paymentDetails.finalPaystackAmount === 0) {
+        const res = await fetch("/api/user/wallet/pay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: orderData.orderId,
+            amountKobo: paymentDetails.walletDeduction,
+            serviceType: orderData.type,
+            productId: orderData.data.id,
+            orderTitle:
+              orderData.type === "course"
+                ? (orderData.data as Course).title
+                : (orderData.data as CustomOffer).description,
+            projectDurationDays:
+              orderData.type === "custom-offer"
+                ? (orderData.data as CustomOffer).projectDurationDays
+                : null,
+            totalExpectedAmount: paymentDetails.amountToPay,
+          }),
+        });
 
-              if (data.success) {
-                console.log("Payment verified successfully:", data.success);
-                router.push("/user/dashboard/payment/success");
-              } else {
-                router.push("/user/dashboard/payment/failure");
-                console.error("Backend verification failed:", data.message);
-              }
-            } catch (error) {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Wallet payment failed");
+
+        toast.success("Payment successful!");
+        router.push("/user/dashboard?tab=orders");
+        return;
+      }
+
+      // Scenario 2: Paystack (Partial or Full)
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY as string,
+        email: session.user.email,
+        amount: paymentDetails.finalPaystackAmount, // Amount in Kobo
+        currency: "NGN",
+        ref: `BW_${Math.floor(Math.random() * 1000000000 + 1)}`,
+        metadata: {
+          service: orderData.type,
+          orderId: orderData.orderId,
+          customer_name: session.user.name,
+          payment_option:
+            orderData.type === "custom-offer"
+              ? paymentOption === "deposit_70"
+                ? "deposit_70_discount"
+                : paymentOption === "full"
+                ? "full_100_discount"
+                : paymentOption
+              : "full",
+          payment_percentage:
+            orderData.type === "custom-offer"
+              ? paymentOption === "deposit_50"
+                ? 0.5
+                : paymentOption === "deposit_70"
+                ? 0.7
+                : 1.0
+              : 1.0,
+          discount_applied: paymentDetails.discount.toString(),
+          original_amount_kobo: paymentDetails.baseAmount.toString(),
+          wallet_usage_kobo: paymentDetails.walletDeduction.toString(),
+        },
+        onSuccess: async (transaction: any) => {
+          try {
+            const verifyRes = await fetch("/api/paystack-verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(transaction),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              toast.success("Payment successful!");
+              router.push("/user/dashboard?tab=orders");
+            } else {
               toast.error(
-                "Error during payment confirmation. Please contact support."
+                "Payment verification failed: " + verifyData.message
               );
-              console.error("Error calling backend verification:", error);
-            } finally {
-              setIsLoading(false);
             }
+          } catch (err) {
+            console.error("Verification error:", err);
+            toast.error("Error verifying payment.");
           }
         },
+        onCancel: () => {
+          toast.info("Payment cancelled.");
+          setProcessingPayment(false);
+        },
       });
-      handler.openIframe();
-    } catch (setupError: any) {
-      console.error(
-        "Error during Paystack setup or opening iframe:",
-        setupError
-      );
-      toast.error("Failed to initiate payment. Please check your console.");
-      setIsLoading(false);
+    } catch (err: any) {
+      console.error("Payment initialization error:", err);
+      toast.error(err.message || "Failed to initialize payment.");
+      setProcessingPayment(false);
     }
-  }, [
-    publicKey,
-    PaystackPop,
-    session?.user?.email,
-    session?.user?.name,
-    paymentDetails,
-    offerId,
-    courseId,
-    orderId,
-    offerAmountInKobo,
-    courseAmountInNGN,
-    paymentOption,
-  ]);
+  };
 
-  // RENDER SAFETY CHECKS
-  // The existing loading/error checks are excellent.
-  if (dataLoading || ratesLoading) {
+  if (loading || ratesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
-        <Loader />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Loader2 className="w-10 h-10 text-green-600 animate-spin" />
       </div>
     );
   }
 
-  if (dataError || ratesError) {
+  if (error || !orderData) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-lg text-red-600">
-        Error: {dataError || ratesError}
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
+        <p className="text-gray-600 mb-6">{error || "Order not found."}</p>
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+        >
+          Go Back
+        </button>
       </div>
     );
   }
 
-  if (
-    paymentDetails.amountToPayInKobo === 0 &&
-    !offerId &&
-    !courseId &&
-    !dataLoading
-  ) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-lg text-red-600">
-        Could not retrieve payment amount. Please ensure a valid Offer ID or
-        Course ID is provided.
-      </div>
-    );
-  }
-
-  // RENDERING LOGIC
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 flex items-center justify-center font-sans">
-      <div className="max-w-xl w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 sm:p-10 transition-colors duration-200">
-        <h1 className="text-4xl font-extrabold text-center text-gray-900 dark:text-gray-100 mb-8">
-          Complete Your Payment
-        </h1>
-
-        <div className="space-y-6">
-          {/* Service Details Card */}
-          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-2xl p-6 text-center shadow-inner">
-            <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-              {offerId ? "Service:" : "Course:"}{" "}
-              {offerId ? serviceName : courseTitle || "Loading..."}
-            </h2>
-            <p className="text-lg text-blue-700 dark:text-blue-300">
-              {payingOfferBalance ? "Balance To Pay: " : "Original Amount: "}
-              <span className="font-extrabold text-blue-900 dark:text-blue-100">
-                {getCurrencySymbol(selectedCurrency)}
-                {paymentDetails.originalConverted}
-              </span>
-            </p>
-            {offerId && (
-              <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-                For Custom Offer ID: {offerId}
-              </p>
-            )}
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-green-600 px-8 py-6 text-white">
+            <h1 className="text-2xl font-bold">Secure Checkout</h1>
+            <p className="opacity-90 mt-1">Complete your payment securely</p>
           </div>
 
-          {/* Payment Options Section */}
-          {!payingOfferBalance && !courseId && (
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                Select Payment Option
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setPaymentOption("deposit_50")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105",
-                    paymentOption === "deposit_50"
-                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                  )}
-                >
-                  <span className="text-2xl font-bold">50%</span>
-                  <span className="text-sm">Deposit</span>
-                </button>
-                <button
-                  onClick={() => setPaymentOption("deposit_70_discount")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
-                    paymentOption === "deposit_70_discount"
-                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                  )}
-                >
-                  <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
-                    5% Off
-                  </span>
-                  <span className="text-2xl font-bold">70%</span>
-                  <span className="text-sm">Discounted Deposit</span>
-                </button>
-                <button
-                  onClick={() => setPaymentOption("full_100_discount")}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all duration-300 transform hover:scale-105 relative overflow-hidden group",
-                    paymentOption === "full_100_discount"
-                      ? "bg-purple-600 dark:bg-purple-700 text-white shadow-lg ring-4 ring-purple-300"
-                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                  )}
-                >
-                  <span className="text-xs absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full font-semibold rotate-6 -translate-y-1 group-hover:scale-110 transition-transform">
-                    10% Off
-                  </span>
-                  <span className="text-2xl font-bold">100%</span>
-                  <span className="text-sm">Discounted Full Payment</span>
-                </button>
+          <div className="p-8">
+            {/* Order Summary */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Order Summary
+              </h2>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg">
+                      {orderData.type === "course"
+                        ? (orderData.data as Course).title
+                        : "Custom Project Offer"}
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {orderData.type === "course"
+                        ? "Course Enrollment"
+                        : (orderData.data as CustomOffer).description}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900 text-xl">
+                      {convertAmount(
+                        orderData.type === "course"
+                          ? (orderData.data as Course).price
+                          : (orderData.data as CustomOffer).amount
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Payment Summary */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-2xl p-6 text-center shadow-inner">
-            <h3 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-3">
-              Payment Summary
-            </h3>
-            <p className="text-lg text-yellow-700 dark:text-yellow-300 mb-1">
-              Paying:{" "}
-              <span className="font-extrabold">
-                {paymentDetails.paymentPercentage}%
-              </span>{" "}
-              of Original Amount
-            </p>
-            {
-              <p className="text-md text-yellow-700 dark:text-yellow-300 mb-1">
-                Discount Applied:{" "}
-                <span className="font-extrabold">
-                  {paymentDetails.discountPercentage}%
-                </span>
-              </p>
-            }
-            <div className="mt-4 border-t border-yellow-200 dark:border-yellow-600 pt-4 space-y-2">
-              <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
-                Amount to Pay:{" "}
-                <span className="font-extrabold">
-                  {getCurrencySymbol(selectedCurrency)}
-                  {paymentDetails.amountToPayConverted}
-                </span>
-              </p>
-              <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
-                Balance to Pay:{" "}
-                <span className="font-extrabold">
-                  {paymentDetails.paymentPercentage === 100
-                    ? getCurrencySymbol(selectedCurrency) + "0.00"
-                    : paymentDetails.balanceToPayConverted}
-                </span>
-              </p>
-            </div>
-          </div>
+            {/* Payment Options (Only for Custom Offers) */}
+            {orderData.type === "custom-offer" && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                  Payment Plan
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    {
+                      id: "deposit_50",
+                      label: "50% Deposit",
+                      desc: "Pay half now, half later",
+                    },
+                    {
+                      id: "deposit_70",
+                      label: "70% Deposit",
+                      desc: "Get 5% discount",
+                    },
+                    {
+                      id: "full",
+                      label: "Full Payment",
+                      desc: "Get 10% discount",
+                    },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setPaymentOption(opt.id as any)}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        paymentOption === opt.id
+                          ? "border-green-600 bg-green-50"
+                          : "border-gray-200 hover:border-green-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className={`font-bold ${
+                            paymentOption === opt.id
+                              ? "text-green-700"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {opt.label}
+                        </span>
+                        {paymentOption === opt.id && (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">{opt.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Currency Selector */}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 shadow-md">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Select Display Currency
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {["NGN", "USD", "GBP", "EUR"].map((currency) => (
-                <button
-                  key={currency}
-                  onClick={() => updateSelectedCurrency(currency as any)}
-                  className={cn(
-                    "py-3 px-2 rounded-xl text-sm font-semibold transition-all duration-200",
-                    selectedCurrency === currency
-                      ? "bg-blue-600 text-white shadow-lg ring-4 ring-blue-300 dark:ring-blue-500/50"
-                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+            {/* Wallet Option */}
+            {walletBalance > 0 && (
+              <div className="mb-8">
+                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                  Wallet
+                </h2>
+                <div className={`p-4 rounded-xl border transition-all ${useWallet ? 'border-green-600 bg-green-50' : 'border-gray-200'}`}>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={useWallet}
+                      onChange={(e) => setUseWallet(e.target.checked)}
+                      className="w-5 h-5 text-green-600 rounded focus:ring-green-500 border-gray-300"
+                    />
+                    <div className="ml-3 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-gray-600" />
+                        <span className="font-medium text-gray-900">Use Wallet Balance</span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Available: ₦{(walletBalance / 100).toLocaleString()}
+                      </p>
+                    </div>
+                    {useWallet && (
+                      <span className="font-bold text-green-700">
+                        -₦{(paymentDetails?.walletDeduction! / 100).toLocaleString()}
+                      </span>
+                    )}
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Total & Pay Button */}
+            <div className="border-t border-gray-100 pt-8">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-gray-600">Total to Pay</span>
+                <div className="text-right">
+                  <span className="text-3xl font-bold text-gray-900">
+                    {paymentDetails?.finalPaystackAmount === 0 
+                      ? "₦0.00" 
+                      : convertAmount(paymentDetails?.finalPaystackAmount || 0)}
+                  </span>
+                  {paymentDetails?.discount! > 0 && (
+                    <p className="text-sm text-green-600 font-medium mt-1">
+                      {paymentDetails?.discount}% discount applied
+                    </p>
                   )}
-                >
-                  {currency}
-                </button>
-              ))}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Proceed to Payment Button */}
-          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-2xl p-6 text-center shadow-inner">
-            <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-4">
-              Proceed to Payment
-            </h3>
-            <button
-              onClick={handlePaystackPayment}
-              disabled={
-                isLoading ||
-                !PaystackPop ||
-                paymentDetails.amountToPayInKobo <= 0
-              }
-              className="w-full py-4 px-6 rounded-xl font-extrabold text-white text-lg bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isLoading
-                ? "Processing Payment..."
-                : !PaystackPop
-                ? "Loading Payment Gateway..."
-                : `Pay ${getCurrencySymbol(selectedCurrency)}${
-                    paymentDetails.amountToPayConverted
-                  }`}
-            </button>
+              <button
+                onClick={handlePayment}
+                disabled={processingPayment}
+                className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {processingPayment ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    {paymentDetails?.finalPaystackAmount === 0 ? (
+                      <>
+                        <Wallet className="w-5 h-5" />
+                        Pay with Wallet
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5" />
+                        Pay Now
+                      </>
+                    )}
+                  </>
+                )}
+              </button>
+
+              <div className="mt-6 flex items-center justify-center gap-2 text-gray-400 text-sm">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Secured by Paystack</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-// The main export for the page, wrapped with Suspense
-export default function PaymentPageWrapper() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">
-          Loading payment page...
-        </div>
-      }
-    >
-      <PaymentContent />
-    </Suspense>
   );
 }
