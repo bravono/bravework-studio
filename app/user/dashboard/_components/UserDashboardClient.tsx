@@ -68,6 +68,7 @@ import RejectReasonModal from "./RejectReasonModal";
 import CourseDetailCard from "@/app/components/CourseDetailCard";
 import CourseModal from "@/app/components/CourseModal";
 import CreateRentalModal from "./CreateRentalModal";
+import UserRentalsSection from "./UserRentalsSection";
 
 const Pagination = ({
   currentPage,
@@ -152,6 +153,7 @@ function Page() {
   const [offersPage, setOffersPage] = useState(1);
   const [coursesPage, setCoursesPage] = useState(1);
   const [invoicesPage, setInvoicesPage] = useState(1);
+  const [rentalsPage, setRentalsPage] = useState(1);
   const itemsPerPage = 5; // Can be adjusted
 
   const [isAcceptConfirmationModalOpen, setIsAcceptConfirmationModalOpen] =
@@ -160,7 +162,6 @@ function Page() {
   const [selectedOfferForRejection, setSelectedOfferForRejection] =
     useState<CustomOffer | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isCreateRentalModalOpen, setIsCreateRentalModalOpen] = useState(false);
 
   const KOBO_PER_NAIRA = 100;
   const PERCENT_100 = 100;
@@ -485,6 +486,12 @@ function Page() {
     invoicesPage * itemsPerPage
   );
   const totalInvoicesPages = Math.ceil(invoices.length / itemsPerPage);
+  
+  const paginatedRentals = rentals.slice(
+    (rentalsPage - 1) * itemsPerPage,
+    rentalsPage * itemsPerPage
+  );
+  const totalRentalsPages = Math.ceil(rentals.length / itemsPerPage);
 
   const getPaymentStatus = (status: number) => {
     switch (status) {
@@ -528,101 +535,21 @@ function Page() {
   };
 
   const renderContent = () => {
-    switch (activeTab) {
-      case "rentals":
-        return (
-          <div className="bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 p-6 bg-white rounded-xl shadow-lg">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  My Rentals
-                </h1>
-                <button
-                  onClick={() => setIsCreateRentalModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition duration-150 shadow-md"
-                >
-                  <Plus size={20} />
-                  List New Device
-                </button>
-              </div>
+    // Helper to wrap content with "Back to Overview" button
+    const withBackToOverview = (content: React.ReactNode) => (
+      <div className="relative bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-green-600 rounded-full shadow-lg hover:bg-green-700 transition-all hover:scale-105"
+        >
+          <ChevronLeft size={20} />
+          Back to Overview
+        </button>
+        {content}
+      </div>
+    );
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rentals.length > 0 ? (
-                  rentals.map((rental) => (
-                    <div
-                      key={rental.rental_id}
-                      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-800">
-                              {rental.device_name}
-                            </h3>
-                            <span className="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full mt-1">
-                              {rental.device_type}
-                            </span>
-                          </div>
-                          <span className="text-lg font-bold text-green-600">
-                            ₦{Number(rental.hourly_rate).toLocaleString()}/hr
-                          </span>
-                        </div>
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {rental.description}
-                        </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                          <Monitor size={16} />
-                          <span>{rental.specs}</span>
-                        </div>
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                          <span
-                            className={`text-sm font-medium ${
-                              rental.status === "active"
-                                ? "text-green-600"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {rental.status === "active" ? "Active" : "Inactive"}
-                          </span>
-                          <Link
-                            href={`/rentals/${rental.rental_id}`}
-                            className="text-blue-600 hover:underline text-sm font-medium"
-                          >
-                            View Details
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm">
-                    <Monitor className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">
-                      No rentals listed
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Get started by listing your first device for rent.
-                    </p>
-                    <div className="mt-6">
-                      <button
-                        onClick={() => setIsCreateRentalModalOpen(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                      >
-                        <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                        List Device
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <CreateRentalModal
-              isOpen={isCreateRentalModalOpen}
-              onClose={() => setIsCreateRentalModalOpen(false)}
-              onSuccess={fetchDashboardData}
-            />
-          </div>
-        );
+    switch (activeTab) {
       case "overview":
         return (
           <div className="bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
@@ -854,7 +781,7 @@ function Page() {
                         Custom Offers
                       </h2>
                       <button
-                        onClick={() => setActiveTab("orders")}
+                        onClick={() => setActiveTab("custom-offers")}
                         className="text-green-600 hover:underline font-medium"
                       >
                         View All
@@ -899,17 +826,6 @@ function Page() {
                                 className={`bg-white border rounded-xl shadow-sm p-6 cursor-pointer transition-transform duration-300 ease-in-out hover:shadow-lg`}
                               >
                                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm mt-4 space-y-2">
-                                  {/* <div className="flex items-center justify-between">
-                                    <p className="flex items-center gap-2 text-gray-600">
-                                      <KeyRound className="w-4 h-4 text-gray-500 font-bold" />
-                                      <strong>Offer ID:</strong>{" "}
-                                      <span className="text-gray-900 font-bold">
-                                        {offer.id}
-                                      </span>
-                                    </p>
-                                    
-                                  </div> */}
-
                                   <div className="flex items-center justify-between">
                                     <p className="flex items-center gap-2 text-gray-600">
                                       <Wallet className="w-4 h-4 text-gray-500 font-bold" />
@@ -1119,6 +1035,71 @@ function Page() {
                                 <button
                                   onClick={() =>
                                     handleInitiatePayment(invoice.id)
+                                  }
+                                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                  Initiate Payment
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <Pagination
+                          currentPage={invoicesPage}
+                          totalPages={totalInvoicesPages}
+                          onPageChange={setInvoicesPage}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                        <FileText size={24} className="text-green-600" />
+                        My Rentals
+                      </h2>
+                      <button
+                        onClick={() => setActiveTab("rentals")}
+                        className="text-green-600 hover:underline font-medium"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    {rentals.length > 0 && (
+                      <div className="space-y-4">
+                        {paginatedRentals.map((rental) => (
+                          <div
+                            key={rental.id}
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <div className="flex-grow mb-2 sm:mb-0">
+                              <h3 className="font-semibold text-lg text-gray-800">
+                                Rental #{rental.id}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Date: {rental.issueDate}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Amount: ₦
+                                {(
+                                  rental.amount / KOBO_PER_NAIRA
+                                ).toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-4 flex-shrink-0">
+                              <span
+                                className={`px-3 py-1 text-xs font-bold rounded-full ${
+                                  rental.status === "Paid"
+                                    ? "bg-green-200 text-green-800"
+                                    : "bg-red-200 text-red-800"
+                                }`}
+                              >
+                                {rental.status}
+                              </span>
+                              {rental.status !== "Paid" && (
+                                <button
+                                  onClick={() =>
+                                    handleInitiatePayment(rental.id)
                                   }
                                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                                 >
@@ -1365,13 +1346,15 @@ function Page() {
         );
 
       case "orders":
-        return <UserOrdersSection />;
+        return withBackToOverview(<UserOrdersSection />);
       case "invoices":
-        return <UserInvoicesSection />;
+        return withBackToOverview(<UserInvoicesSection />);
       case "notifications":
-        return <UserNotificationsSection />;
+        return withBackToOverview(<UserNotificationsSection />);
       case "custom-offers":
-        return <UserCustomOffersSection />;
+        return withBackToOverview(<UserCustomOffersSection />);
+      case "rentals":
+        return withBackToOverview(<UserRentalsSection onFetchDashboardData={fetchDashboardData}/>);
       case "courses":
     }
   };

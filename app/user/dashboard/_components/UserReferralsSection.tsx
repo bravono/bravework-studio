@@ -21,7 +21,7 @@ import {
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../_components/RejectReasonModal";
 
-export default function NotificationsPage() {
+export default function UserReferralsSection() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const kobo = 100; // 1 NGN = 100 Kobo
