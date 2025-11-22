@@ -12,6 +12,7 @@ import {
   Eye,
   Settings,
   LogOut,
+  ChevronLeft,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -416,7 +417,16 @@ export default function AdminDashboardClient({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
+        {activeTab !== "overview" && (
+          <button
+            onClick={() => setActiveTab("overview")}
+            className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-indigo-600 dark:bg-indigo-500 rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:scale-105"
+          >
+            <ChevronLeft size={20} />
+            Back to Overview
+          </button>
+        )}
         <div className="w-full">{renderContent()}</div>
       </main>
     </div>
