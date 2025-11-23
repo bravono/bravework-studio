@@ -33,14 +33,15 @@ export async function GET(request: Request) {
         o.order_id AS id,
         o.category_id AS service,
         o.created_at AS date,
-        o.order_status_id AS status,
+        os.name AS status,
         o.total_expected_amount_kobo AS amount,
-        o.amount_paid_to_date_kobo AS amountPaid,
+        o.amount_paid_to_date_kobo AS "amountPaid",
         pc.category_name AS "serviceName"
       FROM orders o
       LEFT JOIN product_categories pc ON o.category_id = pc.category_id
+      LEFT JOIN order_statuses os ON o.order_status_id = os.order_status_id
       WHERE user_id = $1
-      ORDER BY created_at DESC; -- Order by most recent orders first
+      ORDER BY created_at DESC;
     `;
 
     const params = [userId];

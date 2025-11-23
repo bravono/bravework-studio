@@ -38,7 +38,7 @@ interface Order {
   isPortfolio?: boolean; // New: to mark if it can be added to portfolio
   description?: string; // Optional: order description for admin view
   serviceName?: string;
-  statusName?: string;
+  status?: string;
 }
 
 // New: User interface for User Management
@@ -224,6 +224,23 @@ interface SessionOption {
   datetime: string;
   link: string;
   duration: number; // Duration in minutes
+  recordingLink?: string;
+  id?: number;
+  isCompleted?: boolean; // For UI state
+}
+
+interface StudentSessionProgress {
+  sessionId: number;
+  finished: boolean;
+  completedAt?: string;
+}
+
+interface CourseProgress {
+  courseId: string;
+  completedSessions: number[];
+  totalSessions: number;
+  progressPercentage: number;
+  allSessionsComplete: boolean;
 }
 
 interface AdminStats {

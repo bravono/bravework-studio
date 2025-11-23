@@ -98,7 +98,7 @@ export default function AdminOrdersSection() {
   };
 
   const handleMarkAsPortfolio = (order: Order) => {
-    if (order.statusName !== "paid") {
+    if (order.status !== "paid") {
       toast.error("Only paid orders can be marked as portfolio.");
       return;
     }
@@ -150,7 +150,7 @@ export default function AdminOrdersSection() {
   };
 
   const activeProjects = orders.filter(
-    (order) => order.statusName === "partially_paid"
+    (order) => order.status === "partially_paid"
   );
 
   const getStatusColor = (status: string) => {
@@ -241,10 +241,10 @@ export default function AdminOrdersSection() {
                   <div className="mt-2 flex items-center">
                     <span
                       className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                        project.statusName
+                        project.status
                       )}`}
                     >
-                      {project.statusName}
+                      {project.status}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
@@ -324,10 +324,10 @@ export default function AdminOrdersSection() {
                     <td className="px-4 py-3 text-sm text-gray-800">
                       <span
                         className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                          order.statusName
+                          order.status
                         )}`}
                       >
-                        {order.statusName}
+                        {order.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">
@@ -354,7 +354,7 @@ export default function AdminOrdersSection() {
                         <Trash2 className="w-4 h-4 mr-1" />
                         Delete
                       </button>
-                      {order.statusName === "paid" && (
+                      {order.status === "paid" && (
                         <button
                           onClick={() => handleMarkAsPortfolio(order)}
                           className={`flex items-center justify-center px-2 py-1 text-xs rounded-lg transition-colors ${
@@ -369,7 +369,7 @@ export default function AdminOrdersSection() {
                             : "Mark Portfolio"}
                         </button>
                       )}
-                      {order.statusName === "pending" && (
+                      {order.status === "pending" && (
                         <button
                           onClick={() => handleCreateCustomOffer(order)}
                           className="flex items-center justify-center px-2 py-1 text-xs text-purple-600 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"

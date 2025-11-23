@@ -438,7 +438,7 @@ function Page() {
 
   // Calculate overview stats from fetched data
   const activeOrders = orders.filter(
-    (order) => order.statusName === "overpayment_detected"
+    (order) => order.status === "overpayment_detected"
   ).length;
   const projectOrders = orders.filter(
     (order) => order.serviceName !== "Course"
@@ -701,14 +701,14 @@ function Page() {
                             <div className="flex items-center gap-4 flex-shrink-0">
                               <span
                                 className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                  order.statusName === "paid"
+                                  order.status === "paid"
                                     ? "bg-green-200 text-green-800"
-                                    : order.statusName === "pending"
+                                    : order.status === "pending"
                                     ? "bg-yellow-200 text-yellow-800"
                                     : "bg-red-200 text-red-800"
                                 }`}
                               >
-                                {order.statusName}
+                                {order.status}
                               </span>
                               <span className="font-bold text-gray-800">
                                 {getCurrencySymbol(selectedCurrency)}
@@ -718,9 +718,9 @@ function Page() {
                                   getCurrencySymbol(selectedCurrency)
                                 ).toLocaleString()}
                               </span>
-                              {(order.statusName === "paid" ||
-                                order.statusName === "partially_paid" ||
-                                order.statusName ===
+                              {(order.status === "paid" ||
+                                order.status === "partially_paid" ||
+                                order.status ===
                                   "overpayment_detected") && (
                                 <Link
                                   href={`/orders/track/${
@@ -1291,3 +1291,4 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
+
