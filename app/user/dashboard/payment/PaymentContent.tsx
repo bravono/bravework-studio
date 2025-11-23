@@ -47,6 +47,7 @@ export default function PaymentContent() {
 
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
+  const KOBO_PER_NAIRA = 100;
 
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -94,6 +95,7 @@ export default function PaymentContent() {
 
         const data = await res.json();
         setOrderData(data);
+        console.log("Data", data)
       } catch (err: any) {
         console.error("Error loading payment details:", err);
         setError(err.message);
@@ -105,7 +107,9 @@ export default function PaymentContent() {
     if (sessionStatus === "authenticated") {
       fetchOrderDetails();
     } else if (sessionStatus === "unauthenticated") {
-      router.push(`/auth/login?callbackUrl=${window.location.href}`);
+      if (typeof window !== "undefined") {
+        router.push(`/auth/login?callbackUrl=${window.location.href}`);
+      }
     }
   }, [sessionStatus, offerId, courseId, router]);
 
@@ -206,6 +210,7 @@ export default function PaymentContent() {
         metadata: {
           service: orderData.type,
           orderId: orderData.orderId,
+          productId: orderData.data.id,
           customer_name: session.user.name,
           payment_option:
             orderData.type === "custom-offer"
@@ -319,8 +324,8 @@ export default function PaymentContent() {
                     <p className="font-bold text-gray-900 text-xl">
                       {convertAmount(
                         orderData.type === "course"
-                          ? (orderData.data as Course).price
-                          : (orderData.data as CustomOffer).amount
+                          ? (orderData.data as Course).price / KOBO_PER_NAIRA
+                          : (orderData.data as CustomOffer).amount / KOBO_PER_NAIRA
                       )}
                     </p>
                   </div>
@@ -423,7 +428,7 @@ export default function PaymentContent() {
                   <span className="text-3xl font-bold text-gray-900">
                     {paymentDetails?.finalPaystackAmount === 0 
                       ? "₦0.00" 
-                      : convertAmount(paymentDetails?.finalPaystackAmount || 0)}
+                      : convertAmount(paymentDetails?.finalPaystackAmount / KOBO_PER_NAIRA || 0)}
                   </span>
                   {paymentDetails?.discount! > 0 && (
                     <p className="text-sm text-green-600 font-medium mt-1">

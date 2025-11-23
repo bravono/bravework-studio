@@ -10,7 +10,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Server configuration error." }, { status: 500 });
   }
 
-  const { reference, id: productId, paymentOption } = await req.json();
+  const body = await req.json();
+  let productId = body.id;
+  const reference = body.reference;
   console.log("Product ID from metadata:", productId);
 
   if (!reference) {
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
     const discountApplied = parseFloat(metadata?.discount_applied || "0");
     const metaDataOriginalAmountKobo = parseFloat(metadata?.original_amount_kobo);
     const walletUsageKobo = parseFloat(metadata?.wallet_usage_kobo || "0");
+    productId = metadata?.productId;
 
     if (!orderId || !serviceType) {
       return NextResponse.json({ success: false, message: "Missing critical metadata." }, { status: 400 });
