@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../lib/db";
 import { processSuccessfulOrder, getOrderStatusMap } from "../../../lib/payment-utils";
+import { createZohoLead } from "@/lib/zoho";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -204,6 +205,20 @@ export async function POST(req: NextRequest) {
             );
             console.log(`Commission of ${commissionAmount} recorded for referrer ${referredById}`);
         }
+      }
+
+      // Integrate Zoho CRM
+      try {
+        const leadData = {
+          Last_Name: customerName || "Unknown",
+          Email: customerEmail,
+          Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${actualAmountKobo / 100} ${actualCurrency}`,
+          Lead_Source: "Course Enrollment/Order",
+        };
+        await createZohoLead(leadData);
+        console.log(`Zoho Lead created for ${customerEmail}`);
+      } catch (zohoError) {
+        console.error("Failed to create Zoho Lead:", zohoError);
       }
 
       return NextResponse.json({

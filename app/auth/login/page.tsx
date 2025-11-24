@@ -44,7 +44,7 @@ function LoginForm() {
         toast.success(data.message);
         setMessage(data.message);
       } else {
-        toast.error(data.error || "Something went wrong");
+        toast.error("Something went wrong");
       }
     } catch (err) {
       toast.error("Network error");
@@ -70,7 +70,7 @@ function LoginForm() {
           `Your email address is not verified. Please check your inbox for a verification link or`
         );
       } else {
-        setMessage(result.error);
+        setMessage("Something went wrong, please try again");
       }
       setLoading(false);
     } else {

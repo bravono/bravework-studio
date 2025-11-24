@@ -3,6 +3,7 @@ import crypto from "crypto"; // Node.js built-in module for cryptographic functi
 import { sendPaymentReceivedEmail } from "lib/mailer";
 
 import { queryDatabase, withTransaction } from "../../../lib/db";
+import { createZohoLead } from "@/lib/zoho";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -388,6 +389,21 @@ export async function POST(req: NextRequest) {
             orderId,
             (course = null)
           );
+
+          // Integrate Zoho CRM
+          try {
+            const leadData = {
+              Last_Name: clientName || "Unknown",
+              Email: customerEmail,
+              Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${paystackAmountKobo / 100} ${paystackCurrency}`,
+              Lead_Source: "Course Enrollment/Order",
+            };
+            await createZohoLead(leadData);
+            console.log(`Zoho Lead created for ${customerEmail}`);
+          } catch (zohoError) {
+            console.error("Failed to create Zoho Lead:", zohoError);
+            // Don't fail the webhook if Zoho fails
+          }
 
           return NextResponse.json(
             { message: "Webhook received successfully." },

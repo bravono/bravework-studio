@@ -15,23 +15,33 @@ export default function Contact() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formDataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      formDataToSend.append(key, value);
-    });
-
     try {
-      fetch("https://formspree.io/f/mldjyabg", {
+      const response = await fetch("/api/contact", {
         method: "POST",
-        body: formDataToSend,
         headers: {
-          Accept: "application/json",
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(formData),
       });
-    } catch (err) {}
+
+      if (response.ok) {
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+        alert("Message sent successfully!");
+      } else {
+        alert("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   const handleChange = (
