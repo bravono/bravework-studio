@@ -99,12 +99,80 @@ export async function GET(request: Request) {
  * The function returns a Promise so the callback can `await` it.
  */
 async function storeRefreshToken(token: string): Promise<void> {
-  // ---- DEMO ONLY ---------------------------------------------------------
-  // In a dev environment you might simply log it (never do this in prod!).
-  console.log("🗝️  Received Zoho refresh token – store it securely!");
-  console.log(token);
-  // -------------------------------------------------------------------------
+  const VERCEL_ACCESS_TOKEN = process.env.VERCEL_ACCESS_TOKEN;
+  const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 
-  // Example placeholder for a real secret manager:
-  // await secretManager.save("ZOHO_REFRESH_TOKEN", token);
+  if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
+    console.error(
+      "Missing VERCEL_ACCESS_TOKEN or VERCEL_PROJECT_ID. Cannot persist token to Vercel automatically."
+    );
+    console.log("⚠️ Refresh Token (save this manually to Vercel Env Vars):", token);
+    return;
+  }
+
+  const headers = {
+    Authorization: `Bearer ${VERCEL_ACCESS_TOKEN}`,
+    "Content-Type": "application/json",
+  };
+
+  try {
+    // 1. Check if the env var already exists
+    const getRes = await fetch(
+      `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?key=ZOHO_REFRESH_TOKEN&target=production`,
+      { headers }
+    );
+
+    if (!getRes.ok) {
+      console.error("Failed to check existing env vars:", await getRes.text());
+      return;
+    }
+
+    const getData = await getRes.json();
+    // The API returns { envs: [...] }
+    const existingEnv = getData.envs?.find(
+      (e: any) => e.key === "ZOHO_REFRESH_TOKEN"
+    );
+
+    if (existingEnv) {
+      // 2. Update (PATCH) if it exists
+      console.log(`Updating existing env var ${existingEnv.id}...`);
+      const patchRes = await fetch(
+        `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env/${existingEnv.id}`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({ value: token }),
+        }
+      );
+
+      if (!patchRes.ok) {
+        throw new Error(`Failed to update env var: ${await patchRes.text()}`);
+      }
+      console.log("✅ Successfully updated ZOHO_REFRESH_TOKEN in Vercel.");
+    } else {
+      // 3. Create (POST) if it doesn't exist
+      console.log("Creating new env var...");
+      const postRes = await fetch(
+        `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            key: "ZOHO_REFRESH_TOKEN",
+            value: token,
+            type: "encrypted",
+            target: ["production"],
+          }),
+        }
+      );
+
+      if (!postRes.ok) {
+        throw new Error(`Failed to create env var: ${await postRes.text()}`);
+      }
+      console.log("✅ Successfully created ZOHO_REFRESH_TOKEN in Vercel.");
+    }
+  } catch (error) {
+    console.error("❌ Error saving token to Vercel:", error);
+    console.log("⚠️ Refresh Token (save this manually):", token);
+  }
 }
