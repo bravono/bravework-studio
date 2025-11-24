@@ -242,7 +242,7 @@ export default function CourseDetailCard({
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto pl-10 sm:pl-0">
-                    {session.link && (
+                    {session.link && !session.recordingLink && (
                       <a
                         href={session.link}
                         target="_blank"
