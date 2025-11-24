@@ -233,10 +233,10 @@ export default function CourseDetailCard({
                             minute: '2-digit'
                           })}
                         </span>
-                        <span className="flex items-center gap-1">
+                        {/* <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
                           {session.duration} mins
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                   </div>
