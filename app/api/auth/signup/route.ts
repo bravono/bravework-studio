@@ -258,11 +258,17 @@ export async function POST(req: Request) {
           });
 
         // Insert into course_enrollments, preventing duplicates with ON CONFLICT
-        await client.query(
+        const enrollmentResult = await client.query(
           `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
-          VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
+          VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING RETURNING user_id`,
           [userId, courseId, sessionId]
         );
+
+        if (enrollmentResult.rows.length === 0) {
+          return NextResponse.json({
+            message: "You are already enrolled in this course",
+          });
+        }
 
         const categoryResult = await client.query(
           `SELECT category_id FROM product_categories WHERE category_name = $1`,
