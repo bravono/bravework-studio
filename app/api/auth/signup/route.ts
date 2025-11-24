@@ -343,16 +343,16 @@ export async function POST(req: Request) {
     let message = "Failed to process request.";
     let status = 500;
 
-    if (
-      error.message.includes("duplicate key value violates unique constraint")
-    ) {
-      message = "A user with this email already exists.";
-      status = 422;
-    } else if (error.message.includes("not found")) {
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      // Redirect to dashboard if already enrolled
+      return NextResponse.redirect(new URL('/user/dashboard', req.url));
+    } else if (error instanceof Error && error.message.includes("not found")) {
       message = error.message;
       status = 404;
-    } else {
+    } else if (error instanceof Error) {
       message = error.message || "An unknown error occurred.";
+    } else {
+      message = "An unknown error occurred.";
     }
 
     return NextResponse.json({ message }, { status });
