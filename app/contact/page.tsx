@@ -62,18 +62,23 @@ export default function Contact() {
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h1 className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}>
+            <h1
+              className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}
+            >
               Contact Us
             </h1>
             <p className="mt-4 text-xl text-gray-600">
-              We'd love to hear from you! Reach out and we'll get back to you as soon as possible.
+              We'd love to hear from you! Reach out and we'll get back to you as
+              soon as possible.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-3xl shadow-2xl overflow-hidden p-8 lg:p-12">
             {/* Contact Info */}
             <div className="space-y-8">
-              <h2 className="text-3xl font-extrabold text-gray-900">Get in Touch</h2>
+              <h2 className="text-3xl font-extrabold text-gray-900">
+                Get in Touch
+              </h2>
               <p className="text-gray-600">
                 Have a project in mind? We'd love to hear from you.
               </p>
@@ -83,7 +88,9 @@ export default function Contact() {
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Email</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Email
+                    </h3>
                     <p className="text-gray-600">support@braveworkstudio.com</p>
                   </div>
                 </div>
@@ -92,7 +99,9 @@ export default function Contact() {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Phone / WhatsApp</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Phone / WhatsApp
+                    </h3>
                     <p className="text-gray-600">+234 902-322-4596</p>
                   </div>
                 </div>
@@ -101,8 +110,10 @@ export default function Contact() {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Address</h3>
-                    <p className="text-gray-600">Abuja, Nigeria</p>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Address
+                    </h3>
+                    <p className="text-gray-600">Katsina, Nigeria</p>
                   </div>
                 </div>
               </div>
@@ -111,7 +122,10 @@ export default function Contact() {
             {/* Contact Form */}
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="flex flex-col">
-                <label htmlFor="name" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="name"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Name
                 </label>
                 <input
@@ -125,7 +139,10 @@ export default function Contact() {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="email" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 <input
@@ -139,7 +156,10 @@ export default function Contact() {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="subject" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="subject"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Subject
                 </label>
                 <select
@@ -158,7 +178,10 @@ export default function Contact() {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label htmlFor="message" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="message"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Message
                 </label>
                 <textarea
