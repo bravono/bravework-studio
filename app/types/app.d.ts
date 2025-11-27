@@ -142,6 +142,11 @@ interface ExchangeRates {
   [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
 }
 
+interface Tool {
+  id: number;
+  name: string;
+}
+
 // Define a type for your user profile data
 interface UserProfile {
   fullName: string;
@@ -177,6 +182,8 @@ interface Course {
   discount?: number; // Early bird discount percentage
   discountStartDate?: string;
   discountEndDate?: string;
+  content: string;
+  software: [{ id: number; name: string }];
   sessionOption?: number;
   // Current or next upcoming session
   session?: {
@@ -191,10 +198,14 @@ interface Course {
     options: SessionOption[];
   }>;
   sessionGroup: SessionOption[];
-  // Join with instructor table
-  
   instructor: string;
   bio: string;
+  slug?: string;
+  content?: string;
+  excerpt?: string;
+  ageBracket?: string;
+  tools?: Tool[];
+  tags?: string[];
 }
 
 interface CourseSession {
@@ -215,7 +226,7 @@ interface SessionFormProps {
   ) => void;
   addOption: (sessionId: number) => void;
   removeOption: (sessionId: number, optionNumber: number) => void;
-  courseTitle: string,
+  courseTitle: string;
 }
 
 interface SessionOption {
@@ -257,9 +268,9 @@ interface CourseModalProps {
   onClose: () => void;
   existingCourse?: Course;
   onSave: () => void;
-  userRole: 'admin' | 'instructor';
-  currentInstructorName?: string,
-  currentInstructorId?: number,
+  userRole: "admin" | "instructor";
+  currentInstructorName?: string;
+  currentInstructorId?: number;
 }
 
 interface CustomOfferModalProps {

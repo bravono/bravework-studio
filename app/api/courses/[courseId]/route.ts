@@ -26,13 +26,16 @@ export async function GET(
         c.early_bird_discount AS "discount",
         c.discount_start_date AS "discountStartDate",
         c.discount_end_date AS "discountEndDate",
+        c.age_bracket AS "ageBracket",
+        c.content,
         s.session_number AS "sessionOption",
         CASE s.session_number
           WHEN 1 THEN 'Morning'
           WHEN 2 THEN 'Evening'
           ELSE 'Unknown'
         END AS "sessionLabel",
-        s.sessions
+        s.sessions,
+        ct_agg.tools AS software
       FROM courses c
       JOIN (
         SELECT
@@ -47,6 +50,17 @@ export async function GET(
         WHERE session_number IN (1, 2)
         GROUP BY course_id, session_number
       ) s ON c.course_id = s.course_id
+      LEFT JOIN (
+        SELECT
+          ct.course_id,
+          json_agg(json_build_object(
+            'id', t.tool_id,
+            'name', t.name
+          )) AS tools
+        FROM course_tools ct
+        JOIN tools t ON ct.tool_id = t.tool_id
+        GROUP BY ct.course_id
+      ) ct_agg ON c.course_id = ct_agg.course_id
       WHERE c.course_id = $1
       ORDER BY c.created_at DESC, s.session_number;
     `;

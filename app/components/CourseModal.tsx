@@ -7,10 +7,15 @@ import {
   SessionOption,
   CourseModalProps,
   SessionFormProps,
+  Tool,
 } from "@/app/types/app";
 import Modal from "@/app/components/Modal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 // Helper to generate a unique Jitsi link
 const generateJitsiLink = () => {
@@ -24,7 +29,7 @@ const createDefaultOption = (optionNumber: number): SessionOption => ({
   link: generateJitsiLink(),
   datetime: "",
   label: optionNumber === 1 ? "Morning" : "Evening",
-  duration: 60,
+  duration: 120,
 });
 
 // Helper to create a session with one default option
@@ -93,7 +98,7 @@ const SessionForm = ({
   handleOptionChange,
   addOption,
   removeOption,
-  courseTitle
+  courseTitle,
 }: SessionFormProps) => (
   <div
     key={session.id}
@@ -293,9 +298,7 @@ export default function CourseModal({
 
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
-  const [price, setPrice] = useState<number>(
-    existingCourse?.price || 0
-  );
+  const [price, setPrice] = useState<number>(existingCourse?.price || 0);
   const [description, setDescription] = useState<string>(
     existingCourse?.description || ""
   );
@@ -328,6 +331,15 @@ export default function CourseModal({
   const [language, setLanguage] = useState<string>(
     existingCourse?.language || "English"
   );
+  const [slug, setSlug] = useState<string>(existingCourse?.slug || "");
+  const [content, setContent] = useState<string>(existingCourse?.content || "");
+  const [excerpt, setExcerpt] = useState<string>(existingCourse?.excerpt || "");
+  const [ageBracket, setAgeBracket] = useState<string>(
+    existingCourse?.ageBracket || ""
+  );
+  const [selectedTools, setSelectedTools] = useState<number[]>(
+    existingCourse?.tools?.map((t) => t.id) || []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -348,6 +360,7 @@ export default function CourseModal({
   const [availableCategories, setAvailableCategories] = useState<
     Array<{ name: string }>
   >([]);
+  const [availableTools, setAvailableTools] = useState<Tool[]>([]);
 
   // NEW: State for Sessions
   const [sessions, setSessions] = useState<CourseSession[]>(
@@ -439,6 +452,31 @@ export default function CourseModal({
     );
   };
 
+  useEffect(() => {
+    console.log("Initial Instructor", initialInstructorName);
+  }, [initialInstructorName]);
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (title) {
+      const generatedSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      setSlug(generatedSlug);
+    }
+  }, [title]);
+
+  // Auto-generate excerpt from content
+  useEffect(() => {
+    if (content) {
+      const plainText = content.replace(/<[^>]+>/g, "");
+      setExcerpt(
+        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : "")
+      );
+    }
+  }, [content]);
+
   // NEW: useEffect for fetching Instructors and Categories from backend
   useEffect(() => {
     const fetchData = async () => {
@@ -450,6 +488,10 @@ export default function CourseModal({
         const categoryRes = await fetch("/api/course-categories");
         const categoriesData = await categoryRes.json();
         setAvailableCategories(categoriesData);
+
+        const toolsRes = await fetch("/api/tools");
+        const toolsData = await toolsRes.json();
+        setAvailableTools(toolsData);
       } catch (e) {
         console.error("Failed to fetch backend options:", e);
       }
@@ -469,6 +511,11 @@ export default function CourseModal({
       setCategory(existingCourse.category);
       setLevel(existingCourse.level);
       setLanguage(existingCourse.language);
+      setSlug(existingCourse.slug || "");
+      setContent(existingCourse.content || "");
+      setExcerpt(existingCourse.excerpt || "");
+      setAgeBracket(existingCourse.ageBracket || "");
+      setSelectedTools(existingCourse.software?.map((t) => t.id) || []);
       setDescription(existingCourse.description);
       setStartDate(existingCourse.startDate);
       setEndDate(existingCourse.endDate);
@@ -529,6 +576,11 @@ export default function CourseModal({
           course_category: category,
           level,
           language,
+          slug,
+          content,
+          excerpt,
+          age_bracket: ageBracket,
+          tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
         }).map(([key, value]) => [
           key,
@@ -606,6 +658,19 @@ export default function CourseModal({
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                required
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="slug" className={labelStyle}>
+                Slug
+              </label>
+              <input
+                type="text"
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
                 required
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
@@ -759,6 +824,53 @@ export default function CourseModal({
               <option value="Intermediate">Intermediate</option>
               <option value="Advance">Advance</option>
             </select>
+
+            <div>
+              <label htmlFor="ageBracket" className={labelStyle}>
+                Age Bracket
+              </label>
+              <input
+                type="text"
+                id="ageBracket"
+                value={ageBracket}
+                onChange={(e) => setAgeBracket(e.target.value)}
+                placeholder="e.g. 18-25"
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label className={labelStyle}>Tools</label>
+              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableTools.map((tool) => (
+                  <div key={tool.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`tool-${tool.id}`}
+                      value={tool.id}
+                      checked={selectedTools.includes(tool.id)}
+                      onChange={(e) => {
+                        const id = parseInt(e.target.value);
+                        if (e.target.checked) {
+                          setSelectedTools([...selectedTools, id]);
+                        } else {
+                          setSelectedTools(
+                            selectedTools.filter((tId) => tId !== id)
+                          );
+                        }
+                      }}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor={`tool-${tool.id}`}
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      {tool.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
             <label htmlFor="language" className={labelStyle}>
               Language
             </label>
@@ -783,6 +895,33 @@ export default function CourseModal({
               required
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             ></textarea>
+
+            <div>
+              <label htmlFor="content" className={labelStyle}>
+                Content
+              </label>
+              <div className="mt-1 bg-white">
+                <ReactQuill
+                  theme="snow"
+                  value={content}
+                  onChange={setContent}
+                  className="h-64 mb-12"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="excerpt" className={labelStyle}>
+                Excerpt
+              </label>
+              <textarea
+                id="excerpt"
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                rows={3}
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              ></textarea>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Upload Thumbnail

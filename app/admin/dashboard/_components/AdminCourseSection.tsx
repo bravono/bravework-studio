@@ -18,6 +18,8 @@ import CourseModal from "../../../components/CourseModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
+import { useSession } from "next-auth/react";
+
 // Main CourseTab component
 export default function AdminCourseSection() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -28,7 +30,9 @@ export default function AdminCourseSection() {
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
+
   const KOBO_PER_NAIRA = 100;
+  const { data: session } = useSession();
 
   // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -262,10 +266,12 @@ export default function AdminCourseSection() {
       {/* Modals */}
       {isModalOpen && (
         <CourseModal
-          onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
+          onClose={() => setIsModalOpen(false)}
           onSave={fetchCourses}
           userRole="admin"
+          currentInstructorName={session?.user?.name}
+          currentInstructorId={session.user.id}
         />
       )}
       <ConfirmationModal

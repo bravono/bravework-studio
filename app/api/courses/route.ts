@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const courseResults = await queryDatabase(`SELECT 
         c.course_id AS id,
         title,
-        description,
+        c.description,
         is_active AS "isActive",
         start_Date AS "startDate",
         end_date AS "endDate",
@@ -20,7 +20,9 @@ export async function GET(request: Request) {
         early_bird_discount AS "discount",
         discount_start_date AS "discountStartDate",
         discount_end_date AS "discountEndDate",
-        i.bio
+        i.bio,
+        cc.category_name AS category,
+        COALESCE(t_agg.tags, '[]') AS tags
         FROM courses c
         LEFT JOIN (
         SELECT
@@ -28,12 +30,21 @@ export async function GET(request: Request) {
           json_agg(json_build_object(
             'datetime', session_timestamp,
             'link', session_link,
-            'duration, hour_per_session'
+            'duration', hour_per_session
           )) AS sessions
         FROM sessions
         GROUP BY course_id
       ) s ON c.course_id = s.course_id
-        LEFT JOIN instructors i ON c.instructor_id = i.instructor_id`);
+        LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
+        LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
+        LEFT JOIN (
+          SELECT
+            ct.course_id,
+            json_agg(t.tag_name) AS tags
+          FROM course_tags ct
+          JOIN tags t ON ct.tag_id = t.tag_id
+          GROUP BY ct.course_id
+        ) t_agg ON c.course_id = t_agg.course_id`);
 
     return NextResponse.json(courseResults, { status: 200 });
   } catch (error) {

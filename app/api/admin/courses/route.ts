@@ -60,10 +60,26 @@ export async function GET(request: Request) {
                 c.language,
                 c.price_in_kobo AS price,
                 cc.category_name AS category,
-                c.thumbnail_url AS "thumbnailUrl"
+                c.thumbnail_url AS "thumbnailUrl",
+                 c.content,
+                c.excerpt,
+                c.age_bracket AS "ageBracket",
+                ct_agg.tools AS software,
+                c.slug
             FROM courses c
             JOIN instructors i ON c.instructor_id = i.instructor_id
             JOIN course_categories cc ON c.course_category_id = cc.category_id
+            LEFT JOIN (
+              SELECT
+                ct.course_id,
+                json_agg(json_build_object(
+                  'id', t.tool_id,
+                  'name', t.name
+                )) AS tools
+              FROM course_tools ct
+              JOIN tools t ON ct.tool_id = t.tool_id
+              GROUP BY ct.course_id
+            ) ct_agg ON c.course_id = ct_agg.course_id
             ORDER BY c.created_at DESC;
         `;
     let courses = await queryDatabase(coursesQuery);
@@ -140,17 +156,23 @@ export async function POST(request: Request) {
       course_category: category,
       level,
       language,
+      slug,
+      content,
+      excerpt,
+      age_bracket: ageBracket,
+      tools, // Array of tool IDs
       sessions, // Array of session groups
     } = body;
 
     // Input Validation (Simplified for brevity, assuming external schema validation)
     if (
       !title ||
-      !description ||
       !instructor ||
+      !description ||
       !sessions ||
       sessions.length === 0
     ) {
+      console.log("Missing field", instructor);
       return NextResponse.json(
         {
           error:
@@ -164,7 +186,7 @@ export async function POST(request: Request) {
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
-        sessionGroup.options.length !== 2 ||
+        sessionGroup.options.length === 0 ||
         sessionGroup.options.some(
           (option: any) =>
             !option.duration ||
@@ -175,6 +197,7 @@ export async function POST(request: Request) {
         )
     );
 
+    console.log("Has Invalid Session", hasInvalidSession);
     if (hasInvalidSession) {
       return NextResponse.json(
         {
@@ -186,6 +209,7 @@ export async function POST(request: Request) {
     }
 
     const instructorName = instructor.split(" ");
+    console.log("Instructor Name", instructorName);
     if (instructorName.length < 2) {
       throw new Error("Instructor name must include first and last name.");
     }
@@ -212,8 +236,8 @@ export async function POST(request: Request) {
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
                     instructor_id, is_active, max_students, thumbnail_url, 
-                    course_category_id, level, language, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+                    course_category_id, level, language, slug, content, excerpt, age_bracket, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
                 RETURNING course_id;
             `;
       const courseParams = [
@@ -229,6 +253,10 @@ export async function POST(request: Request) {
         categoryId,
         level,
         language,
+        slug,
+        content,
+        excerpt,
+        ageBracket,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -238,7 +266,17 @@ export async function POST(request: Request) {
         throw new Error("Failed to create course.");
       }
 
-      // 3. Insert Sessions (two flat records per session group)
+      // 3. Insert Tools (if any)
+      if (tools && tools.length > 0) {
+        for (const toolId of tools) {
+          await client.query(
+            `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [courseId, toolId]
+          );
+        }
+      }
+
+      // 4. Insert Sessions (two flat records per session group)
       for (const sessionGroup of sessions) {
         for (const option of sessionGroup.options) {
           console.log("Inserting into sessions");

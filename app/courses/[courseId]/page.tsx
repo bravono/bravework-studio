@@ -16,6 +16,13 @@ import {
   CheckCircle,
   ChevronDown,
   Calendar,
+  Shield,
+  FileText,
+  CreditCard,
+  Lock,
+  Sparkles,
+  PlayCircle,
+  ArrowRight,
 } from "lucide-react";
 
 // --- New Hook for Timezone Conversion ---
@@ -122,10 +129,6 @@ export default function CoursePage() {
 
   const isActive = course?.isActive;
 
-  // Use the local data as a temporary fallback or for structure,
-  // but rely on the API call for dynamic data like isActive/startDate/hours
-  const currentCourse = coursesData.find((c) => c.id.toString() === courseId);
-
   // Timezone conversion for start date
   const startTime = course?.startDate
     ? new Date(course.startDate).toLocaleTimeString([], {
@@ -137,7 +140,6 @@ export default function CoursePage() {
   const localStartTime = useLocalTimezone(course?.startDate);
 
   const fetchCourse = useCallback(async () => {
-    // ... (fetchCourse logic is unchanged)
     try {
       const res = await fetch(`/api/courses/${courseId}`);
       if (!res.ok) {
@@ -151,18 +153,16 @@ export default function CoursePage() {
       setCourse(data[0]);
     } catch (error) {
       console.error("Error fetching course:", error);
-      // The currentCourse from localDataService will be used if setCourse fails.
     }
   }, [courseId]);
 
   useEffect(() => {
     fetchCourse();
-    console.log("Fetching course data for courseId:", courseId);
   }, [fetchCourse]);
 
-  if (!currentCourse) {
-    return <CourseNotFound courseId={courseId} />;
-  }
+  useEffect(() => {
+    console.log("Course", course);
+  }, [course]);
 
   // Placeholder data for new sections
   const testimonials = [
@@ -218,289 +218,304 @@ export default function CoursePage() {
   ];
 
   return (
-    <div className="bg-white min-h-screen py-12 font-[Inter]">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section (Unchanged) */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl mt-10 font-extrabold text-secondary-dark leading-tight mb-2 rounded-xl">
-            {course?.title || currentCourse?.title}
+    <div className="bg-gray-50 min-h-screen font-[Inter]">
+      {/* Hero Section */}
+      <div className="relative bg-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-light/5 via-transparent to-secondary-light/5" />
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+          {isActive ? (
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-800 mb-6">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+              Enrolling Now
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-800 mb-6">
+              Coming Soon
+            </span>
+          )}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-secondary-dark leading-tight mb-6 tracking-tight">
+            {course?.title}
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 font-medium">
-            {currentCourse?.tagline}
+          <p className="text-xl sm:text-2xl text-gray-600 font-medium max-w-3xl mx-auto leading-relaxed">
+            {/* {course?.tagline} */}
+            {"Master the skills of tomorrow, today."}
           </p>
         </div>
+      </div>
 
-        {/* Course Overview Card (Modified to include local timezone) */}
-        <div className="bg-gray-100 rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Instructor and quick details */}
-            <div className="flex flex-col space-y-4">
-              <h2 className="text-2xl sm:text-3xl font-bold text-secondary-dark">
-                Course Overview
-              </h2>
-              {/* Duration and Timezone */}
-              <div className="flex items-center space-x-4">
-                <Clock className="text-secondary" />
-                <span className="text-gray-700 font-medium">Duration:</span>
-                <span className="font-bold text-gray-900">
-                  {currentCourse?.duration} •{" "}
-                  {course?.sessions !== null && course?.sessions[0].duration}
-                  hrs/week • On Zoom
-                </span>
-              </div>
-              {/* Start Date and Timezone conversion */}
-              <div className="flex items-center space-x-4">
-                <Calendar className="text-secondary" />
-                <span className="text-gray-700 font-medium">Start Date:</span>
-                <span className="font-bold text-gray-900">
-                  {isActive
-                    ? `${new Date(course.startDate).toLocaleDateString()} at ${
-                        localStartTime || startTime
-                      }`
-                    : "Coming Soon"}
-                </span>
-              </div>
-              {/* Other details (Age, Software) ... (unchanged) */}
-              <div className="flex items-center space-x-4">
-                <Users className="text-secondary" />
-                <span className="text-gray-700 font-medium">Age:</span>
-                <span className="font-bold text-gray-900">
-                  {currentCourse?.targetAudience}
-                </span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Github className="text-secondary" />
-                <span className="text-gray-700 font-medium">Software:</span>
-                <span className="font-bold text-gray-900">
-                  {currentCourse?.software}
-                </span>
-              </div>
-              {/* Early Bird Discount (Unchanged) */}
-              {course?.discount &&
-                new Date(course.discountEndDate) > new Date() && (
-                  <div className="mt-4">
-                    <div className="flex items-center space-x-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-3 shadow">
-                      <Award className="text-yellow-500 w-6 h-6" />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-20 relative z-10">
+        {/* Course Overview Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3">
+            {/* Left Column: Key Details & Instructor */}
+            <div className="lg:col-span-1 bg-gray-50/50 p-8 border-r border-gray-100">
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-secondary-dark mb-6 flex items-center">
+                    <Sparkles className="w-6 h-6 text-primary mr-2" />
+                    Course Details
+                  </h2>
+                  <div className="space-y-5">
+                    <div className="flex items-start">
+                      <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
+                        <Clock className="w-5 h-5" />
+                      </div>
                       <div>
-                        <span className="font-semibold text-yellow-700">
-                          Early Bird Discount:
-                        </span>{" "}
-                        <span className="text-yellow-800 font-bold">
-                          {course.discount}% OFF
-                        </span>
-                        <span className="ml-2 text-yellow-700">
-                          (
-                          {(() => {
-                            const end = new Date(course.discountEndDate);
-                            const now = new Date();
-                            const diff = end.getTime() - now.getTime();
-                            if (diff <= 0) return "Discount ended";
-                            const days = Math.floor(
-                              diff / (1000 * 60 * 60 * 24)
-                            );
-                            const hours = Math.floor(
-                              (diff / (1000 * 60 * 60)) % 24
-                            );
-                            const minutes = Math.floor(
-                              (diff / (1000 * 60)) % 60
-                            );
-                            return `ends in ${days}d ${hours}h ${minutes}m`;
-                          })()}
-                          )
-                        </span>
+                        <p className="text-sm text-gray-500 font-medium">
+                          Duration
+                        </p>
+                        <p className="font-bold text-gray-900">
+                          {course?.sessions !== null &&
+                            course?.sessions[0].duration / 60}{" "}
+                          hrs/week
+                        </p>
+                        <p className="text-xs text-gray-500">Live on Zoom</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">
+                          Start Date
+                        </p>
+                        <p className="font-bold text-gray-900">
+                          {isActive
+                            ? new Date(course.startDate).toLocaleDateString()
+                            : "TBA"}
+                        </p>
+                        {isActive && (
+                          <p className="text-xs text-gray-500">
+                            at {localStartTime || startTime}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">
+                          Age Group
+                        </p>
+                        <p className="font-bold text-gray-900">
+                          {course?.ageBracket}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
+                        <Github className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">
+                          Software
+                        </p>
+                        <p className="font-bold text-gray-900">
+                          {course?.software?.map((s) => s.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>
-                )}
-              {/* Instructor*/}
-              <div className="mt-4 border-t pt-4">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src="/assets/Profile_Picture.jpg"
-                    alt="Ahbideen Yusuf"
-                    className="w-14 h-14 rounded-full object-cover border-2 border-primary"
-                  />
-                  <div>
-                    <p className="text-gray-700">
-                      <span className="font-semibold text-secondary-dark">
-                        Instructor:
-                      </span>{" "}
-                      Ahbideen Yusuf
-                    </p>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Ahbideen Yusuf (founder of Bravework Studio) is a
-                      passionate educator and creative technologist with years
-                      of experience teaching digital skills to young learners
-                      and professionals. He specializes in making complex
-                      concepts accessible and fun.
-                    </p>
+                </div>
+
+                {/* Early Bird Discount */}
+                {course?.discount &&
+                  new Date(course.discountEndDate) > new Date() && (
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-bl-lg">
+                        Limited Time
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <Award className="w-6 h-6 text-yellow-600 mr-2" />
+                        <span className="font-bold text-yellow-800 text-lg">
+                          {course.discount}% OFF
+                        </span>
+                      </div>
+                      <p className="text-sm text-yellow-700 mb-1">
+                        Early Bird Discount
+                      </p>
+                      <p className="text-xs text-yellow-600 font-medium">
+                        {(() => {
+                          const end = new Date(course.discountEndDate);
+                          const now = new Date();
+                          const diff = end.getTime() - now.getTime();
+                          if (diff <= 0) return "Expired";
+                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                          const hours = Math.floor(
+                            (diff / (1000 * 60 * 60)) % 24
+                          );
+                          return `Ends in ${days}d ${hours}h`;
+                        })()}
+                      </p>
+                    </div>
+                  )}
+
+                <div className="pt-6 border-t border-gray-200">
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-4">
+                    Instructor
+                  </p>
+                  <div className="flex items-center">
+                    <img
+                      src="/assets/Profile_Picture.jpg"
+                      alt="Ahbideen Yusuf"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md mr-4"
+                    />
+                    <div>
+                      <p className="font-bold text-gray-900">Ahbideen Yusuf</p>
+                      <p className="text-xs text-gray-500">
+                        Founder, Bravework Studio
+                      </p>
+                    </div>
                   </div>
+                  <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                    Passionate educator and creative technologist making complex
+                    concepts accessible and fun.
+                  </p>
                 </div>
               </div>
             </div>
-            {/* Overview paragraph (Unchanged) */}
-            <div>
-              <p className="text-gray-700 leading-relaxed text-base sm:text-lg rounded-xl bg-primary-light/10 border-l-4 border-primary p-4 shadow-inner">
-                {currentCourse?.overview}
-              </p>
-              <div className="mt-10 flex flex-col items-center">
+
+            {/* Right Column: Description & CTA */}
+            <div className="lg:col-span-2 p-8 md:p-12 flex flex-col justify-center">
+              <h3 className="text-3xl font-bold text-secondary-dark mb-6">
+                About the Course
+              </h3>
+              <div className="prose prose-lg text-gray-600 mb-10">
+                <p className="leading-relaxed">{course?.description}</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4">
                 {isActive ? (
                   <>
                     <Link
-                      className="mt-8 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-primary hover:bg-primary-dark transition-colors duration-200"
                       href={`/auth/signup?enroll=true&courseId=${courseId}`}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-primary hover:bg-primary-dark transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
-                      Enroll Now
+                      Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
-                    <p className="text-gray-700 mt-2 text-center">
-                      Not ready to enroll? Stay updated with course news and
-                      tips!
-                    </p>
                     <Link
-                      href={`/newsletter?isActive=${
-                        isActive ? "true" : "false"
-                      }`}
-                      className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
+                      href={`/newsletter?isActive=true`}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-gray-200 text-lg font-bold rounded-full text-gray-700 bg-white hover:border-primary hover:text-primary transition-all duration-200"
                     >
-                      Join Newsletter
+                      Get Updates
                     </Link>
                   </>
                 ) : (
-                  <>
-                    <p className="text-gray-700 mb-2 text-center">
-                      Enrollment opens soon. Get notified when registration
-                      starts!
-                    </p>
-                    <Link
-                      href={`/newsletter?isActive=${
-                        isActive ? "true" : "false"
-                      }`}
-                      className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
-                    >
-                      Notify Me
-                    </Link>
-                  </>
+                  <Link
+                    href={`/newsletter?isActive=false`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-secondary hover:bg-secondary-dark transition-all duration-200 shadow-lg"
+                  >
+                    Notify Me When Opens
+                  </Link>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* --- NEW: Testimonials Section --- */}
-        <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-            Hear from Our Community
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {testimonials.map((t, index) => (
-              <div
-                key={index}
-                className={`p-5 rounded-xl shadow-md transition-shadow duration-300 ${
-                  t.type === "parent"
-                    ? "bg-primary-light/10"
-                    : "bg-secondary-light/10"
-                }`}
-              >
-                <img
-                  className="w-14 h-14 mb-4 rounded-full object-cover border-2 border-primary"
-                  src={t.image || "/assets/Bravework_Studio-Logo-Black.png"}
-                  alt=""
-                />
-                <p className="text-lg italic text-gray-800">" {t.quote} "</p>
-                <div className="mt-4 border-t pt-3 flex justify-between items-center">
-                  <p className="font-semibold text-primary-dark">{t.name}</p>
-                  <span className="text-xs font-medium text-gray-500">
-                    {t.title}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Levels Section (Unchanged) */}
-        <div className="bg-gray-100 rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-            Program Levels
-          </h2>
-          <div className="space-y-6">
-            {currentCourse.levels.map((level, index) => (
-              <LevelCard key={index} level={level} />
-            ))}
-          </div>
-        </div>
-
-        {/* Program Details Section (Unchanged) */}
-        {/* ... (Your existing Program Details section) */}
-        {!currentCourse.duration.includes("hours") && (
-          <div className="bg-gray-100 rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-              Program Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(currentCourse.details).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="bg-primary-light/10 rounded-xl p-4 flex items-start space-x-4"
-                >
-                  <Circle className="w-5 h-5 mt-1 text-primary flex-shrink-0" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary-dark capitalize">
-                      {key.replace(/([A-Z])/g, " $1").trim()}
-                    </h3>
-                    <p className="text-gray-700 text-sm mt-1">{value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* --- NEW: Student Gallery Section (Above CTA) --- */}
+        {/* Student Renders Section */}
         {studentRenders.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-              Student Renders & Creations
-            </h2>
-            <p className="text-center text-gray-600 mb-6 italic">
-              A selection of incredible work created by students in this course
-              (shared with full consent).
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mb-20">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark mb-4">
+                Student Showcase
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Incredible work created by our students. From concept to final
+                render.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {studentRenders.map((src, index) => (
                 <div
                   key={index}
-                  className="aspect-square overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  className="group relative aspect-square rounded-2xl overflow-hidden shadow-lg bg-gray-100"
                 >
                   <img
                     src={src}
                     alt={`Student Render ${index + 1}`}
-                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <p className="text-white font-medium">Student Project</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Why Choose Us & How to Join Section (Modified Why Choose Us) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* --- MODIFIED: Friendly Feedback Bullets --- */}
-          <div className="bg-gray-100 rounded-3xl shadow-lg p-6 sm:p-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark mb-6 text-center">
-              Results-Focused Feedback
+        {/* Testimonials Section */}
+        <div className="mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark text-center mb-12">
+            Hear from Our Community
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((t, index) => (
+              <div
+                key={index}
+                className="bg-white p-8 rounded-2xl shadow-lg border border-gray-50 flex flex-col h-full relative"
+              >
+                <div className="absolute top-6 right-8 text-6xl text-primary/10 font-serif leading-none">
+                  "
+                </div>
+                <div className="flex-grow">
+                  <p className="text-gray-700 text-lg italic leading-relaxed relative z-10 mb-6">
+                    {t.quote}
+                  </p>
+                </div>
+                <div className="flex items-center pt-6 border-t border-gray-100">
+                  <img
+                    src={t.image || "/assets/Bravework_Studio-Logo-Black.png"}
+                    alt={t.name}
+                    className="w-12 h-12 rounded-full object-cover border border-gray-200 mr-4"
+                  />
+                  <div>
+                    <p className="font-bold text-gray-900">{t.name}</p>
+                    <p className="text-sm text-primary font-medium">
+                      {t.title}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Program Levels */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark mb-10 text-center">
+            Curriculum & Levels
+          </h2>
+          <div
+            className="prose prose-lg max-w-none prose-headings:text-secondary-dark prose-a:text-primary hover:prose-a:text-primary-dark"
+            dangerouslySetInnerHTML={{ __html: course?.content || "" }}
+          />
+        </div>
+
+        {/* Why Choose Us & Policies */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
+          {/* Benefits */}
+          <div className="bg-secondary-dark rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+            <h2 className="text-3xl font-bold mb-8 relative z-10">
+              Why Students Love Us
             </h2>
-            <ul className="space-y-4">
+            <ul className="space-y-6 relative z-10">
               {friendlyFeedbackBullets.map((item, index) => (
-                <li key={index} className="flex items-start space-x-3">
-                  <div className="mt-1 flex-shrink-0">
-                    <CheckCircle className="w-5 h-5 text-primary" />
+                <li key={index} className="flex items-start">
+                  <div className="bg-white/10 p-2 rounded-lg mr-4 mt-1 flex-shrink-0">
+                    <CheckCircle className="w-5 h-5 text-primary-light" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-700 text-sm mt-1">
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-gray-300 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -509,123 +524,81 @@ export default function CoursePage() {
             </ul>
           </div>
 
-          {/* How to Join (Unchanged) */}
-          <div className="bg-gray-100 rounded-3xl shadow-lg p-6 sm:p-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark mb-6 text-center">
-              How to Join
+          {/* Trust & Safety */}
+          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100">
+            <h2 className="text-3xl font-bold text-secondary-dark mb-8">
+              Safety & Trust
             </h2>
-            <ul className="space-y-4">
-              {currentCourse.howToJoin.map((item, index) => (
-                <li key={index} className="flex items-start space-x-3">
-                  <ExternalLink className="w-5 h-5 mt-1 text-secondary flex-shrink-0" />
-                  <p className="text-gray-700">{item}</p>
-                </li>
-              ))}
-            </ul>
-            {isActive && (
-              <Link
-                className="mt-8 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-primary hover:bg-primary-dark transition-colors duration-200"
-                href={`/auth/signup?enroll=true&courseId=${courseId}`}
-              >
-                Enroll Now
-              </Link>
-            )}
-            <div className="mt-8 flex flex-col items-center">
-              {isActive ? (
-                <>
-                  <p className="text-gray-700 mb-2 text-center">
-                    Not ready to enroll? Stay updated with course news and tips!
-                  </p>
-                  <Link
-                    href="/newsletter"
-                    className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
-                  >
-                    Join Newsletter
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-700 mb-2 text-center">
-                    Enrollment opens soon. Get notified when registration
-                    starts!
-                  </p>
-                  <Link
-                    href="/newsletter"
-                    className="inline-flex items-center justify-center px-6 py-3 border border-primary text-base font-medium rounded-full shadow text-primary bg-white hover:bg-primary hover:text-white transition-colors duration-200"
-                  >
-                    Notify Me
-                  </Link>
-                </>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <Shield className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                  Code of Conduct
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Safe, non-judgmental space focused on learning and respect.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <Lock className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                  Verified Instructors
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Rigorous background checks and Working-with-Children
+                  clearances.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <CreditCard className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                  Money-Back Guarantee
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Full refund if you withdraw before the second session.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <FileText className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">Privacy First</h3>
+                <p className="text-sm text-gray-600">
+                  Student work shared only with explicit consent.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* --- NEW: Safety, Policies, and Trust Section --- */}
-        <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-secondary-dark text-center mb-8">
-            Safety, Policies, & Trust
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* 1. Code of Conduct */}
-            <div className="bg-primary-light/10 p-4 rounded-xl shadow-sm">
-              <h3 className="text-xl font-bold text-primary-dark mb-2">
-                Code of Conduct
-              </h3>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>Focus on course material.</li>
-                <li>Always constructive and respectful.</li>
-                <li>No Personal Info: Never share contact details.</li>
-              </ul>
-              <p className="text-xs mt-2 italic text-gray-500">
-                A safe, non-judgemental space is our top priority.
-              </p>
-            </div>
-
-            {/* 2. Safeguarding/Working-with-Children */}
-            <div className="bg-primary-light/10 p-4 rounded-xl shadow-sm">
-              <h3 className="text-xl font-bold text-primary-dark mb-2">
-                Safeguarding & Trust
-              </h3>
-              <p className="text-sm text-gray-700">
-                All instructors, including Ahbideen Yusuf, undergo rigorous
-                background checks (Working-with-Children / equivalent
-                clearances) to ensure a secure learning environment.
-              </p>
-            </div>
-
-            {/* 3. Refunds Summary */}
-            <div className="bg-primary-light/10 p-4 rounded-xl shadow-sm">
-              <h3 className="text-xl font-bold text-primary-dark mb-2">
-                Refunds Summary
-              </h3>
-              <p className="text-sm text-gray-700">
-                We offer a 100% money-back guarantee if you withdraw before the
-                second session, no questions asked.
-              </p>
+            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
               <Link
                 href="https://braveworkstudio.com/refund-policy"
                 target="_blank"
-                className="text-sm text-secondary hover:text-primary transition-colors font-medium mt-2 inline-block"
+                className="inline-flex items-center text-secondary font-semibold hover:text-primary transition-colors"
               >
-                Full Policy{" "}
-                <ExternalLink className="w-3 h-3 inline-block ml-1" />
+                View Full Policies <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
-            </div>
-
-            {/* 4. Privacy */}
-            <div className="bg-primary-light/10 p-4 rounded-xl shadow-sm">
-              <h3 className="text-xl font-bold text-primary-dark mb-2">
-                Privacy & Work Consent
-              </h3>
-              <p className="text-sm text-gray-700 space-y-1">
-                Student work is only featured on our platforms with explicit
-                parental/guardian consent. We delete student project files from
-                our cloud storage 6 months after the course completion date.
-              </p>
             </div>
           </div>
         </div>
+
+        {/* Bottom CTA */}
+        {isActive && (
+          <div className="bg-primary rounded-3xl shadow-2xl p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                Ready to start your journey?
+              </h2>
+              <p className="text-primary-100 text-xl mb-8 max-w-2xl mx-auto">
+                Join a community of creators and start building your portfolio
+                today.
+              </p>
+              <Link
+                href={`/auth/signup?enroll=true&courseId=${courseId}`}
+                className="inline-flex items-center justify-center px-10 py-4 bg-white text-primary font-bold text-lg rounded-full shadow-lg hover:bg-gray-50 transition-colors transform hover:scale-105 duration-200"
+              >
+                Enroll Now
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
