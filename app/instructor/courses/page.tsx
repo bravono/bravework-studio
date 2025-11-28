@@ -110,7 +110,7 @@ export default function InstructorCoursePage() {
   };
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader user={'user'}/>;
   }
 
   return (

@@ -170,7 +170,7 @@ export default function coursesPage({ page }) {
         )}
         <div className="w-full px-4 mt-10 sm:px-6 lg:px-8">
           {isLoading ? (
-            <Loader />
+            <Loader user={'admin'}/>
           ) : (
             <div className="flex flex-col lg:flex-row gap-8">
               {!atHome && (
