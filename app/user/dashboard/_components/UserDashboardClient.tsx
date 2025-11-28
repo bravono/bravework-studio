@@ -242,7 +242,7 @@ function Page() {
         c.paymentStatus !== 4 // ADDED (c.paymentStatus != null)
     );
 
-    if (course) {
+    if (course && course.amount > 0) {
       // Prevent repeated redirects and avoid redirecting if already on payment page
       if (
         typeof window !== "undefined" &&
