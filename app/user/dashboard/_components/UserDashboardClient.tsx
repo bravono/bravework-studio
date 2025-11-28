@@ -67,6 +67,7 @@ import RejectReasonModal from "./RejectReasonModal";
 
 import CourseDetailCard from "@/app/components/CourseDetailCard";
 import CourseModal from "@/app/components/CourseModal";
+import Loader from "@/app/components/Loader";
 
 const Pagination = ({
   currentPage,
@@ -396,16 +397,7 @@ function Page() {
   };
 
   if (status === "loading" || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="flex flex-col items-center p-6 bg-white rounded-xl shadow-lg">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin duration-[2s] ease-in-out delay-300 border-green-500"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">
-            Loading dashboard...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loader user={"user"} />;
   }
 
   if (status === "unauthenticated") {
@@ -720,8 +712,7 @@ function Page() {
                               </span>
                               {(order.status === "paid" ||
                                 order.status === "partially_paid" ||
-                                order.status ===
-                                  "overpayment_detected") && (
+                                order.status === "overpayment_detected") && (
                                 <Link
                                   href={`/orders/track/${
                                     order?.trackingId && order?.trackingId
@@ -1185,7 +1176,7 @@ function Page() {
                           Share your unique referral link to earn rewards!
                         </p>
                         <button
-                        onClick={() => setActiveTab("referrals")}
+                          onClick={() => setActiveTab("referrals")}
                           className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Manage Referrals
@@ -1291,4 +1282,3 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
-

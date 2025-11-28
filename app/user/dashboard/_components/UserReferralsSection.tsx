@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Copy, Check, Users, Wallet, TrendingUp } from "lucide-react";
 import { toast } from "react-toastify";
+import Loader from "@/app/components/Loader";
 
 interface Referral {
   name: string;
@@ -37,7 +38,6 @@ export default function UserReferralsSection() {
         const walletRes = await fetch("/api/user/wallet");
         const walletData = await walletRes.json();
         setWalletBalance(walletData.balance || 0);
-
       } catch (error) {
         console.error("Error fetching referral data:", error);
         toast.error("Failed to load referral data.");
@@ -78,17 +78,16 @@ export default function UserReferralsSection() {
     ? `${window.location.origin}/auth/signup?ref=${referralCode}`
     : "";
 
-  if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading referral data...</div>;
-  }
-
-  return (
+  return loading ? (
+    <Loader user={"user"} />
+  ) : (
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-8 text-white shadow-lg">
         <h1 className="text-3xl font-bold mb-2">Refer & Earn</h1>
         <p className="text-green-100 text-lg max-w-2xl">
-          Share your unique link with friends. You'll earn 10% commission on their first purchase, and they get a discount too!
+          Share your unique link with friends. You'll earn 10% commission on
+          their first purchase, and they get a discount too!
         </p>
       </div>
 
@@ -100,8 +99,12 @@ export default function UserReferralsSection() {
               <Users size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Total Referrals</p>
-              <h3 className="text-2xl font-bold text-gray-800">{referrals.length}</h3>
+              <p className="text-sm text-gray-500 font-medium">
+                Total Referrals
+              </p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                {referrals.length}
+              </h3>
             </div>
           </div>
         </div>
@@ -112,9 +115,17 @@ export default function UserReferralsSection() {
               <TrendingUp size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Total Earnings</p>
+              <p className="text-sm text-gray-500 font-medium">
+                Total Earnings
+              </p>
               <h3 className="text-2xl font-bold text-gray-800">
-                ₦{(referrals.reduce((acc, curr) => acc + curr.commission_earned, 0) / 100).toLocaleString()}
+                ₦
+                {(
+                  referrals.reduce(
+                    (acc, curr) => acc + curr.commission_earned,
+                    0
+                  ) / 100
+                ).toLocaleString()}
               </h3>
             </div>
           </div>
@@ -126,7 +137,9 @@ export default function UserReferralsSection() {
               <Wallet size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Wallet Balance</p>
+              <p className="text-sm text-gray-500 font-medium">
+                Wallet Balance
+              </p>
               <h3 className="text-2xl font-bold text-gray-800">
                 ₦{(walletBalance / 100).toLocaleString()}
               </h3>
@@ -137,11 +150,15 @@ export default function UserReferralsSection() {
 
       {/* Referral Link Section */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Your Referral Link</h2>
-        
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          Your Referral Link
+        </h2>
+
         {!referralCode ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">You haven't generated a referral code yet.</p>
+            <p className="text-gray-600 mb-4">
+              You haven't generated a referral code yet.
+            </p>
             <button
               onClick={generateCode}
               disabled={generating}
@@ -167,12 +184,16 @@ export default function UserReferralsSection() {
                   onClick={() => copyToClipboard(referralLink)}
                   className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600"
                 >
-                  {copied ? <Check size={20} className="text-green-600" /> : <Copy size={20} />}
+                  {copied ? (
+                    <Check size={20} className="text-green-600" />
+                  ) : (
+                    <Copy size={20} />
+                  )}
                 </button>
               </div>
             </div>
             <div className="w-full md:w-auto">
-               <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Referral Code
               </label>
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 font-mono font-bold text-center min-w-[150px]">
@@ -188,11 +209,13 @@ export default function UserReferralsSection() {
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-800">Your Referrals</h2>
         </div>
-        
+
         {referrals.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
             <Users size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>You haven't referred anyone yet. Share your link to get started!</p>
+            <p>
+              You haven't referred anyone yet. Share your link to get started!
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -206,13 +229,20 @@ export default function UserReferralsSection() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {referrals.map((ref, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{ref.name}</td>
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {ref.name}
+                    </td>
                     <td className="px-6 py-4 text-gray-600">
                       {new Date(ref.date_joined).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 font-medium text-green-600">
-                      {ref.commission_earned > 0 ? `₦${(ref.commission_earned / 100).toLocaleString()}` : "-"}
+                      {ref.commission_earned > 0
+                        ? `₦${(ref.commission_earned / 100).toLocaleString()}`
+                        : "-"}
                     </td>
                   </tr>
                 ))}

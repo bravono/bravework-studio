@@ -109,7 +109,7 @@ export default function AdminCourseSection() {
   };
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader user={'admin'}/>;
   }
 
   return (
