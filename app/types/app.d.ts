@@ -46,7 +46,7 @@ interface User {
   id: string;
   fullName: string;
   email: string;
-  role: string; // e.g., 'user', 'admin', 'client', 'student'
+  roles: string; // e.g., 'user', 'admin', 'client', 'student'
   emailVerified: boolean;
   createdAt: string; // When they joined
   // Add other relevant user details for admin view
