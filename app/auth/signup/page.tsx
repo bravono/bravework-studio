@@ -10,7 +10,15 @@ import React, {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Joi from "joi";
-import { User, Mail, Lock, Phone, Clock, Building } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  Phone,
+  Clock,
+  Building,
+  Handshake,
+} from "lucide-react";
 import { Course } from "@/app/types/app";
 
 // Joi Schemas
@@ -19,6 +27,7 @@ const baseSignupSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required().label("Last Name"),
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
+  referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
   password: Joi.string().min(7).max(100).required().label("Password"),
   confirmPassword: Joi.any()
     .valid(Joi.ref("password"))
@@ -33,6 +42,7 @@ const enrollmentSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required().label("Last Name"),
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
+  referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
   password: Joi.string().min(7).max(100).required().label("Password"),
   confirmPassword: Joi.any()
     .valid(Joi.ref("password"))
@@ -70,6 +80,7 @@ function Signup() {
     lastName: "",
     email: "",
     phone: "",
+    referralCode: "",
     password: "",
     confirmPassword: "",
     companyName: "",
@@ -253,6 +264,7 @@ function Signup() {
           confirmPassword: "",
           companyName: "",
           phone: "",
+          referralCode: "",
           preferredSessionTime: "",
         });
         // Redirect to verification page after a short delay
@@ -272,8 +284,8 @@ function Signup() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4 mt-10">
+      <div className="p-8 bg-white rounded-xl shadow-lg">
         <div className="flex flex-col items-center mb-6">
           <h2 className="text-3xl font-bold text-gray-800">
             {isEnrollmentPage ? "Enroll Now" : "Create Account"}
@@ -400,6 +412,26 @@ function Signup() {
               value={form.phone}
               onChange={handleChange}
               autoComplete="tel"
+            />
+          </div>
+
+          {/* Referral */}
+          <div className="relative">
+            <label htmlFor="referralCode" className="sr-only">
+              Referral Code *
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Handshake className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="referralCode"
+              id="referralCode"
+              name="referralCode"
+              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              placeholder="Referral Code (Optional)"
+              value={form.referralCode}
+              onChange={handleChange}
+              autoComplete="referralCode"
             />
           </div>
 
