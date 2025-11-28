@@ -526,13 +526,15 @@ function Page() {
                     !
                   </span>
                 </h1>
-                <button
-                  onClick={() => setIsEditingProfile(true)}
-                  className="flex items-center gap-2 w-[15%] p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
-                >
-                  <User size={20} />
-                  Edit Profile
-                </button>
+                <div className="mt-4 md:mt-0">
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="flex items-center justify-center gap-2 w-full md:w-auto p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
+                  >
+                    <User size={20} />
+                    Edit Profile
+                  </button>
+                </div>
               </div>
 
               {/* Dashboard Grid */}
