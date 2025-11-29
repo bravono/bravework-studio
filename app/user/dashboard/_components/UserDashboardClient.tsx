@@ -1249,8 +1249,8 @@ function Page() {
                           existingCourse={selectedCourse}
                           onSave={null}
                           userRole="instructor"
-                          currentInstructorName={session.user.name}
-                          currentInstructorId={session.user.id}
+                          currentInstructorName={session?.user?.name}
+                          currentInstructorId={session?.user?.id}
                         />
                       )}
                     </div>
