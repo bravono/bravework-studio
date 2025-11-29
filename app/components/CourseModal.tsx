@@ -306,12 +306,8 @@ export default function CourseModal({
     existingCourse?.startDate || ""
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
-
   const initialInstructorName =
-    userRole === "admin"
-      ? existingCourse?.instructor
-      : currentInstructorName || ""; // Use the logged-in instructor's name for instructor role
-
+    existingCourse?.instructor || currentInstructorName; // Use the logged-in instructor's name for instructor role
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false
@@ -453,8 +449,8 @@ export default function CourseModal({
   };
 
   useEffect(() => {
-    console.log("Initial Instructor", initialInstructorName);
-  }, [initialInstructorName]);
+    console.log("Existing Course Instructor", existingCourse?.instructor);
+  }, [existingCourse]);
 
   // Auto-generate slug from title
   useEffect(() => {
