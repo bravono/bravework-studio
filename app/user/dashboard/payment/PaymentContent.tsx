@@ -95,7 +95,7 @@ export default function PaymentContent() {
 
         const data = await res.json();
         setOrderData(data);
-        console.log("Data", data)
+        console.log("Data", data);
       } catch (err: any) {
         console.error("Error loading payment details:", err);
         setError(err.message);
@@ -107,9 +107,7 @@ export default function PaymentContent() {
     if (sessionStatus === "authenticated") {
       fetchOrderDetails();
     } else if (sessionStatus === "unauthenticated") {
-      if (typeof window !== "undefined") {
-        router.push(`/auth/login?callbackUrl=${window.location.href}`);
-      }
+      router.push(`/auth/login`);
     }
   }, [sessionStatus, offerId, courseId, router]);
 
@@ -215,18 +213,18 @@ export default function PaymentContent() {
           payment_option:
             orderData.type === "custom-offer"
               ? paymentOption === "deposit_70"
-              ? "deposit_70_discount"
-              : paymentOption === "full"
-              ? "full_100_discount"
-              : paymentOption
+                ? "deposit_70_discount"
+                : paymentOption === "full"
+                ? "full_100_discount"
+                : paymentOption
               : "full",
           payment_percentage:
             orderData.type === "custom-offer"
               ? paymentOption === "deposit_50"
-              ? 0.5
-              : paymentOption === "deposit_70"
-              ? 0.7
-              : 1.0
+                ? 0.5
+                : paymentOption === "deposit_70"
+                ? 0.7
+                : 1.0
               : 1.0,
           discount_applied: paymentDetails.discount.toString(),
           original_amount_kobo: paymentDetails.baseAmount.toString(),
@@ -245,9 +243,7 @@ export default function PaymentContent() {
               toast.success("Payment successful!");
               router.push("/user/dashboard?tab=orders");
             } else {
-              toast.error(
-                "Payment verification failed: " + verifyData.message
-              );
+              toast.error("Payment verification failed: " + verifyData.message);
             }
           } catch (err) {
             console.error("Verification error:", err);
@@ -325,7 +321,8 @@ export default function PaymentContent() {
                       {convertAmount(
                         orderData.type === "course"
                           ? (orderData.data as Course).price / KOBO_PER_NAIRA
-                          : (orderData.data as CustomOffer).amount / KOBO_PER_NAIRA
+                          : (orderData.data as CustomOffer).amount /
+                              KOBO_PER_NAIRA
                       )}
                     </p>
                   </div>
@@ -390,10 +387,16 @@ export default function PaymentContent() {
             {/* Wallet Option */}
             {walletBalance > 0 && (
               <div className="mb-8">
-                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">
                   Wallet
                 </h2>
-                <div className={`p-4 rounded-xl border transition-all ${useWallet ? 'border-green-600 bg-green-50' : 'border-gray-200'}`}>
+                <div
+                  className={`p-4 rounded-xl border transition-all ${
+                    useWallet
+                      ? "border-green-600 bg-green-50"
+                      : "border-gray-200"
+                  }`}
+                >
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -404,7 +407,9 @@ export default function PaymentContent() {
                     <div className="ml-3 flex-1">
                       <div className="flex items-center gap-2">
                         <Wallet className="w-5 h-5 text-gray-600" />
-                        <span className="font-medium text-gray-900">Use Wallet Balance</span>
+                        <span className="font-medium text-gray-900">
+                          Use Wallet Balance
+                        </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">
                         Available: ₦{(walletBalance / 100).toLocaleString()}
@@ -412,7 +417,10 @@ export default function PaymentContent() {
                     </div>
                     {useWallet && (
                       <span className="font-bold text-green-700">
-                        -₦{(paymentDetails?.walletDeduction! / 100).toLocaleString()}
+                        -₦
+                        {(
+                          paymentDetails?.walletDeduction! / 100
+                        ).toLocaleString()}
                       </span>
                     )}
                   </label>
@@ -426,9 +434,12 @@ export default function PaymentContent() {
                 <span className="text-gray-600">Total to Pay</span>
                 <div className="text-right">
                   <span className="text-3xl font-bold text-gray-900">
-                    {paymentDetails?.finalPaystackAmount === 0 
-                      ? "₦0.00" 
-                      : convertAmount(paymentDetails?.finalPaystackAmount / KOBO_PER_NAIRA || 0)}
+                    {paymentDetails?.finalPaystackAmount === 0
+                      ? "₦0.00"
+                      : convertAmount(
+                          paymentDetails?.finalPaystackAmount /
+                            KOBO_PER_NAIRA || 0
+                        )}
                   </span>
                   {paymentDetails?.discount! > 0 && (
                     <p className="text-sm text-green-600 font-medium mt-1">
