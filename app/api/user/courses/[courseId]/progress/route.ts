@@ -23,11 +23,11 @@ export async function GET(
 
     // Get all sessions for this course
     const courseSessions = await queryDatabase(
-      `SELECT s.session_id, s.datetime, s.link, s.duration
+      `SELECT s.session_id, s.session_timestamp, s.session_link, s.hour_per_session
        FROM sessions s
        JOIN courses c ON s.course_id = c.course_id
        WHERE c.course_id = $1
-       ORDER BY s.datetime ASC`,
+       ORDER BY s.session_timestamp ASC`,
       [courseId]
     );
 
@@ -43,15 +43,13 @@ export async function GET(
 
     // Get completed sessions for this user
     const completedSessions = await queryDatabase(
-      `SELECT session_id
-       FROM student_sessions
-       WHERE user_id = $1 AND session_id = ANY($2) AND finished = true`,
+      `SELECT ss.session_id
+       FROM student_sessions ss
+       WHERE ss.user_id = $1 AND ss.session_id = ANY($2) AND ss.finished = true`,
       [userId, sessionIds]
     );
 
-    const completedSessionIds = completedSessions.map(
-      (s: any) => s.session_id
-    );
+    const completedSessionIds = completedSessions.map((s: any) => s.session_id);
     const progressPercentage = Math.round(
       (completedSessionIds.length / totalSessions) * 100
     );
