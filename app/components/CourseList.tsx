@@ -79,7 +79,7 @@ export default function coursesPage({ page }) {
     }
 
     if (showFreeOnly) {
-      result = result.filter((c) => c.amount === 0);
+      result = result.filter((c) => c.price === 0);
     }
 
     return result;
@@ -170,7 +170,7 @@ export default function coursesPage({ page }) {
         )}
         <div className="w-full px-4 mt-10 sm:px-6 lg:px-8">
           {isLoading ? (
-            <Loader user={'admin'}/>
+            <Loader user={"admin"} />
           ) : (
             <div className="flex flex-col lg:flex-row gap-8">
               {!atHome && (
@@ -300,12 +300,12 @@ export default function coursesPage({ page }) {
                               Price
                             </p>
                             <p className="font-bold text-lg text-gray-900">
-                              {course.amount === 0
+                              {course.price === 0
                                 ? "Free"
                                 : `${getCurrencySymbol(selectedCurrency)}${
                                     rateIsFetched &&
                                     convertCurrency(
-                                      course.amount / KOBO_PER_NAIRA,
+                                      course.price / KOBO_PER_NAIRA,
                                       exchangeRates[selectedCurrency],
                                       getCurrencySymbol(selectedCurrency)
                                     )
