@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         os.name AS status,
         o.total_expected_amount_kobo AS amount,
         o.amount_paid_to_date_kobo AS "amountPaid",
+        o.title,
         pc.category_name AS "serviceName"
       FROM orders o
       LEFT JOIN product_categories pc ON o.category_id = pc.category_id
