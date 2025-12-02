@@ -13,7 +13,14 @@ const baseSignupSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required(),
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(7).max(100).required(),
+  password: Joi.string()
+    .min(7)
+    .max(100)
+    .required()
+    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
+    .message(
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+    ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   referralCode: Joi.string().allow("").optional(),
@@ -23,7 +30,14 @@ const enrollmentSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required(),
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(7).max(100).required(),
+  password: Joi.string()
+    .min(7)
+    .max(100)
+    .required()
+    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
+    .message(
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+    ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   preferredSessionTime: Joi.string().required(),
@@ -134,22 +148,7 @@ export async function POST(req: Request) {
             "SELECT user_id FROM users WHERE referral_code = $1",
             [referralCode]
           );
-          if (referrerResult.rows.length > 0) {
-            const referrerId = referrerResult.rows[0].user_id;
-            await client.query(
-              "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
-              [referrerId, userId]
-            );
-            console.log(`User ${userId} referred by ${referrerId}`);
-          }
-        }
-
-        // Handle Referral
-        if (referralCode) {
-          const referrerResult = await client.query(
-            "SELECT user_id FROM users WHERE referral_code = $1",
-            [referralCode]
-          );
+          console.log("Referrer Result", referrerResult);
           if (referrerResult.rows.length > 0) {
             const referrerId = referrerResult.rows[0].user_id;
             await client.query(
@@ -251,7 +250,7 @@ export async function POST(req: Request) {
           [userId, courseId]
         );
 
-        console.log("Existing Course", existingCourse)
+        console.log("Existing Course", existingCourse);
         if (existingCourse.rows.length > 0)
           return NextResponse.json({
             message: "You are already enrolled in this course",
@@ -345,7 +344,7 @@ export async function POST(req: Request) {
 
     if (error instanceof Error && error.message.includes("duplicate key")) {
       // Redirect to dashboard if already enrolled
-      return NextResponse.redirect(new URL('/user/dashboard', req.url));
+      return NextResponse.redirect(new URL("/user/dashboard", req.url));
     } else if (error instanceof Error && error.message.includes("not found")) {
       message = error.message;
       status = 404;

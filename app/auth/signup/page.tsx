@@ -28,7 +28,16 @@ const baseSignupSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
   referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
-  password: Joi.string().min(7).max(100).required().label("Password"),
+  password: Joi.string()
+    .min(7)
+    .max(100)
+    .required()
+    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
+    .label("Password")
+    .messages({
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~).",
+    }),
   confirmPassword: Joi.any()
     .valid(Joi.ref("password"))
     .required()
@@ -43,7 +52,16 @@ const enrollmentSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
   referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
-  password: Joi.string().min(7).max(100).required().label("Password"),
+  password: Joi.string()
+    .min(7)
+    .max(100)
+    .required()
+    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
+    .label("Password")
+    .messages({
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~).",
+    }),
   confirmPassword: Joi.any()
     .valid(Joi.ref("password"))
     .required()
@@ -110,14 +128,19 @@ function Signup() {
       if (course?.id && courseId !== course?.id) {
         setMessage("Invalid course selected. Please go back.");
       }
+      setMessage("");
+      fetchCourse();
     }
-
-    setMessage("");
-    ``;
-    fetchCourse();
   }, [isEnrollmentPage, courseId]);
 
-  useEffect(() => {}, [course]);
+  useEffect(() => {
+    const referralCode = searchParams.get("ref");
+    if (referralCode) {
+      setForm({ ...form, referralCode });
+    }
+
+    console.log("Form", form);
+  }, [searchParams]);
 
   const schemaToValidate = useMemo(() => {
     if (!isEnrollmentPage) return baseSignupSchema;
@@ -165,6 +188,7 @@ function Signup() {
         confirmPassword: form.confirmPassword, // Included for frontend validation
         preferredSessionTime: form.preferredSessionTime,
         courseId: Number(courseId),
+        referralCode: form.referralCode,
       };
 
       payloadForApi = {
@@ -174,6 +198,7 @@ function Signup() {
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
         courseId: Number(courseId),
+        referralCode: form.referralCode,
       };
 
       if (!user) {
@@ -188,6 +213,7 @@ function Signup() {
         password: form.password,
         confirmPassword: form.confirmPassword, // Included for frontend validation
         companyName: form.companyName,
+        referralCode: form.referralCode,
       };
 
       payloadForApi = {
@@ -197,6 +223,7 @@ function Signup() {
         phone: form.phone,
         password: form.password, // Only send the password to the backend
         companyName: form.companyName,
+        referralCode: form.referralCode,
       };
     }
 
