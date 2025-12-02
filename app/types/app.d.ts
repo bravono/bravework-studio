@@ -39,6 +39,7 @@ interface Order {
   description?: string; // Optional: order description for admin view
   serviceName?: string;
   status?: string;
+  title: string;
 }
 
 // New: User interface for User Management
@@ -177,7 +178,6 @@ interface Course {
   thumbnailUrl: string;
   level: "Beginner" | "Intermediate" | "Advance";
   language: string;
-  amount: number;
   category: string;
   discount?: number; // Early bird discount percentage
   discountStartDate?: string;

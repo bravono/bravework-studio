@@ -242,7 +242,7 @@ function Page() {
         c.paymentStatus !== 4 // ADDED (c.paymentStatus != null)
     );
 
-    if (course && course.amount > 0) {
+    if (course && course.price > 0) {
       // Prevent repeated redirects and avoid redirecting if already on payment page
       if (
         typeof window !== "undefined" &&
@@ -609,14 +609,16 @@ function Page() {
                         </Link>
                       </div>
 
-                      {courses.map((course) => (
-                        <CourseDetailCard
-                          key={course.id}
-                          course={course}
-                          selectedCurrency={selectedCurrency}
-                          exchangeRates={exchangeRates}
-                        />
-                      ))}
+                      {courses
+                        .filter((course) => course.price === 0 || course.paymentStatus === 1)
+                        .map((course) => (
+                          <CourseDetailCard
+                            key={course.id}
+                            course={course}
+                            selectedCurrency={selectedCurrency}
+                            exchangeRates={exchangeRates}
+                          />
+                        ))}
 
                       {courses.length === 0 && (
                         <p className="text-center text-gray-500 mt-12">
