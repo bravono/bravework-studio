@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import { Nosifer } from "next/font/google";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { toast } from "react-toastify";
 
 const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
@@ -34,13 +35,13 @@ export default function Contact() {
           subject: "",
           message: "",
         });
-        alert("Message sent successfully!");
+        toast.success("Message sent successfully!");
       } else {
-        alert("Failed to send message. Please try again.");
+        toast.error("Failed to send message. Please try again.");
       }
     } catch (err) {
       console.error("Error submitting form:", err);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     }
   };
 
