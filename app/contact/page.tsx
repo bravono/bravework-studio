@@ -171,9 +171,12 @@ export default function Contact() {
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                 >
                   <option value="">Select a subject</option>
-                  <option value="3d">3D Services</option>
-                  <option value="web">Web Development</option>
+                  <option value="3d">3D Design Services</option>
+                  <option value="web">Website Development</option>
+                  <option value="app">App Development</option>
                   <option value="uiux">UI/UX Design</option>
+                  <option value="tech">Tech Training</option>
+                  <option value="consultation">Consultation</option>
                   <option value="other">Other</option>
                 </select>
               </div>
