@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         i.last_name AS "lastName",
         level,
         language,
-        price_in_kobo AS amount,
+        price_in_kobo AS price,
         early_bird_discount AS "discount",
         discount_start_date AS "discountStartDate",
         discount_end_date AS "discountEndDate",
