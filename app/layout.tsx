@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import NextAuthSessionProvider from "./components/SessionProider";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { ToastContainer } from "react-toastify";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400"] });
 
@@ -108,6 +109,7 @@ export default async function RootLayout({
         )}
         {/* End Google Tag Manager (noscript) */}
         <NextAuthSessionProvider>
+          <ToastContainer position="bottom-right" theme="colored" />
           <Navbar />
           {children}
         </NextAuthSessionProvider>

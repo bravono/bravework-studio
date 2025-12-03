@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useCallback } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -610,8 +610,6 @@ function Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans antialiased flex flex-col items-center p-4">
-      <ToastContainer />
-      <Navbar /> {/* Assuming Navbar is a part of your layout */}
       <main className="w-full max-w-4xl mx-auto py-12 md:py-16">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
