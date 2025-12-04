@@ -3,22 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { ShowMore } from "@re-dev/react-truncate";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import {
-  Paintbrush,
-  Laptop,
-  Lightbulb,
-  Gamepad,
-  User,
-  Calendar,
-  Layers,
-  GraduationCap,
-  Award,
-  Tag,
-  Hourglass,
-  DollarSign,
-  Filter,
-} from "lucide-react";
+import { Calendar, Award, Hourglass, DollarSign, Filter } from "lucide-react";
 import { Course } from "../types/app";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
@@ -32,13 +17,6 @@ import Loader from "../components/Loader";
 import ArrowButton from "./ArrowButton";
 import CourseFilters from "./CourseFilters";
 
-const icons = [
-  <Paintbrush className="w-8 h-8 text-secondary" />,
-  <Laptop className="w-8 h-8 text-secondary" />,
-  <Lightbulb className="w-8 h-8 text-secondary" />,
-  <Gamepad className="w-8 h-8 text-secondary" />,
-];
-
 export default function coursesPage({ page }) {
   const KOBO_PER_NAIRA = 100;
   const [courses, setCourses] = useState<Course[]>([]);
@@ -50,6 +28,7 @@ export default function coursesPage({ page }) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showFreeOnly, setShowFreeOnly] = useState(false);
+  const [showPublishedOnly, setShowPublishedOnly] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const rateIsFetched = exchangeRates?.[selectedCurrency];
@@ -82,8 +61,18 @@ export default function coursesPage({ page }) {
       result = result.filter((c) => c.price === 0);
     }
 
+    if (showPublishedOnly) {
+      result = result.filter((c) => c.isActive);
+    }
+
     return result;
-  }, [courses, selectedCategories, selectedTags, showFreeOnly]);
+  }, [
+    courses,
+    selectedCategories,
+    selectedTags,
+    showFreeOnly,
+    showPublishedOnly,
+  ]);
 
   const coursesToDisplay = atHome ? courses.slice(0, 4) : filteredCourses;
 
@@ -189,10 +178,12 @@ export default function coursesPage({ page }) {
                     selectedTags={selectedTags}
                     priceRange={{ min: 0, max: 0 }} // Not used yet
                     showFreeOnly={showFreeOnly}
+                    showPublishedOnly={showPublishedOnly}
                     onCategoryChange={handleCategoryChange}
                     onTagChange={handleTagChange}
                     onPriceRangeChange={() => {}}
                     onShowFreeOnlyChange={setShowFreeOnly}
+                    onShowPublishedOnlyChange={setShowPublishedOnly}
                     onClearFilters={clearFilters}
                     isOpen={isFilterOpen}
                     onClose={() => setIsFilterOpen(false)}

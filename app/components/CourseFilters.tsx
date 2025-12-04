@@ -8,10 +8,12 @@ interface CourseFiltersProps {
   selectedTags: string[];
   priceRange: { min: number; max: number };
   showFreeOnly: boolean;
+  showPublishedOnly: boolean;
   onCategoryChange: (category: string) => void;
   onTagChange: (tag: string) => void;
   onPriceRangeChange: (min: number, max: number) => void;
   onShowFreeOnlyChange: (showFree: boolean) => void;
+  onShowPublishedOnlyChange: (showPublish: boolean) => void;
   onClearFilters: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -24,10 +26,12 @@ export default function CourseFilters({
   selectedTags,
   priceRange,
   showFreeOnly,
+  showPublishedOnly,
   onCategoryChange,
   onTagChange,
   onPriceRangeChange,
   onShowFreeOnlyChange,
+  onShowPublishedOnlyChange,
   onClearFilters,
   isOpen,
   onClose,
@@ -123,6 +127,22 @@ export default function CourseFilters({
                 />
                 <span className="ml-3 font-medium text-gray-700">
                   Free Courses Only
+                </span>
+              </label>
+            </div>
+
+            {/* Active */}
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Published</h3>
+              <label className="flex items-center p-3 border border-gray-200 rounded-xl hover:border-primary/50 transition-colors cursor-pointer bg-gray-50/50">
+                <input
+                  type="checkbox"
+                  checked={showPublishedOnly}
+                  onChange={(e) => onShowPublishedOnlyChange(e.target.checked)}
+                  className="h-5 w-5 text-primary border-gray-300 rounded focus:ring-primary/20"
+                />
+                <span className="ml-3 font-medium text-gray-700">
+                  Published Courses Only
                 </span>
               </label>
             </div>
