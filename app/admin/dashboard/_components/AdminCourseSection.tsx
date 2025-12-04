@@ -109,7 +109,7 @@ export default function AdminCourseSection() {
   };
 
   if (isLoading) {
-    return <Loader user={'admin'}/>;
+    return <Loader user={"admin"} />;
   }
 
   return (
@@ -150,7 +150,7 @@ export default function AdminCourseSection() {
                 Language
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount
+                Price
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Start Date
@@ -189,7 +189,9 @@ export default function AdminCourseSection() {
                     {course.language ?? "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
+                    {course.price === 0
+                      ? "Free"
+                      : "₦" + (course.price / KOBO_PER_NAIRA).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(course.startDate), "dd MMM yyyy")}
