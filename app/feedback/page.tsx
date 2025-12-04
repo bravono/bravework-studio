@@ -51,7 +51,6 @@ export default function Testimonials() {
 
   return (
     <main>
-      <Navbar />
       <section className="testimonials-section">
         <div className="container">
           <h1 className="section-title">Share Your Experience</h1>

@@ -22,7 +22,6 @@ export default function ProjectDetails({
   if (!project) {
     return (
       <main className="min-h-screen bg-gray-50">
-        <Navbar />
         <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Project not found
@@ -41,7 +40,6 @@ export default function ProjectDetails({
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar />
       <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"

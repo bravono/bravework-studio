@@ -66,7 +66,6 @@ export default function About() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-      <Navbar />
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

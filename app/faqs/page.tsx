@@ -100,7 +100,6 @@ export default function FAQPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <Navbar />
       <main className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
