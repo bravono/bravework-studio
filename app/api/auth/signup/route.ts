@@ -6,6 +6,7 @@ import { createTrackingId } from "@/lib/utils/tracking";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { sendOrderReceivedEmail, sendVerificationEmail } from "@/lib/mailer";
+import { createZohoLead } from "@/lib/zoho";
 import Joi from "joi";
 
 // Define Joi schemas
@@ -301,6 +302,27 @@ export async function POST(req: Request) {
 
         orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
+
+        // Integrate Zoho CRM for Free Courses
+        if (price === 0) {
+          try {
+            const leadData = {
+              Last_Name: name,
+              Email: email,
+              Description: `Enrolled in Free Course: ${courseTitle}\nSession: ${sessionNumber}`,
+              Lead_Source: "Free Course Enrollment",
+            };
+            await createZohoLead(leadData);
+            console.log(
+              `Zoho Lead created for free course enrollment: ${email}`
+            );
+          } catch (zohoError) {
+            console.error(
+              "Failed to create Zoho Lead for free course:",
+              zohoError
+            );
+          }
+        }
 
         return { userId, isNewUser: !session };
       }
