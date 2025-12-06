@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
 const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
-const ZOHO_ACCOUNTS_URL = process.env.ZOHO_ACCOUNTS_URL || "https://accounts.zoho.com";
+const ZOHO_ACCOUNTS_URL =
+  process.env.ZOHO_ACCOUNTS_URL || "https://accounts.zoho.com";
 const ZOHO_API_URL = process.env.ZOHO_API_URL || "https://www.zohoapis.com";
 
 interface ZohoTokenResponse {
@@ -21,7 +22,7 @@ export async function getZohoAccessToken(): Promise<string | null> {
 
   try {
     const url = `${ZOHO_ACCOUNTS_URL}/oauth/v2/token?refresh_token=${ZOHO_REFRESH_TOKEN}&client_id=${ZOHO_CLIENT_ID}&client_secret=${ZOHO_CLIENT_SECRET}&grant_type=refresh_token`;
-    
+
     const response = await fetch(url, {
       method: "POST",
     });
@@ -42,7 +43,7 @@ export async function getZohoAccessToken(): Promise<string | null> {
 
 export async function createZohoLead(leadData: any) {
   const accessToken = await getZohoAccessToken();
-  
+
   if (!accessToken) {
     throw new Error("Failed to get access token");
   }
@@ -58,7 +59,7 @@ export async function createZohoLead(leadData: any) {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       console.error("Zoho CRM API Error:", data);
       throw new Error(JSON.stringify(data));
@@ -67,6 +68,37 @@ export async function createZohoLead(leadData: any) {
     return data;
   } catch (error) {
     console.error("Error creating Zoho lead:", error);
+    throw error;
+  }
+}
+
+export async function createZohoContact(contactData: any) {
+  const accessToken = await getZohoAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Failed to get access token");
+  }
+
+  try {
+    const response = await fetch(`${ZOHO_API_URL}/crm/v2/Contacts`, {
+      method: "POST",
+      headers: {
+        Authorization: `Zoho-oauthtoken ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: [contactData] }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Zoho CRM API Error:", data);
+      throw new Error(JSON.stringify(data));
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error creating Zoho contact:", error);
     throw error;
   }
 }

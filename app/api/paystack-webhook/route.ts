@@ -3,7 +3,7 @@ import crypto from "crypto"; // Node.js built-in module for cryptographic functi
 import { sendPaymentReceivedEmail } from "lib/mailer";
 
 import { queryDatabase, withTransaction } from "../../../lib/db";
-import { createZohoLead } from "@/lib/zoho";
+import { createZohoLead, createZohoContact } from "@/lib/zoho";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -36,8 +36,8 @@ async function loadOrderStatusMap() {
 
       if (statusResult.length === 0) {
         throw new Error("No order statuses found in the database.");
-      };
-      
+      }
+
       statusResult.forEach((row: { order_status_id: number; name: string }) => {
         orderStatusMap[row.name] = row.order_status_id;
       });
@@ -392,16 +392,18 @@ export async function POST(req: NextRequest) {
 
           // Integrate Zoho CRM
           try {
-            const leadData = {
+            const contactData = {
               Last_Name: clientName || "Unknown",
               Email: customerEmail,
-              Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${paystackAmountKobo / 100} ${paystackCurrency}`,
+              Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${
+                paystackAmountKobo / 100
+              } ${paystackCurrency}`,
               Lead_Source: "Course Enrollment/Order",
             };
-            await createZohoLead(leadData);
-            console.log(`Zoho Lead created for ${customerEmail}`);
+            await createZohoContact(contactData);
+            console.log(`Zoho Contact created for ${customerEmail}`);
           } catch (zohoError) {
-            console.error("Failed to create Zoho Lead:", zohoError);
+            console.error("Failed to create Zoho Contact:", zohoError);
             // Don't fail the webhook if Zoho fails
           }
 
