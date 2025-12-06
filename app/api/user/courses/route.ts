@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     LEFT JOIN course_sessions_by_preference csbp
       ON csbp.course_id = ce.course_id AND csbp.user_id = ce.user_id
     WHERE ce.user_id = $1
-    ORDER BY c.created_at DESC;
+    ORDER BY c.created_at;
     `;
 
     const params = [userId];

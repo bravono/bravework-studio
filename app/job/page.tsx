@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { Nosifer } from "next/font/google";
-import Navbar from "../components/Navbar";
 import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 import {
@@ -95,11 +94,11 @@ export default function JobsPage() {
           toast.success(`File ${file.name} uploaded successfully!`);
         } else {
           const errorData = await response.json();
-          toast(`Error uploading ${file.name}`);
+          toast.error(`Error uploading ${file.name}`);
           setSubmitStatus("error");
         }
       } catch (err) {
-        toast("Error uploading file:", err);
+        toast.error("Error uploading file:", err);
         setSubmitStatus("error");
       }
     }
@@ -203,8 +202,6 @@ export default function JobsPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <Navbar />
-      <ToastContainer position="bottom-right" theme="colored" />
       <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1

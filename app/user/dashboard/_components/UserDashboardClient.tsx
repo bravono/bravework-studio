@@ -59,6 +59,7 @@ import UserCustomOffersSection from "./UserCustomOfferSection";
 import UserInvoicesSection from "./UserInvoicesSection";
 import UserNotificationsSection from "./UserNotificationsSection";
 import UserOrdersSection from "./UserOrdersSection";
+import UserReferralsSection from "./UserReferralsSection";
 
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
@@ -69,6 +70,7 @@ import CourseDetailCard from "@/app/components/CourseDetailCard";
 import CourseModal from "@/app/components/CourseModal";
 import CreateRentalModal from "./CreateRentalModal";
 import UserRentalsSection from "./UserRentalsSection";
+import Loader from "@/app/components/Loader";
 
 const Pagination = ({
   currentPage,
@@ -252,7 +254,7 @@ function Page() {
         c.paymentStatus !== 4 // ADDED (c.paymentStatus != null)
     );
 
-    if (course) {
+    if (course && course.price > 0) {
       // Prevent repeated redirects and avoid redirecting if already on payment page
       if (
         typeof window !== "undefined" &&
@@ -407,16 +409,7 @@ function Page() {
   };
 
   if (status === "loading" || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="flex flex-col items-center p-6 bg-white rounded-xl shadow-lg">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin duration-[2s] ease-in-out delay-300 border-green-500"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">
-            Loading dashboard...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loader user={"user"} />;
   }
 
   if (status === "unauthenticated") {
@@ -449,7 +442,7 @@ function Page() {
 
   // Calculate overview stats from fetched data
   const activeOrders = orders.filter(
-    (order) => order.statusName === "overpayment_detected"
+    (order) => order.status === "overpayment_detected"
   ).length;
   const projectOrders = orders.filter(
     (order) => order.serviceName !== "Course"
@@ -565,13 +558,15 @@ function Page() {
                     !
                   </span>
                 </h1>
-                <button
-                  onClick={() => setIsEditingProfile(true)}
-                  className="flex items-center gap-2 w-[15%] p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
-                >
-                  <User size={20} />
-                  Edit Profile
-                </button>
+                <div className="mt-4 md:mt-0">
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="flex items-center justify-center gap-2 w-full md:w-auto p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
+                  >
+                    <User size={20} />
+                    Edit Profile
+                  </button>
+                </div>
               </div>
 
               {/* Dashboard Grid */}
@@ -646,14 +641,16 @@ function Page() {
                         </Link>
                       </div>
 
-                      {courses.map((course) => (
-                        <CourseDetailCard
-                          key={course.id}
-                          course={course}
-                          selectedCurrency={selectedCurrency}
-                          exchangeRates={exchangeRates}
-                        />
-                      ))}
+                      {courses
+                        .filter((course) => course.price === 0 || course.paymentStatus === 1)
+                        .map((course) => (
+                          <CourseDetailCard
+                            key={course.id}
+                            course={course}
+                            selectedCurrency={selectedCurrency}
+                            exchangeRates={exchangeRates}
+                          />
+                        ))}
 
                       {courses.length === 0 && (
                         <p className="text-center text-gray-500 mt-12">
@@ -732,14 +729,14 @@ function Page() {
                             <div className="flex items-center gap-4 flex-shrink-0">
                               <span
                                 className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                  order.statusName === "paid"
+                                  order.status === "paid"
                                     ? "bg-green-200 text-green-800"
-                                    : order.statusName === "pending"
+                                    : order.status === "pending"
                                     ? "bg-yellow-200 text-yellow-800"
                                     : "bg-red-200 text-red-800"
                                 }`}
                               >
-                                {order.statusName}
+                                {order.status}
                               </span>
                               <span className="font-bold text-gray-800">
                                 {getCurrencySymbol(selectedCurrency)}
@@ -749,10 +746,9 @@ function Page() {
                                   getCurrencySymbol(selectedCurrency)
                                 ).toLocaleString()}
                               </span>
-                              {(order.statusName === "paid" ||
-                                order.statusName === "partially_paid" ||
-                                order.statusName ===
-                                  "overpayment_detected") && (
+                              {(order.status === "paid" ||
+                                order.status === "partially_paid" ||
+                                order.status === "overpayment_detected") && (
                                 <Link
                                   href={`/orders/track/${
                                     order?.trackingId && order?.trackingId
@@ -1269,12 +1265,12 @@ function Page() {
                         <p className="text-sm text-gray-500 mt-1">
                           Share your unique referral link to earn rewards!
                         </p>
-                        <Link
-                          href="/referrals"
+                        <button
+                          onClick={() => setActiveTab("referrals")}
                           className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Manage Referrals
-                        </Link>
+                        </button>
                       </div>
                       <hr className="border-gray-200" />
                       <div>
@@ -1327,14 +1323,22 @@ function Page() {
                         )}
                       </button>
 
+                      <button
+                        onClick={() => setActiveTab("referrals")}
+                        className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
+                      >
+                        <HeartHandshake size={20} />
+                        Referrals
+                      </button>
+
                       {isModalOpen && (
                         <CourseModal
                           onClose={() => setIsModalOpen(false)}
                           existingCourse={selectedCourse}
                           onSave={null}
                           userRole="instructor"
-                          currentInstructorName={session.user.name}
-                          currentInstructorId={session.user.id}
+                          currentInstructorName={session?.user?.name}
+                          currentInstructorId={session?.user?.id}
                         />
                       )}
                     </div>
@@ -1355,6 +1359,8 @@ function Page() {
         return withBackToOverview(<UserCustomOffersSection />);
       case "rentals":
         return withBackToOverview(<UserRentalsSection onFetchDashboardData={fetchDashboardData}/>);
+      case "referrals":
+        return withBackToOverview(<UserReferralsSection />);
       case "courses":
     }
   };

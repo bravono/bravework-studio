@@ -1,460 +1,256 @@
-// app/dashboard/notifications/page.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-
+import { Copy, Check, Users, Wallet, TrendingUp } from "lucide-react";
 import { toast } from "react-toastify";
-import { format } from "date-fns";
+import Loader from "@/app/components/Loader";
 
-import {
-  Bell,
-  CheckCircle,
-  Clock,
-  ExternalLink,
-  Wallet,
-  XCircle,
-} from "lucide-react";
-import { Notification } from "../../../types/app";
-import RejectReasonModal from "../_components/RejectReasonModal";
+interface Referral {
+  name: string;
+  date_joined: string;
+  commission_earned: number;
+}
 
 export default function UserReferralsSection() {
-  const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
-  const kobo = 100; // 1 NGN = 100 Kobo
-
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { data: session } = useSession();
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [isRejectReasonModalOpen, setIsRejectReasonModalOpen] = useState(false);
-  const [selectedOfferForRejection, setSelectedOfferForRejection] =
-    useState<Notification | null>(null);
-
-  const fetchNotifications = useCallback(async () => {
-    if (sessionStatus !== "authenticated") return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/user/referrals");
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to fetch notifications.");
-      }
-      const data: Notification[] = await res.json();
-      setNotifications(data);
-    } catch (err: any) {
-      console.error("Error fetching notifications:", err);
-      setError(err.message || "An error occurred while loading notifications.");
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionStatus]);
+  const [generating, setGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      fetchNotifications();
-    } else if (sessionStatus === "unauthenticated") {
-      router.push("/auth/login?error=unauthenticated");
-    }
-  }, [sessionStatus, fetchNotifications, router]);
-
-  const markNotificationAsRead = useCallback(async (notificationId: string) => {
-    try {
-      const res = await fetch(`/api/user/referrals?id=${notificationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isRead: true }),
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.error || "Failed to mark notification as read."
-        );
-      }
-      setNotifications((prev) =>
-        prev.map((notif) =>
-          notif.id === notificationId ? { ...notif, isRead: true } : notif
-        )
-      );
-    } catch (err: any) {
-      console.error("Error marking notification as read:", err);
-    }
-  }, []);
-
-  const handleOfferAction = useCallback(
-    async (
-      notification: Notification,
-      action: "accept" | "reject",
-      reason?: string
-    ) => {
-      if (!notification.offerId) return;
-
-      const currentOfferStatus = notification.offerStatus?.toLowerCase();
-      const isExpired =
-        notification.offerExpiresAt &&
-        new Date(notification.offerExpiresAt) < new Date();
-
-      if (currentOfferStatus !== "pending") {
-        toast.error(
-          `This offer is already ${currentOfferStatus || "not available"}.`
-        );
-        return;
-      }
-      if (isExpired) {
-        toast.error("This offer has expired.");
-        setNotifications((prev) =>
-          prev.map((notif) =>
-            notif.id === notification.id
-              ? { ...notif, offerStatus: "expired" }
-              : notif
-          )
-        );
-        return;
-      }
-
-      if (!confirm(`Are you sure you want to ${action} this offer?`)) return;
-
-      setActionLoading(true);
+    const fetchData = async () => {
       try {
-        const res = await fetch(
-          `/api/user/custom-offers/${notification.offerId}/${action}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rejectionReason: reason }),
-          }
-        );
+        // Fetch Referral Code
+        const codeRes = await fetch("/api/user/referral-code");
+        const codeData = await codeRes.json();
+        if (codeData.referralCode) setReferralCode(codeData.referralCode);
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || `Failed to ${action} offer.`);
-        }
+        // Fetch Referrals
+        const referralsRes = await fetch("/api/user/referrals");
+        const referralsData = await referralsRes.json();
+        if (Array.isArray(referralsData)) setReferrals(referralsData);
 
-        const result = await res.json();
-        toast.success(`Offer ${action}ed successfully!`);
-
-        const formDataToSend = new FormData();
-        formDataToSend.append("message", notification.message || "");
-        formDataToSend.append("link", notification.link || "");
-        formDataToSend.append(
-          "offerAmount",
-          notification.offerAmount?.toString() || ""
-        );
-        formDataToSend.append("offerStatus", `${action}ed`);
-        formDataToSend.append(
-          "offerDescription",
-          notification.offerDescription || ""
-        );
-        formDataToSend.append(
-          "rejectionReason",
-          notification.rejectionReason ?? ""
-        );
-
-        fetch("https://formspree.io/f/yourFormID", {
-          method: "POST",
-          body: JSON.stringify(formDataToSend),
-          headers: {
-            Accept: "application/json",
-          },
-        })
-          .then((response) => {
-            if (response.ok) {
-              console.log("Form submitted successfully!");
-            } else {
-              console.error("Form submission failed.");
-            }
-          })
-          .catch((error) => {
-            console.error("Error submitting form:", error);
-          });
-
-        setNotifications((prev) =>
-          prev.map((notif) =>
-            notif.id === notification.id
-              ? {
-                  ...notif,
-                  offerStatus: result.newStatus.toLowerCase(),
-                  rejectionReason: result.rejectionReason,
-                }
-              : notif
-          )
-        );
-
-        if (result.redirectTo) {
-          window.location.href = result.redirectTo;
-        }
-
-        markNotificationAsRead(notification.id);
-      } catch (err: any) {
-        console.error(`Error ${action}ing offer:`, err.message);
-        toast.error(
-          `Error ${action}ing offer: ` + (err.message || "Unknown error.")
-        );
+        // Fetch Wallet Balance
+        const walletRes = await fetch("/api/user/wallet");
+        const walletData = await walletRes.json();
+        setWalletBalance(walletData.balance || 0);
+      } catch (error) {
+        console.error("Error fetching referral data:", error);
+        toast.error("Failed to load referral data.");
       } finally {
-        setActionLoading(false);
+        setLoading(false);
       }
-    },
-    [markNotificationAsRead]
-  );
+    };
 
-  const handleRejectClick = (notification: Notification) => {
-    setSelectedOfferForRejection(notification);
-    setIsRejectReasonModalOpen(true);
-  };
+    if (session) fetchData();
+  }, [session]);
 
-  const handleConfirmReject = (reason: string) => {
-    if (selectedOfferForRejection) {
-      setIsRejectReasonModalOpen(false);
-      handleOfferAction(selectedOfferForRejection, "reject", reason);
+  const generateCode = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/user/referral-code", { method: "POST" });
+      const data = await res.json();
+      if (data.referralCode) {
+        setReferralCode(data.referralCode);
+        toast.success("Referral code generated!");
+      } else {
+        toast.error("Failed to generate code.");
+      }
+    } catch (error) {
+      toast.error("Error generating code.");
+    } finally {
+      setGenerating(false);
     }
   };
 
-  if (sessionStatus === "loading" || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-8">
-        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-xl">
-          <Bell className="h-16 w-16 text-blue-500 animate-pulse" />
-          <p className="mt-4 text-xl font-semibold text-gray-700">
-            Loading notifications...
-          </p>
-        </div>
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const referralLink = referralCode
+    ? `${window.location.origin}/auth/signup?ref=${referralCode}`
+    : "";
+
+  return loading ? (
+    <Loader user={"user"} />
+  ) : (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-8 text-white shadow-lg">
+        <h1 className="text-3xl font-bold mb-2">Refer & Earn</h1>
+        <p className="text-green-100 text-lg max-w-2xl">
+          Share your unique link with friends. You'll earn 10% commission on
+          their first purchase, and they get a discount too!
+        </p>
       </div>
-    );
-  }
 
-  if (sessionStatus === "unauthenticated") {
-    return null;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-white p-6 rounded-xl shadow-lg">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-              <Bell className="w-8 h-8" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+              <Users size={24} />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-gray-900">
-                Notifications
-              </h1>
-              <p className="text-gray-500 mt-1">
-                Your latest updates and offers.
+              <p className="text-sm text-gray-500 font-medium">
+                Total Referrals
               </p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                {referrals.length}
+              </h3>
             </div>
           </div>
-          <Link
-            href="/user/dashboard"
-            className="mt-4 sm:mt-0 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
         </div>
 
-        <div className="space-y-6">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => {
-              const isOfferNotification = notification.link?.startsWith(
-                "/user/dashboard/notifications/"
-              );
-              const isOfferExpired =
-                notification.offerExpiresAt &&
-                new Date(notification.offerExpiresAt) < new Date();
-              const canActOnOffer =
-                isOfferNotification &&
-                notification.offerStatus === "pending" &&
-                !isOfferExpired;
-
-              const statusColors = {
-                pending: "bg-yellow-100 text-yellow-800",
-                accepted: "bg-green-100 text-green-800",
-                rejected: "bg-red-100 text-red-800",
-                expired: "bg-gray-200 text-gray-600",
-              };
-
-              const offerStatusKey = isOfferExpired
-                ? "expired"
-                : notification.offerStatus?.toLowerCase() || "unknown";
-
-              return (
-                <div
-                  key={notification.id}
-                  className={`bg-white border rounded-xl shadow-sm p-6 cursor-pointer transition-transform duration-300 ease-in-out hover:shadow-lg
-                  ${
-                    notification.isRead
-                      ? "bg-gray-50 border-gray-100 text-gray-600 opacity-80"
-                      : "bg-white border-blue-200 text-gray-800 font-medium scale-105"
-                  }`}
-                  onClick={() =>
-                    !notification.isRead &&
-                    markNotificationAsRead(notification.id)
-                  }
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`p-2 rounded-full ${
-                          notification.isRead
-                            ? "bg-gray-100 text-gray-500"
-                            : "bg-blue-50 text-blue-600"
-                        }`}
-                      >
-                        <Bell className="w-5 h-5" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900">
-                        {notification.title}
-                      </h3>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {format(
-                        new Date(notification.createdAt),
-                        "MMM dd, yyyy HH:mm"
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    {notification.message}
-                  </p>
-
-                  {isOfferNotification && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm mt-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="flex items-center gap-2 text-gray-600">
-                          <Wallet className="w-4 h-4 text-gray-500" />
-                          <strong>Amount:</strong>{" "}
-                          <span className="text-gray-900 font-bold">
-                            ₦
-                            {(
-                              notification.offerAmount / kobo
-                            ).toLocaleString() || "N/A"}
-                          </span>
-                        </p>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold ${
-                            statusColors[offerStatusKey] ||
-                            "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {offerStatusKey.charAt(0).toUpperCase() +
-                            offerStatusKey.slice(1)}
-                        </span>
-                      </div>
-                      {notification.offerExpiresAt && (
-                        <p
-                          className={`flex items-center gap-2 ${
-                            isOfferExpired ? "text-red-600" : "text-orange-500"
-                          }`}
-                        >
-                          <Clock className="w-4 h-4" />
-                          <strong>Expires:</strong>{" "}
-                          <span className="font-bold">
-                            {format(
-                              new Date(notification.offerExpiresAt),
-                              "MMM dd, yyyy HH:mm"
-                            )}
-                            {isOfferExpired && " (expired)"}
-                          </span>
-                        </p>
-                      )}
-                      {notification.offerStatus === "rejected" &&
-                        notification.rejectionReason && (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                            <h4 className="text-red-700 font-semibold mb-1">
-                              Reason for Rejection:
-                            </h4>
-                            <p className="text-red-600 italic">
-                              {notification.rejectionReason}
-                            </p>
-                          </div>
-                        )}
-                      {canActOnOffer ? (
-                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-4">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOfferAction(notification, "accept");
-                            }}
-                            disabled={actionLoading}
-                            className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                            {actionLoading ? "Accepting..." : "Accept Offer"}
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRejectClick(notification);
-                            }}
-                            disabled={actionLoading}
-                            className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            <XCircle className="w-5 h-5" />
-                            {actionLoading ? "Rejecting..." : "Reject Offer"}
-                          </button>
-                        </div>
-                      ) : notification.offerStatus === "accepted" ? (
-                        <div className="pt-4 border-t border-gray-200 mt-4">
-                          <button
-                            onClick={() =>
-                              router.push("/user/dashboard/payment")
-                            }
-                            disabled={actionLoading}
-                            className="w-full px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                          >
-                            Make Payment
-                          </button>
-                        </div>
-                      ) : null}
-                      {notification.link && (
-                        <Link
-                          href={notification.link}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
-                        >
-                          View Full Offer Details{" "}
-                          <ExternalLink className="w-4 h-4" />
-                        </Link>
-                      )}
-                    </div>
-                  )}
-
-                  {!isOfferNotification && notification.link && (
-                    <Link
-                      href={notification.link}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block mt-3 flex items-center gap-1"
-                    >
-                      View Details <ExternalLink className="w-4 h-4" />
-                    </Link>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-lg">
-              <Bell className="w-20 h-20 text-gray-300" />
-              <p className="mt-4 text-xl font-semibold text-gray-500">
-                No new notifications.
-              </p>
-              <p className="text-gray-400 mt-2">
-                We'll let you know when something new comes up.
-              </p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-50 text-green-600 rounded-lg">
+              <TrendingUp size={24} />
             </div>
-          )}
+            <div>
+              <p className="text-sm text-gray-500 font-medium">
+                Total Earnings
+              </p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                ₦
+                {(
+                  referrals.reduce(
+                    (acc, curr) => acc + curr.commission_earned,
+                    0
+                  ) / 100
+                ).toLocaleString()}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
+              <Wallet size={24} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">
+                Wallet Balance
+              </p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                ₦{(walletBalance / 100).toLocaleString()}
+              </h3>
+            </div>
+          </div>
         </div>
       </div>
 
-      {isRejectReasonModalOpen && selectedOfferForRejection && (
-        <RejectReasonModal
-          onClose={() => setIsRejectReasonModalOpen(false)}
-          onConfirm={handleConfirmReject}
-          isLoading={actionLoading}
-        />
-      )}
+      {/* Referral Link Section */}
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          Your Referral Link
+        </h2>
+
+        {!referralCode ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">
+              You haven't generated a referral code yet.
+            </p>
+            <button
+              onClick={generateCode}
+              disabled={generating}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {generating ? "Generating..." : "Generate Referral Code"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Share this link
+              </label>
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralLink}
+                  className="bg-transparent border-none focus:ring-0 w-full text-gray-600 font-medium"
+                />
+                <button
+                  onClick={() => copyToClipboard(referralLink)}
+                  className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600"
+                >
+                  {copied ? (
+                    <Check size={20} className="text-green-600" />
+                  ) : (
+                    <Copy size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="w-full md:w-auto">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Referral Code
+              </label>
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 font-mono font-bold text-center min-w-[150px]">
+                {referralCode}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Referrals List */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800">Your Referrals</h2>
+        </div>
+
+        {referrals.length === 0 ? (
+          <div className="p-12 text-center text-gray-500">
+            <Users size={48} className="mx-auto mb-4 text-gray-300" />
+            <p>
+              You haven't referred anyone yet. Share your link to get started!
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">User</th>
+                  <th className="px-6 py-4 font-semibold">Date Joined</th>
+                  <th className="px-6 py-4 font-semibold">Commission Earned</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {referrals.map((ref, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {ref.name}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {new Date(ref.date_joined).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-green-600">
+                      {ref.commission_earned > 0
+                        ? `₦${(ref.commission_earned / 100).toLocaleString()}`
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

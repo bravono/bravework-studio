@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import { Nosifer } from "next/font/google";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { toast } from "react-toastify";
 
 const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
@@ -15,23 +16,33 @@ export default function Contact() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formDataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      formDataToSend.append(key, value);
-    });
-
     try {
-      fetch("https://formspree.io/f/mldjyabg", {
+      const response = await fetch("/api/contact", {
         method: "POST",
-        body: formDataToSend,
         headers: {
-          Accept: "application/json",
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(formData),
       });
-    } catch (err) {}
+
+      if (response.ok) {
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+        toast.success("Message sent successfully!");
+      } else {
+        toast.error("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   const handleChange = (
@@ -48,22 +59,26 @@ export default function Contact() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-      <Navbar />
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h1 className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}>
+            <h1
+              className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}
+            >
               Contact Us
             </h1>
             <p className="mt-4 text-xl text-gray-600">
-              We'd love to hear from you! Reach out and we'll get back to you as soon as possible.
+              We'd love to hear from you! Reach out and we'll get back to you as
+              soon as possible.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-3xl shadow-2xl overflow-hidden p-8 lg:p-12">
             {/* Contact Info */}
             <div className="space-y-8">
-              <h2 className="text-3xl font-extrabold text-gray-900">Get in Touch</h2>
+              <h2 className="text-3xl font-extrabold text-gray-900">
+                Get in Touch
+              </h2>
               <p className="text-gray-600">
                 Have a project in mind? We'd love to hear from you.
               </p>
@@ -73,7 +88,9 @@ export default function Contact() {
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Email</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Email
+                    </h3>
                     <p className="text-gray-600">support@braveworkstudio.com</p>
                   </div>
                 </div>
@@ -82,7 +99,9 @@ export default function Contact() {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Phone / WhatsApp</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Phone / WhatsApp
+                    </h3>
                     <p className="text-gray-600">+234 902-322-4596</p>
                   </div>
                 </div>
@@ -91,8 +110,10 @@ export default function Contact() {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Address</h3>
-                    <p className="text-gray-600">Abuja, Nigeria</p>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Address
+                    </h3>
+                    <p className="text-gray-600">Katsina, Nigeria</p>
                   </div>
                 </div>
               </div>
@@ -101,7 +122,10 @@ export default function Contact() {
             {/* Contact Form */}
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="flex flex-col">
-                <label htmlFor="name" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="name"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Name
                 </label>
                 <input
@@ -115,7 +139,10 @@ export default function Contact() {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="email" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 <input
@@ -129,7 +156,10 @@ export default function Contact() {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="subject" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="subject"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Subject
                 </label>
                 <select
@@ -141,14 +171,20 @@ export default function Contact() {
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                 >
                   <option value="">Select a subject</option>
-                  <option value="3d">3D Services</option>
-                  <option value="web">Web Development</option>
+                  <option value="3d">3D Design Services</option>
+                  <option value="web">Website Development</option>
+                  <option value="app">App Development</option>
                   <option value="uiux">UI/UX Design</option>
+                  <option value="tech">Tech Training</option>
+                  <option value="consultation">Consultation</option>
                   <option value="other">Other</option>
                 </select>
               </div>
               <div className="flex flex-col">
-                <label htmlFor="message" className="mb-2 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="message"
+                  className="mb-2 text-sm font-medium text-gray-700"
+                >
                   Message
                 </label>
                 <textarea

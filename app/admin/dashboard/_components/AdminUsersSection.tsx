@@ -107,10 +107,10 @@ export default function AdminUsersSection() {
   };
 
   const handleApplyDiscount = (user: User) => {
-    if (user.role === "client" || user.role === "student") {
+    if (user.roles.includes("client") || user.roles.includes("student")) {
       setAlertModalContent({
         title: "Apply Discount",
-        message: `A discount is being applied for ${user.fullName} (${user.role}). This would open a discount modal or trigger an API request.`,
+        message: `A discount is being applied for ${user.fullName} (${user.roles}). This would open a discount modal or trigger an API request.`,
       });
       setIsAlertModalOpen(true);
     } else {
@@ -240,7 +240,15 @@ export default function AdminUsersSection() {
                         {user.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.role}
+                        {Array.isArray(user.roles)
+                          ? user.roles
+                              .map((r) =>
+                                typeof r === "string"
+                                  ? r
+                                  : r?.roleName ?? JSON.stringify(r)
+                              )
+                              .join(", ")
+                          : user.roles ?? "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {user.emailVerified ? "Yes" : "No"}

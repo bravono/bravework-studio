@@ -7,24 +7,35 @@ import {
   SessionOption,
   CourseModalProps,
   SessionFormProps,
+  Tool,
 } from "@/app/types/app";
 import Modal from "@/app/components/Modal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import { Trash2, PlusCircle, FileUpIcon } from "lucide-react";
+import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+
+// Helper to generate a unique Jitsi link
+const generateJitsiLink = () => {
+  const uniqueId = Math.random().toString(36).substring(2, 10);
+  return `https://meet.jit.si/BraveWorkStudio-${uniqueId}`;
+};
 
 // Helper to create an option
 const createDefaultOption = (optionNumber: number): SessionOption => ({
   optionNumber,
-  link: "",
+  link: generateJitsiLink(),
   datetime: "",
   label: optionNumber === 1 ? "Morning" : "Evening",
-  duration: 60,
+  duration: 120,
 });
 
-// Helper to create a session with two options and a unique ID
+// Helper to create a session with one default option
 const createInitialSession = (): CourseSession => ({
   id: Date.now() + Math.random(), // Unique ID for key
-  options: [createDefaultOption(1), createDefaultOption(2)],
+  options: [createDefaultOption(1)],
 });
 
 // Helper to correctly format ISO string for datetime-local input (YYYY-MM-DDTHH:MM)
@@ -47,6 +58,35 @@ const formatDateTimeLocal = (isoString: string | undefined): string => {
   }
 };
 
+// Helper to generate Google Calendar Link
+const generateGoogleCalendarLink = (
+  title: string,
+  datetime: string,
+  duration: number,
+  details: string,
+  location: string
+) => {
+  if (!datetime) return "";
+
+  const startDate = new Date(datetime);
+  const endDate = new Date(startDate.getTime() + duration * 60000);
+
+  const formatDate = (date: Date) =>
+    date.toISOString().replace(/-|:|\.\d+/g, "");
+
+  const startStr = formatDate(startDate);
+  const endStr = formatDate(endDate);
+
+  const url = new URL("https://calendar.google.com/calendar/render");
+  url.searchParams.append("action", "TEMPLATE");
+  url.searchParams.append("text", title);
+  url.searchParams.append("dates", `${startStr}/${endStr}`);
+  url.searchParams.append("details", details);
+  url.searchParams.append("location", location);
+
+  return url.toString();
+};
+
 const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
 
 // --- Session UI Component ---
@@ -56,6 +96,9 @@ const SessionForm = ({
   sessionsLength,
   removeSession,
   handleOptionChange,
+  addOption,
+  removeOption,
+  courseTitle,
 }: SessionFormProps) => (
   <div
     key={session.id}
@@ -75,9 +118,20 @@ const SessionForm = ({
 
     {session.options.map((option, optIndex) => (
       <div key={optIndex} className="p-3 border rounded-md bg-white shadow-sm">
-        <h5 className="text-sm font-semibold text-gray-600 mb-2">
-          Option {option.optionNumber}
-        </h5>
+        <div className="flex justify-between items-center mb-2">
+          <h5 className="text-sm font-semibold text-gray-600">
+            Option {option.optionNumber}
+          </h5>
+          {session.options.length > 1 && (
+            <button
+              type="button"
+              onClick={() => removeOption(session.id, option.optionNumber)}
+              className="text-red-500 hover:text-red-700 text-xs flex items-center"
+            >
+              <Trash2 className="w-4 h-4 mr-1" /> Remove Option
+            </button>
+          )}
+        </div>
 
         {/* Label Input (FIXED: Moved component definition out) */}
         <div className="mb-3">
@@ -146,7 +200,7 @@ const SessionForm = ({
           <input
             type="datetime-local" // Changed to datetime-local
             id={`session-${session.id}-opt-${option.optionNumber}-time`}
-            value={option.datetime}
+            value={formatDateTimeLocal(option.datetime)}
             onChange={(e) =>
               handleOptionChange(
                 session.id,
@@ -158,6 +212,22 @@ const SessionForm = ({
             required
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
           />
+          {option.datetime && (
+            <a
+              href={generateGoogleCalendarLink(
+                `${courseTitle}:  ${option.label} Session`,
+                option.datetime,
+                option.duration,
+                `Join the session here: ${option.link}`,
+                option.link
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+            >
+              <Calendar className="w-3 h-3 mr-1" /> Add to Google Calendar
+            </a>
+          )}
         </div>
 
         {/* Link Input */}
@@ -168,24 +238,50 @@ const SessionForm = ({
           >
             Session Link (URL)
           </label>
-          <input
-            type="url"
-            id={`session-${session.id}-opt-${option.optionNumber}-link`}
-            value={option.link}
-            onChange={(e) =>
-              handleOptionChange(
-                session.id,
-                option.optionNumber,
-                "link",
-                e.target.value
-              )
-            }
-            placeholder="https://zoom.us/j/..."
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
-          />
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="url"
+              id={`session-${session.id}-opt-${option.optionNumber}-link`}
+              value={option.link}
+              onChange={(e) =>
+                handleOptionChange(
+                  session.id,
+                  option.optionNumber,
+                  "link",
+                  e.target.value
+                )
+              }
+              placeholder="https://meet.jit.si/..."
+              className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+            <button
+              type="button"
+              onClick={() =>
+                handleOptionChange(
+                  session.id,
+                  option.optionNumber,
+                  "link",
+                  generateJitsiLink()
+                )
+              }
+              className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600"
+              title="Generate Jitsi Meeting Link"
+            >
+              <Video className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     ))}
+    {session.options.length < 2 && (
+      <button
+        type="button"
+        onClick={() => addOption(session.id)}
+        className="mt-2 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+      >
+        <PlusCircle className="w-4 h-4 mr-1" /> Add Option
+      </button>
+    )}
   </div>
 );
 
@@ -202,9 +298,7 @@ export default function CourseModal({
 
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
-  const [price, setPrice] = useState<number>(
-    existingCourse?.price / KOBO_PER_NAIRA || 0
-  );
+  const [price, setPrice] = useState<number>(existingCourse?.price || 0);
   const [description, setDescription] = useState<string>(
     existingCourse?.description || ""
   );
@@ -212,12 +306,8 @@ export default function CourseModal({
     existingCourse?.startDate || ""
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
-
   const initialInstructorName =
-    userRole === "admin"
-      ? existingCourse?.instructor
-      : currentInstructorName || ""; // Use the logged-in instructor's name for instructor role
-
+    existingCourse?.instructor || currentInstructorName; // Use the logged-in instructor's name for instructor role
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false
@@ -236,6 +326,15 @@ export default function CourseModal({
   );
   const [language, setLanguage] = useState<string>(
     existingCourse?.language || "English"
+  );
+  const [slug, setSlug] = useState<string>(existingCourse?.slug || "");
+  const [content, setContent] = useState<string>(existingCourse?.content || "");
+  const [excerpt, setExcerpt] = useState<string>(existingCourse?.excerpt || "");
+  const [ageBracket, setAgeBracket] = useState<string>(
+    existingCourse?.ageBracket || ""
+  );
+  const [selectedTools, setSelectedTools] = useState<number[]>(
+    existingCourse?.tools?.map((t) => t.id) || []
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -257,13 +356,16 @@ export default function CourseModal({
   const [availableCategories, setAvailableCategories] = useState<
     Array<{ name: string }>
   >([]);
+  const [availableTools, setAvailableTools] = useState<Tool[]>([]);
 
   // NEW: State for Sessions
   const [sessions, setSessions] = useState<CourseSession[]>(
     existingCourse?.sessions && existingCourse.sessions.length > 0
       ? existingCourse.sessions.map((s, index) => ({
           id: index + 1, // Simple ID for existing
-          options: s.options,
+          options: s.options.map((opt: any) => ({
+            ...opt,
+          })),
         }))
       : [createInitialSession()]
   );
@@ -308,6 +410,69 @@ export default function CourseModal({
     );
   };
 
+  const addOptionToSession = (sessionId: number) => {
+    setSessions((prevSessions) =>
+      prevSessions.map((session) => {
+        if (session.id === sessionId && session.options.length < 2) {
+          const existingNumbers = session.options.map((o) => o.optionNumber);
+          // If option 1 exists, add option 2. If option 2 exists, add option 1.
+          // If neither (shouldn't happen if length > 0), add 1.
+          const nextNumber = !existingNumbers.includes(1) ? 1 : 2;
+          return {
+            ...session,
+            options: [...session.options, createDefaultOption(nextNumber)],
+          };
+        }
+        return session;
+      })
+    );
+  };
+
+  const removeOptionFromSession = (sessionId: number, optionNumber: number) => {
+    setSessions((prevSessions) =>
+      prevSessions.map((session) => {
+        if (session.id === sessionId) {
+          if (session.options.length <= 1) {
+            toast.error("A session must have at least one option.");
+            return session;
+          }
+          return {
+            ...session,
+            options: session.options.filter(
+              (o) => o.optionNumber !== optionNumber
+            ),
+          };
+        }
+        return session;
+      })
+    );
+  };
+
+  useEffect(() => {
+    console.log("Existing Course Instructor", existingCourse?.instructor);
+  }, [existingCourse]);
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (title) {
+      const generatedSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      setSlug(generatedSlug);
+    }
+  }, [title]);
+
+  // Auto-generate excerpt from content
+  useEffect(() => {
+    if (content) {
+      const plainText = content.replace(/<[^>]+>/g, "");
+      setExcerpt(
+        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : "")
+      );
+    }
+  }, [content]);
+
   // NEW: useEffect for fetching Instructors and Categories from backend
   useEffect(() => {
     const fetchData = async () => {
@@ -319,6 +484,10 @@ export default function CourseModal({
         const categoryRes = await fetch("/api/course-categories");
         const categoriesData = await categoryRes.json();
         setAvailableCategories(categoriesData);
+
+        const toolsRes = await fetch("/api/tools");
+        const toolsData = await toolsRes.json();
+        setAvailableTools(toolsData);
       } catch (e) {
         console.error("Failed to fetch backend options:", e);
       }
@@ -330,8 +499,34 @@ export default function CourseModal({
   useEffect(() => {
     if (existingCourse) {
       setTitle(existingCourse.title);
-      setPrice(existingCourse.price);
+      setPrice(existingCourse.price / KOBO_PER_NAIRA);
       setInstructor(existingCourse.instructor);
+      setIsActive(existingCourse.isActive);
+      setMaxStudents(existingCourse.maxStudents);
+      setThumbnailUrl(existingCourse.thumbnailUrl);
+      setCategory(existingCourse.category);
+      setLevel(existingCourse.level);
+      setLanguage(existingCourse.language);
+      setSlug(existingCourse.slug || "");
+      setContent(existingCourse.content || "");
+      setExcerpt(existingCourse.excerpt || "");
+      setAgeBracket(existingCourse.ageBracket || "");
+      setSelectedTools(existingCourse.software?.map((t) => t.id) || []);
+      setDescription(existingCourse.description);
+      setStartDate(existingCourse.startDate);
+      setEndDate(existingCourse.endDate);
+
+      if (existingCourse.sessions && existingCourse.sessions.length > 0) {
+        setSessions(
+          existingCourse.sessions.map((s, index) => ({
+            id: index + 1,
+            options: s.options.map((opt: any) => ({
+              ...opt,
+              datetime: opt.datetime || opt.time || "",
+            })),
+          }))
+        );
+      }
     }
   }, [existingCourse]);
 
@@ -377,6 +572,11 @@ export default function CourseModal({
           course_category: category,
           level,
           language,
+          slug,
+          content,
+          excerpt,
+          age_bracket: ageBracket,
+          tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
         }).map(([key, value]) => [
           key,
@@ -454,6 +654,19 @@ export default function CourseModal({
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                required
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="slug" className={labelStyle}>
+                Slug
+              </label>
+              <input
+                type="text"
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
                 required
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
@@ -607,6 +820,53 @@ export default function CourseModal({
               <option value="Intermediate">Intermediate</option>
               <option value="Advance">Advance</option>
             </select>
+
+            <div>
+              <label htmlFor="ageBracket" className={labelStyle}>
+                Age Bracket
+              </label>
+              <input
+                type="text"
+                id="ageBracket"
+                value={ageBracket}
+                onChange={(e) => setAgeBracket(e.target.value)}
+                placeholder="e.g. 18-25"
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label className={labelStyle}>Tools</label>
+              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableTools.map((tool) => (
+                  <div key={tool.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`tool-${tool.id}`}
+                      value={tool.id}
+                      checked={selectedTools.includes(tool.id)}
+                      onChange={(e) => {
+                        const id = parseInt(e.target.value);
+                        if (e.target.checked) {
+                          setSelectedTools([...selectedTools, id]);
+                        } else {
+                          setSelectedTools(
+                            selectedTools.filter((tId) => tId !== id)
+                          );
+                        }
+                      }}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor={`tool-${tool.id}`}
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      {tool.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
             <label htmlFor="language" className={labelStyle}>
               Language
             </label>
@@ -631,6 +891,33 @@ export default function CourseModal({
               required
               className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             ></textarea>
+
+            <div>
+              <label htmlFor="content" className={labelStyle}>
+                Content
+              </label>
+              <div className="mt-1 bg-white">
+                <ReactQuill
+                  theme="snow"
+                  value={content}
+                  onChange={setContent}
+                  className="h-64 mb-12"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="excerpt" className={labelStyle}>
+                Excerpt
+              </label>
+              <textarea
+                id="excerpt"
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                rows={3}
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              ></textarea>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Upload Thumbnail
@@ -677,6 +964,9 @@ export default function CourseModal({
                     sessionsLength={sessions.length}
                     removeSession={removeSession}
                     handleOptionChange={handleSessionOptionChange}
+                    addOption={addOptionToSession}
+                    removeOption={removeOptionFromSession}
+                    courseTitle={title}
                   />
                 ))}
               </div>

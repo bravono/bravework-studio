@@ -38,7 +38,8 @@ interface Order {
   isPortfolio?: boolean; // New: to mark if it can be added to portfolio
   description?: string; // Optional: order description for admin view
   serviceName?: string;
-  statusName?: string;
+  status?: string;
+  title: string;
 }
 
 // New: User interface for User Management
@@ -46,7 +47,7 @@ interface User {
   id: string;
   fullName: string;
   email: string;
-  role: string; // e.g., 'user', 'admin', 'client', 'student'
+  roles: string; // e.g., 'user', 'admin', 'client', 'student'
   emailVerified: boolean;
   createdAt: string; // When they joined
   // Add other relevant user details for admin view
@@ -142,6 +143,11 @@ interface ExchangeRates {
   [key: string]: number; // e.g., { "USD": 1, "NGN": 1500, "GBP": 0.8, "EUR": 0.9 }
 }
 
+interface Tool {
+  id: number;
+  name: string;
+}
+
 // Define a type for your user profile data
 interface UserProfile {
   fullName: string;
@@ -172,11 +178,12 @@ interface Course {
   thumbnailUrl: string;
   level: "Beginner" | "Intermediate" | "Advance";
   language: string;
-  amount: number;
   category: string;
   discount?: number; // Early bird discount percentage
   discountStartDate?: string;
   discountEndDate?: string;
+  content: string;
+  software: [{ id: number; name: string }];
   sessionOption?: number;
   // Current or next upcoming session
   session?: {
@@ -191,10 +198,14 @@ interface Course {
     options: SessionOption[];
   }>;
   sessionGroup: SessionOption[];
-  // Join with instructor table
-  
   instructor: string;
   bio: string;
+  slug?: string;
+  content?: string;
+  excerpt?: string;
+  ageBracket?: string;
+  tools?: Tool[];
+  tags?: string[];
 }
 
 interface CourseSession {
@@ -213,6 +224,9 @@ interface SessionFormProps {
     field: keyof SessionOption,
     value: any
   ) => void;
+  addOption: (sessionId: number) => void;
+  removeOption: (sessionId: number, optionNumber: number) => void;
+  courseTitle: string;
 }
 
 interface SessionOption {
@@ -221,6 +235,23 @@ interface SessionOption {
   datetime: string;
   link: string;
   duration: number; // Duration in minutes
+  recordingLink?: string;
+  id?: number;
+  isCompleted?: boolean; // For UI state
+}
+
+interface StudentSessionProgress {
+  sessionId: number;
+  finished: boolean;
+  completedAt?: string;
+}
+
+interface CourseProgress {
+  courseId: string;
+  completedSessions: number[];
+  totalSessions: number;
+  progressPercentage: number;
+  allSessionsComplete: boolean;
 }
 
 interface AdminStats {
@@ -237,9 +268,9 @@ interface CourseModalProps {
   onClose: () => void;
   existingCourse?: Course;
   onSave: () => void;
-  userRole: 'admin' | 'instructor';
-  currentInstructorName?: string,
-  currentInstructorId?: number,
+  userRole: "admin" | "instructor";
+  currentInstructorName?: string;
+  currentInstructorId?: number;
 }
 
 interface CustomOfferModalProps {

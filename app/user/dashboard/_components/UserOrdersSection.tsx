@@ -95,7 +95,7 @@ export default function UserOrdersSection() {
   };
 
   const handleMarkAsPortfolio = (order: Order) => {
-    if (order.statusName !== "paid") {
+    if (order.status !== "paid") {
       toast.error("Only paid orders can be marked as portfolio.");
       return;
     }
@@ -147,7 +147,7 @@ export default function UserOrdersSection() {
   };
 
   const activeProjects = orders.filter(
-    (order) => order.statusName === "partially_paid"
+    (order) => order.status === "partially_paid"
   );
 
   const getStatusColor = (status: string) => {
@@ -231,10 +231,10 @@ export default function UserOrdersSection() {
                   <div className="mt-2 flex items-center">
                     <span
                       className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                        project.statusName
+                        project.status
                       )}`}
                     >
-                      {project.statusName}
+                      {project.status}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
@@ -276,9 +276,7 @@ export default function UserOrdersSection() {
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Service
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Client
-                  </th>
+               
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
@@ -305,16 +303,14 @@ export default function UserOrdersSection() {
                     <td className="px-4 py-3 text-sm text-gray-800">
                       {order.serviceName}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {order.clientName || "N/A"}
-                    </td>
+                    
                     <td className="px-4 py-3 text-sm text-gray-800">
                       <span
                         className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                          order.statusName
+                          order.status
                         )}`}
                       >
-                        {order.statusName}
+                        {order.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">

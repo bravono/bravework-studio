@@ -65,7 +65,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          <div className="hidden md:flex md:items-center">
             <Link
               href="/"
               className={`${commonLinkClasses} ${
@@ -132,7 +132,7 @@ export default function Navbar() {
             </Link>
 
             {/* User Dropdown */}
-            <div className="relative ml-4">
+            <div className="relative">
               <Link
                 href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                 onMouseEnter={() => setShowDropdown(!showDropdown)}

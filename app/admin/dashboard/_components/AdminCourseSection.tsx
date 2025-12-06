@@ -18,6 +18,8 @@ import CourseModal from "../../../components/CourseModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
+import { useSession } from "next-auth/react";
+
 // Main CourseTab component
 export default function AdminCourseSection() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -28,7 +30,9 @@ export default function AdminCourseSection() {
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
+
   const KOBO_PER_NAIRA = 100;
+  const { data: session } = useSession();
 
   // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -105,7 +109,7 @@ export default function AdminCourseSection() {
   };
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader user={"admin"} />;
   }
 
   return (
@@ -146,7 +150,7 @@ export default function AdminCourseSection() {
                 Language
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount
+                Price
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Start Date
@@ -185,7 +189,9 @@ export default function AdminCourseSection() {
                     {course.language ?? "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
+                    {course.price === 0
+                      ? "Free"
+                      : "₦" + (course.price / KOBO_PER_NAIRA).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(course.startDate), "dd MMM yyyy")}
@@ -262,10 +268,12 @@ export default function AdminCourseSection() {
       {/* Modals */}
       {isModalOpen && (
         <CourseModal
-          onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
+          onClose={() => setIsModalOpen(false)}
           onSave={fetchCourses}
           userRole="admin"
+          currentInstructorName={session?.user?.name}
+          currentInstructorId={session.user.id}
         />
       )}
       <ConfirmationModal

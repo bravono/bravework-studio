@@ -19,7 +19,6 @@ import CustomOfferModal from "./CustomOfferModal";
 import { CustomOffer, Order } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 
-
 // Main CustomOffersTab component
 export default function AdminCustomOffersSection() {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
@@ -152,7 +151,7 @@ export default function AdminCustomOffersSection() {
   };
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader user={"admin"} />;
   }
 
   return (

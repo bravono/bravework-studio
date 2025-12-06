@@ -16,21 +16,31 @@ function groupSessionOptions(sessionRows: any[]) {
   let sessionGroup: any[] = [];
 
   for (const row of sessionRows) {
-    sessionGroup.push({
-      optionNumber: row.sessionNumber,
-      link: row.link,
-      time: row.time,
-      label: row.label,
-      duration: row.duration,
-    });
-
-    if (sessionGroup.length === 2) {
+    // If we encounter a new "Option 1" and we already have a group building,
+    // it means the previous session is done.
+    if (row.sessionNumber === 1 && sessionGroup.length > 0) {
       sessions.push({
         id: sessions.length + 1,
         options: sessionGroup,
       });
       sessionGroup = [];
     }
+
+    sessionGroup.push({
+      optionNumber: row.sessionNumber,
+      link: row.link,
+      datetime: row.datetime, // Fixed: Map from SQL alias 'datetime'
+      label: row.label,
+      duration: row.duration,
+    });
+  }
+
+  // Push the last group if it exists
+  if (sessionGroup.length > 0) {
+    sessions.push({
+      id: sessions.length + 1,
+      options: sessionGroup,
+    });
   }
 
   return sessions;
@@ -62,7 +72,10 @@ export async function GET(
                 c.language,
                 c.price_in_kobo AS price,
                 cc.category_name AS category,
-                c.thumbnail_url AS "thumbnailUrl"
+                c.thumbnail_url AS "thumbnailUrl",
+                c.content,
+                c.excerpt,
+                c.slug
             FROM courses c
             JOIN instructors i ON c.instructor_id = i.instructor_id
             JOIN course_categories cc ON c.course_category_id = cc.category_id
@@ -136,6 +149,11 @@ export async function PATCH(
       course_category: category,
       level,
       language,
+      slug,
+      content,
+      excerpt,
+      age_bracket: ageBracket,
+      tools, // Array of tool IDs
       sessions, // Array of session groups
     } = body;
 
@@ -149,7 +167,8 @@ export async function PATCH(
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
-        sessionGroup.options.length !== 2 ||
+        sessionGroup.options.length < 1 || // Allow 1 or more options
+        sessionGroup.options.length > 2 || // Max 2 options
         sessionGroup.options.some(
           (option: any) =>
             !option.duration ||
@@ -165,7 +184,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error:
-            "Each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
+            "Each session group must contain 1 or 2 options, each with valid duration, link, time, and label.",
         },
         { status: 400 }
       );
@@ -198,8 +217,8 @@ export async function PATCH(
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, max_students = $8, thumbnail_url = $9, 
-                    course_category_id = $10, level = $11, language = $12
-                WHERE course_id = $13;
+                    course_category_id = $10, level = $11, language = $12, slug = $13, content = $14, excerpt = $15, age_bracket = $16
+                WHERE course_id = $17;
             `;
       const courseParams = [
         title,
@@ -214,6 +233,10 @@ export async function PATCH(
         categoryId,
         level,
         language,
+        slug,
+        content,
+        excerpt,
+        ageBracket,
         courseId,
       ];
 
@@ -224,11 +247,25 @@ export async function PATCH(
         );
       }
 
-      // 3. Clear Existing Sessions (Crucial step for transactional update)
+      // 3. Update Tools (Delete existing and insert new)
+      await client.query(`DELETE FROM course_tools WHERE course_id = $1`, [
+        courseId,
+      ]);
+
+      if (tools && tools.length > 0) {
+        for (const toolId of tools) {
+          await client.query(
+            `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [courseId, toolId]
+          );
+        }
+      }
+
+      // 4. Clear Existing Sessions (Crucial step for transactional update)
       const deleteSessionsQuery = `DELETE FROM sessions WHERE course_id = $1;`;
       await client.query(deleteSessionsQuery, [courseId]);
 
-      // 4. Insert NEW Sessions (two flat records per session group)
+      // 5. Insert NEW Sessions (two flat records per session group)
       for (const sessionGroup of sessions) {
         for (const option of sessionGroup.options) {
           const sessionInsertQuery = `

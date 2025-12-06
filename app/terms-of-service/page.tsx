@@ -21,7 +21,6 @@ export default function TermsOfServicePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <Navbar />
       <main className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 lg:p-16">
           <header className="text-center mb-12 space-y-2">

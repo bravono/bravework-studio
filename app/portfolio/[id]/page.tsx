@@ -12,7 +12,6 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
   if (!portfolio) {
     return (
       <main className="min-h-screen bg-gray-50">
-        <Navbar />
         <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Project not found
@@ -31,7 +30,6 @@ export default function PortfolioItem({ params }: { params: { id: number } }) {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar />
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link

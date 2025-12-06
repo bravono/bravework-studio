@@ -303,7 +303,7 @@ export default function UserCustomOffersSection() {
   };
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader user={'user'}/>;
   }
 
   return (

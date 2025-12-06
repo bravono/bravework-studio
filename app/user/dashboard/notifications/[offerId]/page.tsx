@@ -182,7 +182,7 @@ export default function CustomerOfferDetailsPage() {
   };
 
   if (sessionStatus === "loading" || loading) {
-    return <Loader />;
+    return <Loader user={'user'}/>;
   }
 
   if (sessionStatus === "unauthenticated") {

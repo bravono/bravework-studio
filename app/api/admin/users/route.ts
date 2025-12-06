@@ -10,7 +10,26 @@ export async function GET(request: Request) {
   try {
     // If user is admin, fetch all users (example)
     const allUsers = await queryDatabase(
-      "SELECT user_id, first_name, last_name, email FROM users"
+      `
+      SELECT
+      u.user_id AS id,
+      (u.first_name || ' ' || u.last_name) AS "fullName",
+      u.email,
+      u.email_verified AS "emailVerified",
+      u.created_at AS "createdAt",
+      COALESCE(
+        json_agg(
+        json_build_object(
+          'roleName', r.role_name
+        )
+        ) FILTER (WHERE ur.user_id IS NOT NULL),
+        '[]'
+      ) AS roles
+      FROM users u
+      LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+      LEFT JOIN roles r ON ur.role_id = r.role_id
+      GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.email_verified, u.created_at
+      `
     );
     return NextResponse.json(allUsers);
   } catch (error) {

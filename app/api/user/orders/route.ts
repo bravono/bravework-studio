@@ -4,6 +4,7 @@ import { createTrackingId } from "../../../../lib/utils/tracking";
 import { sendOrderReceivedEmail } from "lib/mailer";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
+import { createZohoLead } from "@/lib/zoho";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
@@ -33,14 +34,16 @@ export async function GET(request: Request) {
         o.order_id AS id,
         o.category_id AS service,
         o.created_at AS date,
-        o.order_status_id AS status,
+        os.name AS status,
         o.total_expected_amount_kobo AS amount,
-        o.amount_paid_to_date_kobo AS amountPaid,
+        o.amount_paid_to_date_kobo AS "amountPaid",
+        o.title,
         pc.category_name AS "serviceName"
       FROM orders o
       LEFT JOIN product_categories pc ON o.category_id = pc.category_id
+      LEFT JOIN order_statuses os ON o.order_status_id = os.order_status_id
       WHERE user_id = $1
-      ORDER BY created_at DESC; -- Order by most recent orders first
+      ORDER BY created_at DESC;
     `;
 
     const params = [userId];
@@ -188,6 +191,20 @@ export async function POST(request: Request) {
         await sendOrderReceivedEmail(userEmail, clientName, newOrderId);
       } catch (error) {
         console.log("Couldn't send order confirmation email");
+      }
+
+      // Integrate Zoho CRM
+      try {
+        const leadData = {
+          Last_Name: clientName || "Unknown",
+          Email: userEmail,
+          Description: `Order ID: ${newOrderId}\nService: ${serviceType}\nBudget: ${budget}\nTimeline: ${timeline}\nDescription: ${projectDescription}`,
+          Lead_Source: "Service Order",
+        };
+        await createZohoLead(leadData);
+        console.log(`Zoho Lead created for order ${newOrderId}`);
+      } catch (zohoError) {
+        console.error("Failed to create Zoho Lead:", zohoError);
       }
 
       return NextResponse.json(newOrderId, { status: 201 });
