@@ -92,10 +92,10 @@ export default function TestimonialCarousel() {
   );
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 py-16 sm:py-24">
+    <section className="bg-gray-900 dark:bg-gray-900 py-16 sm:py-24">
       <div className="container mx-auto px-4 text-center">
         <h2
-          className={`text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-12 drop-shadow ${nosifer.className}`}
+          className={`text-4xl sm:text-5xl font-extrabold text-gray-50 dark:text-white mb-12 drop-shadow ${nosifer.className}`}
         >
           What Our Clients Say
         </h2>

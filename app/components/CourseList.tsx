@@ -122,8 +122,8 @@ export default function coursesPage({ page }) {
     <>
       <section
         className={`${
-          page === "home" ? "dark:bg-gray-900" : ""
-        } py-16 px-4 sm:px-6 lg:px-8`}
+          page === "home" ? "dark:bg-gray-900" : "mt-20"
+        } px-4 sm:px-6 lg:px-8`}
       >
         <div className="text-center mb-16">
           <h1

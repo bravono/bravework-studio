@@ -143,7 +143,7 @@ export default function Home() {
             included.
           </motion.p>
 
-          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"}/>
+          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"} />
           {/* Freelance Platforms Order Options */}
           <div className="mt-8 flex flex-col items-center">
             <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
@@ -202,7 +202,9 @@ export default function Home() {
       </section>
 
       {/* Courses Section */}
-      <CourseList page="home" />
+      <section id="courses" className="py-20 bg-gray-900">
+        <CourseList page="home" />
+      </section>
 
       {/* Services Section */}
       <section id="services" className="py-20 bg-gray-50">
