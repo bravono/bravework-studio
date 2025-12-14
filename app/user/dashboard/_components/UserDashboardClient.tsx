@@ -143,11 +143,11 @@ function Page() {
       const coursesData: Course[] = await coursesRes.json();
       setCourses(coursesData);
 
-      // // 4. Fetch Invoices
-      // const invoicesRes = await fetch("/api/user/invoices"); // Create this API route
-      // if (!invoicesRes.ok) throw new Error("Failed to fetch invoices");
-      // const invoicesData: Invoice[] = await invoicesRes.json();
-      // setInvoices(invoicesData);
+      // 4. Fetch Invoices
+      const invoicesRes = await fetch("/api/user/invoices"); // Create this API route
+      if (!invoicesRes.ok) throw new Error("Failed to fetch invoices");
+      const invoicesData: Invoice[] = await invoicesRes.json();
+      setInvoices(invoicesData);
 
       const notificationRes = await fetch("/api/user/notifications");
       if (!notificationRes.ok) throw new Error("Failed to fetch notifications");
@@ -261,8 +261,8 @@ function Page() {
   };
 
   // Handle initiate payment
-  const handleInitiatePayment = (invoiceId: string) => {
-    toast.info(`Initiating payment for Invoice ID: ${invoiceId}`);
+  const handleInitiatePayment = (id) => {
+    toast.info(`Initiating payment for Invoice ID: ${id}`);
     // Example: router.push(`/checkout?invoice=${invoiceId}`);
   };
 
