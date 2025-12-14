@@ -139,7 +139,6 @@ export async function sendPasswordResetEmail(
   resetLink: string,
   expiration: number
 ) {
-
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
     console.error("Email transporter not initialized! Cannot send email.");
@@ -334,6 +333,91 @@ export async function sendCustomOfferNotificationEmail(
     /<[^>]*>/g,
     ""
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to send booking request email to owner
+export async function sendBookingRequestEmail(
+  toEmail: string,
+  ownerName: string,
+  renterName: string,
+  deviceName: string,
+  bookingId: string,
+  startTime: string,
+  endTime: string,
+  totalAmount: number
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `New Booking Request for ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=rentals`; // Link to My Listings
+
+  const htmlContent = `
+    <p>Hello ${ownerName},</p>
+    <p>You have a new booking request from <strong>${renterName}</strong> for your device <strong>${deviceName}</strong>.</p>
+    <p><strong>Booking ID:</strong> ${bookingId}</p>
+    <p><strong>Start Time:</strong> ${new Date(startTime).toLocaleString()}</p>
+    <p><strong>End Time:</strong> ${new Date(endTime).toLocaleString()}</p>
+    <p><strong>Total Amount:</strong> ₦${totalAmount.toLocaleString()}</p>
+    <p>Please log in to your dashboard to accept or decline this request.</p>
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${ownerName},\n\nYou have a new booking request from ${renterName} for your device ${deviceName}.\n\nBooking ID: ${bookingId}\nStart Time: ${new Date(
+    startTime
+  ).toLocaleString()}\nEnd Time: ${new Date(
+    endTime
+  ).toLocaleString()}\nTotal Amount: ₦${totalAmount.toLocaleString()}\n\nPlease log in to your dashboard to accept or decline this request:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to send booking status update email
+export async function sendBookingStatusEmail(
+  toEmail: string,
+  userName: string,
+  deviceName: string,
+  status: string,
+  reason?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `Booking Update: ${deviceName} - ${status.toUpperCase()}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  let messageBody = "";
+  if (status === "accepted") {
+    messageBody = `<p>Good news! Your booking request for <strong>${deviceName}</strong> has been <strong>ACCEPTED</strong>.</p>
+    <p>You can now proceed with the payment to secure your booking.</p>`;
+  } else if (status === "declined") {
+    messageBody = `<p>We're sorry, but your booking request for <strong>${deviceName}</strong> has been <strong>DECLINED</strong>.</p>
+    ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`;
+  } else if (status === "cancelled") {
+    messageBody = `<p>The booking for <strong>${deviceName}</strong> has been <strong>CANCELLED</strong>.</p>
+    ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`;
+  }
+
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    ${messageBody}
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nBooking Update for ${deviceName}: ${status.toUpperCase()}\n\n${messageBody.replace(
+    /<[^>]*>/g,
+    ""
+  )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
   } catch (error) {

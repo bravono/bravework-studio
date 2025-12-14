@@ -1,8 +1,8 @@
-
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "@/lib/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
+import { createZohoContact } from "@/lib/zoho";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,9 @@ export async function POST(request: Request) {
     }
 
     const userId = (session.user as any).id;
+    const userEmail = session.user.email;
+    const userName = session.user.name || "Unknown User";
+
     const body = await request.json();
     const { rentalId, startTime, endTime, totalAmount } = body;
 
@@ -29,7 +32,6 @@ export async function POST(request: Request) {
     const conflicts = await queryDatabase(
       `SELECT rental_booking_id FROM rental_bookings
        WHERE rental_id = $1
-       AND status NOT IN ('cancelled', 'rejected')
        AND (
          (start_time <= $2 AND end_time >= $2) OR
          (start_time <= $3 AND end_time >= $3) OR
@@ -47,28 +49,73 @@ export async function POST(request: Request) {
 
     // Get pending order status id
     const orderStatusRes = await queryDatabase(
-      "SELECT order_status_id FROM order_statuses WHERE name = 'pending'",
+      "SELECT payment_status_id FROM payment_statuses WHERE name = 'pending'",
       []
     );
-    const pendingStatusId = orderStatusRes[0]?.order_status_id;
+    const pendingStatusId = orderStatusRes[0]?.payment_status_id;
 
     const bookingId = await withTransaction(async (client) => {
       const res = await client.query(
         `INSERT INTO rental_bookings (
-          rental_id, client_id, start_time, end_time, total_amount, order_status_id
+          rental_id, client_id, start_time, end_time, total_amount_kobo, payment_status_id
         ) VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING rental_booking_id`,
-        [
-          rentalId,
-          userId,
-          startTime,
-          endTime,
-          totalAmount,
-          pendingStatusId,
-        ]
+        [rentalId, userId, startTime, endTime, totalAmount, pendingStatusId]
       );
       return res.rows[0].rental_booking_id;
     });
+
+    // Create Zoho Contact (Renter)
+    try {
+      const nameParts = userName.split(" ");
+      const lastName =
+        nameParts.length > 1 ? nameParts.slice(1).join(" ") : nameParts[0];
+      const firstName = nameParts.length > 1 ? nameParts[0] : "";
+
+      await createZohoContact({
+        Last_Name: lastName,
+        First_Name: firstName,
+        Email: userEmail,
+        Description: `Renter booked rental ID: ${rentalId}`,
+        Lead_Source: "Web App - Rental Booking",
+      });
+    } catch (zohoError) {
+      console.error("Error creating Zoho Contact:", zohoError);
+    }
+
+    // Send Notification Email to Owner
+    try {
+      // Fetch owner details and device name
+      const ownerRes = await queryDatabase(
+        `SELECT u.email, u.name, r.device_name 
+         FROM rentals r 
+         JOIN users u ON r.user_id = u.id 
+         WHERE r.rental_id = $1`,
+        [rentalId]
+      );
+
+      if (ownerRes.length > 0) {
+        const {
+          email: ownerEmail,
+          name: ownerName,
+          device_name: deviceName,
+        } = ownerRes[0];
+        const { sendBookingRequestEmail } = await import("@/lib/mailer");
+
+        await sendBookingRequestEmail(
+          ownerEmail,
+          ownerName || "Owner",
+          userName,
+          deviceName,
+          bookingId,
+          startTime,
+          endTime,
+          totalAmount
+        );
+      }
+    } catch (emailError) {
+      console.error("Error sending booking email:", emailError);
+    }
 
     return NextResponse.json({ bookingId }, { status: 201 });
   } catch (error) {

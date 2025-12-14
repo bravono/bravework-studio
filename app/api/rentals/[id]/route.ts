@@ -1,8 +1,6 @@
-
+// Route to fetch rentals for a specific user ID
 import { NextResponse } from "next/server";
-import { queryDatabase, withTransaction } from "@/lib/db";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/auth-options";
+import { queryDatabase } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -11,106 +9,52 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    const rentalId = params.id;
 
     const rentals = await queryDatabase(
-      `SELECT r.*, u.first_name, u.last_name, u.email, u.phone
-       FROM rentals r
-       JOIN users u ON r.user_id = u.user_id
-       WHERE r.rental_id = $1`,
-      [id]
+      `SELECT
+        r.rental_id AS id,
+        r.user_id AS "userId",
+        r.device_type AS "deviceType",
+        r.device_name AS "deviceName",
+        r.description,
+        r.specs,
+        r.hourly_rate_kobo AS "hourlyRate",
+        r.location_city AS "locationCity",
+        r.location_address AS "locationAddress",
+        r.location_lat AS "locationLat",
+        r.location_lng AS "locationLng",
+        r.has_internet AS "hasInternet",
+        r.has_backup_power AS "hasBackupPower",
+        r.status,
+        r.created_at AS "createdAt",
+        ARRAY_REMOVE(ARRAY_AGG(ri.file_url), NULL) AS "imagesArray"
+      FROM rentals r
+      LEFT JOIN rental_images ri ON r.rental_id = ri.rental_id
+      WHERE r.rental_id = $1
+      GROUP BY
+        r.rental_id,
+        r.user_id,
+        r.device_type,
+        r.device_name,
+        r.description,
+        r.specs,
+        r.hourly_rate_kobo,
+        r.location_city,
+        r.location_address,
+        r.location_lat,
+        r.location_lng,
+        r.has_internet,
+        r.has_backup_power,
+        r.status,
+        r.created_at`,
+      [rentalId]
     );
 
-    if (rentals.length === 0) {
-      return NextResponse.json({ error: "Rental not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(rentals[0]);
+    console.log("Rental details:", rentals);
+    return NextResponse.json(rentals);
   } catch (error) {
-    console.error("Error fetching rental details:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as any).id;
-    const id = params.id;
-    const body = await request.json();
-
-    // Check ownership
-    const rentalCheck = await queryDatabase(
-      "SELECT user_id FROM rentals WHERE rental_id = $1",
-      [id]
-    );
-
-    if (rentalCheck.length === 0) {
-      return NextResponse.json({ error: "Rental not found" }, { status: 404 });
-    }
-
-    if (rentalCheck[0].user_id !== userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const {
-      deviceType,
-      deviceName,
-      description,
-      specs,
-      hourlyRate,
-      locationCity,
-      locationAddress,
-      hasInternet,
-      hasBackupPower,
-      status,
-    } = body;
-
-    await withTransaction(async (client) => {
-      await client.query(
-        `UPDATE rentals SET
-          device_type = COALESCE($1, device_type),
-          device_name = COALESCE($2, device_name),
-          description = COALESCE($3, description),
-          specs = COALESCE($4, specs),
-          hourly_rate = COALESCE($5, hourly_rate),
-          location_city = COALESCE($6, location_city),
-          location_address = COALESCE($7, location_address),
-          has_internet = COALESCE($8, has_internet),
-          has_backup_power = COALESCE($9, has_backup_power),
-          status = COALESCE($10, status),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE rental_id = $11`,
-        [
-          deviceType,
-          deviceName,
-          description,
-          specs,
-          hourlyRate,
-          locationCity,
-          locationAddress,
-          hasInternet,
-          hasBackupPower,
-          status,
-          id,
-        ]
-      );
-    });
-
-    return NextResponse.json({ message: "Rental updated successfully" });
-  } catch (error) {
-    console.error("Error updating rental:", error);
+    console.error("Error fetching user rentals:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

@@ -208,6 +208,42 @@ interface Course {
   tags?: string[];
 }
 
+interface Rental {
+  id: number;
+  userId: number;
+  deviceType: string;
+  deviceName: string;
+  description: string;
+  specs: string;
+  hourlyRate: number;
+  locationCity: string;
+  locationAddress: string;
+  locationLat: string;
+  locationLng: string;
+  hasInternet: boolean;
+  hasBackupPower: boolean;
+  status: string;
+  createdAt: string;
+  imagesArray: string[];
+}
+
+interface Booking {
+  id: number;
+  rentaId: number;
+  deviceName: string;
+  deviceImage: string; // Assuming we might join this or it's part of rental details
+  startTime: string;
+  endTime: string;
+  amount: number;
+  status: "pending" | 'accepted' | 'declined' | 'cancelled' | 'completed';
+  createdAt: string;
+  renterName?: string; // For owner view
+  ownerName?: string; // For renter view
+  rejectionReason?: string;
+  cancellationReason?: string;
+  escrowReleased?: boolean;
+}
+
 interface CourseSession {
   id: number; // Used for React key and easy state management
   options: SessionOption[];

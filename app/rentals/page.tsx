@@ -1,13 +1,14 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, MapPin, Monitor, Battery, Wifi } from "lucide-react";
 import { toast } from "react-toastify";
+import { Rental } from "../types/app";
 
 export default function RentalsPage() {
-  const [rentals, setRentals] = useState<any[]>([]);
+  const KOBO_PER_NAIRA = 100;
+  const [rentals, setRentals] = useState<Rental[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     city: "",
@@ -24,11 +25,13 @@ export default function RentalsPage() {
     try {
       const queryParams = new URLSearchParams();
       if (filters.city) queryParams.append("city", filters.city);
-      if (filters.deviceType) queryParams.append("deviceType", filters.deviceType);
+      if (filters.deviceType)
+        queryParams.append("deviceType", filters.deviceType);
 
       const res = await fetch(`/api/rentals?${queryParams.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch rentals");
       const data = await res.json();
+      console.log("Rental Page QS", data);
       setRentals(data);
     } catch (error) {
       console.error("Error fetching rentals:", error);
@@ -55,7 +58,7 @@ export default function RentalsPage() {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch("/api/rentals/nearby", {
+          const res = await fetch("/api/user/rentals/nearby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ lat: latitude, lng: longitude }),
@@ -63,7 +66,9 @@ export default function RentalsPage() {
 
           if (!res.ok) throw new Error("Failed to record demand");
           setDemandRecorded(true);
-          toast.success("We've recorded your interest! We'll notify you when rentals become available nearby.");
+          toast.success(
+            "We've recorded your interest! We'll notify you when rentals become available nearby."
+          );
         } catch (error) {
           console.error("Error recording demand:", error);
           toast.error("Failed to record your location");
@@ -84,8 +89,17 @@ export default function RentalsPage() {
             Rent High-End Devices <span className="text-green-600">Nearby</span>
           </h1>
           <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
-            Find PCs and iPads for rent in your area. Secure, affordable, and convenient.
+            Find PCs and iPads for rent in your area. Secure, affordable, and
+            convenient.
           </p>
+          <div className="mt-8 flex justify-center">
+            <Link href="/user/dashboard?tab=rentals">
+              <button className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform transition hover:-translate-y-1">
+                <Monitor className="mr-2 h-5 w-5" />
+                List Your Hardware
+              </button>
+            </Link>
+          </div>
         </div>
 
         {/* Search Filters */}
@@ -137,34 +151,38 @@ export default function RentalsPage() {
         ) : rentals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rentals.map((rental) => (
-              <Link href={`/rentals/${rental.rental_id}`} key={rental.rental_id}>
+              <Link href={`/rentals/${rental.id}`} key={rental.id}>
                 <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
                   <div className="p-6 flex-grow">
                     <div className="flex justify-between items-start mb-2">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {rental.device_type}
+                        {rental.deviceType}
                       </span>
                       <span className="text-lg font-bold text-green-600">
-                        ₦{Number(rental.hourly_rate).toLocaleString()}/hr
+                        ₦
+                        {Number(
+                          rental.hourlyRate / KOBO_PER_NAIRA
+                        ).toLocaleString()}
+                        /hr
                       </span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {rental.device_name}
+                      {rental.deviceName}
                     </h3>
                     <p className="text-gray-500 text-sm mb-4 line-clamp-2">
                       {rental.description}
                     </p>
                     <div className="flex items-center text-sm text-gray-500 mb-2">
                       <MapPin className="h-4 w-4 mr-1" />
-                      {rental.location_city}
+                      {rental.locationCity}
                     </div>
                     <div className="flex gap-2 mt-4">
-                      {rental.has_internet && (
+                      {rental.hasInternet && (
                         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700">
                           <Wifi className="h-3 w-3 mr-1" /> Internet
                         </span>
                       )}
-                      {rental.has_backup_power && (
+                      {rental.hasBackupPower && (
                         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-700">
                           <Battery className="h-3 w-3 mr-1" /> Backup Power
                         </span>

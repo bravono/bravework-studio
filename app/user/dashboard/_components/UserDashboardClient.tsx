@@ -48,11 +48,9 @@ import {
   Invoice,
   Notification,
   CustomOffer,
-  PaginationProps,
+  Rental,
+  Booking,
 } from "app/types/app";
-
-import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 
 // Importing page sections as components
 import UserCustomOffersSection from "./UserCustomOfferSection";
@@ -60,16 +58,15 @@ import UserInvoicesSection from "./UserInvoicesSection";
 import UserNotificationsSection from "./UserNotificationsSection";
 import UserOrdersSection from "./UserOrdersSection";
 import UserReferralsSection from "./UserReferralsSection";
+import UserOverviewSection from "./UserOverviewSection";
 
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
-import RejectReasonModal from "./RejectReasonModal";
 
 import CourseDetailCard from "@/app/components/CourseDetailCard";
-import CourseModal from "@/app/components/CourseModal";
-import CreateRentalModal from "./CreateRentalModal";
 import UserRentalsSection from "./UserRentalsSection";
+import UserBookingsSection from "./UserBookingsSection";
 import Loader from "@/app/components/Loader";
 
 const Pagination = ({
@@ -146,7 +143,8 @@ function Page() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [rentals, setRentals] = useState<any[]>([]); // Add rentals state
+  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -156,6 +154,7 @@ function Page() {
   const [coursesPage, setCoursesPage] = useState(1);
   const [invoicesPage, setInvoicesPage] = useState(1);
   const [rentalsPage, setRentalsPage] = useState(1);
+  const [bookingsPage, setBookingsPage] = useState(1);
   const itemsPerPage = 5; // Can be adjusted
 
   const [isAcceptConfirmationModalOpen, setIsAcceptConfirmationModalOpen] =
@@ -219,6 +218,14 @@ function Page() {
       if (rentalsRes.ok) {
         const rentalsData = await rentalsRes.json();
         setRentals(rentalsData);
+      }
+
+      // Fetch Bookings
+      const bookingsRes = await fetch("/api/user/bookings");
+      if (bookingsRes.ok) {
+        const bookingsData = await bookingsRes.json();
+        console.log("Booking", bookingsData)
+        setBookings(bookingsData);
       }
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
@@ -1358,7 +1365,9 @@ function Page() {
       case "custom-offers":
         return withBackToOverview(<UserCustomOffersSection />);
       case "rentals":
-        return withBackToOverview(<UserRentalsSection onFetchDashboardData={fetchDashboardData}/>);
+        return withBackToOverview(<UserRentalsSection />);
+      case "bookings":
+        return withBackToOverview(<UserBookingsSection />);
       case "referrals":
         return withBackToOverview(<UserReferralsSection />);
       case "courses":
