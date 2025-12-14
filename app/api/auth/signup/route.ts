@@ -240,11 +240,11 @@ export async function POST(req: Request) {
 
         // Fetch 'pending' order status
         const paymentStatusResult = await client.query(
-          "SELECT order_status_id FROM order_statuses WHERE name = $1",
+          "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
           [paymentStatus]
         );
 
-        const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
+        const paymentStatusId = paymentStatusResult.rows[0].payment_status_id;
 
         const existingCourse = await client.query(
           "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
@@ -281,7 +281,7 @@ export async function POST(req: Request) {
 
         const orderResult = await client.query(
           `INSERT INTO orders 
-          (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
+          (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
           [
             userId,

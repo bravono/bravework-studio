@@ -5,10 +5,10 @@ interface OrderStatusMap {
 }
 
 export async function getOrderStatusMap(client: PoolClient): Promise<OrderStatusMap> {
-  const result = await client.query("SELECT * FROM order_statuses");
+  const result = await client.query("SELECT * FROM payment_statuses");
   const map: OrderStatusMap = {};
-  result.rows.forEach((row: { order_status_id: number; name: string }) => {
-    map[row.name] = row.order_status_id;
+  result.rows.forEach((row: { payment_status_id: number; name: string }) => {
+    map[row.name] = row.payment_status_id;
   });
   return map;
 }
@@ -51,7 +51,7 @@ export async function processSuccessfulOrder(
   await client.query(
     `UPDATE orders
      SET amount_paid_to_date_kobo = $1,
-         order_status_id = $2,
+         payment_status_id = $2,
          title = $3,
          start_date = NOW(),
          end_date = CASE WHEN $4::int IS NOT NULL THEN NOW() + ($4 || ' days')::interval ELSE end_date END,

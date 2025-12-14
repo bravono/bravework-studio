@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         pc.category_name AS "serviceName"
       FROM orders o
       LEFT JOIN product_categories pc ON o.category_id = pc.category_id
-      LEFT JOIN order_statuses os ON o.order_status_id = os.order_status_id
+      LEFT JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
       WHERE user_id = $1
       ORDER BY created_at DESC;
     `;
@@ -138,14 +138,14 @@ export async function POST(request: Request) {
       }
 
       const orderStatus = await client.query(
-        "SELECT order_status_id FROM order_statuses WHERE name = $1",
+        "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
         ["pending"]
       );
 
-      const orderStatusId = orderStatus.rows[0]?.order_status_id;
+      const orderStatusId = orderStatus.rows[0]?.payment_status_id;
 
       const orderResult = await client.query(
-        "INSERT INTO orders (project_description, order_status_id, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING order_id, budget_range",
+        "INSERT INTO orders (project_description, payment_status_id, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING order_id, budget_range",
         [
           projectDescription,
           orderStatusId,

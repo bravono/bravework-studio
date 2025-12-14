@@ -30,16 +30,16 @@ async function loadOrderStatusMap() {
   orderStatusLoadPromise = (async () => {
     try {
       console.log("Attempting to load order statuses into cache...");
-      // Querying 'order_statuses' as confirmed by user
+      // Querying 'payment_statuses' as confirmed by user
 
-      const statusResult = await queryDatabase("SELECT * FROM order_statuses");
+      const statusResult = await queryDatabase("SELECT * FROM payment_statuses");
 
       if (statusResult.length === 0) {
         throw new Error("No order statuses found in the database.");
       }
 
-      statusResult.forEach((row: { order_status_id: number; name: string }) => {
-        orderStatusMap[row.name] = row.order_status_id;
+      statusResult.forEach((row: { payment_status_id: number; name: string }) => {
+        orderStatusMap[row.name] = row.payment_status_id;
       });
       isOrderStatusMapLoaded = true;
       console.log("Order statuses loaded successfully:", orderStatusMap);
@@ -354,7 +354,7 @@ export async function POST(req: NextRequest) {
           await client.query(
             `UPDATE orders
              SET amount_paid_to_date_kobo = $1,
-                 order_status_id = $2,
+                 payment_status_id = $2,
                  title = $3,
                  start_date = NOW(),
                  end_date = NOW() + INTERVAL '${project_duration_days} days',
@@ -461,7 +461,7 @@ export async function POST(req: NextRequest) {
           );
           if (failedOrderId) {
             const { rows: orderRows } = await client.query(
-              "SELECT amount_paid_to_date_kobo, order_status_id FROM orders WHERE order_id = $1",
+              "SELECT amount_paid_to_date_kobo, payment_status_id FROM orders WHERE order_id = $1",
               [failedOrderId]
             );
             if (
@@ -470,7 +470,7 @@ export async function POST(req: NextRequest) {
             ) {
               const failedStatusId = orderStatusMap["failed"];
               await client.query(
-                `UPDATE orders SET order_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
+                `UPDATE orders SET payment_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
                 [failedStatusId, failedOrderId]
               );
               console.log(
