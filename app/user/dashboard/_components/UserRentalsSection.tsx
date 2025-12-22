@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, use } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import EditRentalModal from "./EditRentalModal";
 import { Plus, Monitor } from "lucide-react";
 import { toast } from "react-toastify";
 import { Rental } from "@/app/types/app";
@@ -6,6 +8,9 @@ import Link from "next/link";
 import CreateRentalModal from "./CreateRentalModal";
 
 export default function UserRentalsSection() {
+  const { data: session } = useSession();
+  const [isEditRentalModalOpen, setIsEditRentalModalOpen] = useState(false);
+  const [rentalToEdit, setRentalToEdit] = useState(null);
   const KOBO_PER_NAIRA = 100;
   const [isCreateRentalModalOpen, setIsCreateRentalModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,7 +74,11 @@ export default function UserRentalsSection() {
                       </span>
                     </div>
                     <span className="text-lg font-bold text-green-600">
-                      ₦{Number(rental.hourlyRate / KOBO_PER_NAIRA).toLocaleString()}/hr
+                      ₦
+                      {Number(
+                        rental.hourlyRate / KOBO_PER_NAIRA
+                      ).toLocaleString()}
+                      /hr
                     </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -89,6 +98,37 @@ export default function UserRentalsSection() {
                     >
                       {rental.status === "active" ? "In Use" : "Not In Use"}
                     </span>
+                    {session?.user?.id === rental.userId && (
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => {
+                            setRentalToEdit(rental);
+                            setIsEditRentalModalOpen(true);
+                          }}
+                          className="text-blue-600 hover:underline text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch(
+                              `/api/user/rentals/${rental.id}`,
+                              { method: "DELETE" }
+                            );
+                            if (res.ok) {
+                              toast.success("Rental deleted");
+                              fetchRentals();
+                            } else {
+                              const err = await res.json();
+                              toast.error(err.error || "Failed to delete");
+                            }
+                          }}
+                          className="text-red-600 hover:underline text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                     <Link
                       href={`/rentals/${rental.id}`}
                       className="text-blue-600 hover:underline text-sm font-medium"
@@ -126,6 +166,17 @@ export default function UserRentalsSection() {
         onClose={() => setIsCreateRentalModalOpen(false)}
         onSuccess={fetchRentals}
       />
+      {rentalToEdit && (
+        <EditRentalModal
+          isOpen={isEditRentalModalOpen}
+          onClose={() => {
+            setIsEditRentalModalOpen(false);
+            setRentalToEdit(null);
+          }}
+          rental={rentalToEdit}
+          onSuccess={fetchRentals}
+        />
+      )}
     </div>
   );
 }

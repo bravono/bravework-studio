@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Rental } from "@/app/types/app";
+import Link from "next/link";
 
 export default function RentalDetailsPage() {
   const KOBO_PER_NAIRA = 100;
@@ -247,6 +248,12 @@ export default function RentalDetailsPage() {
                         You cannot book your own device. Manage this listing
                         from your dashboard.
                       </p>
+                      <Link
+                        href={`/user/dashboard/?tab=rentals`}
+                        className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                      >
+                        Manage Listing
+                      </Link>
                     </div>
                   </div>
                 ) : (
