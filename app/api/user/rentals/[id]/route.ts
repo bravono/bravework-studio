@@ -30,11 +30,15 @@ export async function GET(
     }
 
     const rentals = await queryDatabase(
-      `SELECT * FROM rentals WHERE user_id = $1`,
-      [userId]
+      `SELECT * FROM rentals WHERE rental_id = $1 AND user_id = $2`,
+      [rentalId, userId]
     );
 
-    return NextResponse.json(rentals);
+    if (rentals.length === 0) {
+      return NextResponse.json({ error: "Rental not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(rentals[0]);
   } catch (error) {
     console.error("Error fetching user rentals:", error);
     return NextResponse.json(
