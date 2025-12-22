@@ -26,7 +26,7 @@ export async function GET(
         r.location_lng AS "locationLng",
         r.has_internet AS "hasInternet",
         r.has_backup_power AS "hasBackupPower",
-        r.status,
+        r.approval_status,
         r.created_at AS "createdAt",
         ARRAY_REMOVE(ARRAY_AGG(ri.file_url), NULL) AS "imagesArray"
       FROM rentals r
@@ -46,7 +46,7 @@ export async function GET(
         r.location_lng,
         r.has_internet,
         r.has_backup_power,
-        r.status,
+        r.approval_status,
         r.created_at`,
       [rentalId]
     );

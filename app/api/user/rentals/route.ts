@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
     return await withTransaction(async (client) => {
       const rentalResult = await client.query(
-        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate, location_city, location_address, has_internet, has_backup_power, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING order_id, budget_range",
+        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate, location_city, location_address, has_internet, has_backup_power, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) RETURNING rental_id",
         [
           userId,
           deviceType,
@@ -115,6 +115,7 @@ export async function POST(request: Request) {
           locationAddress,
           hasInternet,
           hasBackupPower,
+          "pending",
         ]
       );
       const newRentalId = rentalResult.rows[0].order_id;

@@ -24,11 +24,11 @@ export async function GET(request: Request) {
         r.location_lng AS "locationLng",
         r.has_internet AS "hasInternet",
         r.has_backup_power AS "hasBackupPower",
-        r.status,
+        r.approval_status,
         r.created_at AS "createdAt"
       FROM rentals r
-      WHERE status = 'active'
-    `;
+      WHERE approval_status = 'approved' AND is_active = true
+      `;
     const params: any[] = [];
 
     if (city) {
