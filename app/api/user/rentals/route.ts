@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         u.phone
        FROM rentals r
        JOIN users u ON r.user_id = u.user_id
-       WHERE r.user_id = $1`,
+       WHERE r.user_id = $1 AND r.deleted_at IS NULL`,
       [userId]
     );
 

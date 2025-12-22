@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         r.approval_status,
         r.created_at AS "createdAt"
       FROM rentals r
-      WHERE approval_status = 'approved' AND is_active = true
+      WHERE approval_status = 'approved' AND is_active = true AND deleted_at IS NULL
       `;
     const params: any[] = [];
 
