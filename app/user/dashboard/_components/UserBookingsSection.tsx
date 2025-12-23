@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, Clock, CheckCircle, User, Monitor } from "lucide-react";
 import { toast } from "react-toastify";
+
 import { Booking } from "@/app/types/app";
 import Loader from "@/app/components/Loader";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 export default function UserBookingsSection() {
-  const KOBO_PER_NAIRA = 100;
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
     "my-bookings"
   );

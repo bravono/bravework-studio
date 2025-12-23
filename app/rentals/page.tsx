@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { Search, MapPin, Monitor, Battery, Wifi } from "lucide-react";
 import { toast } from "react-toastify";
+
+import Link from "next/link";
+
 import { Rental } from "../types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 export default function RentalsPage() {
-  const KOBO_PER_NAIRA = 100;
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({

@@ -1,0 +1,1 @@
+export const KOBO_PER_NAIRA = 100;

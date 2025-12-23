@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
+import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
+
+import dynamic from "next/dynamic";
+
+import "react-quill/dist/quill.snow.css";
+
+import Modal from "@/app/components/Modal";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 import {
   CourseSession,
   SessionOption,
@@ -9,11 +17,7 @@ import {
   SessionFormProps,
   Tool,
 } from "@/app/types/app";
-import Modal from "@/app/components/Modal";
-import ConfirmationModal from "@/app/components/ConfirmationModal";
-import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
-import dynamic from "next/dynamic";
-import "react-quill/dist/quill.snow.css";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -293,7 +297,6 @@ export default function CourseModal({
   currentInstructorName,
   currentInstructorId,
 }: CourseModalProps) {
-  const KOBO_PER_NAIRA = 100;
   const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
 
   // Existing state variables

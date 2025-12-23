@@ -2,14 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-
 import { toast } from "react-toastify";
-import { format } from "date-fns";
-
 import {
   Bell,
   CheckCircle,
@@ -18,10 +11,18 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
+
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
+import { format } from "date-fns";
+
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../_components/RejectReasonModal";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
@@ -30,7 +31,6 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 export default function NotificationsPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
-  const KOBO_PER_NAIRA = 100;
   const DOLLAR_PER_NAIRA = 0.00065;
 
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();

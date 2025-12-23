@@ -2,23 +2,26 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import { ShowMore } from "@re-dev/react-truncate";
-import Link from "next/link";
 import { Calendar, Award, Hourglass, DollarSign, Filter } from "lucide-react";
-import { Course } from "../types/app";
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-import { convertCurrency } from "@/lib/utils/convertCurrency";
+
+import Link from "next/link";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+
+import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
+import { convertCurrency } from "@/lib/utils/convertCurrency";
 import getWeeksBtwDates from "@/lib/utils/getWeeksBtwDays";
 
 import CurrencySelector from "../components/CurrencySelector";
 import Loader from "../components/Loader";
 import ArrowButton from "./ArrowButton";
 import CourseFilters from "./CourseFilters";
+import { Course } from "../types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 export default function coursesPage({ page }) {
-  const KOBO_PER_NAIRA = 100;
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { exchangeRates, ratesError, ratesLoading } = useExchangeRates();

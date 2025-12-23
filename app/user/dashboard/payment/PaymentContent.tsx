@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import PaystackPop from "@paystack/inline-js";
 import { toast } from "react-toastify";
 import {
   CreditCard,
@@ -13,8 +10,17 @@ import {
   CheckCircle,
   Wallet,
 } from "lucide-react";
+
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+
+import PaystackPop from "@paystack/inline-js";
+
 import useExchangeRates from "@/hooks/useExchangeRates";
+
 import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 interface Course {
   id: number;
@@ -47,7 +53,6 @@ export default function PaymentContent() {
 
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
-  const KOBO_PER_NAIRA = 100;
 
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);

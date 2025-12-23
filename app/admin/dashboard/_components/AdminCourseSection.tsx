@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
 
 import { format } from "date-fns";
 import {
@@ -17,8 +18,8 @@ import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CourseModal from "../../../components/CourseModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-import { useSession } from "next-auth/react";
 
 // Main CourseTab component
 export default function AdminCourseSection() {
@@ -31,7 +32,6 @@ export default function AdminCourseSection() {
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
 
-  const KOBO_PER_NAIRA = 100;
   const { data: session } = useSession();
 
   // State for delete confirmation modal

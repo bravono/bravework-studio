@@ -7,12 +7,12 @@ import React, {
   Suspense,
   useRef,
 } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "react-toastify";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 import {
   Order,
@@ -24,6 +24,8 @@ import {
   Rental,
   Booking,
 } from "app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 // Importing page sections as components
 import UserCustomOffersSection from "./UserCustomOfferSection";
@@ -105,8 +107,6 @@ function Page() {
   const [selectedOfferForRejection, setSelectedOfferForRejection] =
     useState<CustomOffer | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const KOBO_PER_NAIRA = 100;
 
   const notificationCount = notifications.filter((n) => !n.isRead).length;
 
