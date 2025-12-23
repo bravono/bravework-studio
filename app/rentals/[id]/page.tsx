@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 import {
   MapPin,
   Wifi,
@@ -11,9 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { toast } from "react-toastify";
-import { Rental } from "@/app/types/app";
+
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+
+import GoogleMap from "@/app/components/GoogleMap";
+import { Rental } from "@/app/types/app";
 
 export default function RentalDetailsPage() {
   const KOBO_PER_NAIRA = 100;
@@ -324,6 +327,40 @@ export default function RentalDetailsPage() {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Location Section */}
+        <div className="mt-8 bg-white rounded-2xl shadow-xl p-8 lg:p-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <MapPin className="h-6 w-6 mr-2 text-green-600" />
+            Location
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <GoogleMap
+                lat={rental.locationLat}
+                lng={rental.locationLng}
+                address={rental.locationAddress}
+              />
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                Address
+              </h4>
+              <p className="text-gray-600 mb-4">{rental.locationAddress}</p>
+              <p className="text-gray-600 font-medium">{rental.locationCity}</p>
+              <div className="mt-6">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${rental.locationLat},${rental.locationLng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium"
+                >
+                  Get Directions <ChevronRight className="h-4 w-4 ml-1" />
+                </a>
               </div>
             </div>
           </div>
