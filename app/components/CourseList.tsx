@@ -20,7 +20,6 @@ import CourseFilters from "./CourseFilters";
 import { Course } from "../types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 export default function coursesPage({ page }) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -296,14 +295,11 @@ export default function coursesPage({ page }) {
                             <p className="font-bold text-lg text-gray-900">
                               {course.price === 0
                                 ? "Free"
-                                : `${getCurrencySymbol(selectedCurrency)}${
-                                    rateIsFetched &&
-                                    convertCurrency(
-                                      course.price / KOBO_PER_NAIRA,
-                                      exchangeRates[selectedCurrency],
-                                      getCurrencySymbol(selectedCurrency)
-                                    )
-                                  }`}
+                                : convertCurrency(
+                                    course.price / KOBO_PER_NAIRA,
+                                    exchangeRates[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency)
+                                  )}
                             </p>
                           </div>
                         </div>

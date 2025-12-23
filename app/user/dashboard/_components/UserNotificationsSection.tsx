@@ -341,7 +341,6 @@ export default function NotificationsPage() {
                           <Wallet className="w-4 h-4 text-gray-500" />
                           <strong>Amount:</strong>{" "}
                           <span className="text-gray-900 font-bold">
-                            {getCurrencySymbol(selectedCurrency)}
                             {convertCurrency(
                               (notification.offerAmount / KOBO_PER_NAIRA) *
                                 DOLLAR_PER_NAIRA,

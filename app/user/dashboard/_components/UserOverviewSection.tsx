@@ -45,7 +45,6 @@ import {
 } from "app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 interface UserOverviewSectionProps {
   session: any;
   courses: Course[];
@@ -288,7 +287,6 @@ export default function UserOverviewSection({
                               {order.status}
                             </span>
                             <span className="font-bold text-gray-800">
-                              {getCurrencySymbol(selectedCurrency)}
                               {convertCurrency(
                                 order.amount / KOBO_PER_NAIRA,
                                 exchangeRates?.[selectedCurrency],
@@ -376,7 +374,6 @@ export default function UserOverviewSection({
                                     <Wallet className="w-4 h-4 text-gray-500 font-bold" />
                                     <strong>Amount:</strong>{" "}
                                     <span className="text-gray-900 font-bold">
-                                      {getCurrencySymbol(selectedCurrency)}
                                       {convertCurrency(
                                         offer.offerAmount / KOBO_PER_NAIRA,
                                         exchangeRates?.[selectedCurrency],
@@ -402,8 +399,6 @@ export default function UserOverviewSection({
                                       <DollarSign className="w-4 h-4 text-gray-500 font-bold" />
                                       <strong>Balance:</strong>{" "}
                                       <span className="text-gray-900 font-bold">
-                                        {getCurrencySymbol(selectedCurrency)}
-
                                         {convertCurrency(
                                           owing / KOBO_PER_NAIRA,
                                           exchangeRates?.[selectedCurrency],
