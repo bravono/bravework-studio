@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import Modal from "@/app/components/Modal";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
+
+import Modal from "@/app/components/Modal";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 interface EditRentalModalProps {

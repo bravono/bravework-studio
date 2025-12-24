@@ -1,8 +1,12 @@
 // app/lib/mailer.ts
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer"; // Import Mail type for transporter
+
 import { format } from "date-fns"; // Import date-fns for formatting expiry
+
 import { generateSecureToken, verifySecureToken } from "./utils/generateToken"; // Import your secure token generation utility
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 interface SendEmailOptions {
   toEmail: string;
@@ -257,7 +261,6 @@ export async function sendCustomOfferNotificationEmail(
   }
   const subject = "New Custom Offer from Bravework Studio!";
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}`; // Link to their dashboard offer details page
-  const KOBO_PER_NAIRA = 100;
 
   // Directly using offerId in URL for accept/reject is INSECURE for production.
   // Example of a more secure approach (requires backend token generation/verification):

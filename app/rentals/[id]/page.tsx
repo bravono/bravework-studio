@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
 import {
   MapPin,
   Wifi,
@@ -10,16 +9,20 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { toast } from "react-toastify";
+
 
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-import GoogleMap from "@/app/components/GoogleMap";
 import { Rental } from "@/app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
+
+import GoogleMap from "@/app/components/GoogleMap";
 
 export default function RentalDetailsPage() {
-  const KOBO_PER_NAIRA = 100;
   const { id } = useParams();
   const router = useRouter();
   const { data: session } = useSession();

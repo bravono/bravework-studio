@@ -1,17 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import EditRentalModal from "./EditRentalModal";
 import { Plus, Monitor } from "lucide-react";
 import { toast } from "react-toastify";
-import { Rental } from "@/app/types/app";
+
+
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+
+import EditRentalModal from "./EditRentalModal";
 import CreateRentalModal from "./CreateRentalModal";
+
+import { Rental } from "@/app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 export default function UserRentalsSection() {
   const { data: session } = useSession();
   const [isEditRentalModalOpen, setIsEditRentalModalOpen] = useState(false);
   const [rentalToEdit, setRentalToEdit] = useState(null);
-  const KOBO_PER_NAIRA = 100;
   const [isCreateRentalModalOpen, setIsCreateRentalModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rentals, setRentals] = useState<Rental[]>([]);

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import {
   Bell,
   DollarSign,
@@ -24,6 +23,18 @@ import {
   Plus,
   List,
 } from "lucide-react";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
+
+import CourseDetailCard from "@/app/components/CourseDetailCard";
+import CourseModal from "@/app/components/CourseModal";
+import RejectReasonModal from "./RejectReasonModal";
+import Pagination from "@/app/components/Pagination";
+
 import {
   Order,
   Course,
@@ -32,15 +43,7 @@ import {
   Notification,
   CustomOffer,
 } from "app/types/app";
-import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-import CourseDetailCard from "@/app/components/CourseDetailCard";
-import CourseModal from "@/app/components/CourseModal";
-import RejectReasonModal from "./RejectReasonModal";
-import Pagination from "@/app/components/Pagination";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns/format";
-import { defineDmmfProperty } from "@prisma/client/runtime/library";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 interface UserOverviewSectionProps {
   session: any;
@@ -158,7 +161,6 @@ export default function UserOverviewSection({
   handleConfirmReject,
 }: UserOverviewSectionProps) {
   const router = useRouter();
-  const KOBO_PER_NAIRA = 100;
   const PERCENT_100 = 100;
 
   return (
@@ -285,7 +287,6 @@ export default function UserOverviewSection({
                               {order.status}
                             </span>
                             <span className="font-bold text-gray-800">
-                              {getCurrencySymbol(selectedCurrency)}
                               {convertCurrency(
                                 order.amount / KOBO_PER_NAIRA,
                                 exchangeRates?.[selectedCurrency],
@@ -373,7 +374,6 @@ export default function UserOverviewSection({
                                     <Wallet className="w-4 h-4 text-gray-500 font-bold" />
                                     <strong>Amount:</strong>{" "}
                                     <span className="text-gray-900 font-bold">
-                                      {getCurrencySymbol(selectedCurrency)}
                                       {convertCurrency(
                                         offer.offerAmount / KOBO_PER_NAIRA,
                                         exchangeRates?.[selectedCurrency],
@@ -399,8 +399,6 @@ export default function UserOverviewSection({
                                       <DollarSign className="w-4 h-4 text-gray-500 font-bold" />
                                       <strong>Balance:</strong>{" "}
                                       <span className="text-gray-900 font-bold">
-                                        {getCurrencySymbol(selectedCurrency)}
-
                                         {convertCurrency(
                                           owing / KOBO_PER_NAIRA,
                                           exchangeRates?.[selectedCurrency],

@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
-import Link from "next/link";
 import { toast } from "react-toastify";
 import { Loader, XCircle } from "lucide-react";
 
-// Import the new Pagination component
-import Pagination from "../../../components/Pagination";
+import { format } from "date-fns";
 
-// These modal components are assumed to exist and are kept as is.
+import Link from "next/link";
+
+import Pagination from "../../../components/Pagination";
 import { Order } from "../../../types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 // Constant for items per page
 const ITEMS_PER_PAGE = 10;
@@ -23,8 +24,6 @@ export default function UserOrdersSection() {
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-
-  const KOBO_PER_NAIRA = 100;
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);

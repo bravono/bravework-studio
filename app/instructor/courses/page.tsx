@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-
-import { format } from "date-fns";
 import {
   PlusCircle,
   Edit,
@@ -12,11 +10,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { format } from "date-fns";
+
 import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CourseModal from "@/app/components/CourseModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 // Main InstructorCoursePage component
 export default function InstructorCoursePage() {
@@ -28,7 +30,6 @@ export default function InstructorCoursePage() {
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
-  const KOBO_PER_NAIRA = 100;
 
   // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
