@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { Loader2 } from "lucide-react";
+import { Loader2, Info, Upload, X } from "lucide-react";
+import { uploadFile } from "@/lib/utils/upload";
 
 import Modal from "@/app/components/Modal";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
@@ -33,7 +34,15 @@ export default function EditRentalModal({
     locationAddress: rental?.locationAddress || "",
     hasInternet: rental?.hasInternet || false,
     hasBackupPower: rental?.hasBackupPower || false,
+    images: (rental?.images || []) as {
+      fileName: string;
+      fileSize: number;
+      fileUrl: string;
+    }[],
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [showSpecHelp, setShowSpecHelp] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -52,6 +61,58 @@ export default function EditRentalModal({
       const { value } = e.target;
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    const currentImageCount = formData.images.length;
+    const availableSlots = 3 - currentImageCount;
+
+    if (availableSlots <= 0) {
+      toast.error("You can only upload up to 3 images");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const filesToUpload = Array.from(selectedFiles).slice(0, availableSlots);
+
+    if (selectedFiles.length > availableSlots) {
+      toast.warning(
+        `Only the first ${availableSlots} images will be uploaded (max 3 total)`
+      );
+    }
+
+    setIsUploading(true);
+
+    try {
+      const uploadPromises = filesToUpload.map((file) =>
+        uploadFile(file, "rentals")
+      );
+
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploadedImages],
+      }));
+
+      toast.success(`${uploadedImages.length} image(s) uploaded!`);
+    } catch (error: any) {
+      console.error("Error uploading images:", error);
+      toast.error(error.message || "Failed to upload one or more images");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -210,6 +271,51 @@ export default function EditRentalModal({
             </label>
           </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Images (Max 3)
+          </label>
+          <div className="flex flex-wrap gap-4">
+            {formData.images.map((img, index) => (
+              <div key={index} className="relative w-24 h-24">
+                <img
+                  src={img.fileUrl}
+                  alt={`Upload ${index + 1}`}
+                  className="w-full h-full object-cover rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+            {formData.images.length < 3 && (
+              <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center hover:border-green-500 transition-colors">
+                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                  {isUploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+                  ) : (
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="flex justify-end gap-3 mt-6">
           <button
             type="button"
@@ -231,4 +337,3 @@ export default function EditRentalModal({
     </Modal>
   );
 }
-
