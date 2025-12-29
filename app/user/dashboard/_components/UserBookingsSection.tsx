@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { Booking } from "@/app/types/app";
 import Loader from "@/app/components/Loader";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
-
+import DeclineModal from "./DeclineModal";
 
 export default function UserBookingsSection() {
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
@@ -14,6 +14,10 @@ export default function UserBookingsSection() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [selectedBookingForDecline, setSelectedBookingForDecline] = useState<
+    number | null
+  >(null);
+  const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -38,14 +42,19 @@ export default function UserBookingsSection() {
   const handleStatusUpdate = async (
     bookingId: number,
     status: string,
-    reason?: string
+    reason?: string,
+    proposedStartTime?: string
   ) => {
     setProcessingId(bookingId);
     try {
       const res = await fetch(`/api/user/bookings/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, reason }),
+        body: JSON.stringify({
+          status,
+          reason,
+          proposedStartTime,
+        }),
       });
 
       if (!res.ok) {
@@ -54,6 +63,7 @@ export default function UserBookingsSection() {
       }
 
       toast.success(`Booking ${status} successfully`);
+      setIsDeclineModalOpen(false);
       fetchBookings(); // Refresh list
     } catch (error: any) {
       console.error("Error updating booking:", error);
@@ -139,16 +149,6 @@ export default function UserBookingsSection() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
           <div className="flex border-b border-gray-200">
             <button
-              onClick={() => setActiveTab("my-bookings")}
-              className={`flex-1 py-4 text-center font-medium text-sm sm:text-base transition-colors ${
-                activeTab === "my-bookings"
-                  ? "border-b-2 border-green-600 text-green-600 bg-green-50"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              My Bookings (Renter)
-            </button>
-            <button
               onClick={() => setActiveTab("rentals")}
               className={`flex-1 py-4 text-center font-medium text-sm sm:text-base transition-colors ${
                 activeTab === "rentals"
@@ -157,6 +157,16 @@ export default function UserBookingsSection() {
               }`}
             >
               Rental Requests (Owner)
+            </button>
+            <button
+              onClick={() => setActiveTab("my-bookings")}
+              className={`flex-1 py-4 text-center font-medium text-sm sm:text-base transition-colors ${
+                activeTab === "my-bookings"
+                  ? "border-b-2 border-green-600 text-green-600 bg-green-50"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              My Bookings (Renter)
             </button>
           </div>
 
@@ -238,15 +248,8 @@ export default function UserBookingsSection() {
                               </button>
                               <button
                                 onClick={() => {
-                                  const reason = prompt(
-                                    "Enter reason for declining:"
-                                  );
-                                  if (reason)
-                                    handleStatusUpdate(
-                                      booking.id,
-                                      "declined",
-                                      reason
-                                    );
+                                  setSelectedBookingForDecline(booking.id);
+                                  setIsDeclineModalOpen(true);
                                 }}
                                 disabled={processingId === booking.id}
                                 className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
@@ -261,7 +264,7 @@ export default function UserBookingsSection() {
                             <button
                               onClick={() => {
                                 const reason = prompt(
-                                  "Enter reason for cancellation:"
+                                  "Enter reason for cancelling / declining proposal:"
                                 );
                                 if (reason)
                                   handleStatusUpdate(
@@ -273,7 +276,9 @@ export default function UserBookingsSection() {
                               disabled={processingId === booking.id}
                               className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 disabled:opacity-50"
                             >
-                              Cancel Request
+                              {booking.proposedStartTime
+                                ? "Decline Proposal"
+                                : "Cancel Request"}
                             </button>
                           )}
 
@@ -301,6 +306,40 @@ export default function UserBookingsSection() {
                         <div className="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-md">
                           <strong>Declined Reason:</strong>{" "}
                           {booking.rejectionReason}
+                          {booking.proposedStartTime && (
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md text-blue-800">
+                              <p className="font-bold flex items-center gap-1">
+                                <Calendar className="w-4 h-4" /> Proposed
+                                Alternative Timing:
+                              </p>
+                              <p className="mt-1">
+                                {new Date(
+                                  booking.proposedStartTime
+                                ).toLocaleString()}{" "}
+                                -{" "}
+                                {new Date(
+                                  booking.proposedEndTime!
+                                ).toLocaleString()}
+                              </p>
+                              {activeTab === "my-bookings" &&
+                                booking.status === "declined" && (
+                                  <div className="mt-3 flex gap-2">
+                                    <button
+                                      onClick={() =>
+                                        handleStatusUpdate(
+                                          booking.id,
+                                          "accepted"
+                                        )
+                                      }
+                                      disabled={processingId === booking.id}
+                                      className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
+                                    >
+                                      Accept and Pay
+                                    </button>
+                                  </div>
+                                )}
+                            </div>
+                          )}
                         </div>
                       )}
                       {booking.cancellationReason && (
@@ -317,6 +356,21 @@ export default function UserBookingsSection() {
           </div>
         </div>
       </div>
+
+      {isDeclineModalOpen && (
+        <DeclineModal
+          onClose={() => setIsDeclineModalOpen(false)}
+          onConfirm={(reason, proposedStartTime) =>
+            handleStatusUpdate(
+              selectedBookingForDecline!,
+              "declined",
+              reason,
+              proposedStartTime
+            )
+          }
+          isLoading={processingId === selectedBookingForDecline}
+        />
+      )}
     </div>
   );
 }
