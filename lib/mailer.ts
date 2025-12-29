@@ -7,7 +7,6 @@ import { format } from "date-fns"; // Import date-fns for formatting expiry
 import { generateSecureToken, verifySecureToken } from "./utils/generateToken"; // Import your secure token generation utility
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 interface SendEmailOptions {
   toEmail: string;
   subject: string;
@@ -358,7 +357,7 @@ export async function sendBookingRequestEmail(
   if (!currentTransporter) return;
 
   const subject = `New Booking Request for ${deviceName}`;
-  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=rentals`; // Link to My Listings
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`; // Link to My Listings
 
   const htmlContent = `
     <p>Hello ${ownerName},</p>
@@ -401,7 +400,8 @@ export async function sendBookingStatusEmail(
   let messageBody = "";
   if (status === "accepted") {
     messageBody = `<p>Good news! Your booking request for <strong>${deviceName}</strong> has been <strong>ACCEPTED</strong>.</p>
-    <p>You can now proceed with the payment to secure your booking.</p>`;
+    <p>You can now proceed with the payment to secure your booking.</p>
+    <p>Your money stay with us until after you release it.</p>`;
   } else if (status === "declined") {
     messageBody = `<p>We're sorry, but your booking request for <strong>${deviceName}</strong> has been <strong>DECLINED</strong>.</p>
     ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`;
