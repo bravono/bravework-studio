@@ -11,14 +11,12 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 import { Rental } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
-
 
 import GoogleMap from "@/app/components/GoogleMap";
 
@@ -29,7 +27,7 @@ export default function RentalDetailsPage() {
   const [rental, setRental] = useState<Rental>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [duration, setDuration] = useState<number>(1);
   const [isBooking, setIsBooking] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -64,22 +62,18 @@ export default function RentalDetailsPage() {
       return;
     }
 
-    if (!startDate || !endDate) {
-      toast.error("Please select start and end dates");
-      return;
-    }
-
-    if (endDate <= startDate) {
-      toast.error("End time must be after start time");
+    if (!startDate || duration <= 0) {
+      toast.error("Please select a start date and valid duration");
       return;
     }
 
     setIsBooking(true);
     try {
-      const hours =
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+      const calculatedEndDate = new Date(
+        startDate.getTime() + duration * 60 * 60 * 1000
+      );
       const totalAmount = Math.ceil(
-        hours * Number(rental.hourlyRate / KOBO_PER_NAIRA)
+        duration * Number(rental.hourlyRate / KOBO_PER_NAIRA)
       );
 
       const res = await fetch("/api/user/rentals/book", {
@@ -88,7 +82,7 @@ export default function RentalDetailsPage() {
         body: JSON.stringify({
           rentalId: rental.id,
           startTime: startDate.toISOString(),
-          endTime: endDate.toISOString(),
+          endTime: calculatedEndDate.toISOString(),
           totalAmount: totalAmount * KOBO_PER_NAIRA,
         }),
       });
@@ -290,24 +284,19 @@ export default function RentalDetailsPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          End Time
+                          Duration (hours)
                         </label>
                         <input
-                          type="datetime-local"
-                          value={
-                            endDate ? endDate.toISOString().slice(0, 16) : ""
-                          }
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={duration}
                           onChange={(e) =>
-                            setEndDate(
-                              e.target.value ? new Date(e.target.value) : null
+                            setDuration(
+                              Math.max(1, parseInt(e.target.value) || 1)
                             )
                           }
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
-                          min={
-                            startDate
-                              ? startDate.toISOString().slice(0, 16)
-                              : new Date().toISOString().slice(0, 16)
-                          }
                         />
                       </div>
                     </div>
