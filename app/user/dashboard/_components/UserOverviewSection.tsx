@@ -598,13 +598,13 @@ export default function UserOverviewSection({
                       onClick={() => setActiveTab("rentals")}
                       className="text-green-600 hover:underline font-medium"
                     >
-                      View Listings
+                      My Listings
                     </button>
                     <button
                       onClick={() => setActiveTab("bookings")}
                       className="text-green-600 hover:underline font-medium"
                     >
-                      View Bookings
+                      My Bookings
                     </button>
                   </div>
                   {bookings.length > 0 && (
@@ -632,14 +632,16 @@ export default function UserOverviewSection({
                           <div className="flex items-center gap-4 flex-shrink-0">
                             <span
                               className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                booking.status === "Paid"
+                                booking.status === "accepted"
                                   ? "bg-green-200 text-green-800"
+                                  : booking.status === "pending"
+                                  ? "bg-yellow-200 text-yellow-800"
                                   : "bg-red-200 text-red-800"
                               }`}
                             >
                               {booking.status}
                             </span>
-                            {booking.status !== "Paid" && (
+                            {booking.status === "accepted" && (
                               <button
                                 onClick={() =>
                                   handleInitiatePayment(booking.id)
