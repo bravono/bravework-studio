@@ -14,6 +14,7 @@ import {
   Send,
   FileText,
 } from "lucide-react";
+import { uploadFile } from "@/lib/utils/upload";
 
 const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 
@@ -64,42 +65,26 @@ export default function JobsPage() {
 
     // Prepare file upload if a file is selected
     if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
       try {
-        formData.append("category", "job_application");
+        const result = await uploadFile(file, "job_application");
 
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-Rename-Duplicate": "true",
-          },
-        });
+        const newFileInfo = {
+          fileName: result.fileName,
+          fileSize: `${(result.fileSize / 1024).toFixed(2)} KB`,
+          fileUrl: result.fileUrl,
+        };
 
-        if (response.ok) {
-          const blobDataRaw = await response.json();
-          const blobData = {
-            url: blobDataRaw.url,
-            pathname: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
-            size: blobDataRaw.size || file.size,
-          };
+        setFileInfo(newFileInfo);
+        toast.success(`File ${file.name} uploaded successfully!`);
 
-          setFileInfo({
-            fileName: file.name,
-            fileSize: `${(blobData.size / 1024).toFixed(2)} KB`,
-            fileUrl: blobData.url,
-          });
-
-          toast.success(`File ${file.name} uploaded successfully!`);
-        } else {
-          const errorData = await response.json();
-          toast.error(`Error uploading ${file.name}`);
-          setSubmitStatus("error");
-        }
-      } catch (err) {
-        toast.error("Error uploading file:", err);
+        // Use the local newFileInfo for the rest of the submission
+        // because setFileInfo state update won't be available immediately
+        var currentFileInfo = newFileInfo;
+      } catch (err: any) {
+        toast.error(err.message || `Error uploading ${file.name}`);
         setSubmitStatus("error");
+        setIsSubmitting(false);
+        return;
       }
     }
 
@@ -110,8 +95,8 @@ export default function JobsPage() {
       formDataToSend.append(key, value);
     });
 
-    console.log("File info to send:", fileInfo);
-    formDataToSend.append("file", JSON.stringify(fileInfo));
+    console.log("File info to send:", currentFileInfo || fileInfo);
+    formDataToSend.append("file", JSON.stringify(currentFileInfo || fileInfo));
 
     try {
       const response = await fetch("/api/jobs", {

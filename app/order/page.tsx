@@ -2,61 +2,23 @@
 
 import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { toast } from "react-toastify";
+import { FileUpIcon, ArrowRight, Loader2, Info, Upload, X } from "lucide-react";
+import { uploadFile } from "@/lib/utils/upload";
+
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
+
 import FilesToUpload from "../components/FilesToUpload";
+import Loader from "../components/Loader";
+
 import { getCurrencySymbol } from "lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { FileUpIcon } from "lucide-react";
 
 // Hooks
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import useExchangeRates from "@/hooks/useExchangeRates";
 import CurrencySelector from "../components/CurrencySelector";
-
-// Import the icons we will use as inline SVG.
-// This is an example of a simple SVG icon for a forward arrow.
-const ArrowRightIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-4 h-4 ml-2"
-  >
-    <path d="M5 12h14" />
-    <path d="m12 5 7 7-7 7" />
-  </svg>
-);
-
-// A spinner icon for loading states
-const Spinner = () => (
-  <svg
-    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    ></circle>
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    ></path>
-  </svg>
-);
 
 interface ProductCategory {
   category_id: number;
@@ -177,29 +139,14 @@ function Page() {
     setIsSubmitting(true);
 
     // File upload logic
-    const fileUploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("category", "orders");
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Error uploading ${file.name}: ${errorData.message}`);
-      }
-      return response.json();
-    });
+    const fileUploadPromises = files.map((file) => uploadFile(file, "orders"));
 
     try {
       const uploadedFiles = await Promise.all(fileUploadPromises);
-      const newFileInfos = uploadedFiles.map((blobDataRaw, index) => ({
-        fileUrl: blobDataRaw.url,
-        fileName: blobDataRaw.pathname || new URL(blobDataRaw.url).pathname,
-        fileSize: blobDataRaw.size || files[index].size,
+      const newFileInfos = uploadedFiles.map((result) => ({
+        fileUrl: result.fileUrl,
+        fileName: result.fileName,
+        fileSize: String(result.fileSize),
       }));
       setFileInfos(newFileInfos);
 
@@ -327,7 +274,7 @@ function Page() {
                 disabled={!selectedService}
                 className={`flex items-center px-6 py-3 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                Next <ArrowRightIcon />
+                Next <ArrowRight />
               </button>
             </div>
           </>
@@ -442,7 +389,7 @@ function Page() {
                   onClick={handleNextStep}
                   className={`flex items-center px-6 py-3 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  Next <ArrowRightIcon />
+                  Next <ArrowRight />
                 </button>
               </div>
             </>
@@ -595,7 +542,7 @@ function Page() {
               >
                 {isSubmitting ? (
                   <>
-                    <Spinner />
+                    <Loader user={"user"} />
                     Submitting...
                   </>
                 ) : (
