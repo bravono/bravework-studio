@@ -4,7 +4,6 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
-import { del } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
 
@@ -31,19 +30,7 @@ export async function GET(
     }
 
     const rentals = await queryDatabase(
-      `SELECT
-        *,
-        COALESCE(
-          (SELECT json_agg(json_build_object(
-            'fileName', ri.image_name,
-            'fileSize', ri.image_size,
-            'fileUrl', ri.image_url
-          ))
-          FROM rental_images ri
-          WHERE ri.rental_id = rentals.rental_id),
-          '[]'
-        ) AS images
-       FROM rentals WHERE rental_id = $1 AND user_id = $2`,
+      `SELECT * FROM rentals WHERE rental_id = $1 AND user_id = $2`,
       [rentalId, userId]
     );
 
@@ -105,6 +92,7 @@ export async function PATCH(
       locationAddress,
       hasInternet,
       hasBackupPower,
+      images,
     } = body;
 
     // Convert hourlyRate to kobo if provided
@@ -139,45 +127,6 @@ export async function PATCH(
           rentalId,
         ]
       );
-
-      if (images && Array.isArray(images)) {
-        // Find images to delete from Blob storage
-        const currentImagesResult = await client.query(
-          "SELECT image_url FROM rental_images WHERE rental_id = $1",
-          [rentalId]
-        );
-        const currentUrls = currentImagesResult.rows.map(
-          (row) => row.image_url
-        );
-        const newUrls = images.map((img) => img.fileUrl);
-        const urlsToDelete = currentUrls.filter(
-          (url) => !newUrls.includes(url)
-        );
-
-        // Delete from Blob storage
-        if (urlsToDelete.length > 0) {
-          try {
-            await del(urlsToDelete);
-            console.log("Deleted images from blob:", urlsToDelete);
-          } catch (blobError) {
-            console.error("Error deleting blobs:", blobError);
-            // We don't throw here to avoid failing the whole transaction
-            // if the blob is already gone or there's a network issue
-          }
-        }
-
-        // Update database records
-        await client.query("DELETE FROM rental_images WHERE rental_id = $1", [
-          rentalId,
-        ]);
-        for (const file of images) {
-          const { fileName, fileSize, fileUrl } = file;
-          await client.query(
-            "INSERT INTO rental_images (rental_id, image_name, image_size, image_url) VALUES ($1, $2, $3, $4)",
-            [rentalId, fileName, fileSize, fileUrl]
-          );
-        }
-      }
     });
 
     return NextResponse.json({ message: "Rental updated successfully" });
@@ -188,7 +137,7 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+};
 
 export async function DELETE(
   request: Request,

@@ -28,7 +28,7 @@ export async function GET(
         r.has_backup_power AS "hasBackupPower",
         r.approval_status,
         r.created_at AS "createdAt",
-        ARRAY_REMOVE(ARRAY_AGG(ri.image_url), NULL) AS "imagesArray"
+        ARRAY_REMOVE(ARRAY_AGG(ri.file_url), NULL) AS "imagesArray"
       FROM rentals r
       LEFT JOIN rental_images ri ON r.rental_id = ri.rental_id
       WHERE r.rental_id = $1

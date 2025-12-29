@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import Modal from "@/app/components/Modal";
 import { toast } from "react-toastify";
 import { Loader2, Info, Upload, X } from "lucide-react";
-import { uploadFile } from "@/lib/utils/upload";
+import { put } from "@vercel/blob";
 
 interface CreateRentalModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ export default function CreateRentalModal({
     locationAddress: "",
     hasInternet: false,
     hasBackupPower: false,
-    images: [] as { fileName: string; fileSize: number; fileUrl: string }[],
+    images: [] as string[],
   });
   const [showSpecHelp, setShowSpecHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,44 +51,33 @@ export default function CreateRentalModal({
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles || selectedFiles.length === 0) return;
+    if (!e.target.files || e.target.files.length === 0) return;
 
-    const currentImageCount = formData.images.length;
-    const availableSlots = 3 - currentImageCount;
-
-    if (availableSlots <= 0) {
+    if (formData.images.length >= 3) {
       toast.error("You can only upload up to 3 images");
-      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    const filesToUpload = Array.from(selectedFiles).slice(0, availableSlots);
-
-    if (selectedFiles.length > availableSlots) {
-      toast.warning(
-        `Only the first ${availableSlots} images will be uploaded (max 3 total)`
-      );
-    }
-
     setIsUploading(true);
+    const file = e.target.files[0];
 
     try {
-      const uploadPromises = filesToUpload.map((file) =>
-        uploadFile(file, "rentals")
-      );
+      const response = await fetch(`/api/upload?filename=${file.name}`, {
+        method: "POST",
+        body: file,
+      });
 
-      const uploadedImages = await Promise.all(uploadPromises);
+      if (!response.ok) throw new Error("Upload failed");
 
+      const newBlob = await response.json();
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, ...uploadedImages],
+        images: [...prev.images, newBlob.url],
       }));
-
-      toast.success(`${uploadedImages.length} image(s) uploaded!`);
-    } catch (error: any) {
-      console.error("Error uploading images:", error);
-      toast.error(error.message || "Failed to upload one or more images");
+      toast.success("Image uploaded!");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -124,20 +113,14 @@ export default function CreateRentalModal({
       const mockLat = 6.5244;
       const mockLng = 3.3792;
 
-      const submissionData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "images") {
-          submissionData.append(key, JSON.stringify(value));
-        } else {
-          submissionData.append(key, String(value));
-        }
-      });
-      submissionData.append("locationLat", String(mockLat));
-      submissionData.append("locationLng", String(mockLng));
-
       const res = await fetch("/api/user/rentals", {
         method: "POST",
-        body: submissionData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          locationLat: mockLat,
+          locationLng: mockLng,
+        }),
       });
 
       if (!res.ok) {
@@ -265,7 +248,7 @@ export default function CreateRentalModal({
             {formData.images.map((img, index) => (
               <div key={index} className="relative w-24 h-24">
                 <img
-                  src={img.fileUrl}
+                  src={img}
                   alt={`Upload ${index + 1}`}
                   className="w-full h-full object-cover rounded-md"
                 />
@@ -289,7 +272,6 @@ export default function CreateRentalModal({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    multiple
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
