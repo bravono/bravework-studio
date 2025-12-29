@@ -235,13 +235,15 @@ interface Booking {
   startTime: string;
   endTime: string;
   amount: number;
-  status: "pending" | 'accepted' | 'declined' | 'cancelled' | 'completed';
+  status: "pending" | "accepted" | "declined" | "cancelled" | "completed";
   createdAt: string;
   renterName?: string; // For owner view
   ownerName?: string; // For renter view
   rejectionReason?: string;
   cancellationReason?: string;
   escrowReleased?: boolean;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
 }
 
 interface CourseSession {

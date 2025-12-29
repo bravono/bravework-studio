@@ -36,9 +36,7 @@ export async function GET(request: Request) {
           u.email AS "renterEmail",
           rb.rejection_reason AS "rejectionReason",
           rb.cancellation_reason AS "cancellationReason",
-          rb.escrow_released AS "escrowReleased",
-          rb.proposed_start_time AS "proposedStartTime",
-          rb.proposed_end_time AS "proposedEndTime"
+          rb.escrow_released AS "escrowReleased"
         FROM rental_bookings rb
         JOIN rentals r ON rb.rental_id = r.rental_id
         JOIN users u ON rb.client_id = u.user_id
@@ -63,9 +61,7 @@ export async function GET(request: Request) {
           u.email AS "ownerEmail",
           rb.rejection_reason AS "rejectionReason",
           rb.cancellation_reason AS "cancellationReason",
-          rb.escrow_released AS "escrowReleased",
-          rb.proposed_start_time AS "proposedStartTime",
-          rb.proposed_end_time AS "proposedEndTime"
+          rb.escrow_released AS "escrowReleased"
         FROM rental_bookings rb
         JOIN rentals r ON rb.rental_id = r.rental_id
         JOIN users u ON r.user_id = u.user_id

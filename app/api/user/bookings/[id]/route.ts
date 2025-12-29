@@ -38,9 +38,7 @@ export async function GET(
         u_renter.email AS "renterEmail",
         rb.rejection_reason AS "rejectionReason",
         rb.cancellation_reason AS "cancellationReason",
-        rb.escrow_released AS "escrowReleased",
-        rb.proposed_start_time AS "proposedStartTime",
-        rb.proposed_end_time AS "proposedEndTime"
+        rb.escrow_released AS "escrowReleased"
       FROM rental_bookings rb
       JOIN rentals r ON rb.rental_id = r.rental_id
       JOIN users u_owner ON r.user_id = u_owner.id
@@ -84,7 +82,7 @@ export async function PATCH(
     const bookingId = params.id;
     const userId = (session.user as any).id;
     const body = await request.json();
-    const { status, reason, proposedStartTime } = body;
+    const { status, reason } = body;
 
     if (!status) {
       return NextResponse.json(
@@ -97,13 +95,13 @@ export async function PATCH(
     const bookingRes = await queryDatabase(
       `SELECT 
         rb.*, 
-        r.user_id AS "ownerId", 
-        rb.client_id AS "renterId",
-        u_renter.email AS "renterEmail",
+        r.user_id AS owner_id, 
+        rb.client_id AS renter_id,
+        u_renter.email AS renter_email,
         CONCAT(u_renter.first_name, ' ', u_renter.last_name) AS "renterName",
-        u_owner.email AS "ownerEmail",
+        u_owner.email AS owner_email,
         CONCAT(u_owner.first_name, ' ', u_owner.last_name) AS "ownerName",
-        r.device_name AS "deviceName"
+        r.device_name
        FROM rental_bookings rb
        JOIN rentals r ON rb.rental_id = r.rental_id
        JOIN users u_renter ON rb.client_id = u_renter.user_id
@@ -118,10 +116,9 @@ export async function PATCH(
 
     const booking = bookingRes[0];
 
-    console.log("Booking", booking);
     // Validate permissions and transitions
-    const isOwner = booking.ownerId === userId;
-    const isRenter = booking.renterId === userId;
+    const isOwner = booking.owner_id === userId;
+    const isRenter = booking.renter_id === userId;
 
     if (!isOwner && !isRenter) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -132,58 +129,23 @@ export async function PATCH(
     let updateParams: any[] = [];
 
     if (status === "accepted") {
-      if (isOwner) {
-        // Owner accepts original request
-        updateQuery = `UPDATE rental_bookings SET status = $1 WHERE rental_booking_id = $2`;
-        updateParams = ["accepted", bookingId];
-      } else if (isRenter) {
-        // Renter accepts owner's counter-offer
-        if (!booking.proposed_start_time || !booking.proposed_end_time) {
-          return NextResponse.json(
-            { error: "No proposal to accept" },
-            { status: 400 }
-          );
-        }
-        updateQuery = `UPDATE rental_bookings SET status = $1, start_time = $2, end_time = $3, proposed_start_time = NULL, proposed_end_time = NULL WHERE rental_booking_id = $4`;
-        updateParams = [
-          "accepted",
-          booking.proposed_start_time,
-          booking.proposed_end_time,
-          bookingId,
-        ];
-      }
+      if (!isOwner)
+        return NextResponse.json(
+          { error: "Only owner can accept" },
+          { status: 403 }
+        );
+      updateQuery = `UPDATE rental_bookings SET status = $1 WHERE rental_booking_id = $2`;
+      updateParams = ["accepted", bookingId];
     } else if (status === "declined") {
       if (!isOwner)
         return NextResponse.json(
           { error: "Only owner can decline" },
           { status: 403 }
         );
-
-      if (proposedStartTime) {
-        // Owner declines but suggests a new time
-        const originalDuration =
-          new Date(booking.end_time).getTime() -
-          new Date(booking.start_time).getTime();
-        const proposedEndTime = new Date(
-          new Date(proposedStartTime).getTime() + originalDuration
-        );
-
-        updateQuery = `UPDATE rental_bookings SET status = $1, rejection_reason = $2, proposed_start_time = $3, proposed_end_time = $4 WHERE rental_booking_id = $5 RETURNING *`;
-        updateParams = [
-          "declined",
-          reason,
-          proposedStartTime,
-          proposedEndTime,
-          bookingId,
-        ];
-      } else {
-        // Simple decline
-        updateQuery = `UPDATE rental_bookings SET status = $1, rejection_reason = $2 WHERE rental_booking_id = $3 RETURNING *`;
-        updateParams = ["declined", reason, bookingId];
-      }
+      updateQuery = `UPDATE rental_bookings SET status = $1, rejection_reason = $2 WHERE rental_booking_id = $3`;
+      updateParams = ["declined", reason, bookingId];
     } else if (status === "cancelled") {
-      // Renter cancels or declines counter-offer
-      updateQuery = `UPDATE rental_bookings SET status = $1, cancellation_reason = $2, proposed_start_time = NULL, proposed_end_time = NULL WHERE rental_booking_id = $3 RETURNING *`;
+      updateQuery = `UPDATE rental_bookings SET status = $1, cancellation_reason = $2 WHERE rental_booking_id = $3`;
       updateParams = ["cancelled", reason, bookingId];
     } else {
       return NextResponse.json(
@@ -192,12 +154,11 @@ export async function PATCH(
       );
     }
 
-    const updatedBooking = await queryDatabase(updateQuery, updateParams);
+    await queryDatabase(updateQuery, updateParams);
 
-    console.log("Updated Booking", updatedBooking);
     // Send Email Notification
-    const recipientEmail = isOwner ? booking.renterEmail : booking.ownerEmail;
-    const recipientName = isOwner ? booking.renterName : booking.ownerName;
+    const recipientEmail = isOwner ? booking.renter_email : booking.owner_email;
+    const recipientName = isOwner ? booking.renter_name : booking.owner_name;
 
     // If owner accepts/declines, notify renter.
     // If renter cancels, notify owner.
@@ -205,9 +166,9 @@ export async function PATCH(
 
     if (status === "accepted" || status === "declined") {
       await sendBookingStatusEmail(
-        booking.renterEmail,
-        booking.renterName,
-        booking.deviceName,
+        booking.renter_email,
+        booking.renter_name,
+        booking.device_name,
         status,
         reason
       );
@@ -216,7 +177,7 @@ export async function PATCH(
       await sendBookingStatusEmail(
         recipientEmail,
         recipientName,
-        booking.deviceName,
+        booking.device_name,
         status,
         reason
       );
