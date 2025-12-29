@@ -57,10 +57,18 @@ export async function POST(request: Request) {
     const bookingId = await withTransaction(async (client) => {
       const res = await client.query(
         `INSERT INTO rental_bookings (
-          rental_id, client_id, start_time, end_time, total_amount_kobo, payment_status_id
-        ) VALUES ($1, $2, $3, $4, $5, $6)
+          rental_id, client_id, start_time, end_time, total_amount_kobo, payment_status_id, status  
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING rental_booking_id`,
-        [rentalId, userId, startTime, endTime, totalAmount, pendingStatusId]
+        [
+          rentalId,
+          userId,
+          startTime,
+          endTime,
+          totalAmount,
+          pendingStatusId,
+          "pending",
+        ]
       );
       return res.rows[0].rental_booking_id;
     });
@@ -87,9 +95,12 @@ export async function POST(request: Request) {
     try {
       // Fetch owner details and device name
       const ownerRes = await queryDatabase(
-        `SELECT u.email, u.name, r.device_name 
+        `SELECT
+          u.email,
+          CONCAT(u.first_name, ' ', u.last_name) AS name,
+          r.device_name
          FROM rentals r 
-         JOIN users u ON r.user_id = u.id 
+         JOIN users u ON r.user_id = u.user_id 
          WHERE r.rental_id = $1`,
         [rentalId]
       );
