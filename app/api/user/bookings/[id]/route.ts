@@ -124,7 +124,49 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let newStatusId;
+    const { startTime: newStartTime, endTime: newEndTime } = body;
+
+    // Handle rescheduling (only allowed for renter while pending)
+    if (newStartTime || newEndTime) {
+      if (!isRenter) {
+        return NextResponse.json(
+          { error: "Only renter can reschedule" },
+          { status: 403 }
+        );
+      }
+      if (booking.status !== "pending") {
+        return NextResponse.json(
+          { error: "Only pending bookings can be rescheduled" },
+          { status: 400 }
+        );
+      }
+
+      const updateQuery = `
+        UPDATE rental_bookings 
+        SET start_time = $1, end_time = $2 
+        WHERE rental_booking_id = $3
+      `;
+      await queryDatabase(updateQuery, [
+        newStartTime || booking.start_time,
+        newEndTime || booking.end_time,
+        bookingId,
+      ]);
+
+      const { sendBookingRescheduledEmail } = await import("@/lib/mailer");
+      await sendBookingRescheduledEmail(
+        booking.owner_email,
+        booking.ownerName,
+        booking.renterName,
+        booking.device_name,
+        booking.start_time,
+        booking.end_time,
+        newStartTime || booking.start_time,
+        newEndTime || booking.end_time
+      );
+
+      return NextResponse.json({ message: "Booking rescheduled successfully" });
+    }
+
     let updateQuery = "";
     let updateParams: any[] = [];
 

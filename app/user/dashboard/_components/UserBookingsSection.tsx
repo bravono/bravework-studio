@@ -5,7 +5,8 @@ import { toast } from "react-toastify";
 import { Booking } from "@/app/types/app";
 import Loader from "@/app/components/Loader";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
-
+import ReasonModal from "@/app/components/ReasonModal";
+import Modal from "@/app/components/Modal";
 
 export default function UserBookingsSection() {
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
@@ -14,6 +15,43 @@ export default function UserBookingsSection() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [reasonModal, setReasonModal] = useState<{
+    isOpen: boolean;
+    bookingId: number | null;
+    status: string;
+    title: string;
+    confirmText: string;
+  }>({
+    isOpen: false,
+    bookingId: null,
+    status: "",
+    title: "",
+    confirmText: "",
+  });
+  const [rescheduleModal, setRescheduleModal] = useState<{
+    isOpen: boolean;
+    booking: Booking | null;
+  }>({
+    isOpen: false,
+    booking: null,
+  });
+  const [rescheduleForm, setRescheduleForm] = useState({
+    startTime: "",
+    endTime: "",
+  });
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    bookingId: number | null;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    bookingId: null,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchBookings();
@@ -64,29 +102,66 @@ export default function UserBookingsSection() {
   };
 
   const handleReleaseFunds = async (bookingId: number) => {
-    if (
-      !confirm(
-        "Are you sure you want to release funds to the owner? This cannot be undone."
-      )
-    )
-      return;
+    setConfirmModal({
+      isOpen: true,
+      bookingId,
+      title: "Release Funds",
+      message:
+        "Are you sure you want to release funds to the owner? This cannot be undone.",
+      onConfirm: async () => {
+        setProcessingId(bookingId);
+        try {
+          const res = await fetch(`/api/user/bookings/${bookingId}/release`, {
+            method: "POST",
+          });
 
-    setProcessingId(bookingId);
+          if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || "Failed to release funds");
+          }
+
+          toast.success("Funds released successfully");
+          fetchBookings();
+        } catch (error: any) {
+          console.error("Error releasing funds:", error);
+          toast.error(error.message || "Failed to release funds");
+        } finally {
+          setProcessingId(null);
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }
+      },
+    });
+  };
+
+  const handleReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rescheduleModal.booking) return;
+
+    setProcessingId(rescheduleModal.booking.id);
     try {
-      const res = await fetch(`/api/user/bookings/${bookingId}/release`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `/api/user/bookings/${rescheduleModal.booking.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startTime: rescheduleForm.startTime,
+            endTime: rescheduleForm.endTime,
+          }),
+        }
+      );
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Failed to release funds");
+        throw new Error(error.error || "Failed to reschedule booking");
       }
 
-      toast.success("Funds released successfully");
+      toast.success("Booking rescheduled successfully");
+      setRescheduleModal({ isOpen: false, booking: null });
       fetchBookings();
     } catch (error: any) {
-      console.error("Error releasing funds:", error);
-      toast.error(error.message || "Failed to release funds");
+      console.error("Error rescheduling:", error);
+      toast.error(error.message || "Failed to reschedule");
     } finally {
       setProcessingId(null);
     }
@@ -238,15 +313,13 @@ export default function UserBookingsSection() {
                               </button>
                               <button
                                 onClick={() => {
-                                  const reason = prompt(
-                                    "Enter reason for declining:"
-                                  );
-                                  if (reason)
-                                    handleStatusUpdate(
-                                      booking.id,
-                                      "declined",
-                                      reason
-                                    );
+                                  setReasonModal({
+                                    isOpen: true,
+                                    bookingId: booking.id,
+                                    status: "declined",
+                                    title: "Decline Booking Request",
+                                    confirmText: "Decline Request",
+                                  });
                                 }}
                                 disabled={processingId === booking.id}
                                 className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
@@ -258,23 +331,43 @@ export default function UserBookingsSection() {
 
                         {activeTab === "my-bookings" &&
                           booking.status === "pending" && (
-                            <button
-                              onClick={() => {
-                                const reason = prompt(
-                                  "Enter reason for cancellation:"
-                                );
-                                if (reason)
-                                  handleStatusUpdate(
-                                    booking.id,
-                                    "cancelled",
-                                    reason
-                                  );
-                              }}
-                              disabled={processingId === booking.id}
-                              className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 disabled:opacity-50"
-                            >
-                              Cancel Request
-                            </button>
+                            <>
+                              <button
+                                onClick={() => {
+                                  setRescheduleModal({
+                                    isOpen: true,
+                                    booking: booking,
+                                  });
+                                  setRescheduleForm({
+                                    startTime: new Date(booking.startTime)
+                                      .toISOString()
+                                      .slice(0, 16),
+                                    endTime: new Date(booking.endTime)
+                                      .toISOString()
+                                      .slice(0, 16),
+                                  });
+                                }}
+                                disabled={processingId === booking.id}
+                                className="px-4 py-2 bg-green-100 text-green-700 text-sm font-medium rounded-md hover:bg-green-200 disabled:opacity-50"
+                              >
+                                Reschedule
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setReasonModal({
+                                    isOpen: true,
+                                    bookingId: booking.id,
+                                    status: "cancelled",
+                                    title: "Cancel Booking Request",
+                                    confirmText: "Cancel Request",
+                                  });
+                                }}
+                                disabled={processingId === booking.id}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 disabled:opacity-50"
+                              >
+                                Cancel Request
+                              </button>
+                            </>
                           )}
 
                         {activeTab === "my-bookings" &&
@@ -317,6 +410,111 @@ export default function UserBookingsSection() {
           </div>
         </div>
       </div>
+
+      <ReasonModal
+        isOpen={reasonModal.isOpen}
+        onClose={() => setReasonModal((prev) => ({ ...prev, isOpen: false }))}
+        title={reasonModal.title}
+        confirmText={reasonModal.confirmText}
+        onConfirm={(reason) => {
+          if (reasonModal.bookingId) {
+            handleStatusUpdate(
+              reasonModal.bookingId,
+              reasonModal.status,
+              reason
+            );
+            setReasonModal((prev) => ({ ...prev, isOpen: false }));
+          }
+        }}
+        isLoading={processingId === reasonModal.bookingId}
+      />
+
+      <Modal
+        isOpen={rescheduleModal.isOpen}
+        onClose={() => setRescheduleModal({ isOpen: false, booking: null })}
+        title="Reschedule Booking"
+      >
+        <form onSubmit={handleReschedule} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Time
+            </label>
+            <input
+              type="datetime-local"
+              value={rescheduleForm.startTime}
+              onChange={(e) =>
+                setRescheduleForm((prev) => ({
+                  ...prev,
+                  startTime: e.target.value,
+                }))
+              }
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Time
+            </label>
+            <input
+              type="datetime-local"
+              value={rescheduleForm.endTime}
+              onChange={(e) =>
+                setRescheduleForm((prev) => ({
+                  ...prev,
+                  endTime: e.target.value,
+                }))
+              }
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() =>
+                setRescheduleModal({ isOpen: false, booking: null })
+              }
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={processingId !== null}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50"
+            >
+              {processingId !== null ? "Updating..." : "Update Schedule"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        title={confirmModal.title}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">{confirmModal.message}</p>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() =>
+                setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+              }
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmModal.onConfirm}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

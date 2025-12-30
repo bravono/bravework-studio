@@ -427,3 +427,59 @@ export async function sendBookingStatusEmail(
     console.log(error.message);
   }
 }
+
+// NEW: Function to notify owner when a booking is rescheduled
+export async function sendBookingRescheduledEmail(
+  toEmail: string,
+  ownerName: string,
+  renterName: string,
+  deviceName: string,
+  oldStartTime: string,
+  oldEndTime: string,
+  newStartTime: string,
+  newEndTime: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `Booking Rescheduled: ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  const htmlContent = `
+    <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #008751;">Booking Rescheduled</h2>
+      <p>Hello ${ownerName},</p>
+      <p><strong>${renterName}</strong> has updated the booking dates for your device: <strong>${deviceName}</strong>.</p>
+      
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin-top: 0;"><strong>Previous Schedule:</strong></p>
+        <p style="font-size: 0.9em; color: #666;">${new Date(
+          oldStartTime
+        ).toLocaleString()} - ${new Date(oldEndTime).toLocaleString()}</p>
+        
+        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 15px 0;" />
+        
+        <p><strong>New Schedule:</strong></p>
+        <p style="font-size: 1.1em; color: #008751; font-weight: bold;">${new Date(
+          newStartTime
+        ).toLocaleString()} - ${new Date(newEndTime).toLocaleString()}</p>
+      </div>
+
+      <p>Please log in to your dashboard to review and manage this request.</p>
+      <p><a href="${dashboardLink}" style="display: inline-block; padding: 12px 24px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">View Dashboard</a></p>
+      <p>Thanks,<br/>The Bravework Studio Team</p>
+    </div>
+  `;
+
+  const textContent = `Hello ${ownerName},\n\n${renterName} has rescheduled their booking for ${deviceName}.\n\nNew Schedule: ${new Date(
+    newStartTime
+  ).toLocaleString()} - ${new Date(
+    newEndTime
+  ).toLocaleString()}\n\nView details: ${dashboardLink}`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
