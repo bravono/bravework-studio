@@ -3,8 +3,9 @@
 import React, { useState, useRef } from "react";
 import Modal from "@/app/components/Modal";
 import { toast } from "react-toastify";
-import { Loader2, Info, Upload, X } from "lucide-react";
+import { Loader2, Info, Upload, X, MapPin } from "lucide-react";
 import { put } from "@vercel/blob";
+import LocationPicker from "@/app/components/LocationPicker";
 
 interface CreateRentalModalProps {
   isOpen: boolean;
@@ -30,8 +31,11 @@ export default function CreateRentalModal({
     hasInternet: false,
     hasBackupPower: false,
     images: [] as string[],
+    locationLat: 6.5244,
+    locationLng: 3.3792,
   });
   const [showSpecHelp, setShowSpecHelp] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -109,17 +113,11 @@ export default function CreateRentalModal({
     setIsLoading(true);
 
     try {
-      // Mock coordinates for now, in a real app use Google Places API or similar
-      const mockLat = 6.5244;
-      const mockLng = 3.3792;
-
       const res = await fetch("/api/user/rentals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          locationLat: mockLat,
-          locationLng: mockLng,
         }),
       });
 
@@ -143,6 +141,8 @@ export default function CreateRentalModal({
         hasInternet: false,
         hasBackupPower: false,
         images: [],
+        locationLat: 6.5244,
+        locationLng: 3.3792,
       });
     } catch (error: any) {
       console.error("Error creating rental:", error);
@@ -330,6 +330,43 @@ export default function CreateRentalModal({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Map Location
+          </label>
+          <div
+            onClick={() => setIsLocationPickerOpen(true)}
+            className="flex items-center gap-3 p-3 border border-gray-300 rounded-md cursor-pointer hover:border-green-500 transition-colors bg-gray-50"
+          >
+            <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MapPin className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="flex-grow">
+              <p className="text-sm font-medium text-gray-900">
+                {formData.locationLat.toFixed(4)},{" "}
+                {formData.locationLng.toFixed(4)}
+              </p>
+              <p className="text-xs text-gray-500">
+                Click to pick precise location on map
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <LocationPicker
+          isOpen={isLocationPickerOpen}
+          onClose={() => setIsLocationPickerOpen(false)}
+          initialLat={formData.locationLat}
+          initialLng={formData.locationLng}
+          onConfirm={(lat, lng) => {
+            setFormData((prev) => ({
+              ...prev,
+              locationLat: lat,
+              locationLng: lng,
+            }));
+          }}
+        />
 
         <div className="flex gap-4">
           <div className="flex items-center">

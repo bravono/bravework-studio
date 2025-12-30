@@ -1,14 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Monitor, Battery, Wifi } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Monitor,
+  Battery,
+  Wifi,
+  Navigation,
+} from "lucide-react";
 import { toast } from "react-toastify";
+import LocationPicker from "@/app/components/LocationPicker";
 
 import Link from "next/link";
 
 import { Rental } from "../types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
-
 
 export default function RentalsPage() {
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -18,6 +25,7 @@ export default function RentalsPage() {
     deviceType: "",
   });
   const [demandRecorded, setDemandRecorded] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
 
   useEffect(() => {
     fetchRentals();
@@ -51,37 +59,23 @@ export default function RentalsPage() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCantFindRental = async () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      return;
+  const recordDemand = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch("/api/user/rentals/nearby", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      });
+
+      if (!res.ok) throw new Error("Failed to record demand");
+      setDemandRecorded(true);
+      toast.success(
+        "We've recorded your interest! We'll notify you when rentals become available nearby."
+      );
+    } catch (error) {
+      console.error("Error recording demand:", error);
+      toast.error("Failed to record your location");
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch("/api/user/rentals/nearby", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lat: latitude, lng: longitude }),
-          });
-
-          if (!res.ok) throw new Error("Failed to record demand");
-          setDemandRecorded(true);
-          toast.success(
-            "We've recorded your interest! We'll notify you when rentals become available nearby."
-          );
-        } catch (error) {
-          console.error("Error recording demand:", error);
-          toast.error("Failed to record your location");
-        }
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        toast.error("Unable to retrieve your location");
-      }
-    );
   };
 
   return (
@@ -213,7 +207,7 @@ export default function RentalsPage() {
             <div className="mt-6">
               {!demandRecorded ? (
                 <button
-                  onClick={handleCantFindRental}
+                  onClick={() => setIsLocationPickerOpen(true)}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   Can't find rental near me
@@ -227,6 +221,12 @@ export default function RentalsPage() {
           </div>
         )}
       </div>
+
+      <LocationPicker
+        isOpen={isLocationPickerOpen}
+        onClose={() => setIsLocationPickerOpen(false)}
+        onConfirm={(lat, lng) => recordDemand(lat, lng)}
+      />
     </div>
   );
 }
