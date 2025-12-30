@@ -120,8 +120,6 @@ interface AdminStats {
   activeCoupons: number;
   totalUsers: number;
   pendingJobApplications: number;
-  totalUnreadNotifications: number;
-  pendingRentals: number;
 }
 
 interface Notification {
@@ -292,6 +290,16 @@ interface CourseProgress {
   totalSessions: number;
   progressPercentage: number;
   allSessionsComplete: boolean;
+}
+
+interface AdminStats {
+  totalOrders: number;
+  totalRevenue: number; // Stored in kobo, convert to currency unit for display
+  pendingOrders: number;
+  activeCoupons: number;
+  totalUsers: number;
+  pendingJobApplications: number;
+  totalUnreadNotifications: number;
 }
 
 interface CourseModalProps {

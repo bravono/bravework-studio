@@ -33,7 +33,6 @@ import AdminInvoicesSection from "./AdminInvoicesSection";
 import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
 import AdminCourseSection from "./AdminCourseSection";
-import AdminRentalsSection from "./AdminRentalsSection";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -45,7 +44,6 @@ const navItems = [
   { id: "custom-offers", label: "Custom Offers", icon: <Gift size={20} /> },
   { id: "users", label: "Users Management", icon: <Users size={20} /> },
   { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
-  { id: "rentals", label: "Rentals Management", icon: <Eye size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
   {
     id: "job-applications",
@@ -79,7 +77,6 @@ export default function AdminDashboardClient({
     totalUsers: 0,
     pendingJobApplications: 0,
     totalUnreadNotifications: 0,
-    pendingRentals: 0,
   });
 
   const [loadingData, setLoadingData] = useState(false);
@@ -128,7 +125,7 @@ export default function AdminDashboardClient({
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 mt-6">
                 Admin Overview
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-xl text-center shadow">
                   <span className="block text-2xl font-bold text-blue-600 dark:text-blue-300">
                     {stats.totalOrders}
@@ -177,14 +174,6 @@ export default function AdminDashboardClient({
                     Pending Job Apps
                   </span>
                 </div>
-                <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-xl text-center shadow font-semibold">
-                  <span className="block text-2xl font-bold text-orange-600 dark:text-orange-300">
-                    {stats.pendingRentals}
-                  </span>
-                  <span className="block text-sm text-gray-500 dark:text-gray-400">
-                    Pending Rentals
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -217,12 +206,6 @@ export default function AdminDashboardClient({
                   onClick={() => setActiveTab("job-applications")}
                 >
                   Manage Job Apps
-                </button>
-                <button
-                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  onClick={() => setActiveTab("rentals")}
-                >
-                  Manage Rentals
                 </button>
                 <button
                   className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -274,8 +257,6 @@ export default function AdminDashboardClient({
         return <AdminInvoicesSection />;
       case "job-applications":
         return <AdminJobApplicationsSection />;
-      case "rentals":
-        return <AdminRentalsSection />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">

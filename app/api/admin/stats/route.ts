@@ -19,7 +19,6 @@ export async function GET(request: Request) {
       totalUsers: 0,
       pendingJobApplications: 0,
       totalUnreadNotifications: 0,
-      pendingRentals: 0,
     };
 
     // Total Orders
@@ -72,13 +71,6 @@ export async function GET(request: Request) {
       unReadNotifications[0].count || "0",
       10
     );
-
-    // Pending Rentals
-    const pendingRentalsResult = await queryDatabase(
-      "SELECT COUNT(*) FROM rentals WHERE approval_status = $1 AND deleted_at IS NULL",
-      ["pending"]
-    );
-    stats.pendingRentals = parseInt(pendingRentalsResult[0].count || "0", 10);
 
     // 5. Return the aggregated statistics
     return NextResponse.json(stats);
