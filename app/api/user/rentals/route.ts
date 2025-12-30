@@ -124,7 +124,7 @@ export async function POST(request: Request) {
         for (const file of files) {
           const { fileName, fileSize, fileUrl } = file;
           await client.query(
-            "INSERT INTO rental_images (rental_id, file_name, file_size, file_url) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO rental_images (rental_id, image_name, image_size, image_url) VALUES ($1, $2, $3, $4)",
             [newRentalId, fileName, fileSize, fileUrl]
           );
         }
