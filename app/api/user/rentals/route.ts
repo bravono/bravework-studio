@@ -257,8 +257,11 @@ export async function DELETE(request: Request) {
     if (rentalCheck[0].user_id !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    await queryDatabase("DELETE FROM rentals WHERE rental_id = $1", [id]);
-    return NextResponse.json({ message: "Rental deleted" });
+    await queryDatabase(
+      "UPDATE rentals SET deleted_at = CURRENT_TIMESTAMP WHERE rental_id = $1",
+      [id]
+    );
+    return NextResponse.json({ message: "Rental soft-deleted" });
   } catch (error) {
     console.error("Error deleting rental:", error);
     return NextResponse.json(
