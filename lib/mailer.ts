@@ -6,6 +6,7 @@ import { format } from "date-fns"; // Import date-fns for formatting expiry
 
 import { generateSecureToken, verifySecureToken } from "./utils/generateToken"; // Import your secure token generation utility
 import { KOBO_PER_NAIRA } from "@/lib/constants";
+import { createNotification, getUserIdByEmail } from "./notifications";
 
 interface SendEmailOptions {
   toEmail: string;
@@ -171,7 +172,8 @@ export async function sendOrderReceivedEmail(
   toEmail: string,
   userName: string,
   orderId: string,
-  course?: string
+  course?: string,
+  userId?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -200,6 +202,19 @@ export async function sendOrderReceivedEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: course
+          ? `Thank you for enrolling in ${course}. We have received your order (ID: ${orderId}).`
+          : `We have received your order (ID: ${orderId}). We will review it and send you a custom offer soon.`,
+        link: `/user/dashboard/orders/${orderId}`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -210,7 +225,8 @@ export async function sendPaymentReceivedEmail(
   toEmail: string,
   userName: string,
   orderId: string,
-  course?: string
+  course?: string,
+  userId?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -237,6 +253,19 @@ export async function sendPaymentReceivedEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: course
+          ? `We have received your payment for course ${course}. (Order ID: ${orderId})`
+          : `Payment received for Order ID: ${orderId}. Your project is now underway!`,
+        link: `/user/dashboard/orders/${orderId}`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -337,6 +366,18 @@ export async function sendCustomOfferNotificationEmail(
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    await createNotification({
+      userId: userId,
+      title: subject,
+      message: `You have a new custom offer for Order ID: ${orderId}. Amount: $${(
+        offerAmount /
+        KOBO_PER_NAIRA /
+        1550
+      ).toLocaleString()}`,
+      link: `/user/dashboard/notifications?offerId=${offerId}`,
+    });
   } catch (error) {
     console.log(error.message);
   }
@@ -351,7 +392,8 @@ export async function sendBookingRequestEmail(
   bookingId: string,
   startTime: string,
   endTime: string,
-  totalAmount: number
+  totalAmount: number,
+  ownerId?: string
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -378,6 +420,17 @@ export async function sendBookingRequestEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to owner
+    const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
+    if (finalOwnerId) {
+      await createNotification({
+        userId: finalOwnerId,
+        title: subject,
+        message: `${renterName} requested a booking for ${deviceName}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -389,7 +442,8 @@ export async function sendBookingStatusEmail(
   userName: string,
   deviceName: string,
   status: string,
-  reason?: string
+  reason?: string,
+  userId?: string
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -423,6 +477,17 @@ export async function sendBookingStatusEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to renter
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: `Your booking for ${deviceName} has been ${status.toUpperCase()}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -437,7 +502,8 @@ export async function sendBookingRescheduledEmail(
   oldStartTime: string,
   oldEndTime: string,
   newStartTime: string,
-  newEndTime: string
+  newEndTime: string,
+  ownerId?: string
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -479,6 +545,17 @@ export async function sendBookingRescheduledEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to owner
+    const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
+    if (finalOwnerId) {
+      await createNotification({
+        userId: finalOwnerId,
+        title: subject,
+        message: `${renterName} rescheduled their booking for ${deviceName}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }

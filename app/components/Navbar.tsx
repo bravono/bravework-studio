@@ -7,7 +7,15 @@ import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import LogoColor from "../../public/assets/BWS-Color.svg";
-import { Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  LayoutDashboard,
+  Settings,
+  Bell,
+} from "lucide-react";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,6 +23,28 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      const fetchUnreadCount = async () => {
+        try {
+          const res = await fetch("/api/user/notifications");
+          if (res.ok) {
+            const data = await res.json();
+            const unread = data.filter((n: any) => !n.isRead).length;
+            setUnreadCount(unread);
+          }
+        } catch (error) {
+          console.error("Error fetching unread count:", error);
+        }
+      };
+
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
 
   // Prevent background scroll when mobile menu is open
   useEffect(() => {
@@ -131,11 +161,29 @@ export default function Navbar() {
               Contact
             </Link>
 
+            {status === "authenticated" && (
+              <Link
+                href="/user/dashboard/notifications"
+                className={`relative p-2 mx-2 rounded-full hover:bg-gray-100 transition-colors duration-200 ${
+                  pathname === "/user/dashboard/notifications"
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-600"
+                }`}
+              >
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* User Dropdown */}
             <div className="relative">
               <Link
                 href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
-                onMouseEnter={() => setShowDropdown(!showDropdown)}
+                onMouseEnter={() => setShowDropdown(true)}
               >
                 <div
                   className={`flex items-center justify-center gap-2 p-2 rounded-sm hover:bg-gray-100 ${commonLinkClasses} ${
@@ -305,8 +353,29 @@ export default function Navbar() {
           >
             Contact
           </Link>
+
+          {status === "authenticated" && (
+            <Link
+              href="/user/dashboard/notifications"
+              className={`flex items-center gap-2 px-3 py-2 text-base font-medium ${
+                pathname === "/user/dashboard/notifications"
+                  ? "bg-white text-green-700"
+                  : "text-white hover:bg-green-600"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Bell className="w-5 h-5" />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-auto bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           <div className="border-t border-green-300 mt-2 pt-2">
-            {status === "authenticated" && session.user.name ? (
+            {status === "authenticated" && session?.user ? (
               <>
                 <Link
                   href={isAdmin ? "/admin/dashboard" : "/user/dashboard"}

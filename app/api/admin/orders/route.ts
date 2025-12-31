@@ -162,6 +162,26 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Add notification for the user
+    try {
+      const order = result[0];
+      const notificationTitle = "Order Updated";
+      const notificationMessage = `Your order (ID: ${orderId}) has been updated by the admin.`;
+      const notificationLink = `/user/dashboard/orders/${orderId}`;
+
+      await queryDatabase(
+        "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
+        [
+          order.clientId,
+          notificationTitle,
+          notificationMessage,
+          notificationLink,
+        ]
+      );
+    } catch (notifError) {
+      console.error("Error creating order update notification:", notifError);
+    }
+
     return NextResponse.json(result[0]);
   } catch (error) {
     console.error("Error updating order:", error);
