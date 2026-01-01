@@ -247,7 +247,10 @@ export default function Navbar() {
                   >
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white overflow-hidden border-2 border-white shadow-sm font-bold">
-                        {user?.name?.[0]?.toUpperCase() || <User size={20} />}
+                        {user?.name?.split(" ")[0][0]?.toUpperCase() +
+                          user?.name?.split(" ")[1][0]?.toUpperCase() || (
+                          <User size={20} />
+                        )}
                       </div>
                       {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white scale-110">
