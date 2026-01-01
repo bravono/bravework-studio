@@ -111,7 +111,9 @@ export default async function RootLayout({
         <NextAuthSessionProvider>
           <ToastContainer position="bottom-right" theme="colored" />
           <Navbar />
-          {children}
+          <main className="min-h-screen pt-24 transition-all duration-300">
+            {children}
+          </main>
         </NextAuthSessionProvider>
         <Footer />
         <Suspense fallback={null}>
