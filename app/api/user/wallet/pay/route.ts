@@ -10,22 +10,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { orderId, amountKobo, serviceType, productId, orderTitle, projectDurationDays, totalExpectedAmount } = await req.json();
+  const {
+    orderId,
+    amountKobo,
+    serviceType,
+    productId,
+    orderTitle,
+    projectDurationDays,
+    totalExpectedAmount,
+  } = await req.json();
 
   return await withTransaction(async (client) => {
     // 1. Verify Balance
-    const earningsRes = await client.query(
+    const referralEarningsRes = await client.query(
       "SELECT SUM(amount_kobo) as total FROM referral_earnings WHERE referrer_id = $1",
+      [session.user.id]
+    );
+    const rentalEarningsRes = await client.query(
+      "SELECT SUM(amount_kobo) as total FROM rental_earnings WHERE user_id = $1",
       [session.user.id]
     );
     const usagesRes = await client.query(
       "SELECT SUM(amount_kobo) as total FROM wallet_usages WHERE user_id = $1",
       [session.user.id]
     );
-    const balance = Number(earningsRes.rows[0]?.total || 0) - Number(usagesRes.rows[0]?.total || 0);
+    const balance =
+      Number(referralEarningsRes.rows[0]?.total || 0) +
+      Number(rentalEarningsRes.rows[0]?.total || 0) -
+      Number(usagesRes.rows[0]?.total || 0);
 
     if (balance < amountKobo) {
-      return NextResponse.json({ error: "Insufficient wallet balance" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Insufficient wallet balance" },
+        { status: 400 }
+      );
     }
 
     // 2. Record Usage
