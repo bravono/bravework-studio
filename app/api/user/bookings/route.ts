@@ -29,6 +29,8 @@ export async function GET(request: Request) {
           rb.end_time AS "endTime",
           rb.total_amount_kobo AS "amount",
           rb.status,
+          ps.name AS "paymentStatus",
+          rb.payment_status_id AS "paymentStatusId",
           r.device_name AS "deviceName",
           r.device_type AS "deviceType",
           r.location_city AS "locationCity",
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
         FROM rental_bookings rb
         JOIN rentals r ON rb.rental_id = r.rental_id
         JOIN users u ON rb.client_id = u.user_id
+        LEFT JOIN payment_statuses ps ON rb.payment_status_id = ps.payment_status_id
         WHERE r.user_id = $1
         ORDER BY rb.created_at DESC
       `;
@@ -54,6 +57,8 @@ export async function GET(request: Request) {
           rb.total_amount_kobo AS amount,
           rb.created_at AS "createdAt",
           rb.status,
+          ps.name AS "paymentStatus",
+          rb.payment_status_id AS "paymentStatusId",
           r.device_name AS "deviceName",
           r.device_type AS "deviceType",
           r.location_city AS "locationCity",
@@ -65,6 +70,7 @@ export async function GET(request: Request) {
         FROM rental_bookings rb
         JOIN rentals r ON rb.rental_id = r.rental_id
         JOIN users u ON r.user_id = u.user_id
+        LEFT JOIN payment_statuses ps ON rb.payment_status_id = ps.payment_status_id
         WHERE rb.client_id = $1
         ORDER BY rb.created_at DESC
       `;

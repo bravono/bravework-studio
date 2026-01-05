@@ -59,6 +59,14 @@ export async function POST(
 
     const endTime = new Date(booking.end_time);
     const now = new Date();
+
+    if (now < endTime) {
+      return NextResponse.json(
+        { error: "Funds can only be released after the booking has ended." },
+        { status: 400 }
+      );
+    }
+
     const hoursSinceEnd =
       (now.getTime() - endTime.getTime()) / (1000 * 60 * 60);
 
@@ -74,14 +82,48 @@ export async function POST(
       }
     }
 
-    // Update escrow_released
-    await queryDatabase(
-      `UPDATE rental_bookings SET escrow_released = TRUE WHERE rental_booking_id = $1`,
-      [bookingId]
-    );
+    // Update escrow_released and insert earning in a transaction
+    await withTransaction(async (client) => {
+      await client.query(
+        `UPDATE rental_bookings SET escrow_released = TRUE WHERE rental_booking_id = $1`,
+        [bookingId]
+      );
 
-    // In a real system, this would trigger a payout to the owner's connected account (Stripe Connect, etc.)
-    // For now, we just mark it as released.
+      // Add to owner's wallet earnings
+      await client.query(
+        `INSERT INTO rental_earnings (user_id, booking_id, amount_kobo) VALUES ($1, $2, $3)`,
+        [booking.owner_id, bookingId, booking.total_amount_kobo]
+      );
+
+      // Notifications are now handled by the sendFundsReleasedEmail function
+    });
+
+    // Send email and in-app notifications
+    try {
+      const { sendFundsReleasedEmail } = await import("@/lib/mailer");
+
+      // Notify Renter
+      await sendFundsReleasedEmail(
+        booking.renter_email,
+        booking.renterName,
+        booking.device_name,
+        "renter",
+        undefined,
+        booking.renter_id
+      );
+
+      // Notify Owner
+      await sendFundsReleasedEmail(
+        booking.owner_email,
+        booking.ownerName,
+        booking.device_name,
+        "owner",
+        booking.total_amount_kobo,
+        booking.owner_id
+      );
+    } catch (e) {
+      console.error("Failed to send release notification emails", e);
+    }
 
     return NextResponse.json({ message: "Funds released successfully" });
   } catch (error) {

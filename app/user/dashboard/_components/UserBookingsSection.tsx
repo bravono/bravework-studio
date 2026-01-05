@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Clock, CheckCircle, User, Monitor } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  User,
+  Monitor,
+  RotateCcw,
+} from "lucide-react";
 import { toast } from "react-toastify";
 
 import { Booking } from "@/app/types/app";
@@ -8,7 +15,11 @@ import { KOBO_PER_NAIRA } from "@/lib/constants";
 import ReasonModal from "@/app/components/ReasonModal";
 import Modal from "@/app/components/Modal";
 
-export default function UserBookingsSection() {
+export default function UserBookingsSection({
+  handleInitiatePayment,
+}: {
+  handleInitiatePayment?: (id: number, type: "booking") => void;
+}) {
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
     "my-bookings"
   );
@@ -37,7 +48,7 @@ export default function UserBookingsSection() {
   });
   const [rescheduleForm, setRescheduleForm] = useState({
     startTime: "",
-    endTime: "",
+    durationHours: "1",
   });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -107,7 +118,7 @@ export default function UserBookingsSection() {
       bookingId,
       title: "Release Funds",
       message:
-        "Are you sure you want to release funds to the owner? This cannot be undone.",
+        "Are you sure you want to release funds to the owner? This cannot be undone. We will ask you to leave a review after this.",
       onConfirm: async () => {
         setProcessingId(bookingId);
         try {
@@ -146,7 +157,7 @@ export default function UserBookingsSection() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             startTime: rescheduleForm.startTime,
-            endTime: rescheduleForm.endTime,
+            durationHours: rescheduleForm.durationHours,
           }),
         }
       );
@@ -167,41 +178,45 @@ export default function UserBookingsSection() {
     }
   };
 
+  const handleRentAgain = (rentalId: number) => {
+    window.location.href = `/rentals/${rentalId}`;
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "accepted":
         return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium uppercase tracking-wider">
             Accepted
           </span>
         );
       case "pending":
         return (
-          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium uppercase tracking-wider">
             Pending
           </span>
         );
       case "declined":
         return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium uppercase tracking-wider">
             Declined
           </span>
         );
       case "cancelled":
         return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium uppercase tracking-wider">
             Cancelled
           </span>
         );
       case "completed":
         return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium uppercase tracking-wider">
             Completed
           </span>
         );
       default:
         return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium uppercase tracking-wider">
             {status}
           </span>
         );
@@ -209,96 +224,116 @@ export default function UserBookingsSection() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
+    <div className="bg-gray-50 min-h-screen p-4 mt-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <div className="flex border-b border-gray-100">
             <button
               onClick={() => setActiveTab("my-bookings")}
-              className={`flex-1 py-4 text-center font-medium text-sm sm:text-base transition-colors ${
+              className={`flex-1 py-5 text-center font-bold text-sm sm:text-base transition-all ${
                 activeTab === "my-bookings"
-                  ? "border-b-2 border-green-600 text-green-600 bg-green-50"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "text-green-700 bg-green-50/50 shadow-[inset_0_-2px_0_0_rgba(21,128,61,1)]"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
               }`}
             >
-              My Bookings (Renter)
+              My Bookings
             </button>
             <button
               onClick={() => setActiveTab("rentals")}
-              className={`flex-1 py-4 text-center font-medium text-sm sm:text-base transition-colors ${
+              className={`flex-1 py-5 text-center font-bold text-sm sm:text-base transition-all ${
                 activeTab === "rentals"
-                  ? "border-b-2 border-green-600 text-green-600 bg-green-50"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "text-green-700 bg-green-50/50 shadow-[inset_0_-2px_0_0_rgba(21,128,61,1)]"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
               }`}
             >
-              Rental Requests (Owner)
+              Rental Requests
             </button>
           </div>
 
           <div className="p-6">
             {isLoading ? (
-              <Loader user={"user"} />
+              <div className="py-20 flex justify-center">
+                <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : bookings.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <Calendar className="mx-auto h-16 w-16 text-gray-200 mb-4" />
+                <h3 className="text-xl font-bold text-gray-900">
                   No bookings found
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-2 text-gray-500 max-w-xs mx-auto">
                   {activeTab === "my-bookings"
-                    ? "You haven't booked any devices yet."
-                    : "No one has booked your devices yet."}
+                    ? "You haven't booked any devices yet. Explore our catalog to find what you need."
+                    : "No one has requested to book your devices yet. Make sure your listings are attractive!"}
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
                 {bookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                    className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
                   >
                     <div className="p-6">
                       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                        <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Monitor className="h-6 w-6 text-green-600" />
+                        <div className="flex items-start gap-5">
+                          <div className="h-14 w-14 bg-green-50 rounded-2xl flex items-center justify-center flex-shrink-0 border border-green-100">
+                            <Monitor className="h-7 w-7 text-green-600" />
                           </div>
                           <div>
-                            <h4 className="text-lg font-bold text-gray-900">
-                              {booking.deviceName}
-                            </h4>
-                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                              <User className="h-4 w-4" />
-                              <span>
-                                {activeTab === "my-bookings"
-                                  ? `Owner: ${booking.ownerName || "Unknown"}`
-                                  : `Renter: ${
-                                      booking.renterName || "Unknown"
-                                    }`}
-                              </span>
+                            <div className="flex items-center gap-3 mb-1">
+                              <h4 className="text-xl font-bold text-gray-900">
+                                {booking.deviceName}
+                              </h4>
+                              {getStatusBadge(booking.status)}
+                              {activeTab === "rentals" &&
+                                new Date(booking.endTime) < new Date() &&
+                                booking.paymentStatus === "paid" &&
+                                !booking.escrowReleased && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-100">
+                                    <Clock size={10} /> Waiting for renter to
+                                    release fund
+                                  </span>
+                                )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                              <Clock className="h-4 w-4" />
-                              <span>
-                                {new Date(booking.startTime).toLocaleString()} -{" "}
-                                {new Date(booking.endTime).toLocaleString()}
-                              </span>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <User size={14} className="text-gray-400" />
+                                <span className="font-medium">
+                                  {activeTab === "my-bookings"
+                                    ? `Owner: ${booking.ownerName || "Unknown"}`
+                                    : `Renter: ${
+                                        booking.renterName || "Unknown"
+                                      }`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <Clock size={14} className="text-gray-400" />
+                                <span className="font-medium">
+                                  {new Date(booking.startTime).toLocaleString()}{" "}
+                                  - {new Date(booking.endTime).toLocaleString()}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(booking.status)}
-                          <span className="text-lg font-bold text-green-600">
+                        <div className="flex flex-col items-end justify-between self-stretch">
+                          <span className="text-2xl font-black text-green-700">
                             ₦
                             {Number(
                               booking.amount / KOBO_PER_NAIRA
                             ).toLocaleString()}
                           </span>
+                          {booking.escrowReleased && (
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100 flex items-center gap-1 mt-2">
+                              <CheckCircle size={12} /> ESCROW RELEASED
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-3 justify-end">
+                      <div className="mt-6 pt-5 border-t border-gray-50 flex flex-wrap gap-3 justify-end items-center">
                         {activeTab === "rentals" &&
                           booking.status === "pending" && (
                             <>
@@ -307,9 +342,9 @@ export default function UserBookingsSection() {
                                   handleStatusUpdate(booking.id, "accepted")
                                 }
                                 disabled={processingId === booking.id}
-                                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                                className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-600/20 active:scale-95"
                               >
-                                Accept
+                                Accept Request
                               </button>
                               <button
                                 onClick={() => {
@@ -318,88 +353,137 @@ export default function UserBookingsSection() {
                                     bookingId: booking.id,
                                     status: "declined",
                                     title: "Decline Booking Request",
-                                    confirmText: "Decline Request",
+                                    confirmText: "Decline",
                                   });
                                 }}
                                 disabled={processingId === booking.id}
-                                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
+                                className="px-6 py-2 bg-white text-red-600 border border-red-100 text-sm font-bold rounded-xl hover:bg-red-50 disabled:opacity-50 transition-all active:scale-95"
                               >
                                 Decline
                               </button>
                             </>
                           )}
 
-                        {activeTab === "my-bookings" &&
-                          booking.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setRescheduleModal({
-                                    isOpen: true,
-                                    booking: booking,
-                                  });
-                                  setRescheduleForm({
-                                    startTime: new Date(booking.startTime)
-                                      .toISOString()
-                                      .slice(0, 16),
-                                    endTime: new Date(booking.endTime)
-                                      .toISOString()
-                                      .slice(0, 16),
-                                  });
-                                }}
-                                disabled={processingId === booking.id}
-                                className="px-4 py-2 bg-green-100 text-green-700 text-sm font-medium rounded-md hover:bg-green-200 disabled:opacity-50"
-                              >
-                                Reschedule
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setReasonModal({
-                                    isOpen: true,
-                                    bookingId: booking.id,
-                                    status: "cancelled",
-                                    title: "Cancel Booking Request",
-                                    confirmText: "Cancel Request",
-                                  });
-                                }}
-                                disabled={processingId === booking.id}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 disabled:opacity-50"
-                              >
-                                Cancel Request
-                              </button>
-                            </>
-                          )}
+                        {activeTab === "my-bookings" && (
+                          <>
+                            {booking.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setRescheduleModal({
+                                      isOpen: true,
+                                      booking: booking,
+                                    });
+                                    setRescheduleForm({
+                                      startTime: new Date(booking.startTime)
+                                        .toISOString()
+                                        .slice(0, 16),
+                                      durationHours: "1",
+                                    });
+                                  }}
+                                  disabled={processingId === booking.id}
+                                  className="px-5 py-2 bg-green-50 text-green-700 border border-green-100 text-sm font-bold rounded-xl hover:bg-green-100 disabled:opacity-50 transition-all active:scale-95"
+                                >
+                                  Reschedule
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setReasonModal({
+                                      isOpen: true,
+                                      bookingId: booking.id,
+                                      status: "cancelled",
+                                      title: "Cancel Booking Request",
+                                      confirmText: "Cancel Request",
+                                    });
+                                  }}
+                                  disabled={processingId === booking.id}
+                                  className="px-5 py-2 bg-white text-gray-500 border border-gray-100 text-sm font-bold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all active:scale-95"
+                                >
+                                  Cancel Request
+                                </button>
+                              </>
+                            )}
 
-                        {activeTab === "my-bookings" &&
-                          booking.status === "accepted" &&
-                          !booking.escrowReleased && (
-                            <button
-                              onClick={() => handleReleaseFunds(booking.id)}
-                              disabled={processingId === booking.id}
-                              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
-                            >
-                              Release Funds
-                            </button>
-                          )}
+                            {booking.status === "accepted" &&
+                              !booking.escrowReleased && (
+                                <div className="flex flex-wrap gap-3">
+                                  {booking.paymentStatus === "pending" &&
+                                    handleInitiatePayment && (
+                                      <button
+                                        onClick={() =>
+                                          handleInitiatePayment(
+                                            booking.id,
+                                            "booking"
+                                          )
+                                        }
+                                        className="px-6 py-2 text-sm font-bold text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                                      >
+                                        Pay Now
+                                      </button>
+                                    )}
 
-                        {booking.escrowReleased && (
-                          <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                            <CheckCircle className="h-4 w-4" /> Funds Released
-                          </span>
+                                  <button
+                                    onClick={() => {
+                                      setRescheduleModal({
+                                        isOpen: true,
+                                        booking,
+                                      });
+                                      setRescheduleForm({
+                                        startTime: new Date(booking.startTime)
+                                          .toISOString()
+                                          .slice(0, 16),
+                                        durationHours: "1",
+                                      });
+                                    }}
+                                    className="px-5 py-2 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-all active:scale-95"
+                                  >
+                                    Reschedule
+                                  </button>
+
+                                  {booking.paymentStatus === "paid" && (
+                                    <button
+                                      onClick={() =>
+                                        handleReleaseFunds(booking.id)
+                                      }
+                                      disabled={processingId === booking.id}
+                                      className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                                    >
+                                      Release Funds
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                            {booking.escrowReleased && (
+                              <button
+                                onClick={() =>
+                                  handleRentAgain(booking.rentalId)
+                                }
+                                className="px-6 py-2 bg-green-50 text-green-700 border border-green-200 text-sm font-bold rounded-xl hover:bg-green-100 transition-all flex items-center gap-2 active:scale-95"
+                              >
+                                <RotateCcw size={16} />
+                                Rent Again
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
 
                       {/* Reasons */}
                       {booking.rejectionReason && (
-                        <div className="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-md">
-                          <strong>Declined Reason:</strong>{" "}
-                          {booking.rejectionReason}
+                        <div className="mt-4 p-4 bg-red-50 text-red-700 text-sm rounded-xl border border-red-100">
+                          <span className="font-bold flex items-center gap-1 mb-1 lowercase">
+                            <RotateCcw size={14} /> declined reason
+                          </span>
+                          <p className="italic">{booking.rejectionReason}</p>
                         </div>
                       )}
                       {booking.cancellationReason && (
-                        <div className="mt-4 p-3 bg-gray-50 text-gray-700 text-sm rounded-md">
-                          <strong>Cancellation Reason:</strong>{" "}
-                          {booking.cancellationReason}
+                        <div className="mt-4 p-4 bg-gray-50 text-gray-600 text-sm rounded-xl border border-gray-100">
+                          <span className="font-bold flex items-center gap-1 mb-1 lowercase">
+                            <RotateCcw size={14} /> cancellation reason
+                          </span>
+                          <p className="italic">{booking.cancellationReason}</p>
                         </div>
                       )}
                     </div>
@@ -434,10 +518,14 @@ export default function UserBookingsSection() {
         onClose={() => setRescheduleModal({ isOpen: false, booking: null })}
         title="Reschedule Booking"
       >
-        <form onSubmit={handleReschedule} className="space-y-4">
+        <form onSubmit={handleReschedule} className="space-y-6 p-1">
+          <p className="text-sm text-gray-500 mb-4">
+            Specify the new start time and how long you'll need the device.
+            We'll automatically calculate the end time.
+          </p>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Time
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              New Start Time
             </label>
             <input
               type="datetime-local"
@@ -448,43 +536,51 @@ export default function UserBookingsSection() {
                   startTime: e.target.value,
                 }))
               }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              className="block w-full rounded-xl border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-3 border transition-all"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Time
+            <label className="block text-sm font-bold text-gray-700 mb-2 flex justify-between">
+              Duration (Hours)
+              <span className="text-green-600 font-black">
+                {rescheduleForm.durationHours}h
+              </span>
             </label>
             <input
-              type="datetime-local"
-              value={rescheduleForm.endTime}
+              type="number"
+              min="1"
+              max="168"
+              value={rescheduleForm.durationHours}
               onChange={(e) =>
                 setRescheduleForm((prev) => ({
                   ...prev,
-                  endTime: e.target.value,
+                  durationHours: e.target.value,
                 }))
               }
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              className="block w-full rounded-xl border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-3 border transition-all"
               required
             />
+            <p className="mt-2 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+              Max duration: 168 hours (1 week)
+            </p>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
             <button
               type="button"
               onClick={() =>
                 setRescheduleModal({ isOpen: false, booking: null })
               }
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all"
             >
-              Cancel
+              Back
             </button>
             <button
               type="submit"
               disabled={processingId !== null}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50"
+              className="px-8 py-2.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-600/20 disabled:opacity-50 transition-all active:scale-95"
             >
-              {processingId !== null ? "Updating..." : "Update Schedule"}
+              {processingId !== null ? "Saving..." : "Update Schedule"}
             </button>
           </div>
         </form>
@@ -495,22 +591,29 @@ export default function UserBookingsSection() {
         onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         title={confirmModal.title}
       >
-        <div className="space-y-4">
-          <p className="text-gray-600">{confirmModal.message}</p>
-          <div className="flex justify-end gap-3 pt-4">
+        <div className="space-y-6 p-1">
+          <div className="flex items-center gap-4 text-amber-600 bg-amber-50 p-4 rounded-xl border border-amber-100">
+            <div className="p-2 bg-amber-600 text-white rounded-full">
+              <RotateCcw size={20} />
+            </div>
+            <p className="text-sm font-medium leading-relaxed">
+              {confirmModal.message}
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
             <button
               onClick={() =>
                 setConfirmModal((prev) => ({ ...prev, isOpen: false }))
               }
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              className="px-6 py-2.5 text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all"
             >
               Cancel
             </button>
             <button
               onClick={confirmModal.onConfirm}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+              className="px-8 py-2.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-600/20 transition-all active:scale-95"
             >
-              Confirm
+              Confirm Release
             </button>
           </div>
         </div>

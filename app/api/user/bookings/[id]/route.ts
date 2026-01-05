@@ -124,10 +124,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { startTime: newStartTime, endTime: newEndTime } = body;
+    const { startTime: newStartTime, durationHours } = body;
 
     // Handle rescheduling (only allowed for renter while pending)
-    if (newStartTime || newEndTime) {
+    if (newStartTime || durationHours) {
       if (!isRenter) {
         return NextResponse.json(
           { error: "Only renter can reschedule" },
@@ -141,6 +141,19 @@ export async function PATCH(
         );
       }
 
+      // Calculate new end time if durationHours is provided
+      let calculatedEndTime = booking.end_time;
+      if (durationHours && newStartTime) {
+        const start = new Date(newStartTime);
+        start.setHours(start.getHours() + parseInt(durationHours));
+        calculatedEndTime = start.toISOString();
+      } else if (durationHours) {
+        // If only duration changed, use existing start time
+        const start = new Date(booking.start_time);
+        start.setHours(start.getHours() + parseInt(durationHours));
+        calculatedEndTime = start.toISOString();
+      }
+
       const updateQuery = `
         UPDATE rental_bookings 
         SET start_time = $1, end_time = $2 
@@ -148,7 +161,7 @@ export async function PATCH(
       `;
       await queryDatabase(updateQuery, [
         newStartTime || booking.start_time,
-        newEndTime || booking.end_time,
+        calculatedEndTime,
         bookingId,
       ]);
 
@@ -161,7 +174,7 @@ export async function PATCH(
         booking.start_time,
         booking.end_time,
         newStartTime || booking.start_time,
-        newEndTime || booking.end_time
+        calculatedEndTime
       );
 
       return NextResponse.json({ message: "Booking rescheduled successfully" });

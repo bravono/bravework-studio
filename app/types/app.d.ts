@@ -229,13 +229,15 @@ interface Rental {
 
 interface Booking {
   id: number;
-  rentaId: number;
+  rentalId: number;
   deviceName: string;
   deviceImage: string; // Assuming we might join this or it's part of rental details
   startTime: string;
   endTime: string;
   amount: number;
   status: "pending" | "accepted" | "declined" | "cancelled" | "completed";
+  paymentStatus?: string;
+  paymentStatusId?: number;
   createdAt: string;
   renterName?: string; // For owner view
   ownerName?: string; // For renter view

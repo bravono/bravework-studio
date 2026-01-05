@@ -21,7 +21,6 @@ import useExchangeRates from "@/hooks/useExchangeRates";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 interface Course {
   id: number;
   title: string;
@@ -39,6 +38,14 @@ interface CustomOffer {
   projectDurationDays: number;
 }
 
+interface RentalBooking {
+  id: number;
+  title: string;
+  amount: number; // in Kobo
+  description: string;
+  status: string;
+}
+
 export default function PaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -53,13 +60,14 @@ export default function PaymentContent() {
 
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
+  const bookingId = searchParams.get("bookingId");
 
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
-    type: "course" | "custom-offer";
-    data: Course | CustomOffer;
+    type: "course" | "custom-offer" | "rental";
+    data: Course | CustomOffer | RentalBooking;
     orderId: number;
   } | null>(null);
 
@@ -86,6 +94,8 @@ export default function PaymentContent() {
           url = `/api/user/custom-offers/${offerId}/payment-details`;
         } else if (courseId) {
           url = `/api/courses/${courseId}/payment-details`;
+        } else if (bookingId) {
+          url = `/api/user/bookings/${bookingId}/payment-details`;
         } else {
           setError("Invalid payment link.");
           setLoading(false);
@@ -114,7 +124,7 @@ export default function PaymentContent() {
     } else if (sessionStatus === "unauthenticated") {
       router.push(`/auth/login`);
     }
-  }, [sessionStatus, offerId, courseId, router]);
+  }, [sessionStatus, offerId, courseId, bookingId, router]);
 
   const paymentDetails = useMemo(() => {
     if (!orderData) return null;
@@ -122,6 +132,8 @@ export default function PaymentContent() {
     const baseAmount =
       orderData.type === "course"
         ? (orderData.data as Course).price
+        : orderData.type === "rental"
+        ? (orderData.data as RentalBooking).amount
         : (orderData.data as CustomOffer).amount;
 
     let amountToPay = baseAmount;
@@ -185,6 +197,8 @@ export default function PaymentContent() {
             orderTitle:
               orderData.type === "course"
                 ? (orderData.data as Course).title
+                : orderData.type === "rental"
+                ? (orderData.data as RentalBooking).title
                 : (orderData.data as CustomOffer).description,
             projectDurationDays:
               orderData.type === "custom-offer"
@@ -246,7 +260,11 @@ export default function PaymentContent() {
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               toast.success("Payment successful!");
-              router.push("/user/dashboard?tab=orders");
+              router.push(
+                orderData.type === "rental"
+                  ? "/user/dashboard?tab=bookings"
+                  : "/user/dashboard?tab=orders"
+              );
             } else {
               toast.error("Payment verification failed: " + verifyData.message);
             }
@@ -313,11 +331,15 @@ export default function PaymentContent() {
                     <h3 className="font-bold text-gray-900 text-lg">
                       {orderData.type === "course"
                         ? (orderData.data as Course).title
+                        : orderData.type === "rental"
+                        ? (orderData.data as RentalBooking).title
                         : "Custom Project Offer"}
                     </h3>
                     <p className="text-gray-500 text-sm mt-1">
                       {orderData.type === "course"
                         ? "Course Enrollment"
+                        : orderData.type === "rental"
+                        ? "Rental Booking"
                         : (orderData.data as CustomOffer).description}
                     </p>
                   </div>
@@ -326,8 +348,11 @@ export default function PaymentContent() {
                       {convertAmount(
                         orderData.type === "course"
                           ? (orderData.data as Course).price / KOBO_PER_NAIRA
+                          : orderData.type === "rental"
+                          ? (orderData.data as RentalBooking).amount /
+                            KOBO_PER_NAIRA
                           : (orderData.data as CustomOffer).amount /
-                              KOBO_PER_NAIRA
+                            KOBO_PER_NAIRA
                       )}
                     </p>
                   </div>
