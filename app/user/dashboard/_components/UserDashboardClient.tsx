@@ -26,7 +26,6 @@ import {
 } from "app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 // Importing page sections as components
 import UserCustomOffersSection from "./UserCustomOfferSection";
 import UserInvoicesSection from "./UserInvoicesSection";
@@ -42,6 +41,7 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import CourseDetailCard from "@/app/components/CourseDetailCard";
 import UserRentalsSection from "./UserRentalsSection";
 import UserBookingsSection from "./UserBookingsSection";
+import UserWalletSection from "./UserWalletSection";
 import Loader from "@/app/components/Loader";
 
 function Page() {
@@ -165,7 +165,6 @@ function Page() {
       const bookingsRes = await fetch("/api/user/bookings");
       if (bookingsRes.ok) {
         const bookingsData = await bookingsRes.json();
-        console.log("Booking", bookingsData)
         setBookings(bookingsData);
       }
     } catch (err: any) {
@@ -261,9 +260,49 @@ function Page() {
   };
 
   // Handle initiate payment
-  const handleInitiatePayment = (id) => {
-    toast.info(`Initiating payment for Invoice ID: ${id}`);
-    // Example: router.push(`/checkout?invoice=${invoiceId}`);
+  const handleInitiatePayment = (
+    id: any,
+    type: "invoice" | "booking" = "invoice"
+  ) => {
+    if (type === "booking") {
+      router.push(`/user/dashboard/payment?bookingId=${id}`);
+    } else {
+      toast.info(`Initiating payment for Invoice ID: ${id}`);
+      // Example: router.push(`/checkout?invoice=${invoiceId}`);
+    }
+  };
+
+  const handleReleaseFunds = async (bookingId: number) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to release funds to the owner? This cannot be undone."
+      )
+    )
+      return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/user/bookings/${bookingId}/release`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to release funds");
+      }
+
+      toast.success("Funds released successfully");
+      fetchDashboardData();
+    } catch (error: any) {
+      console.error("Error releasing funds:", error);
+      toast.error(error.message || "Failed to release funds");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRentAgain = (rentalId: number) => {
+    router.push(`/rentals/${rentalId}`);
   };
 
   const handleOfferAction = useCallback(
@@ -508,6 +547,8 @@ function Page() {
             setIsRejectReasonModalOpen={setIsRejectReasonModalOpen}
             selectedOfferForRejection={selectedOfferForRejection}
             handleConfirmReject={handleConfirmReject}
+            handleReleaseFunds={handleReleaseFunds}
+            handleRentAgain={handleRentAgain}
           />
         );
 
@@ -522,7 +563,11 @@ function Page() {
       case "rentals":
         return withBackToOverview(<UserRentalsSection />);
       case "bookings":
-        return withBackToOverview(<UserBookingsSection />);
+        return withBackToOverview(
+          <UserBookingsSection handleInitiatePayment={handleInitiatePayment} />
+        );
+      case "wallet":
+        return withBackToOverview(<UserWalletSection />);
       case "referrals":
         return withBackToOverview(<UserReferralsSection />);
       case "courses":

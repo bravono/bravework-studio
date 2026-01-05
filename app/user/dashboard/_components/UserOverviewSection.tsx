@@ -92,7 +92,7 @@ interface UserOverviewSectionProps {
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
   selectedCourse: Course | null;
-  handleInitiatePayment: (id: string) => void;
+  handleInitiatePayment: (id: string, type?: "invoice" | "booking") => void;
   handleOfferAction: (
     offer: CustomOffer,
     action: "accept" | "reject",
@@ -104,6 +104,8 @@ interface UserOverviewSectionProps {
   setIsRejectReasonModalOpen: (isOpen: boolean) => void;
   selectedOfferForRejection: CustomOffer | null;
   handleConfirmReject: (reason: string) => void;
+  handleReleaseFunds: (id: number) => void;
+  handleRentAgain: (rentalId: number) => void;
 }
 
 export default function UserOverviewSection({
@@ -159,6 +161,8 @@ export default function UserOverviewSection({
   setIsRejectReasonModalOpen,
   selectedOfferForRejection,
   handleConfirmReject,
+  handleReleaseFunds,
+  handleRentAgain,
 }: UserOverviewSectionProps) {
   const router = useRouter();
   const PERCENT_100 = 100;
@@ -591,74 +595,163 @@ export default function UserOverviewSection({
                 <div className="bg-white p-6 rounded-xl shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                      <FileText size={24} className="text-green-600" />
-                      Rentals
+                      <Package size={24} className="text-green-600" />
+                      Rentals & Bookings
                     </h2>
-                    <button
-                      onClick={() => setActiveTab("rentals")}
-                      className="text-green-600 hover:underline font-medium"
-                    >
-                      My Listings
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("bookings")}
-                      className="text-green-600 hover:underline font-medium"
-                    >
-                      My Bookings
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setActiveTab("rentals")}
+                        className="text-green-600 hover:underline font-semibold text-sm"
+                      >
+                        My Listings
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("bookings")}
+                        className="text-green-600 hover:underline font-semibold text-sm"
+                      >
+                        My Bookings
+                      </button>
+                    </div>
                   </div>
-                  {bookings.length > 0 && (
+                  {bookings.length > 0 ? (
                     <div className="space-y-4">
-                      {paginatedBookings.map((booking) => (
-                        <div
-                          key={booking.id}
-                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex-grow mb-2 sm:mb-0">
-                            <h3 className="font-semibold text-lg text-gray-800">
-                              Booking ID: {booking.id}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              Date:{" "}
-                              {new Date(booking.createdAt).toLocaleString()}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Amount: ₦
-                              {(
-                                booking.amount / KOBO_PER_NAIRA
-                              ).toLocaleString()}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
-                            <span
-                              className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                booking.status === "accepted"
-                                  ? "bg-green-200 text-green-800"
-                                  : booking.status === "pending"
-                                  ? "bg-yellow-200 text-yellow-800"
-                                  : "bg-red-200 text-red-800"
-                              }`}
-                            >
-                              {booking.status}
-                            </span>
-                            {booking.status === "accepted" && (
-                              <button
-                                onClick={() =>
-                                  handleInitiatePayment(booking.id)
-                                }
-                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                      {paginatedBookings.map((booking) => {
+                        const isCompleted =
+                          new Date(booking.endTime) < new Date();
+                        const canRelease =
+                          booking.paymentStatus === "paid" &&
+                          !booking.escrowReleased &&
+                          isCompleted;
+                        const canRentAgain = booking.escrowReleased;
+
+                        // Check if owner needs to wait for renter
+                        // We need to know if the current user is owner or renter.
+                        // In Overview, we mix them or show generic.
+                        // Actually, Overview usually shows "My Bookings" (where user is renter) or "My Listings" (where user is owner)
+                        // But here `bookings` prop might contain both or depends on fetch.
+                        // Let's assume for now we can infer from context or just show neutral "Funds Pending Release" if generic.
+                        // However, the request specifically asked for "Waiting for renter to release fund".
+                        // Let's look at `UserBookingsSection`, there `activeTab` "rentals" = owner, "my-bookings" = renter.
+                        // properties: booking.ownerId, booking.renterId.
+                        // We assume session.user.id is available.
+
+                        const isOwner = booking.ownerId === session?.user?.id;
+                        const showWaitingForRenter =
+                          isOwner && isCompleted && !booking.escrowReleased;
+
+                        return (
+                          <div
+                            key={booking.id}
+                            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-green-200 transition-all duration-300"
+                          >
+                            <div className="flex-grow mb-3 sm:mb-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-bold text-gray-900 group-hover:text-green-700 transition-colors">
+                                  {booking.deviceName}
+                                </h3>
+                                {booking.escrowReleased && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase tracking-wider border border-green-100">
+                                    <CheckCircle size={10} /> Completed
+                                  </span>
+                                )}
+                                {showWaitingForRenter && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-100">
+                                    <Clock size={10} /> Waiting for renter to
+                                    release fund
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Clock size={12} />{" "}
+                                  {new Date(
+                                    booking.startTime
+                                  ).toLocaleDateString()}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  ID: #{booking.id}
+                                </p>
+                                <p className="text-xs font-bold text-green-800 bg-green-100/50 px-2 rounded">
+                                  {convertCurrency(
+                                    booking.amount / KOBO_PER_NAIRA,
+                                    exchangeRates?.[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency)
+                                  ).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                              <span
+                                className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${
+                                  booking.status === "accepted"
+                                    ? "bg-green-50 text-green-700 border-green-100"
+                                    : booking.status === "pending"
+                                    ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                                    : "bg-red-50 text-red-700 border-red-100"
+                                }`}
                               >
-                                Initiate Payment
-                              </button>
-                            )}
+                                {booking.status}
+                              </span>
+
+                              {booking.status === "accepted" &&
+                                booking.paymentStatus === "pending" && (
+                                  <button
+                                    onClick={() =>
+                                      handleInitiatePayment(
+                                        booking.id,
+                                        "booking"
+                                      )
+                                    }
+                                    className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-600/20 active:scale-95"
+                                  >
+                                    Pay Now
+                                  </button>
+                                )}
+
+                              {canRelease && (
+                                <button
+                                  onClick={() => handleReleaseFunds(booking.id)}
+                                  className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95"
+                                >
+                                  Release Funds
+                                </button>
+                              )}
+
+                              {canRentAgain && (
+                                <button
+                                  onClick={() =>
+                                    handleRentAgain(booking.rentalId)
+                                  }
+                                  className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-all active:scale-95"
+                                >
+                                  Rent Again
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <Pagination
                         currentPage={bookingsPage}
                         totalPages={totalBookingsPages}
                         onPageChange={setBookingsPage}
                       />
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                      <Package
+                        size={48}
+                        className="mx-auto text-gray-300 mb-3"
+                      />
+                      <p className="text-gray-500 font-semibold">
+                        No active bookings found
+                      </p>
+                      <Link
+                        href="/rentals"
+                        className="mt-4 inline-block text-green-600 font-bold text-sm hover:text-green-700 hover:underline transition-colors"
+                      >
+                        Find devices to rent →
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -860,7 +953,9 @@ export default function UserOverviewSection({
                       Get Support
                     </Link>
                     <button
-                      onClick={() => setActiveTab("notifications")}
+                      onClick={() =>
+                        router.push("/user/dashboard/notifications")
+                      }
                       className="relative flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
                     >
                       <Bell size={20} />
@@ -876,8 +971,15 @@ export default function UserOverviewSection({
                       onClick={() => setActiveTab("referrals")}
                       className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
                     >
-                      <HeartHandshake size={20} />
                       Referrals
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab("wallet")}
+                      className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
+                    >
+                      <Wallet size={20} />
+                      Wallet
                     </button>
 
                     {isModalOpen && (
