@@ -33,9 +33,11 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Extend the user type to include 'roles'
@@ -74,7 +76,7 @@ export default function Navbar() {
           if (res.ok) {
             const data = await res.json();
             const count = data.filter((n: any) => !n.isRead).length;
-            setUnreadCount(count);
+            setNotificationCount(count);
           }
         } catch (error) {
           console.error("Error fetching notifications in Navbar:", error);
@@ -237,6 +239,19 @@ export default function Navbar() {
             <div className="relative ml-4 pl-4 border-l border-gray-200">
               {status === "authenticated" ? (
                 <>
+                  <div className="hidden md:flex flex-col items-end mr-2">
+                    {walletBalance !== null && (
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Balance
+                      </span>
+                    )}
+                    {walletBalance !== null && (
+                      <span className="text-sm font-black text-green-600">
+                        ₦{(walletBalance / 100).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+
                   <button
                     onMouseEnter={() => setActiveDropdown("profile")}
                     className={`relative flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-all ${
@@ -249,9 +264,9 @@ export default function Navbar() {
                       <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white overflow-hidden border-2 border-white shadow-sm font-bold">
                         {user?.name?.[0]?.toUpperCase() || <User size={20} />}
                       </div>
-                      {unreadCount > 0 && (
+                      {notificationCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white scale-110">
-                          {unreadCount > 9 ? "9+" : unreadCount}
+                          {notificationCount > 9 ? "9+" : notificationCount}
                         </span>
                       )}
                     </div>
@@ -294,7 +309,23 @@ export default function Navbar() {
                           </Link>
 
                           <Link
-                            href="/user/dashboard?tab=notifications"
+                            href="/user/dashboard?tab=wallet"
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
+                            onClick={() => setActiveDropdown(null)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Briefcase className="w-5 h-5 opacity-70" />
+                              Wallet
+                            </div>
+                            {walletBalance !== null && (
+                              <span className="ml-auto text-xs font-bold text-green-600">
+                                ₦{(walletBalance / 100).toLocaleString()}
+                              </span>
+                            )}
+                          </Link>
+
+                          <Link
+                            href="/user/dashboard/notifications"
                             className="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
                             onClick={() => setActiveDropdown(null)}
                           >
@@ -302,9 +333,9 @@ export default function Navbar() {
                               <Bell className="w-5 h-5 opacity-70" />
                               Notifications
                             </div>
-                            {unreadCount > 0 && (
+                            {notificationCount > 0 && (
                               <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                                {unreadCount}
+                                {notificationCount}
                               </span>
                             )}
                           </Link>
@@ -334,7 +365,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden gap-4">
-            {status === "authenticated" && unreadCount > 0 && (
+            {status === "authenticated" && notificationCount > 0 && (
               <Link
                 href="/user/dashboard?tab=notifications"
                 className="relative p-2 rounded-full bg-gray-100 text-gray-600"
@@ -465,6 +496,14 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                   <Link
+                    href="/user/dashboard?tab=wallet"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold"
+                  >
+                    <Briefcase className="w-5 h-5 text-gray-400" />
+                    Wallet
+                  </Link>
+                  <Link
                     href="/user/dashboard?tab=notifications"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold"
@@ -473,9 +512,9 @@ export default function Navbar() {
                       <Bell className="w-5 h-5 text-gray-400" />
                       Notifications
                     </div>
-                    {unreadCount > 0 && (
+                    {notificationCount > 0 && (
                       <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-bold">
-                        {unreadCount}
+                        {notificationCount}
                       </span>
                     )}
                   </Link>

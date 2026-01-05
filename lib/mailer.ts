@@ -560,3 +560,65 @@ export async function sendBookingRescheduledEmail(
     console.log(error.message);
   }
 }
+
+// NEW: Function to notify parties when funds are released
+export async function sendFundsReleasedEmail(
+  toEmail: string,
+  userName: string,
+  deviceName: string,
+  role: "owner" | "renter",
+  amountKobo?: number,
+  userId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject =
+    role === "owner"
+      ? `Earnings Credited: ${deviceName}`
+      : `Funds Released: ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  let messageBody = "";
+  if (role === "owner") {
+    messageBody = `<p>Good news! Your earnings for the rental of <strong>${deviceName}</strong> have been released and credited to your wallet.</p>
+    <p><strong>Amount:</strong> ₦${(amountKobo / 100).toFixed(2)}</p>
+    <p>Please take a moment to review the renter in your dashboard.</p>`;
+  } else {
+    messageBody = `<p>The funds for your rental of <strong>${deviceName}</strong> have been released to the owner.</p>
+    <p>We hope you had a great experience! Please take a moment to review the device and the owner.</p>`;
+  }
+
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    ${messageBody}
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\n${subject}\n\n${messageBody.replace(
+    /<[^>]*>/g,
+    ""
+  )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message:
+          role === "owner"
+            ? `Earnings of ₦${(amountKobo / 100).toFixed(
+                2
+              )} from ${deviceName} have been credited.`
+            : `Funds for ${deviceName} have been released. Please leave a review!`,
+        link: dashboardLink,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
