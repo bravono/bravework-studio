@@ -1,0 +1,653 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model budget_ranges {
+  budget_range_id     Int                 @default(autoincrement())
+  range_value         String?             @db.VarChar
+  product_category_id Int?                @db.SmallInt
+  product_categories  product_categories? @relation(fields: [product_category_id], references: [category_id], onDelete: NoAction, map: "constraint_product_category")
+
+  @@ignore
+}np
+
+model challenges {
+  challenge_id Int         @id @default(autoincrement())
+  project_id   Int
+  title        String      @db.VarChar(255)
+  orders       orders      @relation(fields: [project_id], references: [order_id], onDelete: NoAction, map: "fk_challenges_projects1")
+  solutions    solutions[]
+
+  @@index([project_id], map: "fk_challenges_projects1_idx")
+}
+
+model coupons {
+  coupon_id       Int             @id @default(autoincrement())
+  coupon_code     String          @db.VarChar(45)
+  discount_amount Decimal         @db.Decimal(5, 2)
+  created_date    DateTime        @db.Timestamp(6)
+  expiration_date DateTime        @db.Timestamp(6)
+  usage_limit     Int
+  order_coupons   order_coupons[]
+  user_coupons    user_coupons[]
+}
+
+model course_categories {
+  category_id   Int     @id @default(autoincrement())
+  category_name String  @db.VarChar(100)
+  description   String?
+}
+
+model course_enrollments {
+  course_id            Int
+  user_id              Int
+  preferred_session_id Int
+  enrolment_id         Int       @id @default(autoincrement())
+  payment_status       Int?      @default(3)
+  enrollment_date      DateTime? @default(now()) @db.Timestamp(6)
+  courses              courses   @relation(fields: [course_id], references: [course_id], onDelete: NoAction, map: "fk_course_enrollment_courses1")
+  users                users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, map: "fk_course_enrollment_users1")
+  sessions             sessions  @relation(fields: [preferred_session_id], references: [session_id], onDelete: Cascade, map: "fk_preferred_session")
+
+  @@unique([user_id, course_id], map: "unique_user_course_enrollment")
+  @@index([user_id], map: "fk_course_enrollment_users1_idx")
+}
+
+model course_tags {
+  course_tag_id Int     @id @default(autoincrement())
+  course_id     Int
+  tag_id        Int
+  courses       courses @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction)
+  tags          tags    @relation(fields: [tag_id], references: [tag_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([course_id, tag_id])
+}
+
+model course_tools {
+  course_tool_id Int     @id @default(autoincrement())
+  course_id      Int
+  tool_id        Int
+  courses        courses @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+  tools          tools   @relation(fields: [tool_id], references: [tool_id], onDelete: Cascade)
+
+  @@unique([course_id, tool_id])
+}
+
+model courses {
+  course_id           Int                  @id @default(autoincrement())
+  title               String               @db.VarChar(255)
+  description         String
+  is_active           Boolean?             @default(false)
+  start_date          DateTime?            @db.Timestamptz(6)
+  end_date            DateTime?            @db.Timestamptz(6)
+  instructor_id       Int?
+  max_students        Int?
+  price_in_kobo       Int?                 @default(0)
+  thumbnail_url       String?
+  course_category_id  Int?
+  level               String?              @db.VarChar(50)
+  language            String?              @db.VarChar(50)
+  tag_id              Int?
+  created_at          DateTime?            @default(now()) @db.Timestamp(6)
+  early_bird_discount Int?
+  discount_start_date DateTime?            @db.Date
+  discount_end_date   DateTime?            @db.Date
+  slug                String?              @unique @db.VarChar(255)
+  content             String?
+  excerpt             String?
+  updated_at          DateTime?            @default(now()) @db.Timestamp(6)
+  age_bracket         String?              @db.VarChar(50)
+  course_enrollments  course_enrollments[]
+  course_tags         course_tags[]
+  course_tools        course_tools[]
+  instructors         instructors?         @relation(fields: [instructor_id], references: [instructor_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_course_instructor")
+  sessions            sessions[]
+}
+
+model custom_offer_statuses {
+  offer_status_id Int             @id @default(autoincrement())
+  name            String          @db.VarChar(50)
+  custom_offers   custom_offers[]
+}
+
+model custom_offers {
+  offer_id                              Int                   @id @default(autoincrement())
+  order_id                              Int
+  user_id                               Int
+  offer_amount_in_kobo                  Int
+  description                           String
+  created_at                            DateTime?             @default(now()) @db.Timestamp(6)
+  status_id                             Int
+  expires_at                            DateTime?             @default(dbgenerated("(now() + '48:00:00'::interval)")) @db.Timestamptz(6)
+  rejection_reason                      String?
+  project_duration_days                 Int?
+  updated_at                            DateTime?             @default(now()) @db.Timestamptz(6)
+  custom_offer_statuses                 custom_offer_statuses @relation(fields: [status_id], references: [offer_status_id], onDelete: NoAction, map: "fk_offer_status")
+  orders_custom_offers_order_idToorders orders                @relation("custom_offers_order_idToorders", fields: [order_id], references: [order_id], onDelete: Cascade, map: "fk_order_id")
+  users                                 users                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "fk_user_id")
+  orders_orders_offer_idTocustom_offers orders[]              @relation("orders_offer_idTocustom_offers")
+}
+
+model instructors {
+  instructor_id Int       @id @default(autoincrement())
+  first_name    String    @db.VarChar(50)
+  last_name     String    @db.VarChar(50)
+  bio           String?
+  photo_url     String?
+  email         String?   @unique @db.VarChar(255)
+  courses       courses[]
+}
+
+model invoices {
+  invoice_id        Int               @id @default(autoincrement())
+  order_id          Int
+  total_amount      Decimal           @db.Decimal(5, 2)
+  date              DateTime          @db.Timestamp(6)
+  due_date          DateTime?         @db.Date
+  payment_status_id Int?              @db.SmallInt
+  user_id           Int?
+  payment_statuses  payment_statuses? @relation(fields: [payment_status_id], references: [payment_status_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_payment_status")
+  users             users?            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user")
+
+  @@index([order_id], map: "fk_invoices_orders1_idx")
+}
+
+model job_app_app_files {
+  job_application_id    Int
+  application_file_id   Int
+  job_application_files job_application_files @relation(fields: [application_file_id], references: [application_file_id], onDelete: NoAction, onUpdate: NoAction, map: "application_application_files_application_file_id_fkey")
+  job_applications      job_applications      @relation(fields: [job_application_id], references: [job_application_id], onDelete: NoAction, onUpdate: NoAction, map: "application_application_files_application_id_fkey")
+
+  @@id([job_application_id, application_file_id], map: "application_application_files_pkey")
+}
+
+model job_app_statuses {
+  status_id        Int                @id @default(autoincrement())
+  status_name      String             @db.VarChar(50)
+  job_applications job_applications[]
+}
+
+model job_application_files {
+  application_file_id Int                 @id(map: "application_files_pkey") @default(autoincrement())
+  file_name           String?             @db.VarChar(255)
+  file_size           String?             @db.VarChar(45)
+  file_url            String?
+  job_application_id  Int?
+  created_at          DateTime            @default(dbgenerated("'2025-07-06 08:22:45.360158+01'::timestamp with time zone")) @db.Timestamptz(6)
+  job_app_app_files   job_app_app_files[]
+  job_applications    job_applications?   @relation(fields: [job_application_id], references: [job_application_id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_1")
+}
+
+model job_applications {
+  job_application_id    Int                     @id(map: "applications_pkey") @default(autoincrement())
+  role                  String?                 @db.VarChar(45)
+  first_name            String?                 @db.VarChar(45)
+  last_name             String?                 @db.VarChar(45)
+  email                 String?                 @db.VarChar(255)
+  phone                 String?                 @db.VarChar(45)
+  portfolio             String?                 @db.VarChar(255)
+  experience            String?                 @db.VarChar(45)
+  availability          String?                 @db.VarChar(45)
+  cover_letter          String?                 @db.VarChar(255)
+  created_at            DateTime?               @default(dbgenerated("'2025-06-27 15:18:28.071445+01'::timestamp with time zone")) @db.Timestamptz(6)
+  updated_at            DateTime?               @default(dbgenerated("'2025-06-27 15:18:28.40919+01'::timestamp with time zone")) @db.Timestamptz(6)
+  status_id             Int?
+  job_app_app_files     job_app_app_files[]
+  job_application_files job_application_files[]
+  job_app_statuses      job_app_statuses?       @relation(fields: [status_id], references: [status_id], onDelete: NoAction, map: "fk_status_id")
+}
+
+model notifications {
+  notification_id Int       @id @default(autoincrement())
+  user_id         Int
+  title           String    @db.VarChar(255)
+  message         String
+  is_read         Boolean   @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  link            String?   @db.VarChar(255)
+  users           users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_notifications_created_at")
+  @@index([user_id], map: "idx_notifications_user_id")
+}
+
+model order_coupons {
+  order_id  Int
+  coupon_id Int
+  coupons   coupons @relation(fields: [coupon_id], references: [coupon_id], onDelete: NoAction, map: "fk_ordercoupons_coupon1")
+
+  @@id([order_id, coupon_id])
+  @@index([coupon_id], map: "fk_ordercoupons_coupon1_idx")
+}
+
+model order_files {
+  order_file_id     Int                 @id @default(autoincrement())
+  file_name         String?             @db.VarChar(255)
+  file_size         String?             @db.VarChar(45)
+  file_url          String
+  order_id          Int?                @db.SmallInt
+  created_at        DateTime            @default(dbgenerated("'2025-07-06 08:30:35.152621+01'::timestamp with time zone")) @db.Timestamptz(6)
+  orders            orders?             @relation(fields: [order_id], references: [order_id], onDelete: Cascade, map: "constraint_2")
+  order_order_files order_order_files[]
+}
+
+model order_order_files {
+  order_id      Int
+  order_file_id Int
+  order_files   order_files @relation(fields: [order_file_id], references: [order_file_id], onDelete: NoAction, map: "fk_orderorderfiles_orderfiles1")
+
+  @@id([order_id, order_file_id])
+  @@index([order_file_id], map: "fk_orderorderfiles_orderfiles1_idx")
+}
+
+model orders {
+  order_id                                     Int                     @id(map: "projects_pkey") @default(autoincrement())
+  user_id                                      Int
+  category_id                                  Int
+  title                                        String?                 @db.VarChar(255)
+  project_description                          String?
+  start_date                                   DateTime?               @db.Timestamp(6)
+  end_date                                     DateTime?               @db.Timestamp(6)
+  thumbnail                                    String?                 @db.VarChar(255)
+  payment_status_id                            Int?
+  budget_range                                 String?                 @db.VarChar(45)
+  timeline                                     String?                 @db.VarChar(45)
+  total_expected_amount_kobo                   Int                     @default(0)
+  amount_paid_to_date_kobo                     Int                     @default(0)
+  created_at                                   DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime?               @default(now()) @db.Timestamptz(6)
+  is_portfolio                                 Boolean?                @default(false)
+  tracking_id                                  String?                 @db.VarChar(100)
+  offer_id                                     Int?
+  challenges                                   challenges[]
+  custom_offers_custom_offers_order_idToorders custom_offers[]         @relation("custom_offers_order_idToorders")
+  order_files                                  order_files[]
+  custom_offers_orders_offer_idTocustom_offers custom_offers?          @relation("orders_offer_idTocustom_offers", fields: [offer_id], references: [offer_id], onDelete: NoAction, map: "fk_offer")
+  product_categories                           product_categories      @relation(fields: [category_id], references: [category_id], onDelete: Cascade, map: "fk_product_category1")
+  users                                        users                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "fk_projects_admins")
+  payments                                     payments[]
+  project_owner                                project_owner[]
+  project_status_status                        project_status_status[]
+  project_tools                                project_tools[]
+  referral_earnings                            referral_earnings[]
+  todos                                        todos[]
+  wallet_usages                                wallet_usages[]
+
+  @@index([user_id], map: "fk_projects_admins_idx")
+  @@index([category_id], map: "fk_projects_category1_idx")
+}
+
+model payment_statuses {
+  payment_status_id Int        @id @default(autoincrement())
+  name              String?    @db.VarChar(45)
+  invoices          invoices[]
+}
+
+model payments {
+  payment_id                  Int       @id @default(autoincrement())
+  order_id                    Int?
+  paystack_reference          String    @unique @db.VarChar(255)
+  amount_kobo                 Int
+  currency                    String    @db.VarChar(10)
+  paystack_status             String    @db.VarChar(45)
+  gateway_response            String?
+  customer_email              String    @db.VarChar(255)
+  is_fraudulent               Boolean   @default(false)
+  created_at                  DateTime? @default(dbgenerated("'2025-06-20 08:45:26.581799+01'::timestamp with time zone")) @db.Timestamptz(6)
+  updated_at                  DateTime? @default(dbgenerated("'2025-06-20 07:45:26.581799'::timestamp without time zone")) @db.Timestamp(6)
+  payment_option_selected     String?   @db.VarChar(50)
+  discount_applied_percentage Decimal?  @db.Decimal(5, 2)
+  rental_booking_id           Int?
+  orders                      orders?   @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "constraint_1")
+}
+
+model product_budget_ranges {
+  product_budget_range_id Int                 @id @default(autoincrement())
+  project_category_id     Int?                @db.SmallInt
+  budget_range_id         Int?                @db.SmallInt
+  product_categories      product_categories? @relation(fields: [project_category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_1")
+}
+
+model product_categories {
+  category_id           Int                     @id @default(autoincrement())
+  category_name         String                  @unique(map: "category_name_unique") @db.VarChar(45)
+  category_description  String?                 @db.VarChar(255)
+  accepted_files        String?                 @db.VarChar(255)
+  budget_ranges         budget_ranges[]         @ignore
+  orders                orders[]
+  product_budget_ranges product_budget_ranges[]
+  products              products[]
+}
+
+model product_orders {
+  order_id   Int
+  product_id Int
+  products   products @relation(fields: [product_id], references: [product_id], onDelete: NoAction, map: "fk_productorders_products1")
+
+  @@id([order_id, product_id])
+  @@index([order_id], map: "fk_ordercoupons_orders1_idx")
+  @@index([product_id], map: "fk_productorders_products1_idx")
+}
+
+model products {
+  product_id         Int                @id @default(autoincrement())
+  category_id        Int
+  name               String             @unique(map: "name_unique") @db.VarChar(45)
+  description        String             @db.VarChar(255)
+  price              Decimal            @db.Decimal(5, 2)
+  product_orders     product_orders[]
+  product_categories product_categories @relation(fields: [category_id], references: [category_id], onDelete: NoAction, map: "fk_products_category1")
+
+  @@index([category_id], map: "fk_products_category1_idx")
+}
+
+model project_owner {
+  userid    Int
+  projectid Int
+  orders    orders @relation(fields: [projectid], references: [order_id], onDelete: NoAction, map: "fk_project_owner_projects1")
+  users     users  @relation(fields: [userid], references: [user_id], onDelete: NoAction, map: "fk_project_owner_users1")
+
+  @@id([userid, projectid])
+  @@index([projectid], map: "fk_projectowner_projects1_idx")
+}
+
+model project_status {
+  project_status_id     Int                     @id @default(autoincrement())
+  status                String                  @db.VarChar(45)
+  project_status_status project_status_status[]
+}
+
+model project_status_status {
+  project_id        Int
+  project_status_id Int
+  project_status    project_status @relation(fields: [project_status_id], references: [project_status_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_project_status_status_project_status1")
+  orders            orders         @relation(fields: [project_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_project_status_status_projects1")
+
+  @@id([project_id, project_status_id])
+  @@index([project_status_id], map: "fk_project_status_status_project_status1_idx")
+}
+
+model project_tools {
+  project_id Int
+  tool_id    Int
+  tools      tools  @relation(fields: [tool_id], references: [tool_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_project_tools_tools1")
+  orders     orders @relation(fields: [project_id], references: [order_id], onDelete: NoAction, map: "fk_projecttools_projects1")
+
+  @@id([project_id, tool_id])
+  @@index([tool_id], map: "fk_project_tools_tools1_idx")
+  @@index([project_id], map: "fk_projecttools_projects1_idx")
+}
+
+model referral_earnings {
+  referral_earning_id                             Int       @id @default(autoincrement())
+  referrer_id                                     Int
+  referred_user_id                                Int
+  amount_kobo                                     BigInt
+  order_id                                        Int?
+  created_at                                      DateTime? @default(now()) @db.Timestamp(6)
+  is_used                                         Boolean?  @default(false)
+  orders                                          orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  users_referral_earnings_referred_user_idTousers users     @relation("referral_earnings_referred_user_idTousers", fields: [referred_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_referral_earnings_referrer_idTousers      users     @relation("referral_earnings_referrer_idTousers", fields: [referrer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rental_bookings {
+  rental_booking_id   Int              @id @default(autoincrement())
+  rental_id           Int
+  client_id           Int
+  start_time          DateTime         @db.Timestamptz(6)
+  end_time            DateTime         @db.Timestamptz(6)
+  total_amount_kobo   Int
+  payment_reference   String?          @db.VarChar(100)
+  created_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  rejection_reason    String?
+  cancellation_reason String?
+  escrow_released     Boolean?         @default(false)
+  updated_at          DateTime?        @default(now()) @db.Timestamp(6)
+  status              String?          @db.VarChar(20)
+  payment_status_id   Int?             @default(3) @db.SmallInt
+  proposed_start_time DateTime?        @db.Timestamptz(6)
+  proposed_end_time   DateTime?        @db.Timestamptz(6)
+  rentals             rentals          @relation(fields: [rental_id], references: [rental_id], onDelete: NoAction, onUpdate: NoAction)
+  rental_reviews      rental_reviews[]
+}
+
+model rental_demands {
+  rental_demand_id Int       @id @default(autoincrement())
+  user_id          Int?
+  location_lat     Decimal?  @db.Decimal(10, 8)
+  location_lng     Decimal?  @db.Decimal(11, 8)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model rental_earnings {
+  rental_earning_id Int       @id @default(autoincrement())
+  user_id           Int?
+  booking_id        Int?
+  amount_kobo       Int?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model rental_images {
+  image_id   Int       @id @default(autoincrement())
+  rental_id  Int?
+  image_name String?   @db.VarChar(255)
+  image_size String?   @db.VarChar(45)
+  image_url  String?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model rental_reviews {
+  rental_review_id  Int             @id @default(autoincrement())
+  rental_booking_id Int
+  reviewer_id       Int
+  reviewee_id       Int
+  rating            Int?
+  comment           String?
+  created_at        DateTime?       @default(now()) @db.Timestamptz(6)
+  rental_bookings   rental_bookings @relation(fields: [rental_booking_id], references: [rental_booking_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rentals {
+  rental_id        Int               @id @default(autoincrement())
+  user_id          Int
+  device_type      String            @db.VarChar(50)
+  device_name      String            @db.VarChar(255)
+  description      String?
+  specs            String?
+  hourly_rate_kobo Int
+  location_city    String            @db.VarChar(100)
+  location_address String?           @db.VarChar(255)
+  location_lat     Decimal?          @db.Decimal(10, 8)
+  location_lng     Decimal?          @db.Decimal(11, 8)
+  has_internet     Boolean?          @default(false)
+  has_backup_power Boolean?          @default(false)
+  approval_status  String?           @default("active") @db.VarChar(20)
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  is_active        Boolean?          @default(true)
+  deleted_at       DateTime?         @db.Timestamptz(6)
+  rental_bookings  rental_bookings[]
+}
+
+model roles {
+  role_id    Int          @id @default(autoincrement())
+  role_name  String       @unique(map: "role_name_unique") @db.VarChar(45)
+  user_roles user_roles[]
+}
+
+model secure_tokens {
+  token      String
+  offer_id   Int?
+  action     String?
+  expires_at DateTime? @db.Timestamptz(6)
+  used       Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  user_id    Int?
+  id         Int       @id @default(autoincrement())
+}
+
+model sessions {
+  session_id         Int                  @id @default(autoincrement())
+  course_id          Int?
+  session_number     Int
+  session_link       String?
+  session_timestamp  DateTime?            @db.Timestamptz(6)
+  hour_per_session   Int?                 @db.SmallInt
+  recording_link     String?
+  session_label      String?              @db.VarChar(45)
+  course_enrollments course_enrollments[]
+  courses            courses?             @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+  student_sessions   student_sessions[]
+}
+
+model solutions {
+  solution_id  Int        @default(autoincrement())
+  challenge_id Int
+  title        String     @db.VarChar(255)
+  challenges   challenges @relation(fields: [challenge_id], references: [challenge_id], onDelete: NoAction, map: "fk_challenges_copy1_challenges1")
+
+  @@id([solution_id, challenge_id])
+  @@index([challenge_id], map: "fk_challenges_copy1_challenges1_idx")
+}
+
+model student_sessions {
+  student_session_id Int       @id @default(autoincrement())
+  user_id            Int
+  session_id         Int
+  finished           Boolean?  @default(false)
+  completed_at       DateTime? @db.Timestamp(6)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+  sessions           sessions  @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction)
+  users              users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, session_id])
+  @@index([finished], map: "idx_student_sessions_finished")
+  @@index([session_id], map: "idx_student_sessions_session_id")
+  @@index([user_id], map: "idx_student_sessions_user_id")
+}
+
+model tags {
+  tag_id      Int           @id @default(autoincrement())
+  tag_name    String?       @db.VarChar(100)
+  course_tags course_tags[]
+}
+
+model testimonials {
+  testimonial_id Int      @id @default(autoincrement())
+  user_id        Int
+  rating         Int
+  review         String?  @db.VarChar(255)
+  date           DateTime @db.Timestamp(6)
+  users          users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, map: "fk_roles_users100")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model timelines {
+  timeline_id         Int
+  timeline_value      String? @db.VarChar
+  timeline_label      String? @db.VarChar
+  product_category_id Int?    @db.SmallInt
+
+  @@ignore
+}
+
+model todos {
+  todo_id    Int    @default(autoincrement())
+  project_id Int
+  titile     String @db.VarChar(255)
+  status     String @db.VarChar(45)
+  orders     orders @relation(fields: [project_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_todos_projects1")
+
+  @@id([todo_id, project_id])
+  @@index([project_id], map: "fk_todos_projects1_idx")
+}
+
+model tools {
+  tool_id       Int             @id @default(autoincrement())
+  name          String          @db.VarChar(45)
+  course_tools  course_tools[]
+  project_tools project_tools[]
+}
+
+model user_coupons {
+  user_id        Int?
+  coupon_id      Int?
+  user_coupon_id Int      @id @default(autoincrement())
+  coupons        coupons? @relation(fields: [coupon_id], references: [coupon_id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_coupon_id")
+  users          users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_user_id")
+}
+
+model user_roles {
+  user_role_id Int    @id @default(autoincrement())
+  role_id      Int?
+  user_id      Int?
+  roles        roles? @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  users        users? @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([role_id, user_id], map: "unique_user_role")
+}
+
+model users {
+  user_id                                                     Int                   @id @default(autoincrement())
+  first_name                                                  String                @db.VarChar(45)
+  last_name                                                   String                @db.VarChar(45)
+  email                                                       String                @unique(map: "email_unique") @db.VarChar(255)
+  password                                                    String?
+  bio                                                         String?               @db.VarChar(255)
+  profile_picture_url                                         String?               @db.VarChar(255)
+  company_name                                                String?               @db.VarChar(255)
+  phone                                                       String?               @db.VarChar(45)
+  created_at                                                  DateTime              @default(dbgenerated("'2025-06-20 09:11:26.304144+01'::timestamp with time zone")) @db.Timestamptz(6)
+  updated_at                                                  DateTime              @default(dbgenerated("'2025-06-20 09:12:14.117883+01'::timestamp with time zone")) @db.Timestamptz(6)
+  last_verification_email_sent_at                             DateTime?             @db.Timestamptz(6)
+  email_verified                                              DateTime?             @db.Timestamptz(6)
+  referral_code                                               String?               @unique @db.VarChar(255)
+  referred_by_id                                              Int?
+  course_enrollments                                          course_enrollments[]
+  custom_offers                                               custom_offers[]
+  invoices                                                    invoices[]
+  notifications                                               notifications[]
+  orders                                                      orders[]
+  project_owner                                               project_owner[]
+  referral_earnings_referral_earnings_referred_user_idTousers referral_earnings[]   @relation("referral_earnings_referred_user_idTousers")
+  referral_earnings_referral_earnings_referrer_idTousers      referral_earnings[]   @relation("referral_earnings_referrer_idTousers")
+  student_sessions                                            student_sessions[]
+  testimonials                                                testimonials[]
+  user_coupons                                                user_coupons[]
+  user_roles                                                  user_roles[]
+  users                                                       users?                @relation("usersTousers", fields: [referred_by_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  other_users                                                 users[]               @relation("usersTousers")
+  verification_tokens                                         verification_tokens[]
+  wallet_usages                                               wallet_usages[]
+}
+
+model verification_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token      String    @unique @db.VarChar(255)
+  expires    DateTime  @db.Timestamptz(6)
+  type       String    @default("email_verification") @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model wallet_usages {
+  wallet_usage_id   Int       @id @default(autoincrement())
+  user_id           Int
+  order_id          Int?
+  amount_kobo       BigInt
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  rental_booking_id Int?
+  orders            orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  users             users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
