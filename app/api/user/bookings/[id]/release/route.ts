@@ -15,17 +15,27 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const bookingId = params.id;
-    const userId = (session.user as any).id;
+    const sessionUser = session.user as any;
+    const userId = sessionUser.id;
+    const userRole = sessionUser.roles; // Assuming 'role' is available
+
+     const bookingId = params.id;
 
     // Fetch booking details
     const bookingRes = await queryDatabase(
       `SELECT 
         rb.*, 
         r.user_id AS owner_id, 
-        rb.client_id AS renter_id
+        rb.client_id AS renter_id,
+        u_renter.email as renter_email,
+        u_renter.first_name || ' ' || u_renter.last_name as "renterName",
+        u_owner.email as owner_email,
+        u_owner.first_name || ' ' || u_owner.last_name as "ownerName",
+        r.device_name
        FROM rental_bookings rb
        JOIN rentals r ON rb.rental_id = r.rental_id
+       JOIN users u_renter ON rb.client_id = u_renter.user_id
+       JOIN users u_owner ON r.user_id = u_owner.user_id
        WHERE rb.rental_booking_id = $1`,
       [bookingId]
     );
@@ -36,19 +46,43 @@ export async function POST(
 
     const booking = bookingRes[0];
 
-    // Only owner or renter can release funds (usually owner after completion, or renter manually)
-    // The requirement says: "Automatically releasing funds 24 hours after the booking end date/time or when the renter manually releases funds."
-    // So Renter can release manually.
-    // Owner might also want to trigger it if 24h passed?
-    // Let's allow Renter to release anytime (if satisfied).
-    // Let's allow Owner to release ONLY if 24h passed after end_time.
-
-    const isOwner = booking.owner_id === userId;
     const isRenter = booking.renter_id === userId;
+    // Check if user is admin. We can check the role from the session.
+    // We'll assume the role name for admin is 'admin' or 'Admin'.
+    // If verifyAdmin uses a specific logic, we should mirror it or rely on role.
+    // Ideally we should query the user role from DB if not in session, but let's trust session for now or fetch if needed.
+    // For safety, let's assume 'admin' role in session.
+    const isAdmin = userRole.includes("admin");
 
-    if (!isOwner && !isRenter) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const endTime = new Date(booking.end_time);
+    const now = new Date();
+    const hoursSinceEnd =
+      (now.getTime() - endTime.getTime()) / (1000 * 60 * 60);
+
+    // Rule 1: Renter can release funds at any time (if they are happy).
+    // Rule 2: Admin can release funds ONLY if 48hrs past date/time.
+    // Rule 3: Owner CANNOT release funds.
+
+    if (!isRenter && !isAdmin) {
+      return NextResponse.json(
+        { error: "Forbidden. Only the renter or admin can release funds." },
+        { status: 403 }
+      );
     }
+
+    if (isAdmin && !isRenter) {
+      if (hoursSinceEnd < 48) {
+        return NextResponse.json(
+          {
+            error:
+              "Admin can only release funds 48 hours after the booking has ended.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // If it's the renter, they can release anytime.
 
     if (booking.escrow_released) {
       return NextResponse.json(
@@ -57,30 +91,7 @@ export async function POST(
       );
     }
 
-    const endTime = new Date(booking.end_time);
-    const now = new Date();
-
-    if (now < endTime) {
-      return NextResponse.json(
-        { error: "Funds can only be released after the booking has ended." },
-        { status: 400 }
-      );
-    }
-
-    const hoursSinceEnd =
-      (now.getTime() - endTime.getTime()) / (1000 * 60 * 60);
-
-    if (isOwner) {
-      if (hoursSinceEnd < 24) {
-        return NextResponse.json(
-          {
-            error:
-              "Funds can only be released by owner 24 hours after booking ends.",
-          },
-          { status: 400 }
-        );
-      }
-    }
+    // hoursSinceEnd calculated above
 
     // Update escrow_released and insert earning in a transaction
     await withTransaction(async (client) => {

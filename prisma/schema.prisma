@@ -415,6 +415,8 @@ model rental_bookings {
   payment_status_id   Int?             @default(3) @db.SmallInt
   proposed_start_time DateTime?        @db.Timestamptz(6)
   proposed_end_time   DateTime?        @db.Timestamptz(6)
+  dispute_reason      String?
+  dispute_date        DateTime?        @db.Timestamptz(6)
   rentals             rentals          @relation(fields: [rental_id], references: [rental_id], onDelete: NoAction, onUpdate: NoAction)
   rental_reviews      rental_reviews[]
 }

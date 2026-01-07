@@ -441,15 +441,32 @@ export default function UserBookingsSection({
                                   </button>
 
                                   {booking.paymentStatus === "paid" && (
-                                    <button
-                                      onClick={() =>
-                                        handleReleaseFunds(booking.id)
-                                      }
-                                      disabled={processingId === booking.id}
-                                      className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-600/20 active:scale-95"
-                                    >
-                                      Release Funds
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          handleReleaseFunds(booking.id)
+                                        }
+                                        disabled={processingId === booking.id}
+                                        className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                                      >
+                                        Release Funds
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setReasonModal({
+                                            isOpen: true,
+                                            bookingId: booking.id,
+                                            status: "dispute",
+                                            title: "File a Dispute",
+                                            confirmText: "Submit Dispute",
+                                          });
+                                        }}
+                                        disabled={processingId === booking.id}
+                                        className="px-6 py-2 bg-red-white text-red-600 border border-red-200 text-sm font-bold rounded-xl hover:bg-red-50 disabled:opacity-50 transition-all active:scale-95"
+                                      >
+                                        Dispute
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               )}
@@ -502,12 +519,38 @@ export default function UserBookingsSection({
         confirmText={reasonModal.confirmText}
         onConfirm={(reason) => {
           if (reasonModal.bookingId) {
-            handleStatusUpdate(
-              reasonModal.bookingId,
-              reasonModal.status,
-              reason
-            );
-            setReasonModal((prev) => ({ ...prev, isOpen: false }));
+            if (reasonModal.status === "dispute") {
+              // Handle dispute submission
+              setProcessingId(reasonModal.bookingId);
+              fetch(`/api/user/bookings/${reasonModal.bookingId}/dispute`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason }),
+              })
+                .then(async (res) => {
+                  const data = await res.json();
+                  if (!res.ok)
+                    throw new Error(data.error || "Failed to submit dispute");
+                  toast.success(
+                    "Dispute submitted. We will verify your claim with the owner."
+                  );
+                  setReasonModal((prev) => ({ ...prev, isOpen: false }));
+                  fetchBookings();
+                })
+                .catch((err) => {
+                  toast.error(err.message);
+                })
+                .finally(() => {
+                  setProcessingId(null);
+                });
+            } else {
+              handleStatusUpdate(
+                reasonModal.bookingId,
+                reasonModal.status,
+                reason
+              );
+              setReasonModal((prev) => ({ ...prev, isOpen: false }));
+            }
           }
         }}
         isLoading={processingId === reasonModal.bookingId}
