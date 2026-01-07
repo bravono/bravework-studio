@@ -147,7 +147,7 @@ export default function RentalDetailsPage() {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Image Section */}
-            <div className="relative h-96 lg:h-auto bg-gray-200">
+            <div className="relative h-96 lg:h-[600px] bg-gray-200 overflow-hidden">
               <img
                 src={images[currentImageIndex]}
                 alt={rental.deviceName}
