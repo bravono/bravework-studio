@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import { Mesh, AnimationMixer } from "three";
 import { useGLTF } from "@react-three/drei";
 
@@ -34,14 +35,33 @@ export default function Hero3D() {
 
   useFrame((state, delta) => {
     mixerRef.current?.update(delta);
+
+    // Cursor following logic
+    if (scene) {
+      // Scale mouse position to desired rotation range
+      const targetRotationX = state.mouse.y * 0.2;
+      const targetRotationY = state.mouse.x * 0.2;
+
+      // Smoothly interpolate rotation
+      scene.rotation.x = THREE.MathUtils.lerp(
+        scene.rotation.x,
+        targetRotationX,
+        0.1
+      );
+      scene.rotation.y = THREE.MathUtils.lerp(
+        scene.rotation.y,
+        targetRotationY,
+        0.1
+      );
+    }
   });
 
   return (
     <primitive
       object={scene}
-      scale={isMobile ? 8 : 2.5}
-      position={isMobile ? [0, -8, 0] : [1, -1.3, 5]}
-      rotation={isMobile ? [0, -0.7, 0] : [0, -0.55, 0]}
+      scale={isMobile ? 8 : 3.5}
+      position={isMobile ? [0, -8, 0] : [0, -1.5, 4]}
+      rotation={isMobile ? [0, -0.7, 0] : [0, 0, 0]}
     />
   );
 }

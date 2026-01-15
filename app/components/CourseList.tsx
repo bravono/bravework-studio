@@ -5,6 +5,7 @@ import { ShowMore } from "@re-dev/react-truncate";
 import { Calendar, Award, Hourglass, DollarSign, Filter } from "lucide-react";
 
 import Link from "next/link";
+import { Outfit, Inter } from "next/font/google";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
@@ -19,6 +20,15 @@ import ArrowButton from "./ArrowButton";
 import CourseFilters from "./CourseFilters";
 import { Course } from "../types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 export default function coursesPage({ page }) {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -78,7 +88,7 @@ export default function coursesPage({ page }) {
 
   const coursesToDisplay = atHome ? courses.slice(0, 4) : filteredCourses;
 
-  const courseHeading = atHome ? `text-white` : `text-secondary-dark`;
+  const courseHeading = atHome ? `text-gray-900` : `text-secondary-dark`;
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories((prev) =>
@@ -124,17 +134,17 @@ export default function coursesPage({ page }) {
     <>
       <section
         className={`${
-          page === "home" ? "dark:bg-gray-900" : ""
-        } py-16 px-4 sm:px-6 lg:px-8`}
+          page === "home" ? "bg-white" : ""
+        } py-24 px-4 sm:px-6 lg:px-8 border-t border-gray-100`}
       >
         <div className="text-center mb-16">
           <h1
-            className={`${courseHeading} text-5xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900`}
+            className={`${courseHeading} text-5xl md:text-7xl font-black tracking-tight mb-6 ${outfit.className}`}
           >
             Available Courses
           </h1>
           <p
-            className={`${courseHeading} text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed`}
+            className={`${courseHeading} text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed ${inter.className}`}
           >
             Empowering young minds and professionals with technology education
             through fun and engaging courses.

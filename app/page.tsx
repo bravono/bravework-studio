@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Nosifer, Inter } from "next/font/google";
+import { Outfit, Inter } from "next/font/google";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import TestimonialCarousel from "./components/TestimonialCarousel";
@@ -14,9 +14,9 @@ import { ArrowRight } from "lucide-react";
 import CourseList from "./components/CourseList";
 import ArrowButton from "./components/ArrowButton";
 
-const nosifer = Nosifer({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "600", "700", "900"],
 });
 const inter = Inter({
   subsets: ["latin"],
@@ -77,14 +77,24 @@ export default function Home() {
           <Suspense fallback={<div className="bg-gray-900 w-full h-full" />}>
             <Canvas
               camera={{
-                position: [1, 4.3, 7],
-                fov: 50,
+                position: [0, 0, 10],
+                fov: 45,
               }}
             >
-              <ambientLight intensity={1} color={"#b8c971"} />
-              <pointLight position={[10, 10, 10]} color={"#b8c971"} />
+              <ambientLight intensity={1.5} color={"#ffffff"} />
+              <pointLight
+                position={[10, 10, 10]}
+                intensity={2}
+                color={"#4ade80"}
+              />
+              <spotLight
+                position={[-10, 10, 10]}
+                angle={0.15}
+                penumbra={1}
+                intensity={1}
+                color={"#3b82f6"}
+              />
 
-              <OrbitControls />
               <Hero3DComponent />
             </Canvas>
           </Suspense>
@@ -106,7 +116,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className={`text-4xl sm:text-6xl lg:text-8xl font-black text-white drop-shadow-lg ${nosifer.className}`}
+            className={`text-4xl sm:text-7xl lg:text-9xl font-black text-white drop-shadow-2xl tracking-tight ${outfit.className}`}
           >
             Bravework Studio
           </motion.h1>
@@ -143,7 +153,7 @@ export default function Home() {
             included.
           </motion.p>
 
-          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"}/>
+          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"} />
           {/* Freelance Platforms Order Options */}
           <div className="mt-8 flex flex-col items-center">
             <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
@@ -205,10 +215,13 @@ export default function Home() {
       <CourseList page="home" />
 
       {/* Services Section */}
-      <section id="services" className="py-20 bg-gray-50">
+      <section
+        id="services"
+        className="py-24 bg-gray-950 border-y border-gray-800"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2
-            className={`text-4xl sm:text-5xl font-extrabold text-center mb-12 text-gray-900 drop-shadow ${nosifer.className} `}
+            className={`text-4xl sm:text-6xl font-black text-center mb-16 text-white drop-shadow-lg ${outfit.className} `}
           >
             Our Services
           </h2>
@@ -216,16 +229,16 @@ export default function Home() {
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-white rounded-3xl shadow-lg p-8 text-center transform transition duration-300 hover:scale-105 hover:shadow-2xl border border-gray-200"
+                className="bg-gray-900/50 backdrop-blur-xl rounded-3xl p-8 text-center transform transition duration-500 hover:scale-[1.02] hover:bg-gray-900 border border-gray-800 group"
               >
                 <div className="mb-4 inline-block p-4 rounded-full text-6xl">
                   {/* Assuming service.icon is a React component */}
                   {service.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-green-400 transition-colors">
                   {service.title}
                 </h3>
-                <p className="text-gray-600 text-lg mb-4">
+                <p className="text-gray-400 text-lg mb-6 leading-relaxed">
                   {service.description}
                 </p>
                 <a
