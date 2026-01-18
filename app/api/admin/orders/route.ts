@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         o.created_at AS date,
         o.start_date AS "dateStarted",
         o.end_date AS "dateCompleted",
-        o.order_status_id AS status,
+        o.payment_status_id AS status,
         o.total_expected_amount_kobo AS amount,
         o.amount_paid_to_date_kobo AS "amountPaid",
         o.user_id AS "clientId",
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
       JOIN product_categories pc ON o.category_id = pc.category_id
-      JOIN order_statuses os ON o.order_status_id = os.order_status_id
+      JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
       ORDER BY o.created_at DESC;
     `;
 
@@ -70,7 +70,7 @@ export async function PATCH(request: Request) {
     const {
       clientId, // user_id
       service, // category_id
-      status, // order_status_id
+      status, // payment_status_id
       budget, // budget_range
       amountPaid, // amount_paid_to_date_kobo
       projectDescription, // project_description
@@ -95,7 +95,7 @@ export async function PATCH(request: Request) {
       updateParams.push(service);
     }
     if (status !== undefined) {
-      updateFields.push(`order_status_id = $${paramIndex++}`);
+      updateFields.push(`payment_status_id = $${paramIndex++}`);
       updateParams.push(status);
     }
     if (budget !== undefined) {
@@ -147,7 +147,7 @@ export async function PATCH(request: Request) {
       RETURNING
         order_id AS id, category_id AS service, created_at AS date,
         project_description AS description, budget_range AS amount, timeline,
-        order_status_id AS status, amount_paid_to_date_kobo AS "amountPaid",
+        payment_status_id AS status, amount_paid_to_date_kobo AS "amountPaid",
         user_id AS "clientId", is_portfolio AS "isPortfolio",
         start_date AS "dateStarted", end_date AS "dateCompleted", -- Returning new date columns
         tracking_id AS "trackingId";
@@ -160,6 +160,26 @@ export async function PATCH(request: Request) {
         { error: "Order not found or no update performed" },
         { status: 404 }
       );
+    }
+
+    // Add notification for the user
+    try {
+      const order = result[0];
+      const notificationTitle = "Order Updated";
+      const notificationMessage = `Your order (ID: ${orderId}) has been updated by the admin.`;
+      const notificationLink = `/user/dashboard/orders/${orderId}`;
+
+      await queryDatabase(
+        "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
+        [
+          order.clientId,
+          notificationTitle,
+          notificationMessage,
+          notificationLink,
+        ]
+      );
+    } catch (notifError) {
+      console.error("Error creating order update notification:", notifError);
     }
 
     return NextResponse.json(result[0]);

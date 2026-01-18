@@ -12,6 +12,8 @@ import {
   Eye,
   Settings,
   LogOut,
+  ChevronLeft,
+  CalendarCheck,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -32,6 +34,7 @@ import AdminInvoicesSection from "./AdminInvoicesSection";
 import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
 import AdminCourseSection from "./AdminCourseSection";
+import AdminBookingsSection from "./AdminBookingsSection";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -44,6 +47,7 @@ const navItems = [
   { id: "users", label: "Users Management", icon: <Users size={20} /> },
   { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
+  { id: "bookings", label: "Bookings", icon: <CalendarCheck size={20} /> },
   {
     id: "job-applications",
     label: "Job Applications",
@@ -212,6 +216,12 @@ export default function AdminDashboardClient({
                 >
                   Manage Invoices
                 </button>
+                <button
+                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  onClick={() => setActiveTab("bookings")}
+                >
+                  Manage Bookings
+                </button>
                 <Link
                   href="/admin/reports"
                   className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
@@ -256,6 +266,8 @@ export default function AdminDashboardClient({
         return <AdminInvoicesSection />;
       case "job-applications":
         return <AdminJobApplicationsSection />;
+      case "bookings":
+        return <AdminBookingsSection />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
@@ -416,7 +428,16 @@ export default function AdminDashboardClient({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
+        {activeTab !== "overview" && (
+          <button
+            onClick={() => setActiveTab("overview")}
+            className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-indigo-600 dark:bg-indigo-500 rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:scale-105"
+          >
+            <ChevronLeft size={20} />
+            Back to Overview
+          </button>
+        )}
         <div className="w-full">{renderContent()}</div>
       </main>
     </div>

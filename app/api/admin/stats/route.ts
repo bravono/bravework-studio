@@ -35,9 +35,9 @@ export async function GET(request: Request) {
     stats.totalRevenue = parseFloat(totalRevenueResult[0].sum || "0");
 
     // Pending Orders
-    //'Pending' is a valid status in  'order_statuses' table and '3' is the ID for pending orders
+    //'Pending' is a valid status in  'payment_statuses' table and '3' is the ID for pending orders
     const pendingOrdersResult = await queryDatabase(
-      "SELECT COUNT(*) FROM orders WHERE order_status_id = '3'"
+      "SELECT COUNT(*) FROM orders WHERE payment_status_id = '3'"
     );
     stats.pendingOrders = parseInt(pendingOrdersResult[0].count || "0", 10);
 

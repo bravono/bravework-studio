@@ -168,7 +168,7 @@ export default function Footer() {
               <li>3D Modeling & Animation</li>
               <li>Web Development</li>
               <li>UI/UX Design</li>
-              <li>Kids Training Programs</li>
+              <li>Training Programs</li>
               <li>Game Development</li>
               <li>Voice-Over Services</li>
             </ul>

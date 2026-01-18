@@ -6,6 +6,7 @@ import { createTrackingId } from "@/lib/utils/tracking";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { sendOrderReceivedEmail, sendVerificationEmail } from "@/lib/mailer";
+import { createZohoLead } from "@/lib/zoho";
 import Joi from "joi";
 
 // Define Joi schemas
@@ -239,11 +240,11 @@ export async function POST(req: Request) {
 
         // Fetch 'pending' order status
         const paymentStatusResult = await client.query(
-          "SELECT order_status_id FROM order_statuses WHERE name = $1",
+          "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
           [paymentStatus]
         );
 
-        const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
+        const paymentStatusId = paymentStatusResult.rows[0].payment_status_id;
 
         const existingCourse = await client.query(
           "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
@@ -280,7 +281,7 @@ export async function POST(req: Request) {
 
         const orderResult = await client.query(
           `INSERT INTO orders 
-          (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
+          (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
           [
             userId,
@@ -301,6 +302,27 @@ export async function POST(req: Request) {
 
         orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
+
+        // Integrate Zoho CRM for Free Courses
+        if (price === 0) {
+          try {
+            const leadData = {
+              Last_Name: name,
+              Email: email,
+              Description: `Enrolled in Free Course: ${courseTitle}\nSession: ${sessionNumber}`,
+              Lead_Source: "Free Course Enrollment",
+            };
+            await createZohoLead(leadData);
+            console.log(
+              `Zoho Lead created for free course enrollment: ${email}`
+            );
+          } catch (zohoError) {
+            console.error(
+              "Failed to create Zoho Lead for free course:",
+              zohoError
+            );
+          }
+        }
 
         return { userId, isNewUser: !session };
       }

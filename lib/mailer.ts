@@ -1,8 +1,12 @@
 // app/lib/mailer.ts
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer"; // Import Mail type for transporter
+
 import { format } from "date-fns"; // Import date-fns for formatting expiry
+
 import { generateSecureToken, verifySecureToken } from "./utils/generateToken"; // Import your secure token generation utility
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+import { createNotification, getUserIdByEmail } from "./notifications";
 
 interface SendEmailOptions {
   toEmail: string;
@@ -139,7 +143,6 @@ export async function sendPasswordResetEmail(
   resetLink: string,
   expiration: number
 ) {
-
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
     console.error("Email transporter not initialized! Cannot send email.");
@@ -169,7 +172,8 @@ export async function sendOrderReceivedEmail(
   toEmail: string,
   userName: string,
   orderId: string,
-  course?: string
+  course?: string,
+  userId?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -198,6 +202,19 @@ export async function sendOrderReceivedEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: course
+          ? `Thank you for enrolling in ${course}. We have received your order (ID: ${orderId}).`
+          : `We have received your order (ID: ${orderId}). We will review it and send you a custom offer soon.`,
+        link: `/user/dashboard/orders/${orderId}`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -208,7 +225,8 @@ export async function sendPaymentReceivedEmail(
   toEmail: string,
   userName: string,
   orderId: string,
-  course?: string
+  course?: string,
+  userId?: string
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -235,6 +253,19 @@ export async function sendPaymentReceivedEmail(
 
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: course
+          ? `We have received your payment for course ${course}. (Order ID: ${orderId})`
+          : `Payment received for Order ID: ${orderId}. Your project is now underway!`,
+        link: `/user/dashboard/orders/${orderId}`,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }
@@ -258,7 +289,6 @@ export async function sendCustomOfferNotificationEmail(
   }
   const subject = "New Custom Offer from Bravework Studio!";
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}`; // Link to their dashboard offer details page
-  const KOBO_PER_NAIRA = 100;
 
   // Directly using offerId in URL for accept/reject is INSECURE for production.
   // Example of a more secure approach (requires backend token generation/verification):
@@ -336,6 +366,258 @@ export async function sendCustomOfferNotificationEmail(
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    await createNotification({
+      userId: userId,
+      title: subject,
+      message: `You have a new custom offer for Order ID: ${orderId}. Amount: $${(
+        offerAmount /
+        KOBO_PER_NAIRA /
+        1550
+      ).toLocaleString()}`,
+      link: `/user/dashboard/notifications?offerId=${offerId}`,
+    });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to send booking request email to owner
+export async function sendBookingRequestEmail(
+  toEmail: string,
+  ownerName: string,
+  renterName: string,
+  deviceName: string,
+  bookingId: string,
+  startTime: string,
+  endTime: string,
+  totalAmount: number,
+  ownerId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `New Booking Request for ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`; // Link to My Listings
+
+  const htmlContent = `
+    <p>Hello ${ownerName},</p>
+    <p>You have a new booking request from <strong>${renterName}</strong> for your device <strong>${deviceName}</strong>.</p>
+    <p><strong>Booking ID:</strong> ${bookingId}</p>
+    <p><strong>Start Time:</strong> ${new Date(startTime).toLocaleString()}</p>
+    <p><strong>End Time:</strong> ${new Date(endTime).toLocaleString()}</p>
+    <p><strong>Total Amount:</strong> ₦${totalAmount.toLocaleString()}</p>
+    <p>Please log in to your dashboard to accept or decline this request.</p>
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${ownerName},\n\nYou have a new booking request from ${renterName} for your device ${deviceName}.\n\nBooking ID: ${bookingId}\nStart Time: ${new Date(
+    startTime
+  ).toLocaleString()}\nEnd Time: ${new Date(
+    endTime
+  ).toLocaleString()}\nTotal Amount: ₦${totalAmount.toLocaleString()}\n\nPlease log in to your dashboard to accept or decline this request:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to owner
+    const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
+    if (finalOwnerId) {
+      await createNotification({
+        userId: finalOwnerId,
+        title: subject,
+        message: `${renterName} requested a booking for ${deviceName}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to send booking status update email
+export async function sendBookingStatusEmail(
+  toEmail: string,
+  userName: string,
+  deviceName: string,
+  status: string,
+  reason?: string,
+  userId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `Booking Update: ${deviceName} - ${status.toUpperCase()}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  let messageBody = "";
+  if (status === "accepted") {
+    messageBody = `<p>Good news! Your booking request for <strong>${deviceName}</strong> has been <strong>ACCEPTED</strong>.</p>
+    <p>You can now proceed with the payment to secure your booking.</p>
+    <p>Your money stay with us until after you release it.</p>`;
+  } else if (status === "declined") {
+    messageBody = `<p>We're sorry, but your booking request for <strong>${deviceName}</strong> has been <strong>DECLINED</strong>.</p>
+    ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`;
+  } else if (status === "cancelled") {
+    messageBody = `<p>The booking for <strong>${deviceName}</strong> has been <strong>CANCELLED</strong>.</p>
+    ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`;
+  }
+
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    ${messageBody}
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nBooking Update for ${deviceName}: ${status.toUpperCase()}\n\n${messageBody.replace(
+    /<[^>]*>/g,
+    ""
+  )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to renter
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: `Your booking for ${deviceName} has been ${status.toUpperCase()}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to notify owner when a booking is rescheduled
+export async function sendBookingRescheduledEmail(
+  toEmail: string,
+  ownerName: string,
+  renterName: string,
+  deviceName: string,
+  oldStartTime: string,
+  oldEndTime: string,
+  newStartTime: string,
+  newEndTime: string,
+  ownerId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject = `Booking Rescheduled: ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  const htmlContent = `
+    <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #008751;">Booking Rescheduled</h2>
+      <p>Hello ${ownerName},</p>
+      <p><strong>${renterName}</strong> has updated the booking dates for your device: <strong>${deviceName}</strong>.</p>
+      
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin-top: 0;"><strong>Previous Schedule:</strong></p>
+        <p style="font-size: 0.9em; color: #666;">${new Date(
+          oldStartTime
+        ).toLocaleString()} - ${new Date(oldEndTime).toLocaleString()}</p>
+        
+        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 15px 0;" />
+        
+        <p><strong>New Schedule:</strong></p>
+        <p style="font-size: 1.1em; color: #008751; font-weight: bold;">${new Date(
+          newStartTime
+        ).toLocaleString()} - ${new Date(newEndTime).toLocaleString()}</p>
+      </div>
+
+      <p>Please log in to your dashboard to review and manage this request.</p>
+      <p><a href="${dashboardLink}" style="display: inline-block; padding: 12px 24px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">View Dashboard</a></p>
+      <p>Thanks,<br/>The Bravework Studio Team</p>
+    </div>
+  `;
+
+  const textContent = `Hello ${ownerName},\n\n${renterName} has rescheduled their booking for ${deviceName}.\n\nNew Schedule: ${new Date(
+    newStartTime
+  ).toLocaleString()} - ${new Date(
+    newEndTime
+  ).toLocaleString()}\n\nView details: ${dashboardLink}`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification to owner
+    const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
+    if (finalOwnerId) {
+      await createNotification({
+        userId: finalOwnerId,
+        title: subject,
+        message: `${renterName} rescheduled their booking for ${deviceName}.`,
+        link: `/user/dashboard?tab=bookings`,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+// NEW: Function to notify parties when funds are released
+export async function sendFundsReleasedEmail(
+  toEmail: string,
+  userName: string,
+  deviceName: string,
+  role: "owner" | "renter",
+  amountKobo?: number,
+  userId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const subject =
+    role === "owner"
+      ? `Earnings Credited: ${deviceName}`
+      : `Funds Released: ${deviceName}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
+
+  let messageBody = "";
+  if (role === "owner") {
+    messageBody = `<p>Good news! Your earnings for the rental of <strong>${deviceName}</strong> have been released and credited to your wallet.</p>
+    <p><strong>Amount:</strong> ₦${(amountKobo / 100).toFixed(2)}</p>
+    <p>Please take a moment to review the renter in your dashboard.</p>`;
+  } else {
+    messageBody = `<p>The funds for your rental of <strong>${deviceName}</strong> have been released to the owner.</p>
+    <p>We hope you had a great experience! Please take a moment to review the device and the owner.</p>`;
+  }
+
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    ${messageBody}
+    <p><a href="${dashboardLink}" style="display: inline-block; padding: 10px 20px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 15px;">Go to Dashboard</a></p>
+    <p>Thanks,<br/>The Bravework Studio Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\n${subject}\n\n${messageBody.replace(
+    /<[^>]*>/g,
+    ""
+  )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message:
+          role === "owner"
+            ? `Earnings of ₦${(amountKobo / 100).toFixed(
+                2
+              )} from ${deviceName} have been credited.`
+            : `Funds for ${deviceName} have been released. Please leave a review!`,
+        link: dashboardLink,
+      });
+    }
   } catch (error) {
     console.log(error.message);
   }

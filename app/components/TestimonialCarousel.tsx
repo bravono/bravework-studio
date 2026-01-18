@@ -4,9 +4,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "../services/localDataService";
-import { Nosifer } from "next/font/google";
+import { Outfit } from "next/font/google";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
+const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 // SVG icon for the left arrow
 const ChevronLeftIcon = () => (
@@ -92,10 +92,10 @@ export default function TestimonialCarousel() {
   );
 
   return (
-    <section className="bg-gray-900 dark:bg-gray-900 py-16 sm:py-24">
+    <section className="bg-gray-50 py-24 border-t border-gray-200">
       <div className="container mx-auto px-4 text-center">
         <h2
-          className={`text-4xl sm:text-5xl font-extrabold text-gray-50 dark:text-white mb-12 drop-shadow ${nosifer.className}`}
+          className={`text-4xl sm:text-6xl font-black text-gray-900 mb-16 drop-shadow-sm ${outfit.className}`}
         >
           What Our Clients Say
         </h2>
@@ -134,7 +134,7 @@ export default function TestimonialCarousel() {
                     paginate(-1);
                   }
                 }}
-                className="absolute inset-0 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 sm:p-12 flex flex-col justify-center items-center"
+                className="absolute inset-0 bg-white rounded-3xl shadow-2xl p-8 sm:p-12 flex flex-col justify-center items-center"
               >
                 <div className="absolute -top-10 mb-8 flex-shrink-0">
                   <img
@@ -142,22 +142,22 @@ export default function TestimonialCarousel() {
                     alt={testimonials[currentIndex].heading}
                     width={120}
                     height={120}
-                    className="rounded-full border-4 border-green-500 shadow-lg object-cover"
+                    className="rounded-full border-4 border-white shadow-xl object-cover"
                     style={{ objectFit: "cover" }}
                   />
                 </div>
                 <div className="flex flex-col items-center">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">
                     &ldquo;{testimonials[currentIndex].heading}&rdquo;
                   </h3>
-                  <p className="line-clamp-3 w-full text-lg text-gray-600 dark:text-gray-300 leading-relaxed italic text-center mb-4">
+                  <p className="line-clamp-4 w-full text-lg text-gray-700 leading-relaxed italic text-center mb-6">
                     {testimonials[currentIndex].body}
                   </p>
                   <div className="text-center">
-                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 block">
+                    <span className="text-sm font-bold text-gray-900 block">
                       {testimonials[currentIndex].companyName}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                    <span className="text-xs text-gray-500 block">
                       {testimonials[currentIndex].email}
                     </span>
                   </div>
@@ -190,7 +190,7 @@ export default function TestimonialCarousel() {
               className={`w-3 h-3 rounded-full transition-colors duration-300 ${
                 index === currentIndex
                   ? "bg-green-600 scale-125"
-                  : "bg-gray-300 dark:bg-gray-600"
+                  : "bg-gray-300"
               }`}
               onClick={() => {
                 setDirection(index > currentIndex ? 1 : -1);

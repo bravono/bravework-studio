@@ -57,7 +57,7 @@ export async function GET(
       FROM orders
       WHERE user_id = $1 
         AND category_id = $2
-        AND order_status_id IN (1, 2, 6);
+        AND payment_status_id IN (1, 2, 6);
     `;
 
     const existingOrders = await queryDatabase(orderQueryText, [
@@ -88,7 +88,7 @@ export async function GET(
       const paid = 1;
       // Create a new order for this course
       const createOrderQuery = `
-        INSERT INTO orders (user_id, category_id, order_status_id, project_description, created_at)
+        INSERT INTO orders (user_id, category_id, payment_status_id, project_description, created_at)
         VALUES ($1, $2, $3, $4, NOW())
         RETURNING order_id;
       `;

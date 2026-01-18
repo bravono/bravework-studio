@@ -32,6 +32,15 @@ A modern, interactive website showcasing Bravework Studio's services in 3D model
    ```
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+5. Set up env variables
+
+6. Run the database migrations: npx prisma migrate dev
+
+7. If they’re connecting to an existing database instead of starting fresh: npx prisma db pull
+
+8. Generate Prisma Client (if not already done): npx prisma generate
+
+
 ## Project Structure
 
 - `/app` - Next.js app directory containing pages and layouts

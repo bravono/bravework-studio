@@ -1136,7 +1136,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
         objective:
           "Address remaining questions, provide clear growth pathways, and celebrate achievements with professional networking.",
         description:
-          "Expand their world by creating a 3D island village where their hovering car lands. Add details like trees, water, and houses, and share ideas for what their island includes (e.g., a park, a castle).",
+          "",
         activity:
           "Graduation Celebration & Networking, group photograph, casual video interviews",
         why: "Addressing remaining questions, providing clear growth pathways, and celebrating achievements with professional networking opportunities.",

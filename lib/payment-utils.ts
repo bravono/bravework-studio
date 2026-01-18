@@ -1,14 +1,17 @@
 import { PoolClient } from "pg";
+import { createTrackingId } from "./utils/tracking";
 
 interface OrderStatusMap {
   [statusName: string]: number;
 }
 
-export async function getOrderStatusMap(client: PoolClient): Promise<OrderStatusMap> {
-  const result = await client.query("SELECT * FROM order_statuses");
+export async function getOrderStatusMap(
+  client: PoolClient
+): Promise<OrderStatusMap> {
+  const result = await client.query("SELECT * FROM payment_statuses");
   const map: OrderStatusMap = {};
-  result.rows.forEach((row: { order_status_id: number; name: string }) => {
-    map[row.name] = row.order_status_id;
+  result.rows.forEach((row: { payment_status_id: number; name: string }) => {
+    map[row.name] = row.payment_status_id;
   });
   return map;
 }
@@ -37,7 +40,7 @@ export async function processSuccessfulOrder(
   // 2. Calculate new status
   const newAmountPaid = currentAmountPaid + amountPaidKobo;
   const orderStatusMap = await getOrderStatusMap(client);
-  
+
   let newStatusId: number;
   if (newAmountPaid >= totalExpectedAmountKobo) {
     newStatusId = orderStatusMap["paid"];
@@ -51,7 +54,7 @@ export async function processSuccessfulOrder(
   await client.query(
     `UPDATE orders
      SET amount_paid_to_date_kobo = $1,
-         order_status_id = $2,
+         payment_status_id = $2,
          title = $3,
          start_date = NOW(),
          end_date = CASE WHEN $4::int IS NOT NULL THEN NOW() + ($4 || ' days')::interval ELSE end_date END,
@@ -78,11 +81,11 @@ export async function processSuccessfulOrder(
       [productId]
     );
   }
-  
+
   // 5. Update Course Enrollment if applicable (Full payment usually required for access, but logic depends on business rule)
   // Assuming if status is 'paid', we grant access.
   if (serviceType === "course" && newStatusId === orderStatusMap["paid"]) {
-     await client.query(
+    await client.query(
       `UPDATE course_enrollments
        SET payment_status = $1
        WHERE course_id = $2 AND user_id = $3`,
@@ -91,4 +94,84 @@ export async function processSuccessfulOrder(
   }
 
   return { success: true, newStatusId, newAmountPaid };
+}
+
+export async function processSuccessfulRentalBooking(
+  client: PoolClient,
+  bookingId: number,
+  amountPaidKobo: number,
+  paymentStatusName: string = "paid"
+) {
+  // Get status map
+  const orderStatusMap = await getOrderStatusMap(client);
+  const statusId = orderStatusMap[paymentStatusName] || orderStatusMap["paid"];
+
+  // 1. Update Rental Booking Status
+  const bookingUpdateRes = await client.query(
+    `UPDATE rental_bookings
+     SET payment_status_id = $1,
+         updated_at = NOW()
+     WHERE rental_booking_id = $2
+     RETURNING client_id, rental_id, total_amount_kobo`,
+    [statusId, bookingId]
+  );
+
+  if (bookingUpdateRes.rows.length === 0) {
+    throw new Error(`Booking ${bookingId} not found.`);
+  }
+
+  const booking = bookingUpdateRes.rows[0];
+
+  // 2. Fetch Rental Details for Order Title
+  const rentalRes = await client.query(
+    "SELECT device_name FROM rentals WHERE rental_id = $1",
+    [booking.rental_id]
+  );
+  const deviceName = rentalRes.rows[0]?.device_name || "Device";
+
+  // 3. Ensure "Hardware Rental" category exists or get ID
+  let categoryRes = await client.query(
+    "SELECT category_id FROM product_categories WHERE category_name = $1",
+    ["Hardware Rental"]
+  );
+
+  let categoryId: number;
+  if (categoryRes.rows.length === 0) {
+    const newCategory = await client.query(
+      "INSERT INTO product_categories (category_name, category_description) VALUES ($1, $2) RETURNING category_id",
+      ["Hardware Rental", "Rental of hardware devices and equipment."]
+    );
+    categoryId = newCategory.rows[0].category_id;
+  } else {
+    categoryId = categoryRes.rows[0].category_id;
+  }
+
+  // 4. Create an Order record
+  const trackingId = createTrackingId("Rental");
+  await client.query(
+    `INSERT INTO orders (
+      user_id, 
+      category_id, 
+      payment_status_id, 
+      total_expected_amount_kobo, 
+      amount_paid_to_date_kobo, 
+      title, 
+      tracking_id,
+      rental_booking_id,
+      start_date,
+      updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+    [
+      booking.client_id,
+      categoryId,
+      statusId,
+      booking.total_amount_kobo,
+      amountPaidKobo,
+      `Rental: ${deviceName}`,
+      trackingId,
+      bookingId,
+    ]
+  );
+
+  return { success: true };
 }

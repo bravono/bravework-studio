@@ -307,7 +307,7 @@ export default function UserCustomOffersSection() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
+    <div className="space-y-6 p-6 mt-10 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
       <div className="flex justify-between items-center pb-4 border-b border-gray-200">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Custom Offers Management

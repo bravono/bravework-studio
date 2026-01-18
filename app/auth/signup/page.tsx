@@ -7,9 +7,6 @@ import React, {
   Suspense,
   useCallback,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Joi from "joi";
 import {
   User,
   Mail,
@@ -19,7 +16,14 @@ import {
   Building,
   Handshake,
 } from "lucide-react";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+
+import Joi from "joi";
 import { Course } from "@/app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 // Joi Schemas
 const baseSignupSchema = Joi.object({
@@ -85,7 +89,6 @@ function Signup() {
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
   const courseId = searchParams.get("courseId");
-  const KOBO_PER_NAIRA = 100;
   const { data: session } = useSession();
   const user = session?.user;
   const firstName = user?.name ? user.name.split(" ")[0] : "";

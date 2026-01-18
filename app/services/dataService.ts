@@ -106,7 +106,7 @@ export const dataService = {
       '3D Modeling & Animation',
       'Web Development',
       'UI/UX Design',
-      'Kids Training Program',
+      'Training Program',
       'Corporate Training'
     ];
     

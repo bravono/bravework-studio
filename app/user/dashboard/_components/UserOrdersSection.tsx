@@ -1,40 +1,29 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Plus, Pencil, Trash2, Tag, CheckSquare, XCircle } from "lucide-react";
+import { Loader, XCircle } from "lucide-react";
 
-// Import the new Pagination component
+import { format } from "date-fns";
+
+import Link from "next/link";
+
 import Pagination from "../../../components/Pagination";
-
-// These modal components are assumed to exist and are kept as is.
 import { Order } from "../../../types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
 
 // Constant for items per page
 const ITEMS_PER_PAGE = 10;
 
 export default function UserOrdersSection() {
-  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-  const [isOrderFormModalOpen, setIsOrderFormModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-
-  // State for custom confirmation modal
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
-  const [orderToTogglePortfolio, setOrderToTogglePortfolio] =
-    useState<Order | null>(null);
-
-  const kobo = 100;
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -58,93 +47,6 @@ export default function UserOrdersSection() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleCreateOrder = () => {
-    setSelectedOrder(null);
-    setIsOrderFormModalOpen(true);
-  };
-
-  const handleEditOrder = (order: Order) => {
-    setSelectedOrder(order);
-    setIsOrderFormModalOpen(true);
-  };
-
-  const handleDeleteOrder = (orderId: string) => {
-    setOrderToDeleteId(orderId);
-    setIsConfirmModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!orderToDeleteId) return;
-
-    setLoading(true);
-    setIsConfirmModalOpen(false); // Close the modal
-    try {
-      const res = await fetch(`/api/user/orders/${orderToDeleteId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to delete order.");
-      toast.success(`Order ${orderToDeleteId} deleted successfully!`);
-      fetchOrders();
-    } catch (err: any) {
-      console.error("Error deleting order:", err);
-      toast.error(err.message || "Error deleting order.");
-    } finally {
-      setLoading(false);
-      setOrderToDeleteId(null);
-    }
-  };
-
-  const handleMarkAsPortfolio = (order: Order) => {
-    if (order.status !== "paid") {
-      toast.error("Only paid orders can be marked as portfolio.");
-      return;
-    }
-    setOrderToTogglePortfolio(order);
-    setIsConfirmModalOpen(true); // Re-using the same modal for a different action.
-  };
-
-  const handleConfirmPortfolioToggle = async () => {
-    if (!orderToTogglePortfolio) return;
-
-    setLoading(true);
-    setIsConfirmModalOpen(false); // Close the modal
-    try {
-      const res = await fetch(
-        `/api/user/orders/${orderToTogglePortfolio.id}/portfolio`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            isPortfolio: !orderToTogglePortfolio.isPortfolio,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to update portfolio status.");
-      toast.success(
-        `Order ${orderToTogglePortfolio.id} portfolio status updated!`
-      );
-      fetchOrders();
-    } catch (err: any) {
-      console.error("Error marking as portfolio:", err);
-      toast.error(
-        "Error updating portfolio status: " + (err.message || "Unknown error.")
-      );
-    } finally {
-      setLoading(false);
-      setOrderToTogglePortfolio(null);
-    }
-  };
-
-  const handleCreateCustomOffer = (order: Order) => {
-    if (order.amount !== 0 || order.amountPaid !== 0) {
-      toast.error(
-        "Custom offers can only be created for orders with 0 total expected amount and 0 amount paid."
-      );
-      return;
-    }
-    setSelectedOrder(order);
-    setIsOfferModalOpen(true);
-  };
 
   const activeProjects = orders.filter(
     (order) => order.status === "partially_paid"
@@ -171,31 +73,7 @@ export default function UserOrdersSection() {
   const currentOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-[40vh] text-gray-600">
-        <svg
-          className="animate-spin h-8 w-8 mr-3 text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        Loading orders...
-      </div>
-    );
+    return <Loader/>;
   if (error)
     return (
       <div className="flex items-center justify-center min-h-[40vh] text-red-600 font-medium">
@@ -314,10 +192,10 @@ export default function UserOrdersSection() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">
-                      ₦{(order.amount / kobo).toLocaleString()}
+                      ₦{(order.amount / KOBO_PER_NAIRA).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">
-                      ₦{(order.amountPaid / kobo).toLocaleString()}
+                      ₦{(order.amountPaid / KOBO_PER_NAIRA).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-800">
                       {format(new Date(order.date), "MMM dd, yyyy")}
