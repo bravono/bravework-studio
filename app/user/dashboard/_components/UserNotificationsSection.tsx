@@ -341,12 +341,17 @@ export default function NotificationsPage() {
                           <Wallet className="w-4 h-4 text-gray-500" />
                           <strong>Amount:</strong>{" "}
                           <span className="text-gray-900 font-bold">
-                            {convertCurrency(
-                              (notification.offerAmount / KOBO_PER_NAIRA) *
-                                DOLLAR_PER_NAIRA,
-                              exchangeRates?.[selectedCurrency],
-                              getCurrencySymbol(selectedCurrency)
-                            ).toLocaleString()}
+                            {exchangeRates && exchangeRates[selectedCurrency]
+                              ? convertCurrency(
+                                  (notification.offerAmount / KOBO_PER_NAIRA) *
+                                    DOLLAR_PER_NAIRA,
+                                  exchangeRates[selectedCurrency],
+                                  getCurrencySymbol(selectedCurrency)
+                                ).toLocaleString()
+                              : `${getCurrencySymbol(selectedCurrency)} ${(
+                                  (notification.offerAmount / KOBO_PER_NAIRA) *
+                                  DOLLAR_PER_NAIRA
+                                ).toLocaleString()}`}
                           </span>
                         </p>
                         <span

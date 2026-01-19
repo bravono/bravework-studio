@@ -9,16 +9,20 @@ export async function getCurrency(amount: number) {
   }
 
   const data = await res.json();
-  const rates = data.data; // Note: ExchangeRateAPI returns rates under `data`
+  const rates = data.rates; // Note: open.er-api.com returns rates under `rates`
   console.log("Data: ", data);
+
+  if (!rates) {
+    throw new Error("Invalid response from exchange rate API");
+  }
 
   return {
     amount,
     conversions: {
       NGN: amount * (rates.NGN ?? 1),
-      USD: amount * rates.USD,
-      GBP: amount * rates.GBP,
-      EUR: amount * rates.EUR,
+      USD: amount * (rates.USD ?? 0),
+      GBP: amount * (rates.GBP ?? 0),
+      EUR: amount * (rates.EUR ?? 0),
     },
     rates,
   };
