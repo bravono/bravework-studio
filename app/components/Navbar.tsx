@@ -127,8 +127,8 @@ export default function Navbar() {
       label: "Learn",
       icon: ChevronDown,
       items: [
-        { label: "Courses (Academy)", href: "/courses", icon: GraduationCap },
-        { label: "Kids (Edutainment)", href: "/kids", icon: Gamepad2 },
+        { label: "Bravework Academy", href: "/academy", icon: GraduationCap },
+        { label: "Bravework Kids", href: "/kids", icon: Gamepad2 },
       ],
     },
     {
