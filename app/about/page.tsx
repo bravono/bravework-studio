@@ -84,11 +84,11 @@ export default function About() {
             {/* About Text */}
             <div className="space-y-6">
               <p className="text-gray-700 leading-relaxed text-lg">
-                Bravework Studio is a creative powerhouse specializing in 3D
-                services, web development, and UI/UX design. Founded with a
-                passion for bringing ideas to life, we combine technical
-                expertise with artistic vision to deliver exceptional results
-                for our clients.
+                Bravework Studio empowers the Nigerian digital economy by
+                combining practical digital skills training supported by a
+                foundational hardware rental service with affordable,
+                subscription-based web and mobile development solutions tailored
+                for small and medium-sized businesses.
               </p>
               <p className="text-gray-700 leading-relaxed text-lg">
                 Our team of skilled professionals brings together years of

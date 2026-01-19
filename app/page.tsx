@@ -212,7 +212,9 @@ export default function Home() {
       </section>
 
       {/* Courses Section */}
-      <CourseList page="home" />
+      <section id="courses" className="py-20 bg-gray-900">
+        <CourseList page="home" />
+      </section>
 
       {/* Services Section */}
       <section
