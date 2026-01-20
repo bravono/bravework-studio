@@ -224,7 +224,7 @@ export default function KidsLandingPage() {
                 href="/jobs"
                 className="px-8 py-4 bg-white text-blue-600 font-black rounded-2xl hover:bg-yellow-400 hover:text-gray-900 transition-all shadow-xl"
               >
-                Create Free Account
+                Apply Now!
               </Link>
               <Link
                 href="/kids/about"

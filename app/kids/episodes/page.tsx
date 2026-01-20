@@ -15,22 +15,25 @@ export default function KidsEpisodesPage() {
       thumbnail: "/assets/kids/episode_teaser.png",
       status: "coming-soon",
       badge: "Pilot Episode",
+      url: "https://youtu.be/o5HukmvQD1w",
     },
     {
       id: 2,
-      title: "Episode 2: Shape Squad Heroics",
+      title: "Episode 1: Shape Squad Heroics",
       desc: "A giant circle is blocking the square city's gate! The Shape Squad must work together to find a way through.",
       thumbnail: "/assets/kids/episode_2.png",
       status: "locked",
       badge: "In Scripting",
+      url: "",
     },
     {
       id: 3,
-      title: "Episode 3: Global Feast Adventure",
+      title: "Episode 1: Global Feast Adventure",
       desc: "Travel to a vibrant village and learn about diverse cultures and delicious traditional foods.",
       thumbnail: "/assets/kids/episode_3.png",
       status: "locked",
       badge: "Brainstorming",
+      url: "",
     },
   ];
 
@@ -50,7 +53,12 @@ export default function KidsEpisodesPage() {
             </p>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF0000] text-white font-bold hover:scale-105 transition-transform shadow-xl shadow-red-500/20">
+            <button
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF0000] text-white font-bold hover:scale-105 transition-transform shadow-xl shadow-red-500/20"
+              onClick={() =>
+                window.open("https://youtu.be/o5HukmvQD1w", "_blank")
+              }
+            >
               <Youtube size={20} />
               YouTube Channel
             </button>
@@ -97,7 +105,11 @@ export default function KidsEpisodesPage() {
                     </div>
                   ) : (
                     <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white shadow-2xl scale-0 group-hover:scale-100 transition-transform">
-                      <Play size={40} fill="currentColor" />
+                      <Play
+                        size={40}
+                        fill="currentColor"
+                        onClick={() => window.open(ep.url, "_blank")}
+                      />
                     </div>
                   )}
                 </div>
