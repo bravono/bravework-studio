@@ -11,6 +11,11 @@ import { useRouter } from "next/navigation";
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import { services } from "./services/localDataService";
 import { ArrowRight } from "lucide-react";
+import HeroCarousel from "./components/HeroCarousel";
+import EcosystemSection from "./components/EcosystemSection";
+import FloatingCTAs from "./components/FloatingCTAs";
+import Link from "next/link";
+import { Gamepad2 } from "lucide-react";
 import CourseList from "./components/CourseList";
 import ArrowButton from "./components/ArrowButton";
 
@@ -21,11 +26,6 @@ const outfit = Outfit({
 const inter = Inter({
   subsets: ["latin"],
   weight: "400",
-});
-
-// Dynamically import the 3D component to avoid SSR issues
-const Hero3DComponent = dynamic(() => import("../components/Hero3D"), {
-  ssr: false,
 });
 
 // Array of taglines to cycle through
@@ -72,149 +72,11 @@ export default function Home() {
     <main>
       {/* Hero Section */}
       <section className="relative w-full h-screen overflow-hidden bg-black">
-        {/* 3D Hero Background */}
-        <div className="absolute inset-0 z-0 opacity-40 transition-opacity duration-1000">
-          <Suspense fallback={<div className="bg-gray-900 w-full h-full" />}>
-            <Canvas
-              camera={{
-                position: [0, 0, 10],
-                fov: 45,
-              }}
-            >
-              <ambientLight intensity={1.5} color={"#ffffff"} />
-              <pointLight
-                position={[10, 10, 10]}
-                intensity={2}
-                color={"#4ade80"}
-              />
-              <spotLight
-                position={[-10, 10, 10]}
-                angle={0.15}
-                penumbra={1}
-                intensity={1}
-                color={"#3b82f6"}
-              />
-
-              <Hero3DComponent />
-            </Canvas>
-          </Suspense>
-        </div>
-
-        {/* Hero Content positioned over the 3D background */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center p-4 select-none">
-          {session?.user && (
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className={`text-lg sm:text-2xl lg:text-3xl font-semibold text-gray-200 mb-4 ${inter.className}`}
-            >
-              {`${session?.user?.name.split(" ")[0]}, welcome to`}
-            </motion.h1>
-          )}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className={`text-4xl sm:text-7xl lg:text-9xl font-black text-white drop-shadow-2xl tracking-tight ${outfit.className}`}
-          >
-            Bravework Studio
-          </motion.h1>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={`mt-4 text-xl sm:text-2xl lg:text-3xl text-gray-300 max-w-2xl px-4 ${inter.className}`}
-          >
-            Your one-stop-shop to create
-          </motion.h1>
-
-          {/* Animated tagline that cycles through the array */}
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={currentTaglineIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className={`mt-4 text-xl sm:text-2xl lg:text-3xl text-transparent bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text max-w-2xl px-4 ${inter.className}`}
-            >
-              {taglines[currentTaglineIndex]}
-            </motion.p>
-          </AnimatePresence>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={`mt-4 text-sm italic text-gray-300 max-w-2xl px-4 ${inter.className}`}
-          >
-            Flexible payment options with fair refunds and free revisions
-            included.
-          </motion.p>
-
-          <ArrowButton label={"Get Started"} link={"/order"} style={"my-16"} />
-          {/* Freelance Platforms Order Options */}
-          <div className="mt-8 flex flex-col items-center">
-            <span className="text-gray-400 mb-2 text-lg">Or order via:</span>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <a
-                href="https://www.fiverr.com/ahbideenyusuf?public_mode=true"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-transform duration-200 hover:scale-125"
-              >
-                <img
-                  src="/assets/fiverr-icon.svg"
-                  alt="Fiverr"
-                  className="h-10 w-10"
-                />
-              </a>
-              <a
-                href="https://www.upwork.com/freelancers/~01e0fd25ba6d3353e8?mp_source=share"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-transform duration-200 hover:scale-125"
-              >
-                <img
-                  src="/assets/upwork-icon.svg"
-                  alt="Upwork"
-                  className="h-10 w-10"
-                />
-              </a>
-              <a
-                href="https://www.freelancer.com/u/ahbideenyusuf?sb=t"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-transform duration-200 hover:scale-125"
-              >
-                <img
-                  src="/assets/freelancer-icon.svg"
-                  alt="Freelancer.com"
-                  className="h-10 w-10"
-                />
-              </a>
-              <a
-                href="https://www.guru.com/freelancers/ahbideen-yusuf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 rounded-sm bg-white transition-transform duration-200 hover:scale-125"
-              >
-                <img
-                  src="/assets/guru-icon.svg"
-                  alt="Guru"
-                  className="h-10 w-12"
-                />
-              </a>
-            </div>
-          </div>
-        </div>
+        <HeroCarousel />
       </section>
 
-      {/* Courses Section */}
-      <section id="courses" className="py-20 bg-gray-900">
-        <CourseList page="home" />
-      </section>
+      {/* Ecosystem Section */}
+      <EcosystemSection />
 
       {/* Services Section */}
       <section
@@ -222,19 +84,35 @@ export default function Home() {
         className="py-24 bg-gray-950 border-y border-gray-800"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2
-            className={`text-4xl sm:text-6xl font-black text-center mb-16 text-white drop-shadow-lg ${outfit.className} `}
-          >
-            Our Services
-          </h2>
+          <div className="text-center mb-16">
+            <h2
+              className={`text-4xl sm:text-6xl font-black mb-4 text-white drop-shadow-lg ${outfit.className}`}
+            >
+              Our Services
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+              Comprehensive digital solutions ranging from enterprise software
+              to creative edutainment.
+            </p>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-gray-900/50 backdrop-blur-xl rounded-3xl p-8 text-center transform transition duration-500 hover:scale-[1.02] hover:bg-gray-900 border border-gray-800 group"
+                className="bg-gray-900/50 backdrop-blur-xl rounded-3xl p-8 text-center transform transition duration-500 hover:scale-[1.02] hover:bg-gray-900 border border-gray-800 group relative overflow-hidden"
               >
+                {service.kidFriendly && (
+                  <div className="absolute top-4 right-4 animate-pulse">
+                    <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                      <Gamepad2 size={12} />
+                      KID-FRIENDLY
+                    </span>
+                  </div>
+                )}
+
                 <div className="mb-4 inline-block p-4 rounded-full text-6xl">
-                  {/* Assuming service.icon is a React component */}
+                  {/* Assuming service.icon is a React component or string */}
                   {service.icon}
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-green-400 transition-colors">
@@ -243,17 +121,29 @@ export default function Home() {
                 <p className="text-gray-400 text-lg mb-6 leading-relaxed">
                   {service.description}
                 </p>
-                <a
-                  href={
-                    service.title === "Training Services"
-                      ? "/courses"
-                      : `/order?service=${encodeURIComponent(service.title)}`
-                  }
-                  className="inline-flex items-center text-green-600 font-semibold hover:text-green-500 transition-colors duration-200 group"
-                >
-                  Order Service
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </a>
+                <div className="flex flex-col items-center gap-4">
+                  <a
+                    href={
+                      service.title === "Training Services"
+                        ? "/academy"
+                        : `/order?service=${encodeURIComponent(service.title)}`
+                    }
+                    className="inline-flex items-center text-green-600 font-semibold hover:text-green-500 transition-colors duration-200 group"
+                  >
+                    Order Service
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                  </a>
+
+                  {service.kidFriendly &&
+                    service.title === "3D Modeling & Animation" && (
+                      <Link
+                        href="/kids"
+                        className="text-xs font-bold text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1 border-b border-purple-400/30 pb-0.5"
+                      >
+                        View Kid-Friendly Version
+                      </Link>
+                    )}
+                </div>
               </div>
             ))}
           </div>
@@ -263,7 +153,14 @@ export default function Home() {
       {/* Testimonials Section */}
       <TestimonialCarousel />
 
-      <ArrowButton label={"Get Started"} link={"/courses"} style={"my-16"} />
+      <ArrowButton
+        label={"Join the Academy"}
+        link={"/academy"}
+        style={"my-16"}
+      />
+
+      {/* Floating CTAs */}
+      <FloatingCTAs />
     </main>
   );
 }

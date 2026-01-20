@@ -51,6 +51,7 @@ interface Services {
   title: string;
   description: string;
   icon: string;
+  kidFriendly?: boolean;
 }
 
 interface Todo {
@@ -636,12 +637,14 @@ const services: Services[] = [
     description:
       "Professional 3D modeling, animation, and visualization services for your projects.",
     icon: "🎨",
+    kidFriendly: true,
   },
   {
     title: "Web Development",
     description:
       "Custom web applications and websites built with modern technologies.",
     icon: "🌐",
+    kidFriendly: true,
   },
   {
     title: "UI/UX Design",
@@ -652,6 +655,7 @@ const services: Services[] = [
     title: "Game Development",
     description: "Engaging game development services for various platforms.",
     icon: "🎮",
+    kidFriendly: true,
   },
   {
     title: "Voice-Over Services",
@@ -664,6 +668,7 @@ const services: Services[] = [
     description:
       "Interactive and engaging training programs for individuals and organizations in all the service we offer.",
     icon: "🤼‍♂️",
+    kidFriendly: true,
   },
 ];
 
@@ -1135,8 +1140,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
         title: "FAQ, Career Pathways, and Graduation Celebration",
         objective:
           "Address remaining questions, provide clear growth pathways, and celebrate achievements with professional networking.",
-        description:
-          "",
+        description: "",
         activity:
           "Graduation Celebration & Networking, group photograph, casual video interviews",
         why: "Addressing remaining questions, providing clear growth pathways, and celebrating achievements with professional networking opportunities.",

@@ -1,6 +1,12 @@
 import { ArrowRight } from "lucide-react";
 
-export default function ArrowButton({ label, link, style }) {
+interface ArrowButtonProps {
+  label: string;
+  link: string;
+  style?: string;
+}
+
+export default function ArrowButton({ label, link, style = "" }: ArrowButtonProps) {
   return (
     <div className={`${style} flex justify-center`}>
       <a
