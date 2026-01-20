@@ -124,12 +124,8 @@ export default function Navbar() {
       items: [
         { label: "Bravework Academy", href: "/academy", icon: GraduationCap },
         { label: "Bravework Kids", href: "/kids", icon: Gamepad2 },
+        { label: "Bravework Rentals", href: "/academy/rentals", icon: Key },
       ],
-    },
-    {
-      label: "Rentals",
-      href: "/rentals",
-      icon: Key,
     },
     {
       label: "Company",

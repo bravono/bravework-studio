@@ -56,6 +56,17 @@ const slides = [
     textColor: "text-purple-50",
     gradient: "from-purple-950 via-black to-purple-950",
   },
+  {
+    id: 4,
+    title: "Bravework Rentals",
+    subtitle: "High-Spec Hardware at Your Fingertips",
+    description:
+      "Rent pro-grade PCs, rendering rigs, and digital tablets. Empowering your creative process.",
+    cta: "Rent Gear",
+    link: "/academy/rentals",
+    textColor: "text-green-50",
+    gradient: "from-green-950 via-black to-green-950",
+  },
 ];
 
 export default function HeroCarousel() {

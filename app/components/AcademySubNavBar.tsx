@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Info, BookOpen, GraduationCap, Box, Home } from "lucide-react";
+import { Info, BookOpen, GraduationCap, Box, Home, Key } from "lucide-react";
 
 const academyLinks = [
   { label: "Home", href: "/academy", icon: Home, color: "bg-blue-600" },
@@ -19,6 +19,12 @@ const academyLinks = [
     href: "/academy/courses",
     icon: BookOpen,
     color: "bg-emerald-600",
+  },
+  {
+    label: "Rentals",
+    href: "/academy/rentals",
+    icon: Key,
+    color: "bg-sky-600",
   },
   {
     label: "Bundles",

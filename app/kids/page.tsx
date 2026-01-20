@@ -12,6 +12,8 @@ import {
   Clock,
   ChevronRight,
   ArrowRight,
+  Monitor,
+  ShieldCheck,
 } from "lucide-react";
 import KidsSubNavBar from "../components/KidsSubNavBar";
 
@@ -142,6 +144,13 @@ export default function KidsLandingPage() {
                 icon: GraduationCap,
                 color: "text-blue-500",
                 bg: "bg-blue-50",
+              },
+              {
+                title: "Kid-Safe Gear",
+                desc: "Specialized tablets and laptops with parental controls, integrated with Academy Rentals.",
+                icon: Monitor,
+                color: "text-pink-500",
+                bg: "bg-pink-50",
               },
             ].map((usp, i) => (
               <motion.div
