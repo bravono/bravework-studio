@@ -133,7 +133,7 @@ export default function Navbar() {
       items: [
         { label: "About", href: "/about", icon: Info },
         { label: "Contact", href: "/contact", icon: Mail },
-        { label: "Jobs", href: "/job", icon: Users },
+        { label: "Jobs", href: "/jobs", icon: Users },
       ],
     },
   ];

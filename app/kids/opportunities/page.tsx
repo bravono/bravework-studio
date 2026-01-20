@@ -174,7 +174,7 @@ export default function KidsOpportunitiesPage() {
             </p>
             <div className="pt-4">
               <Link
-                href="/job"
+                href="/jobs"
                 className="inline-flex items-center gap-3 px-10 py-5 bg-green-500 hover:bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 transition-all text-lg group"
               >
                 Apply via Jobs Portal

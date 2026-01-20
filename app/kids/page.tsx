@@ -221,7 +221,7 @@ export default function KidsLandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Link
-                href="/auth/signup"
+                href="/jobs"
                 className="px-8 py-4 bg-white text-blue-600 font-black rounded-2xl hover:bg-yellow-400 hover:text-gray-900 transition-all shadow-xl"
               >
                 Create Free Account
