@@ -30,7 +30,7 @@ const slides = [
     description:
       "Your one-stop-shop to create blazing-fast apps and stunning 3D visualizations.",
     cta: "Get Started",
-    link: "/order",
+    link: "/studio",
     textColor: "text-white",
     gradient: "from-black via-gray-900 to-black",
   },

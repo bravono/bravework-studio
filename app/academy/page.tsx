@@ -251,6 +251,38 @@ export default function AcademyLandingPage() {
         </div>
       </section>
 
+      {/* Studio Cross-Promotion */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-900 rounded-[3rem] p-8 sm:p-16 flex flex-col md:flex-row items-center gap-12 border border-gray-800 relative overflow-hidden">
+            <div className="relative z-10 text-center md:text-left flex-grow">
+              <span className="text-green-500 font-black text-xs uppercase tracking-widest mb-4 inline-block">
+                Need Professional Work?
+              </span>
+              <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
+                Experience the <br />
+                <span className="text-green-500">Bravework Studio</span> Edge
+              </h2>
+              <p className="text-gray-400 text-lg mb-10 max-w-xl">
+                While you learn, let our experts handle your enterprise needs.
+                From 3D visuals to custom software, we build it better.
+              </p>
+              <Link
+                href="/studio"
+                className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all inline-flex items-center gap-3"
+              >
+                Hire Studio Experts <ArrowRight size={20} />
+              </Link>
+            </div>
+            <div className="relative z-10 w-48 h-48 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shrink-0">
+              <Sparkles className="text-white opacity-20" size={100} />
+            </div>
+            {/* Decoration */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-32">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
