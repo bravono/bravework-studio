@@ -146,14 +146,12 @@ export default function AcademyCoursesPage() {
                   className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all group flex flex-col h-full"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-                    <Image
+                    <img
                       src={
                         course.thumbnailUrl ||
                         "/assets/Course_Thumbnail_Placeholder.png"
                       }
                       alt={course.title}
-                      layout="fill"
-                      objectFit="cover"
                       className="group-hover:scale-105 transition-transform duration-500"
                     />
 
@@ -213,7 +211,11 @@ export default function AcademyCoursesPage() {
                           </p>
                           <p className="font-bold">
                             {course.isActive
-                              ? new Date(course.startDate).toLocaleDateString()
+                              ? new Date(course.startDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
                               : "Coming Soon"}
                           </p>
                         </div>
