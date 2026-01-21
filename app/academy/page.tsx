@@ -198,6 +198,73 @@ export default function AcademyLandingPage() {
         </div>
       </section>
 
+      {/* Video Stories Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black text-gray-900 mb-4">
+              Stories That Inspire
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              Discover why creative technology is the key to the future and hear
+              from those who are already on the journey.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-lg font-black">
+                  1
+                </span>
+                Why 3D Technology Matters
+              </h3>
+              <div className="aspect-video rounded-3xl overflow-hidden shadow-lg border border-gray-100">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/JCxr3hcwtvU?si=SWblajsrognJ0EFm"
+                  title="Why 3D Technology Matters"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-lg font-black">
+                  2
+                </span>
+                Watch Shaka's Story
+              </h3>
+              <div className="aspect-video rounded-3xl overflow-hidden shadow-lg border border-gray-100">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/RzUtD2gy_rQ?si=27Y0JpUrUgq16zx0"
+                  title="Watch Shaka's Story"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Course Preview / Free Modules */}
       <section className="py-24 bg-gray-900 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/5 blur-[120px] -z-0"></div>
