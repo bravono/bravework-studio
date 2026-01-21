@@ -30,7 +30,7 @@ const slides = [
     description:
       "Your one-stop-shop to create blazing-fast apps and stunning 3D visualizations.",
     cta: "Get Started",
-    link: "/order",
+    link: "/studio",
     textColor: "text-white",
     gradient: "from-black via-gray-900 to-black",
   },
@@ -55,6 +55,17 @@ const slides = [
     link: "/kids",
     textColor: "text-purple-50",
     gradient: "from-purple-950 via-black to-purple-950",
+  },
+  {
+    id: 4,
+    title: "Bravework Rentals",
+    subtitle: "High-Spec Hardware at Your Fingertips",
+    description:
+      "Rent pro-grade PCs, rendering rigs, and digital tablets. Empowering your creative process.",
+    cta: "Rent Gear",
+    link: "/academy/rentals",
+    textColor: "text-green-50",
+    gradient: "from-green-950 via-black to-green-950",
   },
 ];
 

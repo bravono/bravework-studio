@@ -26,6 +26,8 @@ import {
   Building2,
   Users,
   Key,
+  FileText,
+  Sparkles as SparklesIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -106,29 +108,23 @@ export default function Navbar() {
   const navLinks = [
     { label: "Home", href: "/", icon: House },
     {
-      label: "Services",
+      label: "Studio",
       icon: ChevronDown,
       items: [
-        {
-          label: "Software Dev",
-          href: "/order?service=Web%20Development",
-          icon: Code,
-        },
-        {
-          label: "Animation",
-          href: "/order?service=3D%20Modeling%20%26%20Animation",
-          icon: Clapperboard,
-        },
-        { label: "Rentals", href: "/rentals", icon: Key },
-        { label: "Portfolio", href: "/portfolio", icon: Briefcase },
+        { label: "Studio Home", href: "/studio", icon: SparklesIcon },
+        { label: "Our Services", href: "/studio/services", icon: Code },
+        { label: "Portfolio", href: "/studio/portfolio", icon: Briefcase },
+        { label: "Resources", href: "/studio/resources", icon: FileText },
+        { label: "Get a Quote", href: "/studio/contact", icon: Mail },
       ],
     },
     {
-      label: "Learn",
+      label: "Ecosystems",
       icon: ChevronDown,
       items: [
         { label: "Bravework Academy", href: "/academy", icon: GraduationCap },
         { label: "Bravework Kids", href: "/kids", icon: Gamepad2 },
+        { label: "Bravework Rentals", href: "/academy/rentals", icon: Key },
       ],
     },
     {
@@ -137,7 +133,7 @@ export default function Navbar() {
       items: [
         { label: "About", href: "/about", icon: Info },
         { label: "Contact", href: "/contact", icon: Mail },
-        { label: "Jobs", href: "/job", icon: Users },
+        { label: "Jobs", href: "/jobs", icon: Users },
       ],
     },
   ];

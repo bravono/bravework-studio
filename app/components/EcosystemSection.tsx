@@ -4,7 +4,13 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Outfit, Inter } from "next/font/google";
 import Link from "next/link";
-import { ArrowRight, Sparkles, GraduationCap, Gamepad2 } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  GraduationCap,
+  Gamepad2,
+  Key,
+} from "lucide-react";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -41,12 +47,24 @@ const ecosystems = [
     features: ["Web Development", "UI/UX Design", "3D Modeling"],
   },
   {
+    title: "Hardware Rentals",
+    subtitle: "Pro-Grade Equipment",
+    description:
+      "Access high-spec PCs, GPUs, and digital tablets by the hour. Optimized gear for rendering and development.",
+    icon: Key,
+    link: "/academy/rentals",
+    color: "from-sky-500 to-indigo-500",
+    btnColor: "bg-sky-600 hover:bg-sky-700",
+    badge: "Tech Enabler",
+    features: ["High-Spec PCs", "Drawing Tablets", "Backup Power"],
+  },
+  {
     title: "Main Studio",
     subtitle: "Enterprise Solutions",
     description:
       "Cutting-edge software, mobile apps, and 3D assets for businesses. We bring your most ambitious visions to life.",
     icon: Sparkles,
-    link: "/order",
+    link: "/studio",
     color: "from-green-500 to-emerald-500",
     btnColor: "bg-green-600 hover:bg-green-700",
     badge: "B2B Solutions",

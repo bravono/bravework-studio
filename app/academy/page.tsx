@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
+  Monitor,
 } from "lucide-react";
 import AcademySubNavBar from "../components/AcademySubNavBar";
 
@@ -314,6 +315,119 @@ export default function AcademyLandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Hardware Rentals Teaser */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1 relative">
+              <div className="absolute -inset-10 bg-green-100/50 rounded-full blur-3xl animate-pulse"></div>
+              <div className="relative aspect-video bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 to-blue-600/20 flex items-center justify-center p-12">
+                  <div className="text-center">
+                    <Monitor
+                      size={80}
+                      className="text-white mx-auto mb-6 opacity-80"
+                    />
+                    <div className="flex gap-4 justify-center">
+                      <div className="w-12 h-1.5 bg-green-500 rounded-full"></div>
+                      <div className="w-8 h-1.5 bg-white/20 rounded-full"></div>
+                      <div className="w-8 h-1.5 bg-white/20 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-white flex items-center justify-between">
+                  <span className="text-sm font-bold">
+                    RTX 3060 Rendering Rig
+                  </span>
+                  <span className="text-xs font-black bg-green-500 px-2 py-1 rounded">
+                    AVAILABLE
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2">
+              <span className="text-green-600 font-black text-xs uppercase tracking-widest mb-4 inline-block">
+                No PC? No Problem.
+              </span>
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                Gear up for <br />
+                <span className="text-green-600">Professional Mastery.</span>
+              </h2>
+              <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                Unlock your potential with our high-spec hardware rentals.
+                Whether you're animating characters or building apps, we provide
+                the computing power you need to excel.
+              </p>
+
+              <div className="grid grid-cols-2 gap-6 mb-10">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                    <Zap size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Pre-Installed</h4>
+                    <p className="text-xs text-gray-500">
+                      All course software ready
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Affordable</h4>
+                    <p className="text-xs text-gray-500">
+                      Hourly student rates
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/academy/rentals"
+                className="px-8 py-4 bg-gray-900 hover:bg-black text-white font-black rounded-2xl transition-all inline-flex items-center gap-3 shadow-lg"
+              >
+                Rent Your Gear Now <ArrowRight size={20} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Studio Cross-Promotion */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-900 rounded-[3rem] p-8 sm:p-16 flex flex-col md:flex-row items-center gap-12 border border-gray-800 relative overflow-hidden">
+            <div className="relative z-10 text-center md:text-left flex-grow">
+              <span className="text-green-500 font-black text-xs uppercase tracking-widest mb-4 inline-block">
+                Need Professional Work?
+              </span>
+              <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
+                Experience the <br />
+                <span className="text-green-500">Bravework Studio</span> Edge
+              </h2>
+              <p className="text-gray-400 text-lg mb-10 max-w-xl">
+                While you learn, let our experts handle your enterprise needs.
+                From 3D visuals to custom software, we build it better.
+              </p>
+              <Link
+                href="/studio"
+                className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all inline-flex items-center gap-3"
+              >
+                Hire Studio Experts <ArrowRight size={20} />
+              </Link>
+            </div>
+            <div className="relative z-10 w-48 h-48 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shrink-0">
+              <Sparkles className="text-white opacity-20" size={100} />
+            </div>
+            {/* Decoration */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
           </div>
         </div>
       </section>
