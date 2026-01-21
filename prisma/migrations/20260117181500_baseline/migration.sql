@@ -1,7 +1,7 @@
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
--- CreateTable
+-- -- CreateTable
 CREATE TABLE "budget_ranges" (
     "budget_range_id" SERIAL NOT NULL,
     "range_value" VARCHAR,
@@ -730,9 +730,6 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN 
 ALTER TABLE "order_coupons" ADD CONSTRAINT "fk_ordercoupons_coupon1" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("coupon_id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "order_files" ADD CONSTRAINT "constraint_2" FOREIGN KEY ("order_id") REFERENCES "orders"("order_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "order_order_files" ADD CONSTRAINT "fk_orderorderfiles_orderfiles1" FOREIGN KEY ("order_file_id") REFERENCES "order_files"("order_file_id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -749,9 +746,6 @@ ALTER TABLE "payments" ADD CONSTRAINT "constraint_1" FOREIGN KEY ("order_id") RE
 
 -- AddForeignKey
 ALTER TABLE "product_budget_ranges" ADD CONSTRAINT "constraint_1" FOREIGN KEY ("project_category_id") REFERENCES "product_categories"("category_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "product_budget_ranges" ADD CONSTRAINT "constraint_2" FOREIGN KEY ("budget_range_id") REFERENCES "budget_ranges"("budget_range_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "product_orders" ADD CONSTRAINT "fk_productorders_products1" FOREIGN KEY ("product_id") REFERENCES "products"("product_id") ON DELETE NO ACTION ON UPDATE CASCADE;

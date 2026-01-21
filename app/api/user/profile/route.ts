@@ -8,9 +8,14 @@ export async function GET(request: Request) {
   try {
     // 1. Get the session using getServerSession
     const session = await getServerSession(authOptions);
+    console.log(
+      "[GET /api/user/profile] Session:",
+      JSON.stringify(session, null, 2)
+    );
 
     // 2. Check if the user is authenticated
     if (!session || !session.user || !session.user.email) {
+      console.warn("[GET /api/user/profile] Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,6 +28,7 @@ export async function GET(request: Request) {
     // 3. Use the user's ID from the session to fetch their profile
     // Assuming you've added 'id' to your session object via NextAuth.js callbacks
     const userId = (session.user as any).id;
+    console.log("[GET /api/user/profile] Fetching profile for userId:", userId);
 
     if (!userId) {
       // This case should ideally not happen if session is properly configured
@@ -34,7 +40,6 @@ export async function GET(request: Request) {
     }
 
     // 4. Fetch user profile from the database using the user ID
-    // Make sure your 'users' table has a column that matches 'userId' (e.g., 'id')
     const queryText = `
       SELECT 
         user_id, 
@@ -48,12 +53,17 @@ export async function GET(request: Request) {
         created_at AS "memberSince", 
         email_verified AS "emailVerified"
       FROM users 
-      WHERE user_id = $1`; // Assuming 'id' is the column name for user ID
+      WHERE user_id = $1`; 
 
     const params = [userId];
     const result = await queryDatabase(queryText, params);
+    console.log("[GET /api/user/profile] DB Result count:", result.length);
 
     if (result.length === 0) {
+      console.warn(
+        "[GET /api/user/profile] No profile found in DB for userId:",
+        userId
+      );
       return NextResponse.json(
         { error: "User profile not found" },
         { status: 404 }
@@ -75,12 +85,21 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    console.log(
+      "[PATCH /api/user/profile] Session:",
+      JSON.stringify(session, null, 2)
+    );
 
     if (!session || !session.user || !session.user.email) {
+      console.warn("[PATCH /api/user/profile] Unauthorized update attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = (session.user as any).id;
+    console.log(
+      "[PATCH /api/user/profile] Updating profile for userId:",
+      userId
+    );
     if (!userId) {
       console.error("Session user ID is missing for PATCH.");
       return NextResponse.json(
@@ -90,6 +109,10 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
+    console.log(
+      "[PATCH /api/user/profile] Request Body:",
+      JSON.stringify(body, null, 2)
+    );
     // Destructure and validate incoming fields
     const { fullName, bio, companyName, phone } = body; // Add other editable fields
 
@@ -128,21 +151,31 @@ export async function PATCH(request: Request) {
     const updateQueryText = `
       UPDATE users 
       SET ${updateFields.join(", ")} 
-      WHERE id = $${paramIndex} 
+      WHERE user_id = $${paramIndex} 
       RETURNING 
         user_id, 
         first_name AS "firstName",
         last_name AS "lastName",
         email, 
         bio, 
-        profile_image AS "profileImage", 
+        profile_picture_url AS "profileImage", 
         company_name AS "companyName", 
         phone, 
         created_at AS "memberSince", 
         email_verified AS "emailVerified"
     `;
 
+    console.log("[PATCH /api/user/profile] Executing Query:", updateQueryText);
+    console.log(
+      "[PATCH /api/user/profile] With Params:",
+      JSON.stringify(updateParams, null, 2)
+    );
+
     const updatedResult = await queryDatabase(updateQueryText, updateParams);
+    console.log(
+      "[PATCH /api/user/profile] Update DB Result count:",
+      updatedResult.length
+    );
 
     if (updatedResult.length === 0) {
       return NextResponse.json(
