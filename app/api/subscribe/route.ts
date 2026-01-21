@@ -11,12 +11,18 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const group = isActive === "true" ? "active-course" : "waitlist";
+
+    // Handle both string "true"/"false" and boolean true/false
+    const isActiveBool = String(isActive) === "true" || isActive === true;
+    const group = isActiveBool ? "active-course" : "waitlist";
     const senderApiKey = process.env.SENDER_API_KEY;
 
     if (!senderApiKey) {
+      console.error(
+        "SENDER_API_KEY is not configured in environment variables."
+      );
       return Response.json(
-        { message: "Sender API key is not configured." },
+        { message: "Server configuration error. Please contact support." },
         { status: 500 }
       );
     }
@@ -26,18 +32,26 @@ export async function POST(request: Request) {
       headers: {
         Authorization: `Bearer ${senderApiKey}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         email,
-        name,
+        firstname: name.split(" ")[0],
+        lastname: name.split(" ").slice(1).join(" "),
         groups: [group],
       }),
     });
 
+    const responseData = await response.json();
+
     if (response.ok) {
       return Response.json({ message: "Thanks for subscribing!" });
     } else {
-      return Response.json({ message: "Subscription failed." }, { status: 500 });
+      console.error("Sender API error:", responseData);
+      return Response.json(
+        { message: responseData.message || "Subscription failed." },
+        { status: response.status }
+      );
     }
   } catch (error) {
     console.error("Error in subscription handler:", error);

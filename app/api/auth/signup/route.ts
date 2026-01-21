@@ -184,9 +184,37 @@ export async function POST(req: Request) {
         try {
           await sendVerificationEmail(email, verificationToken, name, course);
           console.log(`Verification email sent to ${email}`);
+
+          // Add to Sender.net Marketing List
+          const senderApiKey = process.env.SENDER_API_KEY;
+          if (senderApiKey) {
+            fetch("https://api.sender.net/v2/subscribers", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${senderApiKey}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                email,
+                firstname: firstName,
+                lastname: lastName,
+                // Automatically add to "marketing" list plus their specific role/course group
+                groups: courseId
+                  ? ["marketing", "student"]
+                  : ["marketing", "user"],
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) =>
+                console.log("Sender marketing subscription result:", data)
+              )
+              .catch((err) =>
+                console.error("Sender subscription error:", err.message)
+              );
+          }
         } catch (mailError) {
           console.error("Failed to send verification email:", mailError);
-          // Don't fail the entire transaction for a mailer error
         }
       }
 
