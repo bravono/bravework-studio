@@ -183,11 +183,11 @@ export default function KidsLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-[3rem] p-12 text-center border-4 border-dashed border-blue-100 relative overflow-hidden">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-6">
-              Dreaming of Joining Our{" "}
+              Dreaming of Hiring Our{" "}
               <span className="text-green-600">Studio?</span> 🚀
             </h2>
             <p className="text-gray-600 text-xl max-w-2xl mx-auto mb-10">
-              Our Studio experts build the very animations and games you love!
+              Our Studio experts build the very animations and apps you love!
               Check out what the "Big Creators" at Bravework are up to.
             </p>
             <Link
