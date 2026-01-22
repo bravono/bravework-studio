@@ -31,8 +31,8 @@ export default function AcademyBookingPage() {
             Book Your Session
           </h1>
           <p className="text-gray-600 max-w-2xl text-lg">
-            Schedule your equipment pickup or on-site rendering session below.
-            All bookings are subject to our standard damage and usage policies.
+            Schedule your equipment on-site session below. All bookings are
+            subject to our standard damage and usage policies.
           </p>
         </div>
 
@@ -56,14 +56,14 @@ export default function AcademyBookingPage() {
                   {
                     icon: CreditCard,
                     title: "Payment",
-                    desc: "Pay securely via your Bravework Wallet or Card.",
+                    desc: "Pay Securely (Escrow Protected)",
                     color: "text-green-600",
                     bg: "bg-green-50",
                   },
                   {
                     icon: MapPin,
-                    title: "Pickup",
-                    desc: "Collect your gear at our Lagos Hub (Studio A).",
+                    title: "On-Site",
+                    desc: "Currently in Katsina. Partner with us to expand nationwide.",
                     color: "text-amber-600",
                     bg: "bg-amber-50",
                   },

@@ -57,13 +57,13 @@ export default function AcademyRentalsPage() {
                   className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-xl shadow-green-600/20 transition-all flex items-center gap-3"
                 >
                   <Monitor size={20} />
-                  View Inventory
+                  Vendor Rentals
                 </Link>
                 <Link
                   href="/academy/rentals/booking"
                   className="px-8 py-4 bg-white border-2 border-green-100 hover:border-green-600 text-gray-700 font-bold rounded-2xl transition-all flex items-center gap-3"
                 >
-                  Book Now
+                  Book with Us
                   <ChevronRight size={20} />
                 </Link>
               </div>
@@ -205,7 +205,7 @@ export default function AcademyRentalsPage() {
                 href="/academy/rentals/inventory"
                 className="px-10 py-5 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all"
               >
-                Explore Inventory
+                Explore Vendor Rentals
               </Link>
               <Link
                 href="/academy/rentals/faq"
