@@ -76,10 +76,10 @@ export default function AcademyRentalDetailsPage() {
     setIsBooking(true);
     try {
       const calculatedEndDate = new Date(
-        startDate.getTime() + duration * 60 * 60 * 1000
+        startDate.getTime() + duration * 60 * 60 * 1000,
       );
       const totalAmount = Math.ceil(
-        duration * Number((rental?.hourlyRate || 0) / KOBO_PER_NAIRA)
+        duration * Number((rental?.hourlyRate || 0) / KOBO_PER_NAIRA),
       );
 
       const res = await fetch("/api/user/rentals/book", {
@@ -99,8 +99,8 @@ export default function AcademyRentalDetailsPage() {
         throw new Error(data.error || "Booking failed");
       }
 
-      toast.success("Booking request sent successfully!");
-      router.push("/user/booking/success");
+      toast.success("Booking created! Redirecting to payment...");
+      router.push(`/user/dashboard/payment?bookingId=${data.bookingId}`);
     } catch (error: any) {
       console.error("Booking error:", error);
       toast.error(error.message || "Failed to book rental");
@@ -119,7 +119,7 @@ export default function AcademyRentalDetailsPage() {
     if (rental?.imagesArray?.length) {
       setCurrentImageIndex(
         (prev) =>
-          (prev - 1 + rental.imagesArray.length) % rental.imagesArray.length
+          (prev - 1 + rental.imagesArray.length) % rental.imagesArray.length,
       );
     }
   };
@@ -213,7 +213,7 @@ export default function AcademyRentalDetailsPage() {
                     <p className="text-4xl font-black text-green-600">
                       ₦
                       {Number(
-                        rental.hourlyRate / KOBO_PER_NAIRA
+                        rental.hourlyRate / KOBO_PER_NAIRA,
                       ).toLocaleString()}
                     </p>
                     <p className="text-xs font-bold text-gray-400 uppercase mt-1">
@@ -312,7 +312,7 @@ export default function AcademyRentalDetailsPage() {
                           }
                           onChange={(e) =>
                             setStartDate(
-                              e.target.value ? new Date(e.target.value) : null
+                              e.target.value ? new Date(e.target.value) : null,
                             )
                           }
                           className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-medium"
@@ -330,7 +330,7 @@ export default function AcademyRentalDetailsPage() {
                           value={duration}
                           onChange={(e) =>
                             setDuration(
-                              Math.max(1, parseInt(e.target.value) || 1)
+                              Math.max(1, parseInt(e.target.value) || 1),
                             )
                           }
                           className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-medium"
@@ -346,7 +346,7 @@ export default function AcademyRentalDetailsPage() {
                         <span className="text-3xl font-black text-green-500">
                           ₦
                           {Number(
-                            duration * (rental.hourlyRate / KOBO_PER_NAIRA)
+                            duration * (rental.hourlyRate / KOBO_PER_NAIRA),
                           ).toLocaleString()}
                         </span>
                       </div>

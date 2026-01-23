@@ -6,7 +6,7 @@ interface OrderStatusMap {
 }
 
 export async function getOrderStatusMap(
-  client: PoolClient
+  client: PoolClient,
 ): Promise<OrderStatusMap> {
   const result = await client.query("SELECT * FROM payment_statuses");
   const map: OrderStatusMap = {};
@@ -24,12 +24,12 @@ export async function processSuccessfulOrder(
   orderTitle: string,
   projectDurationDays: number | null,
   serviceType: string,
-  productId: number
+  productId: number,
 ) {
   // 1. Fetch current order state
   const orderRows = await client.query(
     "SELECT * FROM orders WHERE order_id = $1",
-    [orderId]
+    [orderId],
   );
   if (orderRows.rows.length === 0) {
     throw new Error(`Order with ID ${orderId} not found.`);
@@ -68,7 +68,7 @@ export async function processSuccessfulOrder(
       projectDurationDays,
       totalExpectedAmountKobo,
       orderId,
-    ]
+    ],
   );
 
   // 4. Update Custom Offer Status if applicable
@@ -78,7 +78,7 @@ export async function processSuccessfulOrder(
        SET status_id = (SELECT offer_status_id FROM custom_offer_statuses WHERE name = 'accepted'),
        updated_at = NOW()
        WHERE offer_id = $1`,
-      [productId]
+      [productId],
     );
   }
 
@@ -89,7 +89,7 @@ export async function processSuccessfulOrder(
       `UPDATE course_enrollments
        SET payment_status = $1
        WHERE course_id = $2 AND user_id = $3`,
-      [newStatusId, productId, order.user_id]
+      [newStatusId, productId, order.user_id],
     );
   }
 
@@ -100,7 +100,7 @@ export async function processSuccessfulRentalBooking(
   client: PoolClient,
   bookingId: number,
   amountPaidKobo: number,
-  paymentStatusName: string = "paid"
+  paymentStatusName: string = "paid",
 ) {
   // Get status map
   const orderStatusMap = await getOrderStatusMap(client);
@@ -113,7 +113,7 @@ export async function processSuccessfulRentalBooking(
          updated_at = NOW()
      WHERE rental_booking_id = $2
      RETURNING client_id, rental_id, total_amount_kobo`,
-    [statusId, bookingId]
+    [statusId, bookingId],
   );
 
   if (bookingUpdateRes.rows.length === 0) {
@@ -125,19 +125,19 @@ export async function processSuccessfulRentalBooking(
   // 2. Fetch Rental Details for Order Title
   const rentalRes = await client.query(
     "SELECT device_name FROM rentals WHERE rental_id = $1",
-    [booking.rental_id]
+    [booking.rental_id],
   );
   const deviceName = rentalRes.rows[0]?.device_name || "Device";
 
   // 3. Ensure "Hardware Rental" category exists or get ID
   let categoryRes = await client.query(
     "SELECT category_id FROM product_categories WHERE category_name = $1",
-    ["Hardware Rental"]
+    ["Hardware Rental"],
   );
 
   let categoryId: number;
   if (categoryRes.rows.length === 0) {
-    const newCategory = await client.query(
+      const newCategory = await client.query(
       "INSERT INTO product_categories (category_name, category_description) VALUES ($1, $2) RETURNING category_id",
       ["Hardware Rental", "Rental of hardware devices and equipment."]
     );
@@ -157,10 +157,9 @@ export async function processSuccessfulRentalBooking(
       amount_paid_to_date_kobo, 
       title, 
       tracking_id,
-      rental_booking_id,
       start_date,
       updated_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
     [
       booking.client_id,
       categoryId,
@@ -169,8 +168,7 @@ export async function processSuccessfulRentalBooking(
       amountPaidKobo,
       `Rental: ${deviceName}`,
       trackingId,
-      bookingId,
-    ]
+    ],
   );
 
   return { success: true };

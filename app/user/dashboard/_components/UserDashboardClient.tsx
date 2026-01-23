@@ -170,7 +170,7 @@ function Page() {
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(
-        err.message || "An error occurred while fetching dashboard data."
+        err.message || "An error occurred while fetching dashboard data.",
       );
     } finally {
       setLoading(false);
@@ -198,7 +198,7 @@ function Page() {
       (c) =>
         c.paymentStatus != null &&
         c.paymentStatus !== 1 &&
-        c.paymentStatus !== 4 // ADDED (c.paymentStatus != null)
+        c.paymentStatus !== 4, // ADDED (c.paymentStatus != null)
     );
 
     if (course && course.price > 0) {
@@ -222,7 +222,7 @@ function Page() {
 
   // Handle profile edit changes
   const handleProfileChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setEditableProfile((prev) => ({ ...prev, [name]: value }));
@@ -262,7 +262,7 @@ function Page() {
   // Handle initiate payment
   const handleInitiatePayment = (
     id: any,
-    type: "invoice" | "booking" = "invoice"
+    type: "invoice" | "booking" = "invoice",
   ) => {
     if (type === "booking") {
       router.push(`/user/dashboard/payment?bookingId=${id}`);
@@ -275,7 +275,7 @@ function Page() {
   const handleReleaseFunds = async (bookingId: number) => {
     if (
       !window.confirm(
-        "Are you sure you want to release funds to the owner? This cannot be undone."
+        "Are you sure you want to release funds to the owner? This cannot be undone.",
       )
     )
       return;
@@ -309,7 +309,7 @@ function Page() {
     async (
       offer: CustomOffer,
       action: "accept" | "reject",
-      reason?: string
+      reason?: string,
     ) => {
       if (!offer?.id) return; // ADDED ?.
 
@@ -317,7 +317,7 @@ function Page() {
 
       if (currentOfferStatus !== "pending") {
         toast.error(
-          `This offer is already ${currentOfferStatus || "not available"}.`
+          `This offer is already ${currentOfferStatus || "not available"}.`,
         );
         return;
       }
@@ -330,7 +330,7 @@ function Page() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ rejectionReason: reason }),
-          }
+          },
         );
 
         if (!res.ok) {
@@ -344,7 +344,7 @@ function Page() {
         const formDataToSend = new FormData();
         formDataToSend.append(
           "offerAmount",
-          offer.offerAmount?.toString() ?? "" // USED ?? instead of ||
+          offer.offerAmount?.toString() ?? "", // USED ?? instead of ||
         );
         formDataToSend.append("offerStatus", `${action}ed`);
         formDataToSend.append("offerDescription", offer.description ?? ""); // USED ??
@@ -374,13 +374,13 @@ function Page() {
       } catch (err: any) {
         console.error(`Error ${action}ing offer:`, err.message);
         toast.error(
-          `Error ${action}ing offer: ` + (err.message || "Unknown error.")
+          `Error ${action}ing offer: ` + (err.message || "Unknown error."),
         );
       } finally {
         setActionLoading(false);
       }
     },
-    []
+    [],
   );
 
   const handleRejectClick = (offer: CustomOffer) => {
@@ -429,13 +429,13 @@ function Page() {
 
   // Calculate overview stats from fetched data
   const activeOrders = orders.filter(
-    (order) => order.status === "overpayment_detected"
+    (order) => order.status === "overpayment_detected",
   ).length;
   const projectOrders = orders.filter(
-    (order) => order.serviceName !== "Course"
+    (order) => order.serviceName !== "Course",
   ).length;
   const coursesInProgress = orders.filter(
-    (order) => order.serviceName === "Course"
+    (order) => order.serviceName === "Course",
   ).length;
   const totalSpent =
     orders.reduce((sum, order) => sum + (order.amount || 0), 0) /
@@ -444,31 +444,31 @@ function Page() {
   // Pagination Logic
   const paginatedOrders = orders.slice(
     (ordersPage - 1) * itemsPerPage,
-    ordersPage * itemsPerPage
+    ordersPage * itemsPerPage,
   );
   const totalOrdersPages = Math.ceil(orders.length / itemsPerPage);
 
   const paginatedOffers = offers.slice(
     (offersPage - 1) * itemsPerPage,
-    offersPage * itemsPerPage
+    offersPage * itemsPerPage,
   );
   const totalOffersPages = Math.ceil(offers.length / itemsPerPage);
 
   const paginatedInvoices = invoices.slice(
     (invoicesPage - 1) * itemsPerPage,
-    invoicesPage * itemsPerPage
+    invoicesPage * itemsPerPage,
   );
   const totalInvoicesPages = Math.ceil(invoices.length / itemsPerPage);
 
   const paginatedRentals = rentals.slice(
     (rentalsPage - 1) * itemsPerPage,
-    rentalsPage * itemsPerPage
+    rentalsPage * itemsPerPage,
   );
   const totalRentalsPages = Math.ceil(rentals.length / itemsPerPage);
 
   const paginatedBookings = bookings.slice(
     (bookingsPage - 1) * itemsPerPage,
-    bookingsPage * itemsPerPage
+    bookingsPage * itemsPerPage,
   );
   const totalBookingsPages = Math.ceil(bookings.length / itemsPerPage);
 
@@ -563,9 +563,7 @@ function Page() {
       case "rentals":
         return withBackToOverview(<UserRentalsSection />);
       case "bookings":
-        return withBackToOverview(
-          <UserBookingsSection handleInitiatePayment={handleInitiatePayment} />
-        );
+        return withBackToOverview(<UserBookingsSection />);
       case "wallet":
         return withBackToOverview(<UserWalletSection />);
       case "referrals":
@@ -584,7 +582,7 @@ function Page() {
                 exchangeRates={exchangeRates}
               />
             ))}
-          </div>
+          </div>,
         );
       default:
         return null;
