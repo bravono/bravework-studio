@@ -326,3 +326,7 @@ interface PaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
 }
+
+interface UserBookingsSectionProps {
+  handleInitiatePayment?: (id: any, type?: "invoice" | "booking") => void;
+}

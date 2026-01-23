@@ -14,8 +14,13 @@ import Loader from "@/app/components/Loader";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import ReasonModal from "@/app/components/ReasonModal";
 import Modal from "@/app/components/Modal";
+import { UserBookingsSectionProps } from "@/app/types/app";
 
-export default function UserBookingsSection() {
+
+
+export default function UserBookingsSection({
+  handleInitiatePayment,
+}: UserBookingsSectionProps) {
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
     "my-bookings",
   );
@@ -421,7 +426,7 @@ export default function UserBookingsSection() {
                                     Reschedule
                                   </button>
 
-                                  {booking.paymentStatus === "paid" && (
+                                  {booking.paymentStatus === "paid" ? (
                                     <>
                                       <button
                                         onClick={() =>
@@ -448,6 +453,18 @@ export default function UserBookingsSection() {
                                         Dispute
                                       </button>
                                     </>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        handleInitiatePayment?.(
+                                          booking.id,
+                                          "booking",
+                                        )
+                                      }
+                                      className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                                    >
+                                      Pay Now
+                                    </button>
                                   )}
                                 </div>
                               )}
