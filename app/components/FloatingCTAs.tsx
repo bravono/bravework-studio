@@ -62,7 +62,7 @@ export default function FloatingCTAs() {
                 </h4>
                 <p className="text-gray-300 text-sm mb-3">
                   {activeBanner === "kids"
-                    ? "Check our 3D Animation courses for children!"
+                    ? "Check our 3D Edutainment for children!"
                     : "Join Bravework Academy and master high-demand tech skills."}
                 </p>
                 <Link
