@@ -24,7 +24,6 @@ import Joi from "joi";
 import { Course } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 // Joi Schemas
 const baseSignupSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -94,7 +93,6 @@ function Signup() {
   const firstName = user?.name ? user.name.split(" ")[0] : "";
   const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
   const email = user?.email || "";
-  const senderAPIKey = process.env.SENDER_API_KEY;
 
   const [form, setForm] = useState({
     firstName: "",
@@ -254,18 +252,7 @@ function Signup() {
       const data = await res.json();
       if (res.ok) {
         if (isEnrollmentPage && course) {
-          fetch("https://api.sender.net/v2/subscribers", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${senderAPIKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: form.email,
-              name: `${form.firstName}  ${form.lastName}`,
-              tags: ["student"],
-            }),
-          });
+          // Relocated to backend signup route for security and reliability
         }
 
         if (!user?.email) {

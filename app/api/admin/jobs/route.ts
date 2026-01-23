@@ -9,13 +9,28 @@ export async function GET() {
     console.error("Error fetching jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch jobs" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("multipart/form-data") &&
+      !contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
     const application = await request.formData();
     const fields = [
       "role",
@@ -69,7 +84,7 @@ export async function POST(request: Request) {
           experience,
           availability,
           message,
-        ]
+        ],
       );
 
       appId = applicationResult.rows[0].application_id;
@@ -83,20 +98,20 @@ export async function POST(request: Request) {
       ) {
         await client.query(
           "INSERT INTO application_files (application_id, file_name, file_size, file_url) VALUES ($1, $2, $3, $4)",
-          [appId, file.fileName, file.fileSize, file.fileUrl]
+          [appId, file.fileName, file.fileSize, file.fileUrl],
         );
       }
     });
 
     return NextResponse.json(
       { message: "Application submitted successfully" },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error submitting application:", error);
     return NextResponse.json(
       { error: "Failed to submit application" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

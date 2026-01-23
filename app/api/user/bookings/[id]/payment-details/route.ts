@@ -42,16 +42,6 @@ export async function GET(
 
     const booking = result[0];
 
-    // Check if booking status is acceptable for payment
-    if (booking.status !== "accepted") {
-      return NextResponse.json(
-        {
-          error: `This booking is ${booking.status} and cannot be paid for yet.`,
-        },
-        { status: 400 }
-      );
-    }
-
     // Return in the format expected by PaymentContent.tsx
     return NextResponse.json({
       type: "rental",

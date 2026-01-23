@@ -12,6 +12,8 @@ import {
   Clock,
   ChevronRight,
   ArrowRight,
+  Monitor,
+  ShieldCheck,
 } from "lucide-react";
 import KidsSubNavBar from "../components/KidsSubNavBar";
 
@@ -143,6 +145,13 @@ export default function KidsLandingPage() {
                 color: "text-blue-500",
                 bg: "bg-blue-50",
               },
+              {
+                title: "Kid-Safe Gear",
+                desc: "Specialized tablets and laptops with parental controls, integrated with Academy Rentals.",
+                icon: Monitor,
+                color: "text-pink-500",
+                bg: "bg-pink-50",
+              },
             ].map((usp, i) => (
               <motion.div
                 key={usp.title}
@@ -169,6 +178,28 @@ export default function KidsLandingPage() {
         </div>
       </section>
 
+      {/* Studio Cross-Promotion */}
+      <section className="py-24 bg-blue-50/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-[3rem] p-12 text-center border-4 border-dashed border-blue-100 relative overflow-hidden">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-6">
+              Dreaming of Hiring Our{" "}
+              <span className="text-green-600">Studio?</span> 🚀
+            </h2>
+            <p className="text-gray-600 text-xl max-w-2xl mx-auto mb-10">
+              Our Studio experts build the very animations and apps you love!
+              Check out what the "Big Creators" at Bravework are up to.
+            </p>
+            <Link
+              href="/studio"
+              className="px-10 py-5 bg-green-600 hover:bg-green-700 text-white font-black rounded-[2rem] shadow-xl shadow-green-500/20 transition-all inline-flex items-center gap-3"
+            >
+              Visit Main Studio <Sparkles size={20} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="pb-24 pt-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,10 +221,10 @@ export default function KidsLandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Link
-                href="/auth/signup"
+                href="/jobs"
                 className="px-8 py-4 bg-white text-blue-600 font-black rounded-2xl hover:bg-yellow-400 hover:text-gray-900 transition-all shadow-xl"
               >
-                Create Free Account
+                Apply Now!
               </Link>
               <Link
                 href="/kids/about"

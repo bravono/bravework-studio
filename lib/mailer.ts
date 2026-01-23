@@ -622,3 +622,67 @@ export async function sendFundsReleasedEmail(
     console.log(error.message);
   }
 }
+
+// NEW: Function to send class reminder email
+export async function sendClassReminderEmail(
+  toEmail: string,
+  userName: string,
+  courseTitle: string,
+  sessionTime: string,
+  sessionLink: string,
+  userId?: string
+) {
+  const currentTransporter = await initializeTransporter();
+  if (!currentTransporter) return;
+
+  const formattedTime = new Date(sessionTime).toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const subject = `Reminder: Your Class for ${courseTitle} is starting soon!`;
+  const htmlContent = `
+    <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #008751;">Class Reminder</h2>
+      <p>Hello ${userName},</p>
+      <p>This is a reminder that your class for <strong>${courseTitle}</strong> is scheduled for <strong>${formattedTime}</strong>.</p>
+      ${
+        sessionLink
+          ? `
+      <p>You can join the session using the link below:</p>
+      <p><a href="${sessionLink}" style="display: inline-block; padding: 12px 24px; background-color: #008751; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Live Session</a></p>
+      `
+          : ""
+      }
+      <p>We look forward to seeing you there!</p>
+      <p>Thanks,<br/>The Bravework Studio Team</p>
+    </div>
+  `;
+  const textContent = `Hello ${userName},\n\nThis is a reminder that your class for ${courseTitle} is scheduled for ${formattedTime}.${
+    sessionLink ? `\n\nJoin the session here: ${sessionLink}` : ""
+  }\n\nWe look forward to seeing you there!\n\nThanks,\nThe Bravework Studio Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+
+    // Send in-app notification
+    const finalUserId = userId || (await getUserIdByEmail(toEmail));
+    if (finalUserId) {
+      await createNotification({
+        userId: finalUserId,
+        title: subject,
+        message: `Your class for ${courseTitle} starts at ${new Date(
+          sessionTime
+        ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`,
+        link: sessionLink,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}

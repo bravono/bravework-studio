@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Nosifer } from "next/font/google";
+import { Outfit } from "next/font/google";
+
 import Progress from "../components/Progress";
 import FilesToUpload from "../components/FilesToUpload";
 import {
@@ -13,10 +14,18 @@ import {
   Upload,
   Send,
   FileText,
+  Film,
+  Mic2,
+  Languages,
+  Layout,
+  Music,
 } from "lucide-react";
 import { uploadFile } from "@/lib/utils/upload";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+});
 
 interface JobApplication {
   role: string;
@@ -108,6 +117,19 @@ export default function JobsPage() {
         const data = await response.json();
         toast.success(`Application submitted successfully!`);
         setSubmitStatus("success");
+        setApplication({
+          role: "",
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          portfolio: "",
+          experience: "",
+          availability: "",
+          message: "",
+        });
+        setFile(null);
+        setFileInfo(null);
       } else {
         const errorData = await response.json();
         toast.error(
@@ -190,7 +212,7 @@ export default function JobsPage() {
       <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1
-            className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}
+            className={`text-5xl font-bold text-gray-900 ${outfit.className}`}
           >
             Join Our Team
           </h1>
@@ -276,7 +298,7 @@ export default function JobsPage() {
             <ul className="mt-4 space-y-2 text-gray-500 text-sm">
               <li className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-green-500" />
-                Blender/Maya expertise
+                Blender expertise
               </li>
               <li className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-green-500" />
@@ -323,6 +345,161 @@ export default function JobsPage() {
               </li>
             </ul>
           </div>
+
+          {/* Video Editor & Compositor Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-red-100 text-red-600 rounded-xl mb-4 inline-block">
+              <Film className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Video Editor & Compositor
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Bring our stories to life with seamless editing and effects.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Davinci Resolve
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Color grading
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Motion graphics
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                VFX compositing
+              </li>
+            </ul>
+          </div>
+
+          {/* Sound Designer Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-cyan-100 text-cyan-600 rounded-xl mb-4 inline-block">
+              <Music className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Sound Designer
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Create immersive auditory experiences for our animations.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Sound mixing & mastering
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Foley artistry
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Audio post-production
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                DAW proficiency
+              </li>
+            </ul>
+          </div>
+
+          {/* Voice Actors Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-orange-100 text-orange-600 rounded-xl mb-4 inline-block">
+              <Mic2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Voice Actors
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Give life and personality to our characters through your voice.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Diverse vocal range
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Character acting
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Clear diction & tone
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Emotional expression
+              </li>
+            </ul>
+          </div>
+
+          {/* Translators Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-green-100 text-green-600 rounded-xl mb-4 inline-block">
+              <Languages className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Translators
+            </h3>
+            <p className="text-gray-600 text-sm">
+              English to Yoruba, Hausa, and Igbo translation & localization.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Multilingual fluency
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Cultural nuance expert
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Content localization
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Script adaptation
+              </li>
+            </ul>
+          </div>
+
+          {/* 2D Artist (Storyboard) Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl mb-4 inline-block">
+              <Layout className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              2D Artist (Storyboard)
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Visualize scripts and layout scenes to guide animation.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Visual storytelling
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Character composition
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Quick sketching
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Scene layout
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Application Form Section */}
@@ -361,6 +538,17 @@ export default function JobsPage() {
                   <option value="ui-ux-designer">UI/UX Designer</option>
                   <option value="3d-artist">3D Artist</option>
                   <option value="game-developer">Game Developer</option>
+                  <option value="video-editor">
+                    Video Editor & Compositor
+                  </option>
+                  <option value="sound-designer">Sound Designer</option>
+                  <option value="voice-actor">Voice Actor</option>
+                  <option value="translator">
+                    Translator (English to Yoruba/Hausa/Igbo)
+                  </option>
+                  <option value="storyboard-artist">
+                    2D Artist (Storyboard)
+                  </option>
                 </select>
               </div>
 

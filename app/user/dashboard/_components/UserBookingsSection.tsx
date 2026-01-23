@@ -14,14 +14,15 @@ import Loader from "@/app/components/Loader";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import ReasonModal from "@/app/components/ReasonModal";
 import Modal from "@/app/components/Modal";
+import { UserBookingsSectionProps } from "@/app/types/app";
+
+
 
 export default function UserBookingsSection({
   handleInitiatePayment,
-}: {
-  handleInitiatePayment?: (id: number, type: "booking") => void;
-}) {
+}: UserBookingsSectionProps) {
   const [activeTab, setActiveTab] = useState<"rentals" | "my-bookings">(
-    "my-bookings"
+    "my-bookings",
   );
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +88,7 @@ export default function UserBookingsSection({
   const handleStatusUpdate = async (
     bookingId: number,
     status: string,
-    reason?: string
+    reason?: string,
   ) => {
     setProcessingId(bookingId);
     try {
@@ -159,7 +160,7 @@ export default function UserBookingsSection({
             startTime: rescheduleForm.startTime,
             durationHours: rescheduleForm.durationHours,
           }),
-        }
+        },
       );
 
       if (!res.ok) {
@@ -179,7 +180,7 @@ export default function UserBookingsSection({
   };
 
   const handleRentAgain = (rentalId: number) => {
-    window.location.href = `/rentals/${rentalId}`;
+    window.location.href = `/academy/rentals/inventory/${rentalId}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -321,7 +322,7 @@ export default function UserBookingsSection({
                           <span className="text-2xl font-black text-green-700">
                             ₦
                             {Number(
-                              booking.amount / KOBO_PER_NAIRA
+                              booking.amount / KOBO_PER_NAIRA,
                             ).toLocaleString()}
                           </span>
                           {booking.escrowReleased && (
@@ -407,21 +408,6 @@ export default function UserBookingsSection({
                             {booking.status === "accepted" &&
                               !booking.escrowReleased && (
                                 <div className="flex flex-wrap gap-3">
-                                  {booking.paymentStatus === "pending" &&
-                                    handleInitiatePayment && (
-                                      <button
-                                        onClick={() =>
-                                          handleInitiatePayment(
-                                            booking.id,
-                                            "booking"
-                                          )
-                                        }
-                                        className="px-6 py-2 text-sm font-bold text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95"
-                                      >
-                                        Pay Now
-                                      </button>
-                                    )}
-
                                   <button
                                     onClick={() => {
                                       setRescheduleModal({
@@ -440,7 +426,7 @@ export default function UserBookingsSection({
                                     Reschedule
                                   </button>
 
-                                  {booking.paymentStatus === "paid" && (
+                                  {booking.paymentStatus === "paid" ? (
                                     <>
                                       <button
                                         onClick={() =>
@@ -467,6 +453,18 @@ export default function UserBookingsSection({
                                         Dispute
                                       </button>
                                     </>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        handleInitiatePayment?.(
+                                          booking.id,
+                                          "booking",
+                                        )
+                                      }
+                                      className="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                                    >
+                                      Pay Now
+                                    </button>
                                   )}
                                 </div>
                               )}
@@ -532,7 +530,7 @@ export default function UserBookingsSection({
                   if (!res.ok)
                     throw new Error(data.error || "Failed to submit dispute");
                   toast.success(
-                    "Dispute submitted. We will verify your claim with the owner."
+                    "Dispute submitted. We will verify your claim with the owner.",
                   );
                   setReasonModal((prev) => ({ ...prev, isOpen: false }));
                   fetchBookings();
@@ -547,7 +545,7 @@ export default function UserBookingsSection({
               handleStatusUpdate(
                 reasonModal.bookingId,
                 reasonModal.status,
-                reason
+                reason,
               );
               setReasonModal((prev) => ({ ...prev, isOpen: false }));
             }

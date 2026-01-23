@@ -14,6 +14,10 @@ import {
   Share2,
   ChevronRight,
   ExternalLink,
+  Layout,
+  Mountain,
+  Film,
+  Megaphone,
 } from "lucide-react";
 
 export default function KidsOpportunitiesPage() {
@@ -37,7 +41,7 @@ export default function KidsOpportunitiesPage() {
       bg: "bg-green-50",
     },
     {
-      title: "3D Modelers",
+      title: "3D Modelers & Riggers",
       icon: Palette,
       color: "text-purple-500",
       bg: "bg-purple-50",
@@ -53,6 +57,30 @@ export default function KidsOpportunitiesPage() {
       icon: Users,
       color: "text-yellow-600",
       bg: "bg-yellow-50",
+    },
+    {
+      title: "Storyboard Artist",
+      icon: Layout,
+      color: "text-indigo-500",
+      bg: "bg-indigo-50",
+    },
+    {
+      title: "Environment Artist",
+      icon: Mountain,
+      color: "text-emerald-500",
+      bg: "bg-emerald-50",
+    },
+    {
+      title: "Video Editor & Compositor",
+      icon: Film,
+      color: "text-red-500",
+      bg: "bg-red-50",
+    },
+    {
+      title: "Social Media Manager",
+      icon: Megaphone,
+      color: "text-cyan-500",
+      bg: "bg-cyan-50",
     },
   ];
 
@@ -110,15 +138,14 @@ export default function KidsOpportunitiesPage() {
             </h2>
             <div className="space-y-6 text-gray-300">
               <p className="leading-relaxed">
-                Rather than high upfront costs, we offer a **revenue share
-                structure** tailored to low-commitment, high-impact
-                contributors.
+                Rather than high upfront costs, we offer a revenue share
+                structure tailored to low-commitment, high-impact contributors.
               </p>
               <ul className="space-y-4">
                 <li className="flex gap-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2"></div>
                   <span>
-                    **5-10% Revenue Share** per episode you contribute to.
+                    5-10% Revenue Share per episode you contribute to.
                   </span>
                 </li>
                 <li className="flex gap-3">
@@ -147,7 +174,7 @@ export default function KidsOpportunitiesPage() {
             </p>
             <div className="pt-4">
               <Link
-                href="/job"
+                href="/jobs"
                 className="inline-flex items-center gap-3 px-10 py-5 bg-green-500 hover:bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 transition-all text-lg group"
               >
                 Apply via Jobs Portal

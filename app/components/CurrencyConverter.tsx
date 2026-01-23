@@ -7,9 +7,11 @@ const App = () => {
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("EUR");
   const [convertedAmount, setConvertedAmount] = useState(0);
-  const exchangeRates = useExchangeRates;
+  const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
 
   useEffect(() => {
+    if (!exchangeRates) return;
+
     const rateFrom = exchangeRates[fromCurrency];
     const rateTo = exchangeRates[toCurrency];
 

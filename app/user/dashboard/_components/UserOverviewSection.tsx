@@ -183,7 +183,7 @@ export default function UserOverviewSection({
                         My Courses
                       </h2>
                       <Link
-                        href="/courses"
+                        href="/academy/courses"
                         className="text-green-600 hover:underline font-medium"
                       >
                         Explore More
@@ -291,11 +291,15 @@ export default function UserOverviewSection({
                               {order.status}
                             </span>
                             <span className="font-bold text-gray-800">
-                              {convertCurrency(
-                                order.amount / KOBO_PER_NAIRA,
-                                exchangeRates?.[selectedCurrency],
-                                getCurrencySymbol(selectedCurrency)
-                              ).toLocaleString()}
+                              {exchangeRates && exchangeRates[selectedCurrency]
+                                ? convertCurrency(
+                                    order.amount / KOBO_PER_NAIRA,
+                                    exchangeRates[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency)
+                                  ).toLocaleString()
+                                : `${getCurrencySymbol(selectedCurrency)} ${(
+                                    order.amount / KOBO_PER_NAIRA
+                                  ).toLocaleString()}`}
                             </span>
                             {(order.status === "paid" ||
                               order.status === "partially_paid" ||
@@ -378,11 +382,18 @@ export default function UserOverviewSection({
                                     <Wallet className="w-4 h-4 text-gray-500 font-bold" />
                                     <strong>Amount:</strong>{" "}
                                     <span className="text-gray-900 font-bold">
-                                      {convertCurrency(
-                                        offer.offerAmount / KOBO_PER_NAIRA,
-                                        exchangeRates?.[selectedCurrency],
-                                        getCurrencySymbol(selectedCurrency)
-                                      ).toLocaleString()}
+                                      {exchangeRates &&
+                                      exchangeRates[selectedCurrency]
+                                        ? convertCurrency(
+                                            offer.offerAmount / KOBO_PER_NAIRA,
+                                            exchangeRates[selectedCurrency],
+                                            getCurrencySymbol(selectedCurrency)
+                                          ).toLocaleString()
+                                        : `${getCurrencySymbol(
+                                            selectedCurrency
+                                          )} ${(
+                                            offer.offerAmount / KOBO_PER_NAIRA
+                                          ).toLocaleString()}`}
                                     </span>
                                   </p>
                                   {
@@ -403,11 +414,20 @@ export default function UserOverviewSection({
                                       <DollarSign className="w-4 h-4 text-gray-500 font-bold" />
                                       <strong>Balance:</strong>{" "}
                                       <span className="text-gray-900 font-bold">
-                                        {convertCurrency(
-                                          owing / KOBO_PER_NAIRA,
-                                          exchangeRates?.[selectedCurrency],
-                                          getCurrencySymbol(selectedCurrency)
-                                        ).toLocaleString()}
+                                        {exchangeRates &&
+                                        exchangeRates[selectedCurrency]
+                                          ? convertCurrency(
+                                              owing / KOBO_PER_NAIRA,
+                                              exchangeRates[selectedCurrency],
+                                              getCurrencySymbol(
+                                                selectedCurrency
+                                              )
+                                            ).toLocaleString()
+                                          : `${getCurrencySymbol(
+                                              selectedCurrency
+                                            )} ${(
+                                              owing / KOBO_PER_NAIRA
+                                            ).toLocaleString()}`}
                                       </span>
                                     </p>
                                   </div>
@@ -672,11 +692,18 @@ export default function UserOverviewSection({
                                   ID: #{booking.id}
                                 </p>
                                 <p className="text-xs font-bold text-green-800 bg-green-100/50 px-2 rounded">
-                                  {convertCurrency(
-                                    booking.amount / KOBO_PER_NAIRA,
-                                    exchangeRates?.[selectedCurrency],
-                                    getCurrencySymbol(selectedCurrency)
-                                  ).toLocaleString()}
+                                  {exchangeRates &&
+                                  exchangeRates[selectedCurrency]
+                                    ? convertCurrency(
+                                        booking.amount / KOBO_PER_NAIRA,
+                                        exchangeRates[selectedCurrency],
+                                        getCurrencySymbol(selectedCurrency)
+                                      ).toLocaleString()
+                                    : `${getCurrencySymbol(
+                                        selectedCurrency
+                                      )} ${(
+                                        booking.amount / KOBO_PER_NAIRA
+                                      ).toLocaleString()}`}
                                 </p>
                               </div>
                             </div>
@@ -747,7 +774,7 @@ export default function UserOverviewSection({
                         No active bookings found
                       </p>
                       <Link
-                        href="/rentals"
+                        href="/academy/rentals"
                         className="mt-4 inline-block text-green-600 font-bold text-sm hover:text-green-700 hover:underline transition-colors"
                       >
                         Find devices to rent →

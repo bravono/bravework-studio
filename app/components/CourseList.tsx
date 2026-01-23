@@ -152,7 +152,7 @@ export default function coursesPage({ page }) {
           {page === "home" && (
             <ArrowButton
               label={"Explore More"}
-              link={"/courses"}
+              link={"/academy/courses"}
               style={"my-4"}
             />
           )}
@@ -207,7 +207,6 @@ export default function coursesPage({ page }) {
                   <div
                     key={index}
                     className="group bg-white w-full max-w-lg mx-auto rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 border border-gray-100"
-                    // onClick={ () => router.push("/courses/" + course.id)}
                   >
                     <div className="relative overflow-hidden">
                       <img
@@ -367,7 +366,7 @@ export default function coursesPage({ page }) {
                           </Link>
                         )}
                         <Link
-                          href={"/courses/" + course.id}
+                          href={"/academy/courses/" + course.id}
                           className="flex w-full items-center justify-center px-6 py-3.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200"
                         >
                           View Details

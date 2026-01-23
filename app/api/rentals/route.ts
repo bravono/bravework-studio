@@ -44,13 +44,14 @@ export async function GET(request: Request) {
     queryText += ` ORDER BY r.created_at DESC`;
 
     const rentals = await queryDatabase(queryText, params);
+    console.log("rentals", rentals);
 
     return NextResponse.json(rentals);
   } catch (error) {
     console.error("Error fetching rentals:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
