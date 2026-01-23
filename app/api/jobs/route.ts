@@ -3,6 +3,21 @@ import { withTransaction } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("multipart/form-data") &&
+      !contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
     const formData = await request.formData();
 
     // Extract fields
@@ -84,13 +99,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { success: true, message: "Application submitted successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: any) {
     console.error("Error submitting job application:", error);
     return NextResponse.json(
       { error: "Failed to submit application" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

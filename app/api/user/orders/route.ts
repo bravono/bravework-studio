@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       console.error("Session user ID is missing when fetching orders.");
       return NextResponse.json(
         { error: "User ID not found in session" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,14 +60,30 @@ export async function GET(request: Request) {
     console.error("Error fetching user orders:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("multipart/form-data") &&
+      !contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
     const formData = await request.formData();
+    console.log("Order Form Data Content Type", contentType);
     const fields = [
       "serviceId",
       "firstName",
@@ -109,19 +125,19 @@ export async function POST(request: Request) {
     return await withTransaction(async (client) => {
       const serviceResult = await client.query(
         "SELECT category_name FROM product_categories WHERE category_id = $1",
-        [serviceId]
+        [serviceId],
       );
 
       const serviceType = serviceResult.rows[0]?.category_name;
 
       const trackingId = createTrackingId(
-        typeof serviceType === "string" ? serviceType : ""
+        typeof serviceType === "string" ? serviceType : "",
       );
 
       // Check if user with the given email already exists
       const existingUserResult = await client.query(
         "SELECT * FROM users WHERE email = $1",
-        [email]
+        [email],
       );
 
       let userId: number;
@@ -132,14 +148,14 @@ export async function POST(request: Request) {
         // User does not exist, insert new user
         const userResult = await client.query(
           "INSERT INTO users (first_name, last_name, email, phone, company_name) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-          [firstName, lastName, email, phone, companyName]
+          [firstName, lastName, email, phone, companyName],
         );
         userId = userResult.rows[0].user_id;
       }
 
       const orderStatus = await client.query(
         "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
-        ["pending"]
+        ["pending"],
       );
 
       const orderStatusId = orderStatus.rows[0]?.payment_status_id;
@@ -154,7 +170,7 @@ export async function POST(request: Request) {
           userId,
           serviceId,
           trackingId,
-        ]
+        ],
       );
       const newOrderId = orderResult.rows[0].order_id;
       const newOrderBudget = orderResult.rows[0].budget_range;
@@ -168,7 +184,7 @@ export async function POST(request: Request) {
         `INSERT INTO notifications (
     user_id, title, message, link
   ) VALUES ($1, $2, $3, $4)`,
-        [userId, notificationTitle, notificationMessage, notificationLink]
+        [userId, notificationTitle, notificationMessage, notificationLink],
       );
 
       if (Array.isArray(files) && files.length > 0) {
@@ -176,7 +192,7 @@ export async function POST(request: Request) {
           const { fileName, fileSize, fileUrl } = file;
           await client.query(
             "INSERT INTO order_files (order_id, file_name, file_size, file_url) VALUES ($1, $2, $3, $4)",
-            [newOrderId, fileName, fileSize, fileUrl]
+            [newOrderId, fileName, fileSize, fileUrl],
           );
         }
       }
@@ -213,7 +229,7 @@ export async function POST(request: Request) {
     console.error("Error creating order:", error);
     return NextResponse.json(
       { message: "Error creating order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

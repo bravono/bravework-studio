@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { Loader2, Info, Upload, X, MapPin } from "lucide-react";
 import { put } from "@vercel/blob";
 import LocationPicker from "@/app/components/LocationPicker";
+import { uploadFile } from "@/lib/utils/upload";
 
 interface CreateRentalModalProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export default function CreateRentalModal({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
@@ -66,17 +67,11 @@ export default function CreateRentalModal({
     const file = e.target.files[0];
 
     try {
-      const response = await fetch(`/api/upload?filename=${file.name}`, {
-        method: "POST",
-        body: file,
-      });
+      const result = await uploadFile(file, "rental-images");
 
-      if (!response.ok) throw new Error("Upload failed");
-
-      const newBlob = await response.json();
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, newBlob.url],
+        images: [...prev.images, result.fileUrl],
       }));
       toast.success("Image uploaded!");
     } catch (error) {

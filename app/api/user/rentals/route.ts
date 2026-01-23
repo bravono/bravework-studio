@@ -38,7 +38,7 @@ export async function GET(request: Request) {
        FROM rentals r
        JOIN users u ON r.user_id = u.user_id
        WHERE r.user_id = $1 AND r.deleted_at IS NULL`,
-      [userId]
+      [userId],
     );
 
     console.log("Rentals", rentals);
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     console.error("Error fetching rental details:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -62,21 +62,36 @@ export async function POST(request: Request) {
 
     const userId = (session.user as any).id;
 
-    const formData = await request.formData();
-    const fields = [
-      "deviceType",
-      "deviceName",
-      "description",
-      "specs",
-      "hourlyRate",
-      "locationCity",
-      "locationAddress",
-      "hasInternet",
-      "hasBackupPower",
-      "images",
-    ];
+    const contentType = request.headers.get("content-type") || "";
+    let body: any;
 
-    const [
+    if (contentType.includes("application/json")) {
+      body = await request.json();
+    } else if (
+      contentType.includes("multipart/form-data") ||
+      contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      const formData = await request.formData();
+      body = Object.fromEntries(formData.entries());
+      // Handle images specifically if it's a string in formData
+      if (typeof body.images === "string") {
+        try {
+          body.images = JSON.parse(body.images);
+        } catch {
+          body.images = [];
+        }
+      }
+    } else {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected application/json, multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
+    const {
       deviceType,
       deviceName,
       description,
@@ -87,13 +102,13 @@ export async function POST(request: Request) {
       hasInternet,
       hasBackupPower,
       images,
-    ] = fields.map((field) => formData.get(field));
+    } = body;
 
-    console.log("Rental Form", formData);
+    console.log("Rental Request Body", body);
 
-    // Convert file to array from string
-    let files: any[] = [];
-    if (typeof images === "string") {
+    // Convert file to array from string if it came in as part of body but needs parsing
+    let files: any[] = Array.isArray(images) ? images : [];
+    if (typeof images === "string" && files.length === 0) {
       try {
         files = JSON.parse(images);
       } catch {
@@ -116,16 +131,16 @@ export async function POST(request: Request) {
           hasInternet,
           hasBackupPower,
           "pending",
-        ]
+        ],
       );
-      const newRentalId = rentalResult.rows[0].order_id;
+      const newRentalId = rentalResult.rows[0].rental_id;
 
       if (Array.isArray(files) && files.length > 0) {
         for (const file of files) {
           const { fileName, fileSize, fileUrl } = file;
           await client.query(
             "INSERT INTO rental_images (rental_id, image_name, image_size, image_url) VALUES ($1, $2, $3, $4)",
-            [newRentalId, fileName, fileSize, fileUrl]
+            [newRentalId, fileName, fileSize, fileUrl],
           );
         }
       }
@@ -136,14 +151,14 @@ export async function POST(request: Request) {
     console.error("Error creating order:", error);
     return NextResponse.json(
       { message: "Error creating order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -158,7 +173,7 @@ export async function PUT(
       console.error("Session user ID is missing when fetching orders.");
       return NextResponse.json(
         { error: "User ID not found in session" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -169,7 +184,7 @@ export async function PUT(
     // Check ownership
     const rentalCheck = await queryDatabase(
       "SELECT user_id FROM rentals WHERE rental_id = $1",
-      [id]
+      [id],
     );
 
     if (rentalCheck.length === 0) {
@@ -220,7 +235,7 @@ export async function PUT(
           hasBackupPower,
           status,
           id,
-        ]
+        ],
       );
     });
 
@@ -229,7 +244,7 @@ export async function PUT(
     console.error("Error updating rental:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -249,7 +264,7 @@ export async function DELETE(request: Request) {
     // Verify ownership
     const rentalCheck = await queryDatabase(
       "SELECT user_id FROM rentals WHERE rental_id = $1",
-      [id]
+      [id],
     );
     if (rentalCheck.length === 0) {
       return NextResponse.json({ error: "Rental not found" }, { status: 404 });
@@ -259,14 +274,14 @@ export async function DELETE(request: Request) {
     }
     await queryDatabase(
       "UPDATE rentals SET deleted_at = CURRENT_TIMESTAMP WHERE rental_id = $1",
-      [id]
+      [id],
     );
     return NextResponse.json({ message: "Rental soft-deleted" });
   } catch (error) {
     console.error("Error deleting rental:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
