@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import StudioSubNavBar from "../../components/StudioSubNavBar";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Outfit } from "next/font/google";
 import {
@@ -16,12 +15,14 @@ import {
 import { toast } from "react-toastify";
 import { useSearchParams } from "next/navigation";
 
+import StudioSubNavBar from "../../components/StudioSubNavBar";
+
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["400", "600", "700", "900"],
 });
 
-export default function StudioContact() {
+function Contact() {
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     name: "",
@@ -95,7 +96,7 @@ export default function StudioContact() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -268,5 +269,13 @@ export default function StudioContact() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function StudioContact() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Contact />
+    </Suspense>
   );
 }
