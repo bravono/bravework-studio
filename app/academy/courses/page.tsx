@@ -261,7 +261,7 @@ export default function AcademyCoursesPage() {
                     </div>
 
                     <Link
-                      href={`/courses/${course.id}`}
+                      href={`/academy/courses/${course.id}`}
                       className="mt-4 flex w-full items-center justify-center px-6 py-2.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 border border-gray-100"
                     >
                       View Details

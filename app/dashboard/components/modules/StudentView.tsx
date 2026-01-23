@@ -51,7 +51,7 @@ export default function StudentView({ user }: { user: any }) {
                 My Courses
               </h2>
               <Link
-                href="/courses"
+                href="/academy/courses"
                 className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
               >
                 Explore More

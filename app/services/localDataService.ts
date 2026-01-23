@@ -894,7 +894,7 @@ const coursesData = [
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and kid-created 3D showcases!",
     ],
   },
@@ -1058,7 +1058,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and doctor-created 3D showcases!",
     ],
   },
@@ -1190,7 +1190,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and doctor-created 3D showcases!",
     ],
   },
@@ -1312,7 +1312,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and doctor-created 3D showcases!",
     ],
   },
@@ -1431,7 +1431,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and doctor-created 3D showcases!",
     ],
   },
@@ -1571,7 +1571,7 @@ Special Offer: "Session attendees get 20% off the full program + free 1:1 consul
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
     ],
   },
@@ -1701,7 +1701,7 @@ Special Offer: "Free session attendees get 20% off + free 1:1 portfolio review."
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
     ],
   },
@@ -1838,7 +1838,7 @@ Special Offer: "Free session attendees get 20% off + free 1:1 portfolio review."
     ],
     howToJoin: [
       "Contact Ahbideen Yusuf at ahbideeny@braveworkstudio.com.",
-      "Sign up for our next workshop at www.braveworkstudio.com/courses.",
+      "Sign up for our next workshop at www.braveworkstudio.com/academy/courses.",
       "Follow us on Facebook @Bravework Academy for updates and participant 3D showcases!",
     ],
   },

@@ -183,7 +183,7 @@ export default function UserOverviewSection({
                         My Courses
                       </h2>
                       <Link
-                        href="/courses"
+                        href="/academy/courses"
                         className="text-green-600 hover:underline font-medium"
                       >
                         Explore More
@@ -774,7 +774,7 @@ export default function UserOverviewSection({
                         No active bookings found
                       </p>
                       <Link
-                        href="/rentals"
+                        href="/academy/rentals"
                         className="mt-4 inline-block text-green-600 font-bold text-sm hover:text-green-700 hover:underline transition-colors"
                       >
                         Find devices to rent →
