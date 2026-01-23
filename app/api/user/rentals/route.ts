@@ -103,6 +103,7 @@ export async function POST(request: Request) {
       hasBackupPower,
       images,
     } = body;
+    const hourlyRateKobo = hourlyRate * 100;
 
     console.log("Rental Request Body", body);
 
@@ -118,14 +119,14 @@ export async function POST(request: Request) {
 
     return await withTransaction(async (client) => {
       const rentalResult = await client.query(
-        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate, location_city, location_address, has_internet, has_backup_power, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) RETURNING rental_id",
+        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate_kobo, location_city, location_address, has_internet, has_backup_power, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) RETURNING rental_id",
         [
           userId,
           deviceType,
           deviceName,
           description,
           specs,
-          hourlyRate,
+          hourlyRateKobo,
           locationCity,
           locationAddress,
           hasInternet,

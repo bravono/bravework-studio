@@ -239,7 +239,7 @@ export default function AcademyInventoryPage() {
                     className="w-full"
                   >
                     <button className="w-full bg-white text-gray-900 font-bold py-3.5 rounded-xl border border-gray-200 hover:bg-green-600 hover:text-white hover:border-green-600 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
-                      Reserve Gear
+                      Book This Device
                       <ChevronRight size={18} />
                     </button>
                   </Link>

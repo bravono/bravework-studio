@@ -179,7 +179,7 @@ export default function UserBookingsSection({
   };
 
   const handleRentAgain = (rentalId: number) => {
-    window.location.href = `/rentals/${rentalId}`;
+    window.location.href = `/academy/rentals/inventory/${rentalId}`;
   };
 
   const getStatusBadge = (status: string) => {

@@ -25,7 +25,7 @@ export default function BookingSuccessPage() {
               View My Bookings
             </button>
           </Link>
-          <Link href="/rentals">
+          <Link href="/academy/rentals">
             <button className="w-full flex justify-center items-center px-4 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
               <Home className="mr-2 h-5 w-5" />
               Back to Rentals

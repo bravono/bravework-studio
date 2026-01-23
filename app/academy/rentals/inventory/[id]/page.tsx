@@ -298,7 +298,7 @@ export default function AcademyRentalDetailsPage() {
                       </h3>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-2">
                         <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
                           Start Time
@@ -380,7 +380,7 @@ export default function AcademyRentalDetailsPage() {
           <div className="flex justify-between items-center mb-10">
             <h3 className="text-3xl font-black text-gray-900 flex items-center">
               <MapPin className="h-8 w-8 mr-4 text-green-600" />
-              Pickup Location
+              Service Location
             </h3>
             <a
               href={`https://www.google.com/maps/dir/?api=1&destination=${rental.locationLat},${rental.locationLng}`}

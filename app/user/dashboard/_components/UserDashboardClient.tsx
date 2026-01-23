@@ -302,7 +302,7 @@ function Page() {
   };
 
   const handleRentAgain = (rentalId: number) => {
-    router.push(`/rentals/${rentalId}`);
+    router.push(`/academy/rentals/inventory/${rentalId}`);
   };
 
   const handleOfferAction = useCallback(

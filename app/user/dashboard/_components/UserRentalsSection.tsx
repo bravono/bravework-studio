@@ -135,7 +135,7 @@ export default function UserRentalsSection() {
                       </div>
                     )}
                     <Link
-                      href={`/rentals/${rental.id}`}
+                      href={`academy/rentals/inventory/${rental.id}`}
                       className="text-blue-600 hover:underline text-sm font-medium"
                     >
                       View Details
