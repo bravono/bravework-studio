@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withTransaction } from "@/lib/db";
+import { jobApplicationSchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
   try {
@@ -21,15 +22,39 @@ export async function POST(request: Request) {
     const formData = await request.formData();
 
     // Extract fields
-    const role = formData.get("role") as string;
-    const firstName = formData.get("firstName") as string;
-    const lastName = formData.get("lastName") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
-    const portfolio = formData.get("portfolio") as string;
-    const experience = formData.get("experience") as string;
-    const availability = formData.get("availability") as string;
-    const message = formData.get("message") as string;
+    // Extract fields
+    const payload = {
+      role: formData.get("role") as string,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string,
+      portfolio: formData.get("portfolio") as string,
+      experience: formData.get("experience") as string,
+      availability: formData.get("availability") as string,
+      message: formData.get("message") as string,
+    };
+
+    // Validate payload
+    const { error, value } = jobApplicationSchema.validate(payload);
+    if (error) {
+      return NextResponse.json(
+        { error: error.details[0].message },
+        { status: 400 },
+      );
+    }
+
+    const {
+      role,
+      firstName,
+      lastName,
+      email,
+      phone,
+      portfolio,
+      experience,
+      availability,
+      message,
+    } = value;
 
     const fileString = formData.get("file") as string;
     let fileInfo: {

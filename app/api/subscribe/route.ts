@@ -1,16 +1,21 @@
 import { NextResponse as Response } from "next/server";
+import { subscriptionSchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
   try {
-    const { email, name, isActive } = await request.json();
+    const body = await request.json();
 
-    console.log("Received subscription request:", { email, name, isActive });
-    if (!email || !name) {
+    const { error, value } = subscriptionSchema.validate(body);
+    if (error) {
       return Response.json(
-        { message: "Email and name are required." },
-        { status: 400 }
+        { message: error.details[0].message },
+        { status: 400 },
       );
     }
+
+    const { email, name, isActive } = value;
+
+    console.log("Received subscription request:", { email, name, isActive });
 
     // Handle both string "true"/"false" and boolean true/false
     const isActiveBool = String(isActive) === "true" || isActive === true;
@@ -19,11 +24,11 @@ export async function POST(request: Request) {
 
     if (!senderApiKey) {
       console.error(
-        "SENDER_API_KEY is not configured in environment variables."
+        "SENDER_API_KEY is not configured in environment variables.",
       );
       return Response.json(
         { message: "Server configuration error. Please contact support." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -50,14 +55,14 @@ export async function POST(request: Request) {
       console.error("Sender API error:", responseData);
       return Response.json(
         { message: responseData.message || "Subscription failed." },
-        { status: response.status }
+        { status: response.status },
       );
     }
   } catch (error) {
     console.error("Error in subscription handler:", error);
     return Response.json(
       { message: "An unexpected error occurred." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

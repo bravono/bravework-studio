@@ -3,6 +3,7 @@ import { queryDatabase, withTransaction } from "@/lib/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
 import { createZohoContact } from "@/lib/zoho";
+import { rentalBookingSchema } from "@/lib/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +20,17 @@ export async function POST(request: Request) {
     const userName = session.user.name || "Unknown User";
 
     const body = await request.json();
-    const { rentalId, startTime, endTime, totalAmount } = body;
 
-    if (!rentalId || !startTime || !endTime || !totalAmount) {
+    // Validate request body
+    const { error, value } = rentalBookingSchema.validate(body);
+    if (error) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: error.details[0].message },
+        { status: 400 },
       );
     }
+
+    const { rentalId, startTime, endTime, totalAmount } = value;
 
     // Check availability
     const conflicts = await queryDatabase(
@@ -37,20 +41,20 @@ export async function POST(request: Request) {
          (start_time <= $3 AND end_time >= $3) OR
          (start_time >= $2 AND end_time <= $3)
        )`,
-      [rentalId, startTime, endTime]
+      [rentalId, startTime, endTime],
     );
 
     if (conflicts.length > 0) {
       return NextResponse.json(
         { error: "Rental is not available for the selected time" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     // Get pending order status id
     const orderStatusRes = await queryDatabase(
       "SELECT payment_status_id FROM payment_statuses WHERE name = 'pending'",
-      []
+      [],
     );
     const pendingStatusId = orderStatusRes[0]?.payment_status_id;
 
@@ -68,7 +72,7 @@ export async function POST(request: Request) {
           totalAmount,
           pendingStatusId,
           "pending",
-        ]
+        ],
       );
       return res.rows[0].rental_booking_id;
     });
@@ -102,7 +106,7 @@ export async function POST(request: Request) {
          FROM rentals r 
          JOIN users u ON r.user_id = u.user_id 
          WHERE r.rental_id = $1`,
-        [rentalId]
+        [rentalId],
       );
 
       if (ownerRes.length > 0) {
@@ -121,7 +125,7 @@ export async function POST(request: Request) {
           bookingId,
           startTime,
           endTime,
-          totalAmount
+          totalAmount,
         );
       }
     } catch (emailError) {
@@ -133,7 +137,7 @@ export async function POST(request: Request) {
     console.error("Error creating booking:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

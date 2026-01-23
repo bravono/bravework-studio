@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
 import { sendCustomOfferNotificationEmail } from "../../../../lib/mailer";
+import { customOfferSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 const DOLLAR_PER_NAIRA = 0.00065;
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
     console.error("Error fetching custom offers:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" }, // Ensure error is serializable
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -64,6 +65,15 @@ export async function POST(request: Request) {
     if (guardResponse) return guardResponse;
 
     const body = await request.json(); // Admin Panel will send JSON, not formData for offer creation
+
+    const { error, value } = customOfferSchema.validate(body);
+    if (error) {
+      return NextResponse.json(
+        { error: error.details[0].message },
+        { status: 400 },
+      );
+    }
+
     const {
       orderId,
       userId,
@@ -71,28 +81,7 @@ export async function POST(request: Request) {
       description,
       expiresAt,
       projectDuration,
-    } = body;
-
-    if (
-      !orderId ||
-      !userId ||
-      offerAmount === undefined ||
-      description === undefined
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields: orderId, userId, offerAmount, description",
-        },
-        { status: 400 }
-      );
-    }
-    if (isNaN(offerAmount) || offerAmount < 0) {
-      return NextResponse.json(
-        { error: "Invalid offer amount" },
-        { status: 400 }
-      );
-    }
+    } = value;
 
     let parsedExpiresAt: string | null = null;
     if (expiresAt) {
@@ -100,7 +89,7 @@ export async function POST(request: Request) {
       if (isNaN(date.getTime())) {
         return NextResponse.json(
           { error: "Invalid expiresAt date format" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       parsedExpiresAt = date.toISOString(); // Ensure ISO string for DB
@@ -109,7 +98,7 @@ export async function POST(request: Request) {
     const createdAt = new Date().toISOString();
     const statusIdResult = await queryDatabase(
       "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
-      ["pending"]
+      ["pending"],
     );
     const statusId = statusIdResult[0].offer_status_id;
 
@@ -143,7 +132,7 @@ export async function POST(request: Request) {
       // Assuming 'orders' table has an 'offer_id' column of type UUID
       await client.query(
         "UPDATE orders SET offer_id = $1 WHERE order_id = $2",
-        [offerResult.rows[0].id, orderId] // Use the returned offer ID
+        [offerResult.rows[0].id, orderId], // Use the returned offer ID
       );
 
       const newOffer = offerResult.rows[0];
@@ -159,7 +148,7 @@ export async function POST(request: Request) {
       // --- Send Notifications ---
       const userResult = await client.query(
         "SELECT email, first_name, last_name FROM users WHERE user_id = $1",
-        [userId]
+        [userId],
       );
 
       if (userResult.rows.length > 0) {
@@ -179,12 +168,12 @@ export async function POST(request: Request) {
             newOffer.orderId,
             newOffer.id, // Pass offerId for accept/reject links
             newOffer.userId,
-            newOffer.expiresAt // Pass expiresAt for email content
+            newOffer.expiresAt, // Pass expiresAt for email content
           );
         } catch (emailError) {
           console.error(
             "Failed to send custom offer email notification:",
-            emailError
+            emailError,
           );
         }
 
@@ -206,17 +195,17 @@ export async function POST(request: Request) {
         try {
           await client.query(
             "INSERT INTO notifications (user_id, title, message, link) VALUES ($1, $2, $3, $4)",
-            [userId, notificationTitle, notificationMessage, notificationLink]
+            [userId, notificationTitle, notificationMessage, notificationLink],
           );
         } catch (err) {
           console.error(
             "Failed to create in-app notification for custom offer:",
-            err
+            err,
           );
         }
       } else {
         console.warn(
-          `User with ID ${userId} not found for notification after custom offer creation.`
+          `User with ID ${userId} not found for notification after custom offer creation.`,
         );
       }
       // --- END Send Notifications ---
@@ -226,7 +215,7 @@ export async function POST(request: Request) {
     console.error("Error creating custom offer:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -241,7 +230,7 @@ export async function PATCH(request: Request) {
     if (!offerId) {
       return NextResponse.json(
         { error: "Offer ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -256,7 +245,7 @@ export async function PATCH(request: Request) {
       if (isNaN(offerAmount) || offerAmount < 0) {
         return NextResponse.json(
           { error: "Invalid offer amount" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updateFields.push(`offer_amount_in_kobo = $${paramIndex++}`); // Corrected column name
@@ -272,14 +261,14 @@ export async function PATCH(request: Request) {
       if (typeof status === "string") {
         const statusResult = await queryDatabase(
           "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
-          [status]
+          [status],
         );
         if (statusResult.rows.length > 0) {
           statusId = statusResult.rows[0].offer_status_id;
         } else {
           return NextResponse.json(
             { error: `Invalid status name: ${status}` },
-            { status: 400 }
+            { status: 400 },
           );
         }
       }
@@ -293,7 +282,7 @@ export async function PATCH(request: Request) {
         if (isNaN(date.getTime())) {
           return NextResponse.json(
             { error: "Invalid expiresAt date format" },
-            { status: 400 }
+            { status: 400 },
           );
         }
         parsedExpiresAt = date.toISOString();
@@ -305,7 +294,7 @@ export async function PATCH(request: Request) {
     if (updateFields.length === 0) {
       return NextResponse.json(
         { message: "No fields to update" },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -326,7 +315,7 @@ export async function PATCH(request: Request) {
     if (result.length === 0) {
       return NextResponse.json(
         { error: "Custom offer not found or no update performed" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -342,7 +331,7 @@ export async function PATCH(request: Request) {
     // Fetch status name for the returned object
     const statusNameResult = await queryDatabase(
       "SELECT name FROM custom_offer_statuses WHERE offer_status_id = $1",
-      [updatedOffer.status]
+      [updatedOffer.status],
     );
     if (statusNameResult.rows.length > 0) {
       updatedOffer.status = statusNameResult.rows[0].name; // Replace ID with name
@@ -356,7 +345,7 @@ export async function PATCH(request: Request) {
     console.error("Error updating custom offer:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -371,7 +360,7 @@ export async function DELETE(request: Request) {
     if (!offerId) {
       return NextResponse.json(
         { error: "Offer ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -386,7 +375,7 @@ export async function DELETE(request: Request) {
     if (result.length === 0) {
       return NextResponse.json(
         { error: "Custom offer not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -397,7 +386,7 @@ export async function DELETE(request: Request) {
     console.error("Error deleting custom offer:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { createZohoLead } from "@/lib/zoho";
+import { contactSchema } from "@/lib/schemas";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, subject, message } = body;
 
-    // Basic validation
-    if (!name || !email || !message) {
+    // Validate request body
+    const { error, value } = contactSchema.validate(body);
+    if (error) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: error.details[0].message },
+        { status: 400 },
       );
     }
+
+    const { name, email, subject, message } = value;
 
     // Map data to Zoho CRM Lead format
     // Note: Zoho CRM requires Last_Name. We'll use the full name for now.
@@ -27,13 +30,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { message: "Message sent successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error in contact API:", error);
     return NextResponse.json(
       { error: "Failed to send message" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
