@@ -1,0 +1,83 @@
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+export async function seedUsers() {
+  const users = [
+    {
+      user_id: 36,
+      first_name: 'New',
+      last_name: 'buddy',
+      email: 'newbuddy@gmail.com',
+      password: '$2b$12$lgIUhwAqT.OOIetesz7hS.tOi7MXJAdRK5/X4bsqb2BNBLdKGXI/e',
+      bio: null,
+      profile_picture_url: null,
+      company_name: null,
+      phone: null,
+      created_at: new Date('2025-06-20T08:11:26.304Z'),
+      updated_at: new Date('2025-06-20T08:12:14.117Z'),
+      last_verification_email_sent_at: null,
+      email_verified: new Date('2025-10-30T20:06:29.103Z'),
+      referral_code: null,
+      referred_by_id: null,
+    },
+    {
+      user_id: 32,
+      first_name: 'Ajisefini',
+      last_name: 'Yusuf',
+      email: 'yusufahbideen@yahoo.com',
+      password: '$2b$12$9YAoT5EKV2sq84SoEJzEUujqDGKRYqS8jXgvRBm6HLN.zpnRTr94O',
+      bio: null,
+      profile_picture_url: null,
+      company_name: 'Bravono',
+      phone: '+2348162785602',
+      created_at: new Date('2025-06-20T08:11:26.304Z'),
+      updated_at: new Date('2025-06-20T08:12:14.117Z'),
+      last_verification_email_sent_at: null,
+      email_verified: new Date('2025-10-16T19:37:39.761Z'),
+      referral_code: '5C8C458A',
+      referred_by_id: null,
+    },
+    {
+      user_id: 26,
+      first_name: 'Adeshina',
+      last_name: 'Yusuf',
+      email: 'ahbideen@yahoo.com',
+      password: '$2b$12$CHfQpkzivpUs0b4kMxeyleEJi5MW.RmGWw3cFpXTr/CVSkgxBA4Ra',
+      bio: null,
+      profile_picture_url: null,
+      company_name: 'Bravework Studio',
+      phone: '0816 278 5602',
+      created_at: new Date('2025-06-20T08:11:26.304Z'),
+      updated_at: new Date('2025-06-20T08:12:14.117Z'),
+      last_verification_email_sent_at: null,
+      email_verified: new Date('2025-10-16T19:37:39.761Z'),
+      referral_code: null,
+      referred_by_id: null,
+    },
+    {
+      user_id: 35,
+      first_name: 'Last',
+      last_name: 'Body',
+      email: 'lastbody@gmail.com',
+      password: '$2b$12$YMx5QANsXOBbojgrS8NXkuYkKjQCOGHJZh9FPT.TFKXNTV3CokCTW',
+      bio: null,
+      profile_picture_url: null,
+      company_name: null,
+      phone: null,
+      created_at: new Date('2025-06-20T08:11:26.304Z'),
+      updated_at: new Date('2025-06-20T08:12:14.117Z'),
+      last_verification_email_sent_at: null,
+      email_verified: new Date('2025-10-16T19:37:39.761Z'),
+      referral_code: null,
+      referred_by_id: null,
+    },
+  ];
+
+  for (const user of users) {
+    await prisma.users.upsert({
+      where: { user_id: user.user_id },
+      update: user,
+      create: user,
+    });
+  }
+}
