@@ -570,6 +570,8 @@ model users {
   other_users                                                 users[]               @relation("usersTousers")
   verification_tokens                                         verification_tokens[]
   wallet_usages                                               wallet_usages[]
+  two_factor_secret                                           String?               @db.VarChar(255)
+  two_factor_enabled                                          Boolean?              @default(false)
 }
 
 model verification_tokens {

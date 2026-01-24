@@ -10,9 +10,11 @@ function LoginForm() {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    mfaCode: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const verified = searchParams.get("verified");
@@ -62,13 +64,19 @@ function LoginForm() {
       redirect: false,
       email: form.email,
       password: form.password,
+      mfaCode: mfaRequired ? form.mfaCode : undefined,
     });
 
     if (result?.error) {
       if (result.error === "Please verify your email first.") {
         setMessage(
-          `Your email address is not verified. Please check your inbox for a verification link or`
+          `Your email address is not verified. Please check your inbox for a verification link or`,
         );
+      } else if (result.error === "MFA_REQUIRED") {
+        setMfaRequired(true);
+        setMessage("Please enter your MFA code.");
+      } else if (result.error === "Invalid MFA code") {
+        setMessage("Invalid MFA code. Please try again.");
       } else {
         setMessage("Something went wrong, please try again");
       }
@@ -92,45 +100,72 @@ function LoginForm() {
         <h2 className="text-3xl font-bold text-center text-green-800">Login</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <label htmlFor="email" className="sr-only">
-              Email
-            </label>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Mail className="w-5 h-5 text-gray-400" />
-            </div>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-              placeholder="Email *"
-              value={form.email}
-              onChange={handleChange}
-              autoComplete="email"
-              required
-            />
-          </div>
-          <div className="relative">
-            <label htmlFor="password" className="sr-only">
-              Password
-            </label>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400" />
-            </div>
+          {!mfaRequired && (
+            <>
+              <div className="relative">
+                <label htmlFor="email" className="sr-only">
+                  Email
+                </label>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Mail className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+                  placeholder="Email *"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              <div className="relative">
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
 
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-              placeholder="Password *"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="current-password"
-              required
-            />
-          </div>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+                  placeholder="Password *"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          {mfaRequired && (
+            <div className="relative">
+              <label htmlFor="mfaCode" className="sr-only">
+                MFA Code
+              </label>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Lock className="w-5 h-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                id="mfaCode"
+                name="mfaCode"
+                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+                placeholder="MFA Code"
+                value={form.mfaCode}
+                onChange={handleChange}
+                autoFocus
+                required
+              />
+            </div>
+          )}
+
           {message && (
             <div
               className={`p-3 text-sm rounded-lg ${
@@ -163,8 +198,10 @@ function LoginForm() {
             {loading ? (
               <span className="flex items-center justify-center">
                 <Loader2 className="animate-spin h-5 w-5 mr-3" />
-                Logging in...
+                {mfaRequired ? "Verifying..." : "Logging in..."}
               </span>
+            ) : mfaRequired ? (
+              "Verify Code"
             ) : (
               "Login"
             )}

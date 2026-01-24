@@ -309,6 +309,12 @@ export default function AdminDashboardClient({
             >
               Change Admin Password
             </button>
+            <Link
+              href="/admin/settings/security"
+              className="ml-4 px-6 py-3 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:bg-green-600 transition-colors inline-block"
+            >
+              Security Settings (MFA)
+            </Link>
           </div>
         );
       case "notifications":
@@ -377,7 +383,7 @@ export default function AdminDashboardClient({
               className={cn(
                 "flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors duration-200 relative",
                 activeTab === item.id &&
-                  "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+                  "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
               )}
             >
               <span
@@ -385,7 +391,7 @@ export default function AdminDashboardClient({
                   "mr-3",
                   activeTab === item.id
                     ? "text-white"
-                    : "text-gray-400 dark:text-gray-500"
+                    : "text-gray-400 dark:text-gray-500",
                 )}
               >
                 {item.icon}
@@ -396,7 +402,7 @@ export default function AdminDashboardClient({
                   "font-medium",
                   activeTab === item.id
                     ? "text-white"
-                    : "text-gray-800 dark:text-gray-200"
+                    : "text-gray-800 dark:text-gray-200",
                 )}
               >
                 {item.label}

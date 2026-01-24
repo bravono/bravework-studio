@@ -30,6 +30,7 @@ export const authOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        mfaCode: { label: "MFA Code", type: "text" },
       },
       async authorize(credentials): Promise<NextAuthUser | null> {
         if (!credentials) {
@@ -39,8 +40,8 @@ export const authOptions = {
         // Find the user by email in PostgreSQL
         // Assuming queryDatabase returns an array of rows, and you take the first one
         const result = await queryDatabase(
-          "SELECT user_id, first_name, last_name, email, password, email_verified, company_name, phone FROM users WHERE email = $1",
-          [credentials.email]
+          "SELECT user_id, first_name, last_name, email, password, email_verified, company_name, phone, two_factor_secret, two_factor_enabled FROM users WHERE email = $1",
+          [credentials.email],
         );
         const user = result[0];
 
@@ -57,11 +58,28 @@ export const authOptions = {
         // Verify password (use bcryptjs for hashing and comparing)
         const isValid = await bcrypt.compare(
           credentials.password as string,
-          user.password as string
+          user.password as string,
         );
 
         if (!isValid) {
           throw new Error("Incorrect password.");
+        }
+
+        if (user.two_factor_enabled) {
+          if (!credentials.mfaCode) {
+            throw new Error("MFA_REQUIRED");
+          }
+
+          // Verify MFA code
+          const { verify } = await import("otplib");
+          const isValidToken = await verify({
+            token: credentials.mfaCode as string,
+            secret: user.two_factor_secret as string,
+          });
+
+          if (!isValidToken) {
+            throw new Error("Invalid MFA code");
+          }
         }
 
         // Return user object. NextAuth.js will serialize this into the JWT.
@@ -93,12 +111,12 @@ export const authOptions = {
         // Fetch all roles for the user from user_roles table
         const rolesResult = await queryDatabase(
           "SELECT role_id FROM user_roles WHERE user_id = $1",
-          [user.id]
+          [user.id],
         );
 
         // Get role_ids from user_roles
         const roleIds = rolesResult.map(
-          (row: { role_id: number }) => row.role_id
+          (row: { role_id: number }) => row.role_id,
         );
         console.log("All Role IDs", roleIds);
         // Fetch role names from roles table
@@ -109,7 +127,7 @@ export const authOptions = {
           `;
           const rolesNameResult = await queryDatabase(rolesQuery, [roleIds]);
           roleNames = rolesNameResult.map(
-            (row: { role_name: string }) => row.role_name
+            (row: { role_name: string }) => row.role_name,
           );
 
           console.log("Role Names", roleNames);

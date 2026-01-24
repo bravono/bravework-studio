@@ -7,11 +7,16 @@
 */
 
 -- AlterTable
-ALTER TABLE "budget_ranges" DROP CONSTRAINT "budget_ranges_pkey",
-DROP COLUMN "range_label";
+ALTER TABLE "budget_ranges" DROP CONSTRAINT IF EXISTS "budget_ranges_pkey",
+DROP COLUMN IF EXISTS "range_label";
 
 -- AddForeignKey
-ALTER TABLE "courses" ADD CONSTRAINT "fk_course_instructor" FOREIGN KEY ("instructor_id") REFERENCES "instructors"("instructor_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_course_instructor') THEN
+        ALTER TABLE "courses" ADD CONSTRAINT "fk_course_instructor" FOREIGN KEY ("instructor_id") REFERENCES "instructors"("instructor_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+    END IF;
+END $$;
 
 UPDATE "roles"
 SET role_name = 'client'
