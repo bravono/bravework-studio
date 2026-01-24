@@ -32,5 +32,6 @@ dist/
 coverage/
 .vercel
 .env*.local
+.tsbuildinfo
 
 /generated/prisma
