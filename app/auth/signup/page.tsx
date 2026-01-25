@@ -149,7 +149,7 @@ function Signup() {
   }, [isEnrollmentPage]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -233,7 +233,7 @@ function Signup() {
       !user ? payloadForValidation : payloadExistingUser,
       {
         abortEarly: false,
-      }
+      },
     );
     if (error) {
       setMessage(error.details.map((d) => d.message).join(" "));
@@ -258,17 +258,17 @@ function Signup() {
         if (!user?.email) {
           if (isEnrollmentPage) {
             setMessage(
-              "Signup successful! Please check your email to verify your account and proceed with your enrollment."
+              "Signup successful! Please check your email to verify your account and proceed with your enrollment.",
             );
           }
           setMessage(
-            "Signup successful! Please check your email to verify your account and log in."
+            "Signup successful! Please check your email to verify your account and log in.",
           );
         } else {
           const paymentPrompt =
             course.price > 0 ? " Please proceed to payment." : "";
           setMessage(
-            `Enrollment successful! You have been enrolled in ${course.title}.${paymentPrompt}`
+            `Enrollment successful! You have been enrolled in ${course.title}.${paymentPrompt}`,
           );
         }
 
@@ -476,7 +476,7 @@ function Signup() {
                     const durationHours = session.duration || 2; // default to 2 hours if not provided
 
                     const endDate = new Date(
-                      date.getTime() + durationHours * 60 * 60 * 1000
+                      date.getTime() + durationHours * 60 * 60 * 1000,
                     );
 
                     const startTime = date.toLocaleTimeString("en-US", {
@@ -593,7 +593,7 @@ function Signup() {
 
           {message && (
             <div
-              className={`p-3 rounded-lg text-sm text-center ${
+              className={`p-3 rounded-lg text-sm text-center w-96 ${
                 message.includes("successful")
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
@@ -613,8 +613,8 @@ function Signup() {
             {loading
               ? "Processing..."
               : isEnrollmentPage
-              ? "Enroll"
-              : "Sign Up"}
+                ? "Enroll"
+                : "Sign Up"}
           </button>
         </form>
 
