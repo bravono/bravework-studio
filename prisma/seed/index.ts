@@ -1,7 +1,8 @@
-const {seedUsers} =  require("./dev/users");
-const {seedRoles} =  require("./dev/roles");
-const {seedProductCategories} =  require("./dev/productCategories");
-const {seedConfig} =  require("./prod/config");
+const { seedUserRoles } = require("./dev/user_roles");
+const { seedUsers } = require("./dev/users");
+const { seedRoles } = require("./dev/roles");
+const { seedProductCategories } = require("./dev/productCategories");
+const { seedConfig } = require("./prod/config");
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
@@ -12,6 +13,8 @@ async function main() {
     console.log("Running development seeds...");
     await seedUsers();
     await seedProductCategories();
+    await seedRoles();
+    await seedUserRoles();
   }
 }
 
