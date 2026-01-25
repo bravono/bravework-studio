@@ -14,6 +14,7 @@ import {
   LogOut,
   ChevronLeft,
   CalendarCheck,
+  RefreshCw,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -38,6 +39,31 @@ import AdminBookingsSection from "./AdminBookingsSection";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
+}
+
+interface MonitoringData {
+  timestamp: string;
+  server: {
+    uptime: number;
+    memory: {
+      used: number;
+      total: number;
+      percentage: number;
+    };
+    cpu: {
+      usage: number;
+    };
+  };
+  database: {
+    status: "healthy" | "degraded" | "unhealthy";
+    responseTime: number;
+    connectionPoolStatus: string;
+  };
+  api: {
+    responseTime: number;
+    requestCount: number;
+    errorRate: number;
+  };
 }
 
 const navItems = [
@@ -84,8 +110,31 @@ export default function AdminDashboardClient({
 
   const [loadingData, setLoadingData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
+  const [monitoringData, setMonitoringData] = useState<MonitoringData | null>(
+    null,
+  );
+  const [monitoringLoading, setMonitoringLoading] = useState(false);
 
   const kobo = 100;
+
+  // Function to fetch monitoring data
+  const fetchMonitoringData = useCallback(async () => {
+    setMonitoringLoading(true);
+    try {
+      const res = await fetch("/api/monitor");
+      if (!res.ok) throw new Error("Failed to fetch monitoring data");
+      const data: MonitoringData = await res.json();
+      setMonitoringData(data);
+    } catch (err: any) {
+      console.error("Error fetching monitoring data:", err);
+    } finally {
+      setMonitoringLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMonitoringData();
+  }, [fetchMonitoringData]);
 
   // Function to fetch overall admin dashboard stats
   const fetchAdminStats = useCallback(async () => {
@@ -239,18 +288,164 @@ export default function AdminDashboardClient({
 
             {/* System Health Card */}
             <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl flex flex-col">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                System Health
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Monitor server status, API performance, and database health.
-              </p>
-              <Link
-                href="/admin/system-health"
-                className="mt-auto self-start text-indigo-500 hover:text-indigo-600 font-semibold transition-colors"
-              >
-                View System Health
-              </Link>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  System Health
+                </h2>
+                <button
+                  onClick={fetchMonitoringData}
+                  disabled={monitoringLoading}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <RefreshCw
+                    size={18}
+                    className={`text-indigo-600 ${monitoringLoading ? "animate-spin" : ""}`}
+                  />
+                </button>
+              </div>
+
+              {monitoringData ? (
+                <>
+                  {/* Status Pills */}
+                  <div className="flex gap-3 mb-6 flex-wrap">
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.database.status === "healthy"
+                          ? "bg-green-50 dark:bg-green-950"
+                          : monitoringData.database.status === "degraded"
+                            ? "bg-yellow-50 dark:bg-yellow-950"
+                            : "bg-red-50 dark:bg-red-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.database.status === "healthy"
+                            ? "bg-green-500"
+                            : monitoringData.database.status === "degraded"
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.database.status === "healthy"
+                            ? "text-green-700 dark:text-green-300"
+                            : monitoringData.database.status === "degraded"
+                              ? "text-yellow-700 dark:text-yellow-300"
+                              : "text-red-700 dark:text-red-300"
+                        }`}
+                      >
+                        Database
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.api.responseTime < 100
+                          ? "bg-green-50 dark:bg-green-950"
+                          : "bg-yellow-50 dark:bg-yellow-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.api.responseTime < 100
+                            ? "bg-green-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.api.responseTime < 100
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-yellow-700 dark:text-yellow-300"
+                        }`}
+                      >
+                        API
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.server.memory.percentage <= 80
+                          ? "bg-green-50 dark:bg-green-950"
+                          : "bg-yellow-50 dark:bg-yellow-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.server.memory.percentage <= 80
+                            ? "bg-green-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.server.memory.percentage <= 80
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-yellow-700 dark:text-yellow-300"
+                        }`}
+                      >
+                        Server
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Metrics */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Uptime:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {Math.floor(monitoringData.server.uptime / 86400)}d{" "}
+                        {Math.floor(
+                          (monitoringData.server.uptime % 86400) / 3600,
+                        )}
+                        h
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Memory Usage:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.server.memory.percentage}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        API Response:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.api.responseTime}ms
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        DB Response:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.database.responseTime}ms
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* View Details Link */}
+                  <Link
+                    href="/admin/monitor"
+                    className="mt-auto text-indigo-500 hover:text-indigo-600 font-semibold transition-colors text-sm"
+                  >
+                    View Detailed Monitoring →
+                  </Link>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Loading system health...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
