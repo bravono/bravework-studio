@@ -6,10 +6,6 @@
 
 */
 
--- AlterTable
-ALTER TABLE "budget_ranges" DROP CONSTRAINT IF EXISTS "budget_ranges_pkey",
-DROP COLUMN IF EXISTS "range_label";
-
 -- AddForeignKey
 DO $$
 BEGIN

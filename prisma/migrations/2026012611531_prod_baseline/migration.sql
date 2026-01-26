@@ -1,7 +1,7 @@
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
--- -- CreateTable
+-- CreateTable
 CREATE TABLE IF NOT EXISTS "budget_ranges" (
     "budget_range_id" SERIAL NOT NULL,
     "range_value" VARCHAR,
@@ -909,290 +909,242 @@ BEGIN
     END IF;
 END$$;
 
--- order_order_files → order_files
+-- budget_ranges → product_categories
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_orderorderfiles_orderfiles1') THEN
-        ALTER TABLE order_order_files
-        ADD CONSTRAINT fk_orderorderfiles_orderfiles1
-        FOREIGN KEY (order_file_id)
-        REFERENCES order_files(order_file_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- orders → custom_offers
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_offer') THEN
-        ALTER TABLE orders
-        ADD CONSTRAINT fk_offer
-        FOREIGN KEY (offer_id)
-        REFERENCES custom_offers(offer_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- orders → product_categories
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_product_category1') THEN
-        ALTER TABLE orders
-        ADD CONSTRAINT fk_product_category1
-        FOREIGN KEY (category_id)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_product_category') THEN
+        ALTER TABLE budget_ranges
+        ADD CONSTRAINT constraint_product_category
+        FOREIGN KEY (product_category_id)
         REFERENCES product_categories(category_id)
-        ON DELETE CASCADE ON UPDATE CASCADE;
+        ON DELETE NO ACTION ON UPDATE CASCADE;
     END IF;
 END$$;
 
--- orders → users
+-- challenges → orders
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_projects_admins') THEN
-        ALTER TABLE orders
-        ADD CONSTRAINT fk_projects_admins
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_challenges_projects1') THEN
+        ALTER TABLE challenges
+        ADD CONSTRAINT fk_challenges_projects1
+        FOREIGN KEY (project_id)
+        REFERENCES orders(order_id)
+        ON DELETE NO ACTION ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- course_enrollments → courses
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_course_enrollment_courses1') THEN
+        ALTER TABLE course_enrollments
+        ADD CONSTRAINT fk_course_enrollment_courses1
+        FOREIGN KEY (course_id)
+        REFERENCES courses(course_id)
+        ON DELETE NO ACTION ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- course_enrollments → users
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_course_enrollment_users1') THEN
+        ALTER TABLE course_enrollments
+        ADD CONSTRAINT fk_course_enrollment_users1
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
+        ON DELETE NO ACTION ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- course_enrollments → sessions
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_preferred_session') THEN
+        ALTER TABLE course_enrollments
+        ADD CONSTRAINT fk_preferred_session
+        FOREIGN KEY (preferred_session_id)
+        REFERENCES sessions(session_id)
         ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
 END$$;
 
--- payments → orders
+-- course_tags → courses
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_1') THEN
-        ALTER TABLE payments
-        ADD CONSTRAINT constraint_1
-        FOREIGN KEY (order_id)
-        REFERENCES orders(order_id)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'course_tags_course_id_fkey') THEN
+        ALTER TABLE course_tags
+        ADD CONSTRAINT course_tags_course_id_fkey
+        FOREIGN KEY (course_id)
+        REFERENCES courses(course_id)
         ON DELETE NO ACTION ON UPDATE NO ACTION;
     END IF;
 END$$;
 
--- product_budget_ranges → product_categories
+-- course_tags → tags
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_1') THEN
-        ALTER TABLE product_budget_ranges
-        ADD CONSTRAINT constraint_1
-        FOREIGN KEY (project_category_id)
-        REFERENCES product_categories(category_id)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'course_tags_tag_id_fkey') THEN
+        ALTER TABLE course_tags
+        ADD CONSTRAINT course_tags_tag_id_fkey
+        FOREIGN KEY (tag_id)
+        REFERENCES tags(tag_id)
         ON DELETE NO ACTION ON UPDATE NO ACTION;
     END IF;
 END$$;
 
--- product_orders → products
+-- course_tools → courses
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productorders_products1') THEN
-        ALTER TABLE product_orders
-        ADD CONSTRAINT fk_productorders_products1
-        FOREIGN KEY (product_id)
-        REFERENCES products(product_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- products → product_categories
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_products_category1') THEN
-        ALTER TABLE products
-        ADD CONSTRAINT fk_products_category1
-        FOREIGN KEY (category_id)
-        REFERENCES product_categories(category_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- project_owner → orders
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_project_owner_projects1') THEN
-        ALTER TABLE project_owner
-        ADD CONSTRAINT fk_project_owner_projects1
-        FOREIGN KEY (projectid)
-        REFERENCES orders(order_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- project_owner → users
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_project_owner_users1') THEN
-        ALTER TABLE project_owner
-        ADD CONSTRAINT fk_project_owner_users1
-        FOREIGN KEY (userid)
-        REFERENCES users(user_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- project_status_status → project_status
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_project_status_status_project_status1') THEN
-        ALTER TABLE project_status_status
-        ADD CONSTRAINT fk_project_status_status_project_status1
-        FOREIGN KEY (project_status_id)
-        REFERENCES project_status(project_status_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- project_status_status → orders
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_project_status_status_projects1') THEN
-        ALTER TABLE project_status_status
-        ADD CONSTRAINT fk_project_status_status_projects1
-        FOREIGN KEY (project_id)
-        REFERENCES orders(order_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- project_tools → tools
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_project_tools_tools1') THEN
-        ALTER TABLE project_tools
-        ADD CONSTRAINT fk_project_tools_tools1
-        FOREIGN KEY (tool_id)
-        REFERENCES tools(tool_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- project_tools → orders
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_projecttools_projects1') THEN
-        ALTER TABLE project_tools
-        ADD CONSTRAINT fk_projecttools_projects1
-        FOREIGN KEY (project_id)
-        REFERENCES orders(order_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
-    END IF;
-END$$;
-
--- referral_earnings → orders
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referral_earnings_order_id_fkey') THEN
-        ALTER TABLE referral_earnings
-        ADD CONSTRAINT referral_earnings_order_id_fkey
-        FOREIGN KEY (order_id)
-        REFERENCES orders(order_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- referral_earnings → users (referred_user_id)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referral_earnings_referred_user_id_fkey') THEN
-        ALTER TABLE referral_earnings
-        ADD CONSTRAINT referral_earnings_referred_user_id_fkey
-        FOREIGN KEY (referred_user_id)
-        REFERENCES users(user_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- referral_earnings → users (referrer_id)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referral_earnings_referrer_id_fkey') THEN
-        ALTER TABLE referral_earnings
-        ADD CONSTRAINT referral_earnings_referrer_id_fkey
-        FOREIGN KEY (referrer_id)
-        REFERENCES users(user_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- sessions → courses
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_course_id_fkey') THEN
-        ALTER TABLE sessions
-        ADD CONSTRAINT sessions_course_id_fkey
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'course_tools_course_id_fkey') THEN
+        ALTER TABLE course_tools
+        ADD CONSTRAINT course_tools_course_id_fkey
         FOREIGN KEY (course_id)
         REFERENCES courses(course_id)
         ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
 END$$;
 
--- solutions → challenges
+-- course_tools → tools
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_challenges_copy1_challenges1') THEN
-        ALTER TABLE solutions
-        ADD CONSTRAINT fk_challenges_copy1_challenges1
-        FOREIGN KEY (challenge_id)
-        REFERENCES challenges(challenge_id)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'course_tools_tool_id_fkey') THEN
+        ALTER TABLE course_tools
+        ADD CONSTRAINT course_tools_tool_id_fkey
+        FOREIGN KEY (tool_id)
+        REFERENCES tools(tool_id)
+        ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- custom_offers → custom_offer_statuses
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_offer_status') THEN
+        ALTER TABLE custom_offers
+        ADD CONSTRAINT fk_offer_status
+        FOREIGN KEY (status_id)
+        REFERENCES custom_offer_statuses(offer_status_id)
         ON DELETE NO ACTION ON UPDATE CASCADE;
     END IF;
 END$$;
 
--- testimonials → users
+-- custom_offers → orders
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_roles_users100') THEN
-        ALTER TABLE testimonials
-        ADD CONSTRAINT fk_roles_users100
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_order_id') THEN
+        ALTER TABLE custom_offers
+        ADD CONSTRAINT fk_order_id
+        FOREIGN KEY (order_id)
+        REFERENCES orders(order_id)
+        ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- custom_offers → users
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_user_id') THEN
+        ALTER TABLE custom_offers
+        ADD CONSTRAINT fk_user_id
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-        ON DELETE NO ACTION ON UPDATE CASCADE;
+        ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
 END$$;
 
--- todos → orders
+-- invoices → payment_statuses
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_todos_projects1') THEN
-        ALTER TABLE todos
-        ADD CONSTRAINT fk_todos_projects1
-        FOREIGN KEY (project_id)
-        REFERENCES orders(order_id)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_payment_status') THEN
+        ALTER TABLE invoices
+        ADD CONSTRAINT fk_payment_status
+        FOREIGN KEY (payment_status_id)
+        REFERENCES payment_statuses(payment_status_id)
         ON DELETE NO ACTION ON UPDATE NO ACTION;
     END IF;
 END$$;
 
--- user_coupons → coupons
+-- invoices → users
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_coupon_id') THEN
-        ALTER TABLE user_coupons
-        ADD CONSTRAINT constraint_coupon_id
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_user') THEN
+        ALTER TABLE invoices
+        ADD CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION;
+    END IF;
+END$$;
+
+-- job_app_app_files → job_application_files
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'application_application_files_application_file_id_fkey') THEN
+        ALTER TABLE job_app_app_files
+        ADD CONSTRAINT application_application_files_application_file_id_fkey
+        FOREIGN KEY (application_file_id)
+        REFERENCES job_application_files(application_file_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION;
+    END IF;
+END$$;
+
+-- job_app_app_files → job_applications
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'application_application_files_application_id_fkey') THEN
+        ALTER TABLE job_app_app_files
+        ADD CONSTRAINT application_application_files_application_id_fkey
+        FOREIGN KEY (job_application_id)
+        REFERENCES job_applications(job_application_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION;
+    END IF;
+END$$;
+
+-- job_application_files → job_applications
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_1') THEN
+        ALTER TABLE job_application_files
+        ADD CONSTRAINT constraint_1
+        FOREIGN KEY (job_application_id)
+        REFERENCES job_applications(job_application_id)
+        ON DELETE NO ACTION ON UPDATE NO ACTION;
+    END IF;
+END$$;
+
+-- job_applications → job_app_statuses
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_status_id') THEN
+        ALTER TABLE job_applications
+        ADD CONSTRAINT fk_status_id
+        FOREIGN KEY (status_id)
+        REFERENCES job_app_statuses(status_id)
+        ON DELETE NO ACTION ON UPDATE CASCADE;
+    END IF;
+END$$;
+
+-- notifications → users
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_user_id_fkey') THEN
+        ALTER TABLE notifications
+        ADD CONSTRAINT notifications_user_id_fkey
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE ON UPDATE NO ACTION;
+    END IF;
+END$$;
+
+-- order_coupons → coupons
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ordercoupons_coupon1') THEN
+        ALTER TABLE order_coupons
+        ADD CONSTRAINT fk_ordercoupons_coupon1
         FOREIGN KEY (coupon_id)
         REFERENCES coupons(coupon_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- user_coupons → users
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'constraint_user_id') THEN
-        ALTER TABLE user_coupons
-        ADD CONSTRAINT constraint_user_id
-        FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
-    END IF;
-END$$;
-
--- user_roles → roles
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'user_roles_role_id_fkey') THEN
-        ALTER TABLE user_roles
-        ADD CONSTRAINT user_roles_role_id_fkey
-        FOREIGN KEY (role_id)
-        REFERENCES roles(role_id)
-        ON DELETE NO ACTION ON UPDATE NO ACTION;
+        ON DELETE NO ACTION ON UPDATE CASCADE;
     END IF;
 END$$;
