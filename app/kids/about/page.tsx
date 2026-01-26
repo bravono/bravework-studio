@@ -3,7 +3,24 @@
 import React from "react";
 import { motion } from "framer-motion";
 import KidsSubNavBar from "../../components/KidsSubNavBar";
-import { Book, Lightbulb, Heart, Rocket, Target, Users } from "lucide-react";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import {
+  Book,
+  Lightbulb,
+  Heart,
+  Rocket,
+  Target,
+  Users,
+  ArrowRight,
+  GraduationCap,
+} from "lucide-react";
+import Link from "next/link";
+import { Outfit } from "next/font/google";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+});
 
 export default function KidsAboutPage() {
   const episodeIdeas = [
@@ -38,22 +55,44 @@ export default function KidsAboutPage() {
       <KidsSubNavBar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Breadcrumbs
+          items={[
+            { label: "Kids", href: "/kids" },
+            { label: "About", href: "/kids/about" },
+          ]}
+        />
+
         {/* Core Vision */}
         <div className="mb-24 text-center max-w-3xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-black text-gray-900 mb-8"
+            className={`text-4xl md:text-5xl font-black text-gray-900 mb-8 ${outfit.className}`}
           >
             Our Vision:{" "}
             <span className="text-blue-500">Learning Through Wonder</span>
           </motion.h1>
-          <p className="text-xl text-gray-600 leading-relaxed font-medium">
+          <p className="text-xl text-gray-600 leading-relaxed font-medium mb-8">
             Bravework Kids is an initiative specifically designed for
             preschoolers (ages 2–6). We believe that the best way to teach is
             through high-quality visual storytelling that captures the
             imagination while delivering foundational knowledge.
           </p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link
+              href="/about"
+              className="text-blue-600 font-bold flex items-center gap-2 hover:underline"
+            >
+              Part of Bravework – See full story <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/academy/about"
+              className="text-indigo-600 font-bold flex items-center gap-2 hover:underline"
+            >
+              <GraduationCap size={18} /> Grow into advanced courses at Academy{" "}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
 
         {/* Vision Details Grid */}

@@ -9,10 +9,16 @@ import { Info, Sparkles, Briefcase, FileText, Mail, Home } from "lucide-react";
 const studioLinks = [
   { label: "Studio Home", href: "/studio", icon: Home, color: "bg-green-600" },
   {
+    label: "About",
+    href: "/studio/about",
+    icon: Info,
+    color: "bg-emerald-600",
+  },
+  {
     label: "Services",
     href: "/studio/services",
     icon: Sparkles,
-    color: "bg-emerald-600",
+    color: "bg-teal-600",
   },
   {
     label: "Portfolio",

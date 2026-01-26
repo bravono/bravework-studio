@@ -2,8 +2,25 @@
 
 import React from "react";
 import AcademySubNavBar from "../../components/AcademySubNavBar";
+import Breadcrumbs from "../../components/Breadcrumbs";
 import { motion } from "framer-motion";
-import { Target, Eye, Users, Heart, ShieldCheck, Zap } from "lucide-react";
+import {
+  Target,
+  Eye,
+  Users,
+  Heart,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  Baby,
+} from "lucide-react";
+import Link from "next/link";
+import { Outfit } from "next/font/google";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+});
 
 export default function AcademyAboutPage() {
   return (
@@ -12,18 +29,41 @@ export default function AcademyAboutPage() {
 
       <section className="py-20 lg:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Breadcrumbs
+            items={[
+              { label: "Academy", href: "/academy" },
+              { label: "About", href: "/academy/about" },
+            ]}
+          />
           <div className="max-w-3xl">
-            <h1 className="text-5xl lg:text-7xl font-black text-gray-900 mb-8">
+            <h1
+              className={`text-5xl lg:text-7xl font-black text-gray-900 mb-8 ${outfit.className}`}
+            >
               Empowering African{" "}
               <span className="text-blue-600">Innovation.</span>
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed font-medium">
+            <p className="text-xl text-gray-600 leading-relaxed font-medium mb-8">
               Bravework Academy was born out of a desire to bridge the digital
               skills gap in Nigeria and Africa. We believe that by providing
               world-class education in high-demand technical fields, we can
               empower individuals to build global careers and drive local
               economic growth.
             </p>
+            <div className="flex flex-wrap gap-6">
+              <Link
+                href="/about"
+                className="text-blue-600 font-bold flex items-center gap-2 hover:underline"
+              >
+                Part of Bravework – See full story <ArrowRight size={16} />
+              </Link>
+              <Link
+                href="/kids/about"
+                className="text-pink-600 font-bold flex items-center gap-2 hover:underline"
+              >
+                <Baby size={18} /> Explore Kids for younger learners{" "}
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

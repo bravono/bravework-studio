@@ -111,7 +111,8 @@ export default function Navbar() {
       label: "Studio",
       icon: ChevronDown,
       items: [
-        { label: "Studio Home", href: "/studio", icon: SparklesIcon },
+        { label: "Studio Home", href: "/studio", icon: House },
+        { label: "About Studio", href: "/studio/about", icon: Info },
         { label: "Our Services", href: "/studio/services", icon: Code },
         { label: "Portfolio", href: "/studio/portfolio", icon: Briefcase },
         { label: "Resources", href: "/studio/resources", icon: FileText },
