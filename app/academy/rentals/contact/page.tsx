@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import AcademySubNavBar from "../../components/AcademySubNavBar";
-import Breadcrumbs from "../../components/Breadcrumbs";
-import ContactForm from "../../components/ContactForm";
+import AcademySubNavBar from "@/app/components/AcademySubNavBar";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
+import ContactForm from "@/app/components/ContactForm";
 import { motion } from "framer-motion";
 import { Outfit } from "next/font/google";
 

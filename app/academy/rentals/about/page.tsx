@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import AcademySubNavBar from "../../components/AcademySubNavBar"; // Rentals is under Academy
-import Breadcrumbs from "../../components/Breadcrumbs";
+import AcademySubNavBar from "@/app/components/AcademySubNavBar"; // Rentals is under Academy
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 import { motion } from "framer-motion";
 import {
   Box,
