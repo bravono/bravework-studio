@@ -15,14 +15,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, email, subject, message } = value;
+    const { name, email, subject, message, department = "General" } = value;
 
     // Map data to Zoho CRM Lead format
     // Note: Zoho CRM requires Last_Name. We'll use the full name for now.
     const leadData = {
       Last_Name: name,
       Email: email,
-      Description: `Subject: ${subject}\n\n${message}`,
+      Description: `Department: ${department}\nSubject: ${subject}\n\n${message}`,
       Lead_Source: "Website Contact Form",
     };
 

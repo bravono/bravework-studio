@@ -4,7 +4,17 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Info, BookOpen, GraduationCap, Box, Home, Key } from "lucide-react";
+import {
+  Info,
+  BookOpen,
+  GraduationCap,
+  Box,
+  Home,
+  Key,
+  Mail,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
 const academyLinks = [
   { label: "Home", href: "/academy", icon: Home, color: "bg-blue-600" },
@@ -37,6 +47,12 @@ const academyLinks = [
     href: "/academy/certifications",
     icon: GraduationCap,
     color: "bg-amber-600",
+  },
+  {
+    label: "Contact",
+    href: "/academy/contact",
+    icon: Mail,
+    color: "bg-rose-600",
   },
 ];
 

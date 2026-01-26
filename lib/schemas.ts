@@ -6,6 +6,9 @@ export const contactSchema = Joi.object({
   email: Joi.string().email().required(),
   subject: Joi.string().min(2).max(200).required(),
   message: Joi.string().min(10).max(5000).required(),
+  department: Joi.string()
+    .valid("Studio", "Academy", "Kids", "Rentals", "General")
+    .optional(),
 });
 
 // Job Application Schema

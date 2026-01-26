@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Info, PlayCircle, Map, Target, Users } from "lucide-react";
+import { Info, PlayCircle, Map, Target, Users, Mail } from "lucide-react";
 
 const kidsLinks = [
   { label: "Home", href: "/kids", icon: PlayCircle, color: "bg-pink-500" },
@@ -26,6 +26,12 @@ const kidsLinks = [
     href: "/kids/opportunities",
     icon: Users,
     color: "bg-orange-500",
+  },
+  {
+    label: "Contact",
+    href: "/kids/contact",
+    icon: Mail,
+    color: "bg-pink-600",
   },
 ];
 
