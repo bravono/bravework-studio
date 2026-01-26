@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Navbar from "../components/Navbar";
-import { Nosifer, Outfit } from "next/font/google";
+import { Outfit } from "next/font/google";
 import {
   Award,
   Briefcase,
@@ -16,7 +15,6 @@ import TeamGrid from "../components/TeamGrid";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 const useCountUp = (end: number, duration: number) => {
@@ -182,9 +180,7 @@ export default function About() {
             <div className="bg-gray-100 h-96 rounded-[3rem] overflow-hidden relative shadow-inner">
               {/* Visual element or image placeholder */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <Nosifer className="text-gray-200 text-8xl opacity-10 uppercase -rotate-12">
-                  Bravework
-                </Nosifer>
+                Bravework
               </div>
             </div>
           </div>

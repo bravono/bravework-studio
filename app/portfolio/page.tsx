@@ -3,11 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { portfolios } from "../services/localDataService";
-import { Nosifer } from "next/font/google";
-import Navbar from "../components/Navbar";
+import { Outfit } from "next/font/google";
 import { Grid, Shapes, Code, Smartphone, PenTool, Mic } from "lucide-react";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
+const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 const categoryIcons = {
   All: Grid,
@@ -42,7 +41,7 @@ export default function Portfolio() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1
-              className={`text-5xl font-bold text-gray-900 ${nosifer.className}`}
+              className={`text-5xl font-bold text-gray-900 ${outfit.className}`}
             >
               Our Portfolio
             </h1>

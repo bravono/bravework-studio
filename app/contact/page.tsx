@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import Navbar from "../components/Navbar";
-import { Nosifer, Outfit } from "next/font/google";
+import { Outfit } from "next/font/google";
 import ContactForm from "../components/ContactForm";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 export default function Contact() {

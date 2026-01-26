@@ -3,13 +3,13 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { projects } from "../services/localDataService"; // Using your original import
-import { Nosifer } from "next/font/google";
+import { Outfit } from "next/font/google";
 
 // Since the data is now being imported, you should also import the types if they exist
 // Assuming your localDataService file exports these types, you can uncomment these lines:
 // import { Project, Todo } from "../services/localDataService";
 
-const nosifer = Nosifer({ subsets: ["latin"], weight: "400" });
+const outfit = Outfit({ subsets: ["latin"], weight: "400" });
 
 // SVG icon for the left arrow
 const ChevronLeftIcon = () => (
@@ -106,7 +106,7 @@ export default function ProjectCarousel() {
     <section className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-950 dark:to-gray-800 py-16 sm:py-24">
       <div className="container mx-auto px-4">
         <h2
-          className={`text-4xl sm:text-5xl font-extrabold text-center text-gray-900 dark:text-white mb-12 drop-shadow ${nosifer.className}`}
+          className={`text-4xl sm:text-5xl font-extrabold text-center text-gray-900 dark:text-white mb-12 drop-shadow ${outfit.className}`}
         >
           Active Projects
         </h2>
