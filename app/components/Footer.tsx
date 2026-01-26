@@ -11,241 +11,151 @@ import {
   Mail,
   Clock,
   Square,
+  ArrowRight,
 } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  const footerLinks = [
+    {
+      title: "Core Ecosystem",
+      links: [
+        { label: "About Bravework", href: "/about" },
+        { label: "General Contact", href: "/contact" },
+        { label: "Jobs & Careers", href: "/jobs" },
+        { label: "Latest Blog", href: "/blog" },
+      ],
+    },
+    {
+      title: "Studio",
+      links: [
+        { label: "Studio Home", href: "/studio" },
+        { label: "About Studio", href: "/studio/about" },
+        { label: "Digital Services", href: "/studio/services" },
+        { label: "Portfolio", href: "/studio/portfolio" },
+        { label: "Contact Studio", href: "/studio/contact" },
+      ],
+    },
+    {
+      title: "Academy",
+      links: [
+        { label: "Academy Home", href: "/academy" },
+        { label: "About Academy", href: "/academy/about" },
+        { label: "All Courses", href: "/academy/courses" },
+        { label: "Certifications", href: "/academy/certifications" },
+        { label: "Rentals About", href: "/academy/rentals/about" },
+        { label: "Contact Academy", href: "/academy/contact" },
+      ],
+    },
+    {
+      title: "Kids & Legal",
+      links: [
+        { label: "Kids Home", href: "/kids" },
+        { label: "About Kids", href: "/kids/about" },
+        { label: "Contact Kids", href: "/kids/contact" },
+        { label: "Privacy Policy", href: "/privacy-policy" },
+        { label: "Terms of Service", href: "/terms-of-service" },
+      ],
+    },
+  ];
+
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12">
+    <footer className="bg-gray-950 text-gray-400 py-20 border-t border-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          {footerLinks.map((section) => (
+            <div key={section.title} className="space-y-6">
+              <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">
+                {section.title}
+              </h3>
+              <ul className="space-y-4">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="hover:text-green-500 transition-colors duration-200 flex items-center gap-2 group"
+                    >
+                      <ArrowRight
+                        size={12}
+                        className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all"
+                      />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="pt-12 border-t border-gray-900 flex flex-col lg:flex-row justify-between items-center gap-8">
+          <div className="space-y-4 text-center lg:text-left">
             <h3 className="text-xl font-bold text-white">Bravework Studio</h3>
-            <p className="text-sm">
-              Empowering creativity through technology education and digital
-              solutions.
+            <p className="text-sm max-w-sm">
+              Nigerian-born creative powerhouse driving the digital economy
+              through specialized arms.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex justify-center lg:justify-start space-x-4">
               <a
-                href="https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL"
+                href="https://facebook.com/BraveworkStudio"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="text-green-500 hover:text-blue-500 transition-colors duration-200"
+                className="text-gray-500 hover:text-green-500 transition-colors"
               >
-                <Facebook size={24} />
+                <Facebook size={20} />
               </a>
               <a
                 href="https://x.com/YAhbideen"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-                className="text-green-500 hover:text-blue-400 transition-colors duration-200"
+                className="text-gray-500 hover:text-green-500 transition-colors"
               >
-                <Twitter size={24} />
+                <Twitter size={20} />
               </a>
               <a
-                href="https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4"
+                href="https://instagram.com/bravework_studio"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="text-green-500 hover:text-pink-500 transition-colors duration-200"
+                className="text-gray-500 hover:text-green-500 transition-colors"
               >
-                <Instagram size={24} />
+                <Instagram size={20} />
               </a>
               <a
-                href="https://www.linkedin.com/in/ahbideen-y-74a232179?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+                href="https://linkedin.com/in/ahbideen-y-74a232179"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-                className="text-green-500 hover:text-blue-700 transition-colors duration-200"
+                className="text-gray-500 hover:text-green-500 transition-colors"
               >
-                <Linkedin size={24} />
-              </a>
-              <a
-                href="https://tiktok.com/@techtalestudio"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="text-green-500 hover:text-black transition-colors duration-200"
-              >
-                {/* lucide-react does not have a dedicated TikTok icon */}
-                <Square size={24} />
-              </a>
-              <a
-                href="https://youtube.com/@AY-TechTaleStudio"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="text-green-500 hover:text-red-600 transition-colors duration-200"
-              >
-                <Youtube size={24} />
+                <Linkedin size={20} />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Quick Links</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/order"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Services
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/portfolio"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Projects
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    href="/blog"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/jobs"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/academy/courses"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    Courses
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/faqs"
-                    className="hover:text-blue-500 transition-colors duration-200"
-                  >
-                    FAQs
-                  </Link>
-                </li>
-              </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
+            <div className="space-y-3">
+              <h4 className="font-bold text-white">Contact</h4>
+              <p className="flex items-center gap-2">
+                <Mail size={16} className="text-green-500" />{" "}
+                support@braveworkstudio.com
+              </p>
+              <p className="flex items-center gap-2">
+                <MessageCircle size={16} className="text-green-500" /> +234
+                902-322-4596
+              </p>
             </div>
-          </div>
-
-          {/* Services */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Our Services</h3>
-            <ul className="space-y-2 text-sm">
-              <li>3D Modeling & Animation</li>
-              <li>Web Development</li>
-              <li>UI/UX Design</li>
-              <li>Training Programs</li>
-              <li>Game Development</li>
-              <li>Voice-Over Services</li>
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Contact Us</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <MapPin
-                  size={20}
-                  className="flex-shrink-0 text-green-500 mt-0.5"
-                />
-                <span>Katsina, Nigeria</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Link
-                  href="https://wa.me/2349023224596"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-blue-500 transition-colors duration-200"
-                >
-                  <MessageCircle
-                    size={20}
-                    className="flex-shrink-0 text-green-500"
-                  />
-                  <span>+234 902-322-4596</span>
-                </Link>
-              </li>
-              <li className="flex items-start gap-2">
-                <Mail
-                  size={20}
-                  className="flex-shrink-0 text-green-500 mt-0.5"
-                />
-                <span>support@braveworkstudio.com</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Clock
-                  size={20}
-                  className="flex-shrink-0 text-green-500 mt-0.5"
-                />
-                <span>Mon - Fri: 9:00 AM - 6:00 PM</span>
-              </li>
-            </ul>
+            <div className="space-y-3">
+              <h4 className="font-bold text-white">Location</h4>
+              <p className="flex items-center gap-2">
+                <MapPin size={16} className="text-green-500" /> Katsina & Lagos,
+                Nigeria
+              </p>
+              <p className="flex items-center gap-2">
+                <Clock size={16} className="text-green-500" /> Mon-Fri: 9AM -
+                6PM
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row items-center justify-between text-sm">
-          <p>© {currentYear} Bravework Studio. All rights reserved.</p>
-          <div className="flex flex-wrap justify-center md:justify-end gap-x-6 mt-4 md:mt-0">
-            <Link
-              href="/privacy-policy"
-              className="hover:text-blue-500 transition-colors duration-200"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms-of-service"
-              className="hover:text-blue-500 transition-colors duration-200"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/refund-policy"
-              className="hover:text-blue-500 transition-colors duration-200"
-            >
-              Refund Policy
-            </Link>
-            <Link
-              href="/faqs"
-              className="hover:text-blue-500 transition-colors duration-200"
-            >
-              FAQs
-            </Link>
-          </div>
+        <div className="mt-20 pt-8 border-t border-gray-900 text-center text-[10px] uppercase tracking-widest text-gray-600">
+          <p>© {currentYear} Bravework Studio. Built for African Innovation.</p>
         </div>
       </div>
     </footer>
