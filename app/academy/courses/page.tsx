@@ -149,7 +149,7 @@ export default function AcademyCoursesPage() {
                     <img
                       src={
                         course.thumbnailUrl ||
-                        "/assets/Course_Thumbnail_Placeholder.png"
+                        "/assets/Bravework_Studio-Logo-Color.png"
                       }
                       alt={course.title}
                       className="group-hover:scale-105 transition-transform duration-500"
