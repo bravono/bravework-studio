@@ -1,0 +1,122 @@
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+export async function seedCourses() {
+  const courses = [
+  {
+    course_id: 3,
+    title: "Medical 3D Visualization in Just 2 Hours",
+    description:
+      "This 2-hour interactive session will give you a solid understanding of the potential of 3D animation in healthcare and motivate you to take the next step in exploring its applications in patient care, medical education, and communication.",
+    is_active: true,
+    start_date: new Date("2025-09-27T10:00:00Z"),
+    end_date: new Date("2025-09-27T22:00:00Z"),
+    instructor_id: 1,
+    max_students: 20,
+    price_in_kobo: 0,
+    thumbnail_url:
+      "https://live.staticflickr.com/65535/54854647085_5975235ccf.jpg",
+    course_category_id: 1,
+    level: "Beginner",
+    language: "English",
+    tag_id: null,
+    created_at: new Date("2025-09-24T10:22:07.671Z"),
+    early_bird_discount: null,
+    discount_start_date: null,
+    discount_end_date: null,
+    slug: null,
+    content: null,
+    excerpt: null,
+    age_bracket: null,
+    updated_at: new Date("2025-11-27T12:41:59.848Z"),
+  },
+
+  {
+    course_id: 4,
+    title: "3D Technology for Medical Professionals",
+    description:
+      "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
+    is_active: true,
+    start_date: new Date("2025-11-01T10:00:00Z"),
+    end_date: new Date("2025-11-29T04:00:00Z"),
+    instructor_id: 1,
+    max_students: 15,
+    price_in_kobo: 5000000,
+    thumbnail_url:
+      "https://live.staticflickr.com/65535/54854342686_ba37817ac9.jpg",
+    course_category_id: null,
+    level: "Beginner",
+    language: "English",
+    tag_id: null,
+    created_at: new Date("2025-09-24T16:15:34.221Z"),
+    early_bird_discount: null,
+    discount_start_date: null,
+    discount_end_date: null,
+    slug: null,
+    content: null,
+    excerpt: null,
+    age_bracket: null,
+    updated_at: new Date("2025-11-27T12:41:59.848Z"),
+  },
+
+  {
+    course_id: 1,
+    title: "3D Animation Training for Kids",
+    description:
+      "This beginner-friendly program introduces kids to 3D animation through fun, hands-on projects using Blender. From creating simple shapes to animating flying cars and mysterious characters, kids will build their own 3D world while learning valuable STEM/STEAM skills. No prior experience is required—just curiosity and creativity!",
+    is_active: true,
+    start_date: new Date("2025-09-01T00:00:00Z"),
+    end_date: new Date("2025-09-30T00:00:00Z"),
+    instructor_id: 1,
+    max_students: 20,
+    price_in_kobo: 250000,
+    thumbnail_url:
+      "https://live.staticflickr.com/65535/54854647075_a0993fef95.jpg",
+    course_category_id: null,
+    level: "Beginner",
+    language: "English",
+    tag_id: null,
+    created_at: new Date("2025-09-19T18:50:49.361Z"),
+    early_bird_discount: null,
+    discount_start_date: null,
+    discount_end_date: null,
+    slug: null,
+    content: null,
+    excerpt: null,
+    age_bracket: null,
+    updated_at: new Date("2025-11-27T12:41:59.848Z"),
+  },
+];
+
+  for (const course of courses) {
+    await prisma.courses.upsert({
+      where: { course_id: course.course_id },
+      update: {
+        title: course.title,
+        description: course.description,
+        is_active: course.is_active,
+        start_date: course.start_date,
+        end_date: course.end_date,
+        instructor_id: course.instructor_id,
+        max_students: course.max_students,
+        price_in_kobo: course.price_in_kobo,
+        thumbnail_url: course.thumbnail_url,
+        course_category_id: course.course_category_id,
+        level: course.level,
+        language: course.language,
+        tag_id: course.tag_id,
+        created_at: course.created_at,
+        early_bird_discount: course.early_bird_discount,
+        discount_start_date: course.discount_start_date,
+        discount_end_date: course.discount_end_date,
+        slug: course.slug,
+        content: course.content,
+        excerpt: course.excerpt,
+        age_bracket: course.age_bracket,
+        updated_at: course.updated_at,
+      },
+      create: course,
+    });
+  }
+}
+
