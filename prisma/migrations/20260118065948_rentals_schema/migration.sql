@@ -8,8 +8,6 @@
   - Added the required column `hourly_rate_kobo` to the `rentals` table without a default value. This is not possible if the table is not empty.
 
 */
--- DropForeignKey
-ALTER TABLE IF EXISTS "payments" DROP CONSTRAINT "constraint_1";
 
 -- DropIndex
 DROP INDEX IF EXISTS "orders_user_category_idx";
