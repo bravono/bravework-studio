@@ -43,7 +43,7 @@ async function initializeTransporter() {
       console.log("Pass: " + account.pass);
       console.log(
         "--- Access your test emails at: %s ---",
-        nodemailer.getTestMessageUrl(null)
+        nodemailer.getTestMessageUrl(null),
       ); // Placeholder for base URL
       transporter = nodemailer.createTransport({
         host: account.smtp.host,
@@ -58,7 +58,7 @@ async function initializeTransporter() {
       // Note: The specific preview URL for an email is returned by sendMail
     } catch (err) {
       console.error(
-        "Failed to create a testing account for Ethereal.email. " + err.message
+        "Failed to create a testing account for Ethereal.email. " + err.message,
       );
       // Fallback or exit if essential for development
     }
@@ -86,7 +86,7 @@ export async function sendEmail({
       text: textContent,
     });
     console.log(
-      `Email sent successfully to ${toEmail} for subject: ${subject}`
+      `Email sent successfully to ${toEmail} for subject: ${subject}`,
     );
     if (process.env.NODE_ENV !== "production") {
       console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
@@ -94,7 +94,7 @@ export async function sendEmail({
   } catch (error) {
     console.error(
       `Error sending email to ${toEmail} for subject ${subject}:`,
-      error
+      error,
     );
     throw new Error(`Failed to send email: ${subject}`);
   }
@@ -104,7 +104,7 @@ export async function sendVerificationEmail(
   toEmail: string,
   token: string,
   userName: string,
-  course?: string
+  course?: string,
 ) {
   console.log(`Verification token for ${userName}: ${token}`);
 
@@ -137,11 +137,45 @@ export async function sendVerificationEmail(
     console.log(error.message);
   }
 }
+
+export async function sendEmailChangeVerificationEmail(
+  toEmail: string,
+  token: string,
+  userName: string,
+) {
+  console.log(`Email change verification token for ${userName}: ${token}`);
+
+  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
+  if (!currentTransporter) {
+    console.error("Email transporter not initialized! Cannot send email.");
+    return;
+  }
+
+  const verificationLink = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
+
+  const subject = "Verify Your New Email Address";
+  const htmlContent = `
+    <p>Hello ${userName},</p>
+    <p>You have requested to change your email address. Please verify your new email address by clicking the link below:</p>
+    <p><a href="${verificationLink}">Verify New Email Address</a></p>
+    <p>This link will expire in 24 hours.</p>
+    <p>If you did not request this change, please ignore this email. Your current email address will remain unchanged.</p>
+    <p>Thanks,<br/>Our Services Team</p>
+  `;
+  const textContent = `Hello ${userName},\n\nYou have requested to change your email address. Please verify your new email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not request this change, please ignore this email. Your current email address will remain unchanged.\n\nThanks,\nOur Services Team`;
+
+  try {
+    await sendEmail({ toEmail, subject, htmlContent, textContent });
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
 export async function sendPasswordResetEmail(
   toEmail: string,
   userName: string,
   resetLink: string,
-  expiration: number
+  expiration: number,
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -173,7 +207,7 @@ export async function sendOrderReceivedEmail(
   userName: string,
   orderId: string,
   course?: string,
-  userId?: string
+  userId?: string,
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -226,7 +260,7 @@ export async function sendPaymentReceivedEmail(
   userName: string,
   orderId: string,
   course?: string,
-  userId?: string
+  userId?: string,
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -280,7 +314,7 @@ export async function sendCustomOfferNotificationEmail(
   orderId: string,
   offerId: string, // NEW: Pass offerId to generate unique links
   userId: string,
-  expiresAt: string | null // NEW: Pass expiry date
+  expiresAt: string | null, // NEW: Pass expiry date
 ) {
   const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
   if (!currentTransporter) {
@@ -297,13 +331,13 @@ export async function sendCustomOfferNotificationEmail(
     userId,
     offerId,
     "accept",
-    dateToNumber
+    dateToNumber,
   );
   const rejectToken = await generateSecureToken(
     userId,
     offerId,
     "reject",
-    dateToNumber
+    dateToNumber,
   );
   const acceptLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}/accept`;
   // `${process.env.NEXTAUTH_URL}/api/user/custom-offers/${offerId}/accept?token=${acceptToken}`;
@@ -318,7 +352,7 @@ export async function sendCustomOfferNotificationEmail(
       const expiryDate = new Date(expiresAt);
       expiryText = `<p style="color: #e53e3e; font-weight: bold;">This offer expires on: ${format(
         expiryDate,
-        "MMM dd, yyyy HH:mm:ss"
+        "MMM dd, yyyy HH:mm:ss",
       )}.</p>`;
     } catch (e) {
       console.error("Invalid expiry date format for email:", expiresAt, e);
@@ -362,7 +396,7 @@ export async function sendCustomOfferNotificationEmail(
   `;
   const textContent = `Hello ${userName},\n\nGreat news! We've created a new custom offer for you related to Order ID: ${orderId}.\n\nOffer Amount: $${offerAmount.toLocaleString()}\nDescription: ${offerDescription}\n\n${expiryText.replace(
     /<[^>]*>/g,
-    ""
+    "",
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
   try {
     await sendEmail({ toEmail, subject, htmlContent, textContent });
@@ -393,7 +427,7 @@ export async function sendBookingRequestEmail(
   startTime: string,
   endTime: string,
   totalAmount: number,
-  ownerId?: string
+  ownerId?: string,
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -413,9 +447,9 @@ export async function sendBookingRequestEmail(
     <p>Thanks,<br/>The Bravework Studio Team</p>
   `;
   const textContent = `Hello ${ownerName},\n\nYou have a new booking request from ${renterName} for your device ${deviceName}.\n\nBooking ID: ${bookingId}\nStart Time: ${new Date(
-    startTime
+    startTime,
   ).toLocaleString()}\nEnd Time: ${new Date(
-    endTime
+    endTime,
   ).toLocaleString()}\nTotal Amount: ₦${totalAmount.toLocaleString()}\n\nPlease log in to your dashboard to accept or decline this request:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
@@ -443,7 +477,7 @@ export async function sendBookingStatusEmail(
   deviceName: string,
   status: string,
   reason?: string,
-  userId?: string
+  userId?: string,
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -472,7 +506,7 @@ export async function sendBookingStatusEmail(
   `;
   const textContent = `Hello ${userName},\n\nBooking Update for ${deviceName}: ${status.toUpperCase()}\n\n${messageBody.replace(
     /<[^>]*>/g,
-    ""
+    "",
   )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
@@ -503,7 +537,7 @@ export async function sendBookingRescheduledEmail(
   oldEndTime: string,
   newStartTime: string,
   newEndTime: string,
-  ownerId?: string
+  ownerId?: string,
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -520,14 +554,14 @@ export async function sendBookingRescheduledEmail(
       <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
         <p style="margin-top: 0;"><strong>Previous Schedule:</strong></p>
         <p style="font-size: 0.9em; color: #666;">${new Date(
-          oldStartTime
+          oldStartTime,
         ).toLocaleString()} - ${new Date(oldEndTime).toLocaleString()}</p>
         
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 15px 0;" />
         
         <p><strong>New Schedule:</strong></p>
         <p style="font-size: 1.1em; color: #008751; font-weight: bold;">${new Date(
-          newStartTime
+          newStartTime,
         ).toLocaleString()} - ${new Date(newEndTime).toLocaleString()}</p>
       </div>
 
@@ -538,9 +572,9 @@ export async function sendBookingRescheduledEmail(
   `;
 
   const textContent = `Hello ${ownerName},\n\n${renterName} has rescheduled their booking for ${deviceName}.\n\nNew Schedule: ${new Date(
-    newStartTime
+    newStartTime,
   ).toLocaleString()} - ${new Date(
-    newEndTime
+    newEndTime,
   ).toLocaleString()}\n\nView details: ${dashboardLink}`;
 
   try {
@@ -568,7 +602,7 @@ export async function sendFundsReleasedEmail(
   deviceName: string,
   role: "owner" | "renter",
   amountKobo?: number,
-  userId?: string
+  userId?: string,
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -597,7 +631,7 @@ export async function sendFundsReleasedEmail(
   `;
   const textContent = `Hello ${userName},\n\n${subject}\n\n${messageBody.replace(
     /<[^>]*>/g,
-    ""
+    "",
   )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
@@ -612,7 +646,7 @@ export async function sendFundsReleasedEmail(
         message:
           role === "owner"
             ? `Earnings of ₦${(amountKobo / 100).toFixed(
-                2
+                2,
               )} from ${deviceName} have been credited.`
             : `Funds for ${deviceName} have been released. Please leave a review!`,
         link: dashboardLink,
@@ -630,7 +664,7 @@ export async function sendClassReminderEmail(
   courseTitle: string,
   sessionTime: string,
   sessionLink: string,
-  userId?: string
+  userId?: string,
 ) {
   const currentTransporter = await initializeTransporter();
   if (!currentTransporter) return;
@@ -677,7 +711,7 @@ export async function sendClassReminderEmail(
         userId: finalUserId,
         title: subject,
         message: `Your class for ${courseTitle} starts at ${new Date(
-          sessionTime
+          sessionTime,
         ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`,
         link: sessionLink,
       });

@@ -23,16 +23,16 @@ export async function GET(req: Request) {
   try {
     console.log("LOG: Attempting to find token in DB.");
     const tokenResult = await queryDatabase(
-      "SELECT * FROM verification_tokens WHERE token = $1 AND type = $2",
-      [token, "email_verification"]
+      "SELECT * FROM verification_tokens WHERE token = $1 AND (type = $2 OR type = $3)",
+      [token, "email_verification", "email_change"],
     );
 
     console.log("Token Result", tokenResult);
     const verificationToken = tokenResult[0];
 
-    if (verificationToken.token !== token) {
+    if (!verificationToken || verificationToken.token !== token) {
       console.log(
-        "LOG: Invalid verification token found. Redirecting to error page."
+        "LOG: Invalid verification token found. Redirecting to error page.",
       );
       redirect("/auth/error?message=Invalid verification token.");
     }
@@ -41,27 +41,52 @@ export async function GET(req: Request) {
     const now = new Date();
     if (new Date(verificationToken.expires) < now) {
       console.log(
-        "LOG: Verification token expired. Deleting token and redirecting."
+        "LOG: Verification token expired. Deleting token and redirecting.",
       );
       await queryDatabase("DELETE FROM verification_tokens WHERE token = $1", [
         token,
       ]);
       redirect(
-        "/auth/error?message=Verification token has expired. Please sign up again."
+        "/auth/error?message=Verification token has expired. Please request a new one.",
       );
     }
 
     console.log(
-      "LOG: Token valid and not expired. Attempting to mark user email as verified."
+      `LOG: Token valid and not expired. Type: ${verificationToken.type}. Attempting to mark user email as verified.`,
     );
-    // Make sure your email_verified column is BOOLEAN. If it's TIMESTAMP, use `now` instead of `true`.
-    await queryDatabase(
-      'UPDATE users SET "email_verified" = NOW() WHERE user_id = $1',
-      [verificationToken.user_id]
-    );
-    console.log(
-      `LOG: User ${verificationToken.user_id}'s email marked as verified.`
-    );
+
+    if (verificationToken.type === "email_change") {
+      // Fetch the pending email
+      const userResult = await queryDatabase(
+        "SELECT pending_email FROM users WHERE user_id = $1",
+        [verificationToken.user_id],
+      );
+
+      if (userResult.length === 0 || !userResult[0].pending_email) {
+        redirect("/auth/error?message=No pending email change found.");
+      }
+
+      const newEmail = userResult[0].pending_email;
+
+      // Update email with pending_email and clear pending_email
+      await queryDatabase(
+        'UPDATE users SET "email" = $1, "email_verified" = NOW(), "pending_email" = NULL WHERE user_id = $2',
+        [newEmail, verificationToken.user_id],
+      );
+
+      console.log(
+        `LOG: User ${verificationToken.user_id}'s email updated to ${newEmail} and marked as verified.`,
+      );
+    } else {
+      // Standard email verification
+      await queryDatabase(
+        'UPDATE users SET "email_verified" = NOW() WHERE user_id = $1',
+        [verificationToken.user_id],
+      );
+      console.log(
+        `LOG: User ${verificationToken.user_id}'s email marked as verified.`,
+      );
+    }
 
     console.log("LOG: Attempting to delete used token from DB.");
     await queryDatabase("DELETE FROM verification_tokens WHERE token = $1", [
@@ -70,7 +95,7 @@ export async function GET(req: Request) {
     console.log("LOG: Used verification token deleted from DB.");
 
     console.log(
-      "LOG: Email verified successfully. Initiating redirect to login page."
+      "LOG: Email verified successfully. Initiating redirect to login page.",
     );
     redirect("/auth/login?verified=true"); // Redirect to your actual login page
     // Execution will stop here internally and this redirect will be sent.
@@ -89,11 +114,11 @@ export async function GET(req: Request) {
 
     // This 'catch' block will now only execute for actual, unexpected errors
     console.error(
-      "LOG: !!! An ACTUAL unexpected error occurred during verification !!!"
+      "LOG: !!! An ACTUAL unexpected error occurred during verification !!!",
     );
     console.error("LOG: Error details:", error); // Log the actual error for debugging
     redirect(
-      "/auth/error?message=An unexpected error occurred during verification. Please try again or contact support."
+      "/auth/error?message=An unexpected error occurred during verification. Please try again or contact support.",
     );
   } finally {
     console.log("--- Email Verification Process Finished ---");
