@@ -2,6 +2,7 @@ const { seedUserRoles } = require("./dev/user_roles");
 const { seedUsers } = require("./dev/users");
 const { seedRoles } = require("./dev/roles");
 const { seedProductCategories } = require("./dev/productCategories");
+const {seedCourses} = require("./dev/courses");
 const { seedConfig } = require("./prod/config");
 
 async function main() {

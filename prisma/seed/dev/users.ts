@@ -3,6 +3,23 @@ const prisma = new PrismaClient();
 
 export async function seedUsers() {
   const users = [
+  {
+      user_id: 1,
+      first_name: 'Ahbideen',
+      last_name: 'Yusuf',
+      email: 'ahbideeny@gmail.com',
+      password: '$2b$12$AGBFoEAlOoZ48ggEqpmCZe/eBQWX7uEEeiJRevNxod1fbEswGlhX.',
+      bio: null,
+      profile_picture_url: null,
+      company_name: 'Bravework Studio',
+      phone: '0816 278 5602',
+      created_at: new Date('2025-06-20T08:11:26.304Z'),
+      updated_at: new Date('2025-06-20T08:12:14.117Z'),
+      last_verification_email_sent_at: null,
+      email_verified: new Date('2025-10-16T19:37:39.761Z'),
+      referral_code: null,
+      referred_by_id: null,
+    },
     {
       user_id: 36,
       first_name: 'New',
@@ -37,6 +54,7 @@ export async function seedUsers() {
       referral_code: '5C8C458A',
       referred_by_id: null,
     },
+    
     {
       user_id: 26,
       first_name: 'Adeshina',
