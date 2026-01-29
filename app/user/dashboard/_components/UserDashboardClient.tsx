@@ -483,7 +483,7 @@ function Page() {
         {content}
         <button
           onClick={() => setActiveTab("overview")}
-          className="self-start flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors"
+          className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-green-600 dark:bg-green-500 rounded-full shadow-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all hover:scale-105"
         >
           <ChevronLeft size={20} />
           Back to Dashboard
