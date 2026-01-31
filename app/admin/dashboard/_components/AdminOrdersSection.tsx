@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Plus, Pencil, Trash2, Tag, CheckSquare, XCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, CheckSquare, Search } from "lucide-react";
 
 // Import the new Pagination component
 import Pagination from "../../../components/Pagination";
@@ -24,6 +24,7 @@ export default function AdminOrdersSection() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isOrderFormModalOpen, setIsOrderFormModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -120,17 +121,17 @@ export default function AdminOrdersSection() {
           body: JSON.stringify({
             isPortfolio: !orderToTogglePortfolio.isPortfolio,
           }),
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to update portfolio status.");
       toast.success(
-        `Order ${orderToTogglePortfolio.id} portfolio status updated!`
+        `Order ${orderToTogglePortfolio.id} portfolio status updated!`,
       );
       fetchOrders();
     } catch (err: any) {
       console.error("Error marking as portfolio:", err);
       toast.error(
-        "Error updating portfolio status: " + (err.message || "Unknown error.")
+        "Error updating portfolio status: " + (err.message || "Unknown error."),
       );
     } finally {
       setLoading(false);
@@ -141,7 +142,7 @@ export default function AdminOrdersSection() {
   const handleCreateCustomOffer = (order: Order) => {
     if (order.amount !== 0 || order.amountPaid !== 0) {
       toast.error(
-        "Custom offers can only be created for orders with 0 total expected amount and 0 amount paid."
+        "Custom offers can only be created for orders with 0 total expected amount and 0 amount paid.",
       );
       return;
     }
@@ -149,257 +150,283 @@ export default function AdminOrdersSection() {
     setIsOfferModalOpen(true);
   };
 
-  const activeProjects = orders.filter(
-    (order) => order.status === "partially_paid"
-  );
+  const filteredOrders = useMemo(() => {
+    return orders.filter(
+      (order) =>
+        order.serviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (order.clientName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        order.id.toString().includes(searchQuery),
+    );
+  }, [orders, searchQuery]);
 
-  const getStatusColor = (status: string) => {
+  const activeProjects = useMemo(() => {
+    return filteredOrders.filter((order) => order.status === "partially_paid");
+  }, [filteredOrders]);
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-green-500 text-white";
+        return (
+          <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-2 py-1 rounded-full text-xs font-bold">
+            Paid
+          </span>
+        );
       case "pending":
-        return "bg-yellow-400 text-yellow-900";
+        return (
+          <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-bold">
+            Pending
+          </span>
+        );
       case "partially_paid":
-        return "bg-blue-500 text-white";
+        return (
+          <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-bold">
+            Partial
+          </span>
+        );
       case "expired":
-        return "bg-red-500 text-white";
+        return (
+          <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-2 py-1 rounded-full text-xs font-bold">
+            Expired
+          </span>
+        );
       default:
-        return "bg-gray-400 text-gray-800";
+        return (
+          <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-bold">
+            {status}
+          </span>
+        );
     }
   };
 
   // Pagination logic
-  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-[40vh] text-gray-600">
-        <svg
-          className="animate-spin h-8 w-8 mr-3 text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        Loading orders...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-[40vh] text-red-600 font-medium">
-        <XCircle className="w-6 h-6 mr-2" /> Error: {error}
-      </div>
-    );
+  const currentOrders = filteredOrders.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
   return (
-    <div className="p-6 bg-gray-50 rounded-xl shadow-lg border border-gray-200">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Orders & Projects</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Orders & Projects
+        </h2>
         <button
           onClick={handleCreateOrder}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200"
+          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition-all font-semibold"
         >
           <Plus className="w-5 h-5 mr-2" />
           Create Order
         </button>
       </div>
 
-      {/* Active Projects */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-100">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">
-          Active Projects ({activeProjects.length})
-        </h3>
-        {activeProjects.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {activeProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col justify-between"
-              >
-                <div>
-                  <h4 className="text-lg font-bold text-blue-800">
-                    {project.service}
+      {/* Active Projects Quick View */}
+      {activeProjects.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {activeProjects.map((project) => (
+            <div
+              key={project.id}
+              className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {project.serviceName}
                   </h4>
-                  <p className="text-sm text-gray-600">
-                    Client: {project.clientName}
-                  </p>
-                  <div className="mt-2 flex items-center">
-                    <span
-                      className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                        project.status
-                      )}`}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Started:{" "}
+                  {getStatusBadge(project.status)}
+                </div>
+                <p className="text-sm text-gray-500 mb-4">
+                  Client:{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {project.clientName || "N/A"}
+                  </span>
+                </p>
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <span>Started:</span>
+                  <span className="font-medium">
                     {project.dateStarted
                       ? format(new Date(project.dateStarted), "MMM dd, yyyy")
                       : "N/A"}
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <Link
-                    href={`/admin/orders/${project.id}`}
-                    className="inline-block w-full text-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    View Details
-                  </Link>
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 italic">
-            No active projects at the moment.
-          </p>
-        )}
+              <Link
+                href={`/admin/orders/${project.id}`}
+                className="mt-6 w-full text-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-semibold"
+              >
+                View Details
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search by ID, service, or client..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+          />
+        </div>
       </div>
 
-      {/* All Orders Table */}
-      <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">All Orders</h3>
-        {orders.length > 0 ? (
-          <div className="overflow-x-auto rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Service
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Client
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Paid
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {currentOrders.map((order) => (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Order Info
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Client
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Finances
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"
+                    ></td>
+                  </tr>
+                ))
+              ) : currentOrders.length > 0 ? (
+                currentOrders.map((order) => (
                   <tr
                     key={order.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {order.id}
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {order.serviceName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ID: #{order.id} |{" "}
+                          {format(new Date(order.date), "MMM dd, yyyy")}
+                        </p>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {order.serviceName}
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                        {order.clientName || "N/A"}
+                      </p>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {order.clientName || "N/A"}
+                    <td className="px-6 py-4">
+                      <div className="text-xs space-y-1">
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Total:{" "}
+                          <span className="font-bold text-gray-900 dark:text-white">
+                            ₦{(order.amount / kobo).toLocaleString()}
+                          </span>
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Paid:{" "}
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                            ₦{(order.amountPaid / kobo).toLocaleString()}
+                          </span>
+                        </p>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(order.status)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      ₦{(order.amount / kobo).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      ₦{(order.amountPaid / kobo).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800">
-                      {format(new Date(order.date), "MMM dd, yyyy")}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-800 space-y-1 sm:space-y-0 sm:space-x-1 flex flex-col sm:flex-row">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="flex items-center justify-center px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-                      >
-                        <Pencil className="w-4 h-4 mr-1" />
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteOrder(order.id)}
-                        className="flex items-center justify-center px-2 py-1 text-xs text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </button>
-                      {order.status === "paid" && (
-                        <button
-                          onClick={() => handleMarkAsPortfolio(order)}
-                          className={`flex items-center justify-center px-2 py-1 text-xs rounded-lg transition-colors ${
-                            order.isPortfolio
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                          }`}
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+                          title="View/Edit Details"
                         >
-                          <CheckSquare className="w-4 h-4 mr-1" />
-                          {order.isPortfolio
-                            ? "Unmark Portfolio"
-                            : "Mark Portfolio"}
-                        </button>
-                      )}
-                      {order.status === "pending" && (
+                          <Pencil size={16} />
+                        </Link>
+                        {order.status === "paid" && (
+                          <button
+                            onClick={() => handleMarkAsPortfolio(order)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              order.isPortfolio
+                                ? "text-green-600 bg-green-50 dark:bg-green-900/30 dark:text-green-300"
+                                : "text-gray-400 bg-gray-50 dark:bg-gray-700/50"
+                            }`}
+                            title={
+                              order.isPortfolio
+                                ? "Unmark from Portfolio"
+                                : "Mark as Portfolio"
+                            }
+                          >
+                            <CheckSquare size={16} />
+                          </button>
+                        )}
+                        {order.status === "pending" && (
+                          <button
+                            onClick={() => handleCreateCustomOffer(order)}
+                            className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                            title="Create Custom Offer"
+                          >
+                            <Tag size={16} />
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleCreateCustomOffer(order)}
-                          className="flex items-center justify-center px-2 py-1 text-xs text-purple-600 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
+                          onClick={() => handleDeleteOrder(order.id.toString())}
+                          className="p-2 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                          title="Delete Order"
                         >
-                          <Tag className="w-4 h-4 mr-1" />
-                          Create Offer
+                          <Trash2 size={16} />
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-gray-500 italic">No orders found.</p>
-        )}
-        {/* Render the Pagination component */}
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No orders found matching the criteria.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
-      </div>
+      )}
 
       {isOfferModalOpen && selectedOrder && (
         <CustomOfferModal
           offer={null}
           orders={orders}
-          isOpen={isConfirmModalOpen}
+          isOpen={isOfferModalOpen}
           onClose={() => {
             setIsOfferModalOpen(false);
             setSelectedOrder(null);
@@ -434,10 +461,10 @@ export default function AdminOrdersSection() {
             orderToDeleteId
               ? `Are you sure you want to delete order ${orderToDeleteId}?`
               : orderToTogglePortfolio
-              ? `Are you sure you want to ${
-                  orderToTogglePortfolio.isPortfolio ? "unmark" : "mark"
-                } order ${orderToTogglePortfolio.id} as a portfolio piece?`
-              : "Are you sure?"
+                ? `Are you sure you want to ${
+                    orderToTogglePortfolio.isPortfolio ? "unmark" : "mark"
+                  } order ${orderToTogglePortfolio.id} as a portfolio piece?`
+                : "Are you sure?"
           }
           onConfirm={
             orderToDeleteId ? handleConfirmDelete : handleConfirmPortfolioToggle

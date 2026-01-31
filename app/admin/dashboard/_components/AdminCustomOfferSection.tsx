@@ -3,21 +3,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import {
-  PlusCircle,
-  Edit,
-  Trash2,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  AlertTriangle,
-} from "lucide-react";
+import { PlusCircle, Edit, Trash2, Search } from "lucide-react";
 
-import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CustomOfferModal from "./CustomOfferModal";
 import { CustomOffer, Order } from "@/app/types/app";
-import { cn } from "@/lib/utils/cn";
+import Pagination from "@/app/components/Pagination";
 
 // Main CustomOffersTab component
 export default function AdminCustomOffersSection() {
@@ -26,6 +17,7 @@ export default function AdminCustomOffersSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<CustomOffer | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,8 +35,6 @@ export default function AdminCustomOffersSection() {
         throw new Error("Failed to fetch custom offers");
       }
       const data = await res.json();
-      console.log("Custom Offer", data);
-
       setOffers(data);
     } catch (error: any) {
       toast.error(error.message);
@@ -70,19 +60,6 @@ export default function AdminCustomOffersSection() {
     fetchOffers();
     fetchOrders();
   }, [fetchOffers, fetchOrders]);
-
-  // Pagination logic
-  const indexOfLastOffer = currentPage * offersPerPage;
-  const indexOfFirstOffer = indexOfLastOffer - offersPerPage;
-  const currentOffers = useMemo(
-    () => offers.slice(indexOfFirstOffer, indexOfLastOffer),
-    [offers, indexOfFirstOffer, indexOfLastOffer]
-  );
-  const totalPages = Math.ceil(offers.length / offersPerPage);
-
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
 
   const handleCreateOffer = () => {
     setSelectedOffer(null);
@@ -141,7 +118,7 @@ export default function AdminCustomOffersSection() {
       }
 
       toast.success(
-        `Custom offer ${selectedOffer ? "updated" : "created"} successfully!`
+        `Custom offer ${selectedOffer ? "updated" : "created"} successfully!`,
       );
       setIsModalOpen(false);
       fetchOffers();
@@ -150,170 +127,216 @@ export default function AdminCustomOffersSection() {
     }
   };
 
-  if (isLoading) {
-    return <Loader user={"admin"} />;
-  }
+  const filteredOffers = useMemo(() => {
+    return offers.filter(
+      (offer) =>
+        offer.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (offer.orderId || "").toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [offers, searchQuery]);
+
+  const indexOfLastOffer = currentPage * offersPerPage;
+  const indexOfFirstOffer = indexOfLastOffer - offersPerPage;
+  const currentOffers = filteredOffers.slice(
+    indexOfFirstOffer,
+    indexOfLastOffer,
+  );
+  const totalPages = Math.ceil(filteredOffers.length / offersPerPage);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return (
+          <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-bold capitalize">
+            Pending
+          </span>
+        );
+      case "accepted":
+        return (
+          <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-2 py-1 rounded-full text-xs font-bold capitalize">
+            Accepted
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-2 py-1 rounded-full text-xs font-bold capitalize">
+            Rejected
+          </span>
+        );
+      case "expired":
+        return (
+          <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-bold capitalize">
+            Expired
+          </span>
+        );
+      default:
+        return (
+          <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-bold capitalize">
+            {status}
+          </span>
+        );
+    }
+  };
 
   return (
-    <div className="space-y-6 p-4 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
-      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Custom Offers Management
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Custom Offers
         </h2>
         <button
           onClick={handleCreateOffer}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors font-semibold"
+          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all font-bold text-sm"
         >
-          <PlusCircle size={20} className="mr-2" />
+          <PlusCircle size={20} />
           Create New Offer
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-lg shadow-inner">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Offer ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Created
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Expires
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {currentOffers.length > 0 ? (
-              currentOffers.map((offer) => (
-                <tr
-                  key={offer.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {offer.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {offer.orderId}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ₦{(offer.offerAmount / 100).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      className={cn(
-                        "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
-                        offer.status === "pending" &&
-                          "bg-yellow-100 text-yellow-800",
-                        offer.status === "accepted" &&
-                          "bg-green-100 text-green-800",
-                        offer.status === "rejected" &&
-                          "bg-red-100 text-red-800",
-                        offer.status === "expired" &&
-                          "bg-gray-100 text-gray-800"
-                      )}
-                    >
-                      {offer.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {format(new Date(offer.createdAt), "MMM d, yyyy")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {offer.expiresAt
-                      ? format(new Date(offer.expiresAt), "MMM d, yyyy")
-                      : "N/A"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEditOffer(offer)}
-                      className="text-blue-600 hover:text-blue-900 transition-colors mr-3"
-                      title="Edit Offer"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteOfferClick(offer.id)}
-                      className="text-red-600 hover:text-red-900 transition-colors"
-                      title="Delete Offer"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                  No custom offers found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search by Offer ID or Order ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+          />
+        </div>
       </div>
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2 mt-4">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="p-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              onClick={() => handlePageChange(index + 1)}
-              className={cn(
-                "px-4 py-2 rounded-md font-semibold transition-colors",
-                currentPage === index + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Offer Info
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Details
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Timeline
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"
+                    ></td>
+                  </tr>
+                ))
+              ) : currentOffers.length > 0 ? (
+                currentOffers.map((offer) => (
+                  <tr
+                    key={offer.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        #{offer.id}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Order: {offer.orderId || "N/A"}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">
+                        ₦{(offer.offerAmount / 100).toLocaleString()}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-gray-500">
+                      <p>
+                        Created:{" "}
+                        {format(new Date(offer.createdAt), "MMM d, yyyy")}
+                      </p>
+                      <p>
+                        Expires:{" "}
+                        {offer.expiresAt
+                          ? format(new Date(offer.expiresAt), "MMM d, yyyy")
+                          : "N/A"}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(offer.status)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleEditOffer(offer)}
+                          className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+                          title="Edit Offer"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOfferClick(offer.id)}
+                          className="p-2 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                          title="Delete Offer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No custom offers found matching the criteria.
+                  </td>
+                </tr>
               )}
-            >
-              {index + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors"
-          >
-            <ChevronRight size={20} />
-          </button>
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       {/* Modals */}
-      <CustomOfferModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        offer={selectedOffer}
-        onSave={handleSaveOffer}
-        orders={orders}
-      />
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onCancel={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteOfferConfirm}
-        message={`Are you sure you want to delete offer ID: ${offerToDelete}? This action cannot be undone.`}
-      />
+      {isModalOpen && (
+        <CustomOfferModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          offer={selectedOffer}
+          onSave={handleSaveOffer}
+          orders={orders}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onCancel={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteOfferConfirm}
+          message={`Are you sure you want to delete offer ID: ${offerToDelete}? This action cannot be undone.`}
+        />
+      )}
     </div>
   );
 }
