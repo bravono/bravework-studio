@@ -19,6 +19,7 @@ import {
   Languages,
   Layout,
   Music,
+  Scroll,
 } from "lucide-react";
 import { uploadFile } from "@/lib/utils/upload";
 
@@ -135,7 +136,7 @@ export default function JobsPage() {
         toast.error(
           `Error submitting application: ${
             errorData.message || "Could not submit application"
-          }`
+          }`,
         );
         setSubmitStatus("error");
       }
@@ -500,6 +501,38 @@ export default function JobsPage() {
               </li>
             </ul>
           </div>
+
+          {/* Scriptwriter Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl mb-4 inline-block">
+              <Scroll className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Scriptwriter
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Craft compelling narratives and dialogue for our creative
+              projects.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Creative storytelling
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Screenwriting proficiency
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Character development
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-green-500" />
+                Dialogue crafting
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Application Form Section */}
@@ -549,6 +582,7 @@ export default function JobsPage() {
                   <option value="storyboard-artist">
                     2D Artist (Storyboard)
                   </option>
+                  <option value="scriptwriter">Scriptwriter</option>
                 </select>
               </div>
 
