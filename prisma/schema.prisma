@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../node_modules/@prisma/client"
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -615,11 +616,6 @@ model rental_bookings {
   proposed_end_time   DateTime?        @db.Timestamptz(6)
   rentals             rentals          @relation(fields: [rental_id], references: [rental_id], onDelete: NoAction, onUpdate: NoAction)
   rental_reviews      rental_reviews[]
-  dispute_reason      String?          @db.Text
-  dispute_date        DateTime?        @db.Timestamptz(6)
-  dispute_resolved    Boolean?         @default(false)
-  dispute_resolved_at DateTime?        @db.Timestamptz(6)
-  dispute_resolved_by Int?
 }
 
 model rental_demands {
@@ -657,5 +653,3 @@ model student_sessions {
   @@index([session_id], map: "idx_student_sessions_session_id")
   @@index([user_id], map: "idx_student_sessions_user_id")
 }
-
-

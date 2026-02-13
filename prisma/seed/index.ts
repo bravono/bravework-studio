@@ -1,9 +1,9 @@
-const { seedUserRoles } = require("./dev/user_roles");
-const { seedUsers } = require("./dev/users");
-const { seedRoles } = require("./dev/roles");
-const { seedProductCategories } = require("./dev/productCategories");
-const {seedCourses} = require("./dev/courses");
-const { seedConfig } = require("./prod/config");
+import { seedUserRoles } from "./dev/user_roles";
+import { seedUsers } from "./dev/users";
+import { seedRoles } from "./dev/roles";
+import { seedProductCategories } from "./dev/productCategories";
+import { seedCourses } from "./dev/courses";
+import { seedConfig } from "./prod/config";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {

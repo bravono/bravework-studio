@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 export async function seedRoles() {
+  const prisma = new PrismaClient();
   const roles = [
     { role_name: "admin" },
     { role_name: "client" },
