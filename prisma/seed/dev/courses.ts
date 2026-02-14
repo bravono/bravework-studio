@@ -36,8 +36,8 @@ export async function seedCourses() {
       description:
         "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
       is_active: true,
-      start_date: new Date("2025-11-01T10:00:00Z"),
-      end_date: new Date("2025-11-29T04:00:00Z"),
+      start_date: new Date("2026-11-01T10:00:00Z"),
+      end_date: new Date("2026-11-29T04:00:00Z"),
       instructor_id: 1,
       max_students: 15,
       price_in_kobo: 5000000,
@@ -64,8 +64,8 @@ export async function seedCourses() {
       description:
         "This beginner-friendly program introduces kids to 3D animation through fun, hands-on projects using Blender. From creating simple shapes to animating flying cars and mysterious characters, kids will build their own 3D world while learning valuable STEM/STEAM skills. No prior experience is required—just curiosity and creativity!",
       is_active: true,
-      start_date: new Date("2025-09-01T00:00:00Z"),
-      end_date: new Date("2025-09-30T00:00:00Z"),
+      start_date: new Date("2026-09-01T00:00:00Z"),
+      end_date: new Date("2026-09-30T00:00:00Z"),
       instructor_id: 1,
       max_students: 20,
       price_in_kobo: 250000,
