@@ -211,12 +211,15 @@ export default function AcademyCoursesPage() {
                           </p>
                           <p className="font-bold">
                             {course.isActive
-                              ? new Date(course.startDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
-                              : "Coming Soon"}
+                              ? new Date(course.startDate).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )
+                              : "Open Shortly"}
                           </p>
                         </div>
                       </div>
@@ -230,7 +233,12 @@ export default function AcademyCoursesPage() {
                             Duration
                           </p>
                           <p className="font-bold">
-                            {getWeeksBtwDates(course.startDate, course.endDate)}
+                            {course.isActive
+                              ? getWeeksBtwDates(
+                                  course.startDate,
+                                  course.endDate,
+                                )
+                              : "Open Shortly"}
                           </p>
                         </div>
                       </div>
@@ -241,12 +249,12 @@ export default function AcademyCoursesPage() {
                         {course.price === 0
                           ? "Free"
                           : exchangeRates && exchangeRates[selectedCurrency]
-                          ? convertCurrency(
-                              course.price / KOBO_PER_NAIRA,
-                              exchangeRates[selectedCurrency],
-                              getCurrencySymbol(selectedCurrency)
-                            )
-                          : "---"}
+                            ? convertCurrency(
+                                course.price / KOBO_PER_NAIRA,
+                                exchangeRates[selectedCurrency],
+                                getCurrencySymbol(selectedCurrency),
+                              )
+                            : "---"}
                       </div>
                       <Link
                         href={

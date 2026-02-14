@@ -67,20 +67,20 @@ interface MonitoringData {
 }
 
 const navItems = [
-  { id: "overview", label: "Overview", icon: <Eye size={20} /> },
+  { id: "overview", label: "Users Overview", icon: <Eye size={20} /> },
   { id: "orders", label: "Orders & Projects", icon: <FileText size={20} /> },
   { id: "custom-offers", label: "Custom Offers", icon: <Gift size={20} /> },
   { id: "users", label: "Users Management", icon: <Users size={20} /> },
   { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
-  { id: "bookings", label: "Bookings", icon: <CalendarCheck size={20} /> },
+  { id: "bookings", label: "Bookings Management", icon: <CalendarCheck size={20} /> },
   {
     id: "job-applications",
     label: "Job Applications",
     icon: <Briefcase size={20} />,
   },
-  { id: "notifications", label: "Notifications", icon: <Bell size={20} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+  { id: "notifications", label: "All Notifications", icon: <Bell size={20} /> },
+  { id: "settings", label: "Profile Settings", icon: <Settings size={20} /> },
 ];
 
 export default function AdminDashboardClient({
