@@ -79,7 +79,7 @@ export default function DashboardShell({ user, roles }: DashboardShellProps) {
 
   // Filter views based on user roles
   const availableViews = views.filter((view) =>
-    normalizedRoles.includes(view.id)
+    normalizedRoles.includes(view.id),
   );
 
   return (

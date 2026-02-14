@@ -7,12 +7,33 @@ import React, {
   Suspense,
   useRef,
 } from "react";
-import { ChevronLeft } from "lucide-react";
+import {
+  Bell,
+  Wallet,
+  Users,
+  Briefcase,
+  Gift,
+  FileText,
+  Book,
+  Eye,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  CalendarCheck,
+  RefreshCw,
+  GraduationCap,
+  Baby,
+  Edit3,
+  Key,
+  Trophy,
+  LayoutDashboard,
+} from "lucide-react";
 import { toast } from "react-toastify";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 
 import {
   Order,
@@ -25,6 +46,7 @@ import {
   Booking,
 } from "app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
+import { cn } from "@/lib/utils/cn";
 
 // Importing page sections as components
 import UserCustomOffersSection from "./UserCustomOfferSection";
@@ -477,20 +499,72 @@ function Page() {
     setSelectedCourse(null);
   };
 
-  const renderContent = () => {
-    const withBackToOverview = (content: React.ReactNode) => (
-      <div className="flex flex-col h-full">
-        {content}
-        <button
-          onClick={() => setActiveTab("overview")}
-          className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-green-600 dark:bg-green-500 rounded-full shadow-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all hover:scale-105"
-        >
-          <ChevronLeft size={20} />
-          Back to Dashboard
-        </button>
-      </div>
-    );
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
+  const roles = session?.user?.roles || [];
+  const normalizedRoles = roles.map((r: string) => r.toLowerCase());
+
+  // Define navigation items based on user roles
+  const navItems = [
+    {
+      id: "overview",
+      label: "Overview",
+      icon: <Eye size={20} />,
+      roles: ["any"],
+    },
+    {
+      id: "courses",
+      label: "Academy",
+      icon: <GraduationCap size={20} />,
+      roles: ["student"],
+    },
+    {
+      id: "orders",
+      label: "Studio",
+      icon: <Briefcase size={20} />,
+      roles: ["client"],
+    },
+    {
+      id: "invoices",
+      label: "Finance",
+      icon: <Wallet size={20} />,
+      roles: ["client"],
+    },
+    {
+      id: "bookings",
+      label: "Rentals",
+      icon: <Key size={20} />,
+      roles: ["renter"],
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: <Bell size={20} />,
+      roles: ["any"],
+    },
+    {
+      id: "wallet",
+      label: "Wallet",
+      icon: <Wallet size={20} />,
+      roles: ["any"],
+    },
+    {
+      id: "referrals",
+      label: "Referrals",
+      icon: <Users size={20} />,
+      roles: ["any"],
+    },
+  ];
+
+  const filteredNavItems = navItems.filter(
+    (item) =>
+      item.roles.includes("any") ||
+      item.roles.some((role) => normalizedRoles.includes(role)),
+  );
+
+  const renderContent = () => {
     switch (activeTab) {
       case "overview":
         return (
@@ -553,42 +627,153 @@ function Page() {
         );
 
       case "orders":
-        return withBackToOverview(<UserOrdersSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserOrdersSection />
+          </div>
+        );
       case "invoices":
-        return withBackToOverview(<UserInvoicesSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserInvoicesSection />
+          </div>
+        );
       case "notifications":
-        return withBackToOverview(<UserNotificationsSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserNotificationsSection />
+          </div>
+        );
       case "custom-offers":
-        return withBackToOverview(<UserCustomOffersSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserCustomOffersSection />
+          </div>
+        );
       case "rentals":
-        return withBackToOverview(<UserRentalsSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserRentalsSection />
+          </div>
+        );
       case "bookings":
-        return withBackToOverview(<UserBookingsSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserBookingsSection
+              handleInitiatePayment={handleInitiatePayment}
+            />
+          </div>
+        );
       case "wallet":
-        return withBackToOverview(<UserWalletSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserWalletSection />
+          </div>
+        );
       case "referrals":
-        return withBackToOverview(<UserReferralsSection />);
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <UserReferralsSection />
+          </div>
+        );
       case "courses":
-        return withBackToOverview(
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        return (
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               My Courses
             </h2>
-            {courses.map((course) => (
-              <CourseDetailCard
-                key={course.id}
-                course={course}
-                selectedCurrency={selectedCurrency}
-                exchangeRates={exchangeRates}
-              />
-            ))}
-          </div>,
+            <div className="grid grid-cols-1 gap-6">
+              {courses.map((course) => (
+                <CourseDetailCard
+                  key={course.id}
+                  course={course}
+                  selectedCurrency={selectedCurrency}
+                  exchangeRates={exchangeRates}
+                />
+              ))}
+              {courses.length === 0 && (
+                <p className="text-gray-500 text-center py-10">
+                  No courses found.
+                </p>
+              )}
+            </div>
+          </div>
         );
       default:
         return null;
     }
   };
-  return renderContent();
+
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 dark:bg-gray-950 font-sans">
+      {/* Sidebar */}
+      <aside className="bg-white dark:bg-gray-900 w-full md:w-64 p-4 md:p-6 shadow-xl flex flex-col border-r border-gray-200 dark:border-gray-800">
+        <div className="mb-10 px-2 flex items-center justify-center md:justify-start">
+          <Link href="/">
+            <Image
+              src="/assets/Braveword_Studio-Logo-Color.png"
+              alt="Bravework"
+              width={140}
+              height={40}
+              className="dark:filter dark:brightness-200"
+            />
+          </Link>
+        </div>
+
+        <nav className="space-y-1 flex-1">
+          {filteredNavItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={cn(
+                "flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 group",
+                activeTab === item.id
+                  ? "bg-green-600 text-white shadow-lg shadow-green-100 dark:shadow-none"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-gray-800 hover:text-green-600 dark:hover:text-white",
+              )}
+            >
+              <span
+                className={cn(
+                  "mr-3 transition-colors",
+                  activeTab === item.id
+                    ? "text-white"
+                    : "text-gray-400 group-hover:text-green-500",
+                )}
+              >
+                {item.icon}
+              </span>
+              <span className="font-semibold text-sm">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-800">
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-500 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 transition-all duration-200"
+          >
+            <LogOut size={20} className="mr-3" />
+            <span className="font-semibold text-sm">Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto">
+        {activeTab !== "overview" && (
+          <button
+            onClick={() => setActiveTab("overview")}
+            className="mb-6 flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
+          >
+            <ChevronLeft size={16} />
+            Back to Overview
+          </button>
+        )}
+
+        {renderContent()}
+      </main>
+    </div>
+  );
 }
 
 export default function DashboardPage() {

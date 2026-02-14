@@ -22,6 +22,9 @@ import {
   XCircle,
   Plus,
   List,
+  Key,
+  Briefcase,
+  Users,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -82,7 +85,7 @@ interface UserOverviewSectionProps {
   editableProfile: UserProfile;
   setEditableProfile: (profile: UserProfile) => void;
   handleProfileChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
   handleSaveProfile: () => void;
   loading: boolean;
@@ -96,7 +99,7 @@ interface UserOverviewSectionProps {
   handleOfferAction: (
     offer: CustomOffer,
     action: "accept" | "reject",
-    reason?: string
+    reason?: string,
   ) => void;
   handleRejectClick: (offer: CustomOffer) => void;
   actionLoading: boolean;
@@ -168,10 +171,112 @@ export default function UserOverviewSection({
   const PERCENT_100 = 100;
 
   return (
-    <div className="flex h-screen mt-10 bg-gray-100">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
+            {/* Welcome Header & Stats Grid */}
+            <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+              <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 relative">
+                  Welcome back,{" "}
+                  <span className="text-green-600">{session?.user?.name}</span>
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                  {session?.user?.roles?.includes("student") && (
+                    <div className="bg-blue-50/50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg">
+                          <BookOpen size={20} />
+                        </div>
+                        <span className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                          {courses.length}
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                        Academy Courses
+                      </p>
+                      <button
+                        onClick={() => setActiveTab("courses")}
+                        className="mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                      >
+                        View Academy <ExternalLink size={10} />
+                      </button>
+                    </div>
+                  )}
+
+                  {session?.user?.roles?.includes("client") && (
+                    <>
+                      <div className="bg-purple-50/50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-100 dark:border-purple-800 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="p-2 bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 rounded-lg">
+                            <Briefcase size={20} />
+                          </div>
+                          <span className="text-2xl font-black text-purple-700 dark:text-purple-400">
+                            {orders.length}
+                          </span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                          Studio Projects
+                        </p>
+                        <button
+                          onClick={() => setActiveTab("orders")}
+                          className="mt-3 text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
+                        >
+                          View Studio <ExternalLink size={10} />
+                        </button>
+                      </div>
+
+                      <div className="bg-indigo-50/50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="p-2 bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 rounded-lg">
+                            <Wallet size={20} />
+                          </div>
+                          <span className="text-2xl font-black text-indigo-700 dark:text-indigo-400">
+                            {invoices.length}
+                          </span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                          Finance Invoices
+                        </p>
+                        <button
+                          onClick={() => setActiveTab("invoices")}
+                          className="mt-3 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                        >
+                          View Finance <ExternalLink size={10} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {session?.user?.roles?.includes("renter") && (
+                    <div className="bg-orange-50/50 dark:bg-orange-900/20 p-6 rounded-2xl border border-orange-100 dark:border-orange-800 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-800 text-orange-600 dark:text-orange-300 rounded-lg">
+                          <Key size={20} />
+                        </div>
+                        <span className="text-2xl font-black text-orange-700 dark:text-orange-400">
+                          {bookings.length}
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                        Device Rentals
+                      </p>
+                      <button
+                        onClick={() => setActiveTab("bookings")}
+                        className="mt-3 text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
+                      >
+                        View Rentals <ExternalLink size={10} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
                 {/* Course Progress */}
@@ -193,7 +298,7 @@ export default function UserOverviewSection({
                     {courses
                       .filter(
                         (course) =>
-                          course.price === 0 || course.paymentStatus === 1
+                          course.price === 0 || course.paymentStatus === 1,
                       )
                       .map((course) => (
                         <CourseDetailCard
@@ -284,8 +389,8 @@ export default function UserOverviewSection({
                                 order.status === "paid"
                                   ? "bg-green-200 text-green-800"
                                   : order.status === "pending"
-                                  ? "bg-yellow-200 text-yellow-800"
-                                  : "bg-red-200 text-red-800"
+                                    ? "bg-yellow-200 text-yellow-800"
+                                    : "bg-red-200 text-red-800"
                               }`}
                             >
                               {order.status}
@@ -295,7 +400,7 @@ export default function UserOverviewSection({
                                 ? convertCurrency(
                                     order.amount / KOBO_PER_NAIRA,
                                     exchangeRates[selectedCurrency],
-                                    getCurrencySymbol(selectedCurrency)
+                                    getCurrencySymbol(selectedCurrency),
                                   ).toLocaleString()
                                 : `${getCurrencySymbol(selectedCurrency)} ${(
                                     order.amount / KOBO_PER_NAIRA
@@ -387,10 +492,10 @@ export default function UserOverviewSection({
                                         ? convertCurrency(
                                             offer.offerAmount / KOBO_PER_NAIRA,
                                             exchangeRates[selectedCurrency],
-                                            getCurrencySymbol(selectedCurrency)
+                                            getCurrencySymbol(selectedCurrency),
                                           ).toLocaleString()
                                         : `${getCurrencySymbol(
-                                            selectedCurrency
+                                            selectedCurrency,
                                           )} ${(
                                             offer.offerAmount / KOBO_PER_NAIRA
                                           ).toLocaleString()}`}
@@ -420,11 +525,11 @@ export default function UserOverviewSection({
                                               owing / KOBO_PER_NAIRA,
                                               exchangeRates[selectedCurrency],
                                               getCurrencySymbol(
-                                                selectedCurrency
-                                              )
+                                                selectedCurrency,
+                                              ),
                                             ).toLocaleString()
                                           : `${getCurrencySymbol(
-                                              selectedCurrency
+                                              selectedCurrency,
                                             )} ${(
                                               owing / KOBO_PER_NAIRA
                                             ).toLocaleString()}`}
@@ -451,7 +556,7 @@ export default function UserOverviewSection({
                                     <span className="text-gray-900 font-bold">
                                       {offer.expiresAt
                                         ? new Date(
-                                            offer.expiresAt
+                                            offer.expiresAt,
                                           ).toLocaleDateString()
                                         : "N/A"}
                                     </span>
@@ -504,7 +609,7 @@ export default function UserOverviewSection({
                                     <button
                                       onClick={() =>
                                         router.push(
-                                          `/user/dashboard/payment?offerId=${offer.id}&balance=true`
+                                          `/user/dashboard/payment?offerId=${offer.id}&balance=true`,
                                         )
                                       }
                                       className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -685,7 +790,7 @@ export default function UserOverviewSection({
                                 <p className="text-xs text-gray-500 flex items-center gap-1">
                                   <Clock size={12} />{" "}
                                   {new Date(
-                                    booking.startTime
+                                    booking.startTime,
                                   ).toLocaleDateString()}
                                 </p>
                                 <p className="text-xs text-gray-400">
@@ -697,10 +802,10 @@ export default function UserOverviewSection({
                                     ? convertCurrency(
                                         booking.amount / KOBO_PER_NAIRA,
                                         exchangeRates[selectedCurrency],
-                                        getCurrencySymbol(selectedCurrency)
+                                        getCurrencySymbol(selectedCurrency),
                                       ).toLocaleString()
                                     : `${getCurrencySymbol(
-                                        selectedCurrency
+                                        selectedCurrency,
                                       )} ${(
                                         booking.amount / KOBO_PER_NAIRA
                                       ).toLocaleString()}`}
@@ -713,8 +818,8 @@ export default function UserOverviewSection({
                                   booking.status === "accepted"
                                     ? "bg-green-50 text-green-700 border-green-100"
                                     : booking.status === "pending"
-                                    ? "bg-yellow-50 text-yellow-700 border-yellow-100"
-                                    : "bg-red-50 text-red-700 border-red-100"
+                                      ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                                      : "bg-red-50 text-red-700 border-red-100"
                                 }`}
                               >
                                 {booking.status}
@@ -726,7 +831,7 @@ export default function UserOverviewSection({
                                     onClick={() =>
                                       handleInitiatePayment(
                                         booking.id,
-                                        "booking"
+                                        "booking",
                                       )
                                     }
                                     className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-600/20 active:scale-95"
@@ -869,7 +974,7 @@ export default function UserOverviewSection({
                           <strong>Member Since:</strong>{" "}
                           {userProfile.memberSince
                             ? new Date(
-                                userProfile.memberSince
+                                userProfile.memberSince,
                               ).toLocaleDateString()
                             : "N/A"}
                         </p>
@@ -998,6 +1103,7 @@ export default function UserOverviewSection({
                       onClick={() => setActiveTab("referrals")}
                       className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
                     >
+                      <Users size={20} />
                       Referrals
                     </button>
 
