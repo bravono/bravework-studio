@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../client";
 
 export async function seedRoles() {
-  const prisma = new PrismaClient();
   const roles = [
     { role_name: "admin" },
     { role_name: "client" },
@@ -20,6 +19,4 @@ export async function seedRoles() {
       create: role,
     });
   }
-
-  await prisma.$disconnect();
 }

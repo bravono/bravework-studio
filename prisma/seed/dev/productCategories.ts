@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../client";
 
 export async function seedProductCategories() {
-  const prisma = new PrismaClient();
   const categories = [
     {
       category_id: 3,
@@ -72,5 +71,4 @@ export async function seedProductCategories() {
       create: category,
     });
   }
-  await prisma.$disconnect();
 }

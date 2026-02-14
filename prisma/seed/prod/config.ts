@@ -1,18 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../client";
 
 export async function seedConfig() {
-  const prisma = new PrismaClient();
   // Example: insert baseline roles
   await prisma.roles.upsert({
-    where: { role_name: "Admin" },
+    where: { role_name: "admin" },
     update: {},
-    create: { role_name: "Admin" },
+    create: { role_name: "admin" },
   });
 
   await prisma.roles.upsert({
-    where: { role_name: "User" },
+    where: { role_name: "user" },
     update: {},
-    create: { role_name: "User" },
+    create: { role_name: "user" },
   });
-  await prisma.$disconnect();
 }

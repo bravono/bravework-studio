@@ -4,17 +4,23 @@ import { seedRoles } from "./dev/roles";
 import { seedProductCategories } from "./dev/productCategories";
 import { seedCourses } from "./dev/courses";
 import { seedConfig } from "./prod/config";
+import { seedInstructors } from "./dev/instructors";
+import { prisma } from "./client";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
     console.log("Running production seeds...");
+    // Order: roles must be seeded before config (foreign key dependency)
     await seedRoles();
     await seedConfig();
   } else {
     console.log("Running development seeds...");
+    // Order: users and roles must exist before user_roles (foreign key dependencies)
     await seedUsers();
+    await seedInstructors(); // Must exist before courses
     await seedProductCategories();
     await seedRoles();
+    await seedCourses(); // Courses depend on users (instructor_id)
     await seedUserRoles();
   }
 }
@@ -22,9 +28,12 @@ async function main() {
 main()
   .then(() => {
     console.log("Seeding finished.");
-    process.exit(0);
   })
   .catch((e) => {
     console.error(e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
   });

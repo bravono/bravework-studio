@@ -1,14 +1,13 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../client";
 
 export async function seedCourses() {
-  const prisma = new PrismaClient();
   const courses = [
     {
       course_id: 3,
       title: "Medical 3D Visualization in Just 2 Hours",
       description:
         "This 2-hour interactive session will give you a solid understanding of the potential of 3D animation in healthcare and motivate you to take the next step in exploring its applications in patient care, medical education, and communication.",
-      is_active: true,
+      is_active: false,
       start_date: new Date("2025-09-27T10:00:00Z"),
       end_date: new Date("2025-09-27T22:00:00Z"),
       instructor_id: 1,
@@ -118,5 +117,4 @@ export async function seedCourses() {
       create: course,
     });
   }
-  await prisma.$disconnect();
 }

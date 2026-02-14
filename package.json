@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed/index.ts"
+    "seed": "tsx prisma/seed/index.ts"
   },
   "dependencies": {
     "@paystack/inline-js": "^2.22.6",

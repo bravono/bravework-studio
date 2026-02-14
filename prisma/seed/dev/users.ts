@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../client";
 
 export async function seedUsers() {
-  const prisma = new PrismaClient();
   const users = [
     {
       user_id: 1,
@@ -98,5 +97,4 @@ export async function seedUsers() {
       create: user,
     });
   }
-  await prisma.$disconnect();
 }
