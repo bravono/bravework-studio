@@ -35,12 +35,12 @@ const useLocalTimezone = (dateTimeString) => {
             hour: "2-digit",
             minute: "2-digit",
             timeZoneName: "short",
-          })
+          }),
         );
       } catch (e) {
         console.error(
           "Invalid date string for timezone conversion:",
-          dateTimeString
+          dateTimeString,
         );
         setLocalTime(null);
       }
@@ -192,11 +192,15 @@ export default function CoursePage() {
                         <p className="text-sm text-gray-500 font-medium">
                           Duration
                         </p>
-                        <p className="font-bold text-gray-900">
-                          {course?.sessions !== null &&
-                            course?.sessions[0].duration / 60}{" "}
-                          hrs/week
-                        </p>
+                        {isActive ? (
+                          <p className="font-bold text-gray-900">
+                            {course?.sessions !== null &&
+                              course?.sessions[0].duration}{" "}
+                            {course.price === 0 ? "2hrs":"hrs/week"}
+                          </p>
+                        ) : (
+                          "Open Shortly"
+                        )}
                         <p className="text-xs text-gray-500">Live on Zoom</p>
                       </div>
                     </div>
@@ -211,8 +215,8 @@ export default function CoursePage() {
                         </p>
                         <p className="font-bold text-gray-900">
                           {isActive
-                            ? new Date(course.startDate).toLocaleDateString()
-                            : "TBA"}
+                            ? new Date(course?.startDate).toLocaleDateString()
+                            : "Open Shortly"}
                         </p>
                         {isActive && (
                           <p className="text-xs text-gray-500">
@@ -276,7 +280,7 @@ export default function CoursePage() {
                           if (diff <= 0) return "Expired";
                           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                           const hours = Math.floor(
-                            (diff / (1000 * 60 * 60)) % 24
+                            (diff / (1000 * 60 * 60)) % 24,
                           );
                           return `Ends in ${days}d ${hours}h`;
                         })()}
