@@ -3,8 +3,7 @@ import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Course } from "@/app/types/app";
-import { coursesData } from "@/app/services/localDataService";
-import { CourseNotFound } from "@/app/components/CourseNotFound";
+
 
 import {
   Users,
@@ -12,16 +11,13 @@ import {
   ExternalLink,
   Github,
   Award,
-  Circle,
   CheckCircle,
-  ChevronDown,
   Calendar,
   Shield,
   FileText,
   CreditCard,
   Lock,
   Sparkles,
-  PlayCircle,
   ArrowRight,
 } from "lucide-react";
 
@@ -52,74 +48,6 @@ const useLocalTimezone = (dateTimeString) => {
   }, [dateTimeString]);
 
   return localTime;
-};
-
-// --- Level Card Component (Kept the same for brevity, but moved outside of CoursePage) ---
-const LevelCard = ({ level }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  // This assumes the level object provides an icon component directly
-  // In a real scenario, you'd likely map a string to an icon component
-  const LevelIcon = level.icon;
-
-  return (
-    <div
-      className="bg-primary-light/10 p-6 rounded-2xl shadow-inner cursor-pointer transition-transform transform hover:scale-[1.01]"
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <LevelIcon className="w-10 h-10 text-primary" />
-          <h3 className="text-xl font-bold text-primary-dark">
-            {level.level}: {level.title}
-          </h3>
-        </div>
-        <ChevronDown
-          className={`w-6 h-6 text-secondary transform transition-transform duration-300 ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-        />
-      </div>
-
-      {isExpanded && (
-        <div className="mt-4 text-gray-700 space-y-3 transition-opacity duration-300 opacity-100">
-          <div className="bg-secondary-light/10 p-3 rounded-lg border-l-4 border-secondary">
-            <h4 className="font-semibold text-secondary-dark">Objective:</h4>
-            <p>{level.objective}</p>
-          </div>
-          {level.description && (
-            <p>
-              <span className="font-semibold text-secondary-dark">
-                What Student Will Do:
-              </span>{" "}
-              {level.description}
-            </p>
-          )}
-          <p>
-            <span className="font-semibold text-secondary-dark">Activity:</span>{" "}
-            {level.activity}
-          </p>
-          {level.why && (
-            <p>
-              <span className="font-semibold text-secondary-dark">Why:</span>{" "}
-              {level.why}
-            </p>
-          )}
-          {level.outcomes.length > 0 && (
-            <p>
-              <span className="font-semibold text-secondary-dark">
-                Learning Outcomes:
-              </span>{" "}
-              {level.outcomes.join(", ")}
-            </p>
-          )}
-          <p>
-            <span className="font-semibold text-secondary-dark">Info:</span>{" "}
-            {level.info}
-          </p>
-        </div>
-      )}
-    </div>
-  );
 };
 
 // --- Course Page Component ---
