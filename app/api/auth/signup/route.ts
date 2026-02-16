@@ -300,17 +300,30 @@ export async function POST(req: Request) {
 
         const categoryResult = await client.query(
           `SELECT category_id FROM product_categories WHERE category_name = $1`,
-          ["Course"]
+          ["Course"],
         );
 
         const categoryId = categoryResult.rows[0].category_id;
         // Insert into orders table
         const trackingId = createTrackingId(courseTitle);
 
+        const existingOrder = await client.query(
+          `SELECT * FROM orders WHERE orders.user_id = $1 and orders.category_id = $2`,
+          [userId, categoryId],
+        );
+
+        // Don't insert an order if it already exist
+        if (existingOrder.rows.length > 0) {
+          return NextResponse.json({
+            message:
+              "You have already made this order. Please Proceed to your dashboard",
+          });
+        }
+
         const orderResult = await client.query(
           `INSERT INTO orders 
-          (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
+           (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
           [
             userId,
             categoryId,

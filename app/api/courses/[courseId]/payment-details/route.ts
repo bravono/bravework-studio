@@ -47,9 +47,19 @@ export async function GET(
     if (!course.isActive) {
       return NextResponse.json(
         { error: "This course is not currently available for enrollment" },
-        { status: 400 }
+        { status: 400 },
       );
     }
+
+    const categoryResult = await queryDatabase(
+      `SELECT category_id FROM product_categories WHERE category_name = $1`,
+      ["Course"],
+    );
+
+    const categoryId = categoryResult[0].category_id;
+    const paid = 1;
+
+    console.log("Category Result", categoryResult);
 
     // Check if user already has an order for this course
     const orderQueryText = `
@@ -57,35 +67,35 @@ export async function GET(
       FROM orders
       WHERE user_id = $1 
         AND category_id = $2
-        AND payment_status_id IN (1, 2, 6);
     `;
 
     const existingOrders = await queryDatabase(orderQueryText, [
       userId,
-      courseId,
+      categoryId,
     ]);
 
+    console.log("Existing Orders", existingOrders);
     let orderId: number;
 
     if (existingOrders.length > 0) {
       // Use existing order
       orderId = existingOrders[0].order_id;
     } else {
-      const categoryResult = await queryDatabase(
-        `SELECT category_id FROM product_categories WHERE category_name = $1`,
-        ["Course"]
-      );
+      // Don't insert an order if it already exist
+      if (existingOrders.length > 0) {
+        return NextResponse.json({
+          message:
+            "You have already made this order. Please Proceed to your dashboard",
+        });
+      }
 
-      console.log("Category Result", categoryResult);
       if (categoryResult[0] === 0) {
         NextResponse.json(
           { message: "Order category not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
-      const categoryId = categoryResult[0].category_id;
-      const paid = 1;
       // Create a new order for this course
       const createOrderQuery = `
         INSERT INTO orders (user_id, category_id, payment_status_id, project_description, created_at)
