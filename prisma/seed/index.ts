@@ -1,29 +1,57 @@
-const { seedUserRoles } = require("./dev/user_roles");
-const { seedUsers } = require("./dev/users");
-const { seedRoles } = require("./dev/roles");
-const { seedProductCategories } = require("./dev/productCategories");
-const { seedConfig } = require("./prod/config");
+import { seedUserRoles } from "./dev/user_roles";
+import { seedUsers } from "./dev/users";
+import { seedRoles } from "./dev/roles";
+import { seedProductCategories } from "./dev/productCategories";
+import { seedCourses } from "./dev/courses";
+import { seedConfig } from "./prod/config";
+import { seedInstructors } from "./dev/instructors";
+import { seedCourseCategories } from "./shared/courseCategories";
+import { seedTags } from "./shared/tags";
+import { seedSessions } from "./dev/sessions";
+import { seedTools } from "./shared/tools";
+import { seedCourseTools } from "./shared/courseTools";
+import { prisma } from "./client";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
     console.log("Running production seeds...");
+    // Shared seeds (run in both environments)
+    await seedCourseCategories();
+    await seedTags();
+    await seedTools();
+    await seedCourseTools();
+    // Order: roles must be seeded before config (foreign key dependency)
     await seedRoles();
     await seedConfig();
   } else {
     console.log("Running development seeds...");
+    // Shared seeds (run in both environments)
+    await seedCourseCategories();
+    await seedTags();
+    await seedTools();
+
+    // Order: users and roles must exist before user_roles (foreign key dependencies)
     await seedUsers();
+    await seedInstructors(); // Must exist before courses
     await seedProductCategories();
     await seedRoles();
+    await seedCourses(); // Courses depend on users (instructor_id)
     await seedUserRoles();
+    await seedSessions();
+
+    await seedCourseTools(); // Must exist after courses and tools
   }
 }
 
 main()
   .then(() => {
     console.log("Seeding finished.");
-    process.exit(0);
   })
   .catch((e) => {
     console.error(e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
   });

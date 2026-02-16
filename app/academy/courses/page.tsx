@@ -10,7 +10,6 @@ import {
   Calendar,
   Hourglass,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { ShowMore } from "@re-dev/react-truncate";
 
@@ -149,7 +148,7 @@ export default function AcademyCoursesPage() {
                     <img
                       src={
                         course.thumbnailUrl ||
-                        "/assets/Course_Thumbnail_Placeholder.png"
+                        "/assets/Bravework_Studio-Logo-Color.png"
                       }
                       alt={course.title}
                       className="group-hover:scale-105 transition-transform duration-500"
@@ -211,12 +210,15 @@ export default function AcademyCoursesPage() {
                           </p>
                           <p className="font-bold">
                             {course.isActive
-                              ? new Date(course.startDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
-                              : "Coming Soon"}
+                              ? new Date(course.startDate).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )
+                              : "Open Shortly"}
                           </p>
                         </div>
                       </div>
@@ -230,7 +232,12 @@ export default function AcademyCoursesPage() {
                             Duration
                           </p>
                           <p className="font-bold">
-                            {getWeeksBtwDates(course.startDate, course.endDate)}
+                            {course.isActive
+                              ? getWeeksBtwDates(
+                                  course.startDate,
+                                  course.endDate,
+                                )
+                              : "Open Shortly"}
                           </p>
                         </div>
                       </div>
@@ -241,12 +248,12 @@ export default function AcademyCoursesPage() {
                         {course.price === 0
                           ? "Free"
                           : exchangeRates && exchangeRates[selectedCurrency]
-                          ? convertCurrency(
-                              course.price / KOBO_PER_NAIRA,
-                              exchangeRates[selectedCurrency],
-                              getCurrencySymbol(selectedCurrency)
-                            )
-                          : "---"}
+                            ? convertCurrency(
+                                course.price / KOBO_PER_NAIRA,
+                                exchangeRates[selectedCurrency],
+                                getCurrencySymbol(selectedCurrency),
+                              )
+                            : "---"}
                       </div>
                       <Link
                         href={

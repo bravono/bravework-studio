@@ -212,7 +212,7 @@ export default function PaymentContent() {
         if (!res.ok) throw new Error(data.error || "Wallet payment failed");
 
         toast.success("Payment successful!");
-        router.push("/user/dashboard?tab=orders");
+        router.push("/user/dashboard");
         return;
       }
 
@@ -262,8 +262,8 @@ export default function PaymentContent() {
               toast.success("Payment successful!");
               router.push(
                 orderData.type === "rental"
-                  ? "/user/dashboard?tab=bookings"
-                  : "/user/dashboard?tab=orders"
+                  ? "/user/dashboard"
+                  : "/user/dashboard"
               );
             } else {
               toast.error("Payment verification failed: " + verifyData.message);

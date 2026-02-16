@@ -3,8 +3,6 @@ import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Course } from "@/app/types/app";
-import { coursesData } from "@/app/services/localDataService";
-import { CourseNotFound } from "@/app/components/CourseNotFound";
 
 import {
   Users,
@@ -12,16 +10,13 @@ import {
   ExternalLink,
   Github,
   Award,
-  Circle,
   CheckCircle,
-  ChevronDown,
   Calendar,
   Shield,
   FileText,
   CreditCard,
   Lock,
   Sparkles,
-  PlayCircle,
   ArrowRight,
 } from "lucide-react";
 
@@ -39,12 +34,12 @@ const useLocalTimezone = (dateTimeString) => {
             hour: "2-digit",
             minute: "2-digit",
             timeZoneName: "short",
-          })
+          }),
         );
       } catch (e) {
         console.error(
           "Invalid date string for timezone conversion:",
-          dateTimeString
+          dateTimeString,
         );
         setLocalTime(null);
       }
@@ -52,74 +47,6 @@ const useLocalTimezone = (dateTimeString) => {
   }, [dateTimeString]);
 
   return localTime;
-};
-
-// --- Level Card Component (Kept the same for brevity, but moved outside of CoursePage) ---
-const LevelCard = ({ level }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  // This assumes the level object provides an icon component directly
-  // In a real scenario, you'd likely map a string to an icon component
-  const LevelIcon = level.icon;
-
-  return (
-    <div
-      className="bg-primary-light/10 p-6 rounded-2xl shadow-inner cursor-pointer transition-transform transform hover:scale-[1.01]"
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <LevelIcon className="w-10 h-10 text-primary" />
-          <h3 className="text-xl font-bold text-primary-dark">
-            {level.level}: {level.title}
-          </h3>
-        </div>
-        <ChevronDown
-          className={`w-6 h-6 text-secondary transform transition-transform duration-300 ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-        />
-      </div>
-
-      {isExpanded && (
-        <div className="mt-4 text-gray-700 space-y-3 transition-opacity duration-300 opacity-100">
-          <div className="bg-secondary-light/10 p-3 rounded-lg border-l-4 border-secondary">
-            <h4 className="font-semibold text-secondary-dark">Objective:</h4>
-            <p>{level.objective}</p>
-          </div>
-          {level.description && (
-            <p>
-              <span className="font-semibold text-secondary-dark">
-                What Student Will Do:
-              </span>{" "}
-              {level.description}
-            </p>
-          )}
-          <p>
-            <span className="font-semibold text-secondary-dark">Activity:</span>{" "}
-            {level.activity}
-          </p>
-          {level.why && (
-            <p>
-              <span className="font-semibold text-secondary-dark">Why:</span>{" "}
-              {level.why}
-            </p>
-          )}
-          {level.outcomes.length > 0 && (
-            <p>
-              <span className="font-semibold text-secondary-dark">
-                Learning Outcomes:
-              </span>{" "}
-              {level.outcomes.join(", ")}
-            </p>
-          )}
-          <p>
-            <span className="font-semibold text-secondary-dark">Info:</span>{" "}
-            {level.info}
-          </p>
-        </div>
-      )}
-    </div>
-  );
 };
 
 // --- Course Page Component ---
@@ -264,11 +191,15 @@ export default function CoursePage() {
                         <p className="text-sm text-gray-500 font-medium">
                           Duration
                         </p>
-                        <p className="font-bold text-gray-900">
-                          {course?.sessions !== null &&
-                            course?.sessions[0].duration / 60}{" "}
-                          hrs/week
-                        </p>
+                        {isActive ? (
+                          <p className="font-bold text-gray-900">
+                            {course?.sessions !== null &&
+                              course?.sessions[0].duration}{" "}
+                            {course.price === 0 ? "2hrs" : "hrs/week"}
+                          </p>
+                        ) : (
+                          "Open Shortly"
+                        )}
                         <p className="text-xs text-gray-500">Live on Zoom</p>
                       </div>
                     </div>
@@ -283,8 +214,8 @@ export default function CoursePage() {
                         </p>
                         <p className="font-bold text-gray-900">
                           {isActive
-                            ? new Date(course.startDate).toLocaleDateString()
-                            : "TBA"}
+                            ? new Date(course?.startDate).toLocaleDateString()
+                            : "Open Shortly"}
                         </p>
                         {isActive && (
                           <p className="text-xs text-gray-500">
@@ -348,7 +279,7 @@ export default function CoursePage() {
                           if (diff <= 0) return "Expired";
                           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                           const hours = Math.floor(
-                            (diff / (1000 * 60 * 60)) % 24
+                            (diff / (1000 * 60 * 60)) % 24,
                           );
                           return `Ends in ${days}d ${hours}h`;
                         })()}
@@ -399,17 +330,11 @@ export default function CoursePage() {
                     >
                       Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
-                    <Link
-                      href={`/newsletter?isActive=true`}
-                      className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-gray-200 text-lg font-bold rounded-full text-gray-700 bg-white hover:border-primary hover:text-primary transition-all duration-200"
-                    >
-                      Get Updates
-                    </Link>
                   </>
                 ) : (
                   <Link
-                    href={`/newsletter?isActive=false`}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-secondary hover:bg-secondary-dark transition-all duration-200 shadow-lg"
+                    href={`/newsletter?isActive=false&courseId=${courseId}`}
+                    className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-secondary hover:bg-secondary-dark transition-all duration-200 shadow-lg"
                   >
                     Notify Me When Opens
                   </Link>

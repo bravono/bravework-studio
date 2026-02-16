@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "../client";
 
 export async function seedUserRoles() {
   const userRoles = [{ role_id: 1, user_id: 1 }];

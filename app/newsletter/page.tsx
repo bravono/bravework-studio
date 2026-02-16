@@ -7,6 +7,7 @@ import InactiveCourseForm from "./InactiveCourseForm";
 function NewsletterContent() {
   const searchParams = useSearchParams();
   const isActive = searchParams.get("isActive") === "true";
+  const courseId = searchParams.get("courseId") || undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -74,7 +75,11 @@ function NewsletterContent() {
         {/* Form Side */}
         <div className="p-10 md:p-16 bg-gray-50 flex items-center justify-center border-l border-gray-100">
           <div className="w-full max-w-sm">
-            {isActive ? <ActiveCourseForm /> : <InactiveCourseForm />}
+            {isActive ? (
+              <ActiveCourseForm courseId={courseId} />
+            ) : (
+              <InactiveCourseForm courseId={courseId} />
+            )}
           </div>
         </div>
       </div>

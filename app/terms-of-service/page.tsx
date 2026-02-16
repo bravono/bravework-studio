@@ -248,8 +248,7 @@ export default function TermsOfServicePage() {
               <p className="text-gray-700 leading-relaxed">
                 In the event of a dispute, both parties agree to attempt
                 resolution through direct communication. Unresolved disputes
-                shall be governed by and construed in accordance with the laws
-                of Nigeria and resolved in the courts of Lagos State.
+                shall be governed by Bravework Studio.
               </p>
             </div>
 

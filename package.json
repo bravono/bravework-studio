@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed/index.ts"
+    "seed": "tsx prisma/seed/index.ts"
   },
   "dependencies": {
     "@paystack/inline-js": "^2.22.6",
@@ -30,6 +30,7 @@
     "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.0.3",
+    "gray-matter": "^4.0.3",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -280,6 +281,7 @@ model orders {
   wallet_usages                                wallet_usages[]
 
   @@index([user_id], map: "fk_projects_admins_idx")
+  @@unique([user_id, category_id], map: "unique_user_category_orders")
   @@index([category_id], map: "fk_projects_category1_idx")
 }
 
@@ -572,6 +574,7 @@ model users {
   wallet_usages                                               wallet_usages[]
   two_factor_secret                                           String?               @db.VarChar(255)
   two_factor_enabled                                          Boolean?              @default(false)
+  pending_email                                               String?               @unique @db.VarChar(255)
 }
 
 model verification_tokens {
@@ -651,5 +654,3 @@ model student_sessions {
   @@index([session_id], map: "idx_student_sessions_session_id")
   @@index([user_id], map: "idx_student_sessions_user_id")
 }
-
-

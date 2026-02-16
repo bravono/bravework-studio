@@ -1,7 +1,14 @@
-// Import the Client Component for the actual dashboard content
-import UserDashboardClient from "./_components/UserDashboardClient";
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth/auth-options";
+import UserDashboardClient from "@/app/user/dashboard/_components/UserDashboardClient";
 
-export default async function AdminDashboardPage() {
-  // Now, render the client component that contains the interactive dashboard UI
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/auth/login?callbackUrl=/dashboard");
+  }
+
   return <UserDashboardClient />;
 }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function ActiveCourseForm() {
+export default function ActiveCourseForm({ courseId }: { courseId?: string }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [status, setStatus] = useState("");
@@ -16,7 +16,7 @@ export default function ActiveCourseForm() {
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
-        body: JSON.stringify({ email, name, isActive: "true" }),
+        body: JSON.stringify({ email, name, isActive: "true", courseId }),
         headers: { "Content-Type": "application/json" },
       });
 
