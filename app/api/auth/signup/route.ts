@@ -20,7 +20,7 @@ const baseSignupSchema = Joi.object({
     .required()
     .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
     .message(
-      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)",
     ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
@@ -37,12 +37,13 @@ const enrollmentSchema = Joi.object({
     .required()
     .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
     .message(
-      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)",
     ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   preferredSessionTime: Joi.string().required(),
   courseId: Joi.number().required(),
+  referralCode: Joi.string().allow("").optional(),
 });
 
 const enrollExistingUserSchema = Joi.object({
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
     if (validationResult.error) {
       return NextResponse.json(
         { message: validationResult.error.details[0].message },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -104,7 +105,7 @@ export async function POST(req: Request) {
       if (session && session.user) {
         const existingUserResult = await client.query(
           "SELECT user_id FROM users WHERE email = $1",
-          [email]
+          [email],
         );
 
         userId = existingUserResult.rows[0].user_id;
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
         // Scenario 2: New user signing up, potentially with a course enrollment
         const existingUserResult = await client.query(
           "SELECT user_id FROM users WHERE email = $1",
-          [email]
+          [email],
         );
 
         if (existingUserResult.rows.length > 0) {
@@ -138,7 +139,7 @@ export async function POST(req: Request) {
             hashedPassword,
             companyName || null,
             phone || null,
-          ]
+          ],
         );
 
         userId = insertUserResult.rows[0].user_id;
@@ -147,14 +148,14 @@ export async function POST(req: Request) {
         if (referralCode) {
           const referrerResult = await client.query(
             "SELECT user_id FROM users WHERE referral_code = $1",
-            [referralCode]
+            [referralCode],
           );
           console.log("Referrer Result", referrerResult);
           if (referrerResult.rows.length > 0) {
             const referrerId = referrerResult.rows[0].user_id;
             await client.query(
               "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
-              [referrerId, userId]
+              [referrerId, userId],
             );
             console.log(`User ${userId} referred by ${referrerId}`);
           }
@@ -164,12 +165,12 @@ export async function POST(req: Request) {
         // Assign 'user' role
         const roleResult = await client.query(
           "SELECT role_id FROM roles WHERE role_name = 'user'",
-          []
+          [],
         );
         const roleId = roleResult.rows[0].role_id;
         await client.query(
           "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
-          [userId, roleId]
+          [userId, roleId],
         );
 
         // Send verification email
@@ -178,7 +179,7 @@ export async function POST(req: Request) {
         expires.setHours(expires.getHours() + 24);
         await client.query(
           'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
-          [userId, verificationToken, expires, "email_verification"]
+          [userId, verificationToken, expires, "email_verification"],
         );
 
         try {
@@ -207,10 +208,10 @@ export async function POST(req: Request) {
             })
               .then((res) => res.json())
               .then((data) =>
-                console.log("Sender marketing subscription result:", data)
+                console.log("Sender marketing subscription result:", data),
               )
               .catch((err) =>
-                console.error("Sender subscription error:", err.message)
+                console.error("Sender subscription error:", err.message),
               );
           }
         } catch (mailError) {
@@ -223,20 +224,20 @@ export async function POST(req: Request) {
         // Get 'student' role
         const studentRoleResult = await client.query(
           "SELECT role_id FROM roles WHERE role_name = 'student'",
-          []
+          [],
         );
 
         const studentRoleId = studentRoleResult.rows[0].role_id;
         // Assign 'student' role to the user, this also handles the case for a logged-in user
         await client.query(
           "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING",
-          [userId, studentRoleId]
+          [userId, studentRoleId],
         );
 
         // Fetch course details
         const courseResult = await client.query(
           "SELECT title, description, price_in_kobo, start_date, end_date FROM courses WHERE course_id = $1",
-          [courseId]
+          [courseId],
         );
         if (courseResult.length === 0) {
           throw new Error("Course not found.");
@@ -254,7 +255,7 @@ export async function POST(req: Request) {
         // Fetch session ID
         const sessionResult = await client.query(
           `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
-          [courseId, Number(preferredSessionTime)]
+          [courseId, Number(preferredSessionTime)],
         );
         if (sessionResult.length === 0) {
           throw new Error("No session found for the selected time.");
@@ -269,14 +270,15 @@ export async function POST(req: Request) {
         // Fetch 'pending' order status
         const paymentStatusResult = await client.query(
           "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
-          [paymentStatus]
+          [paymentStatus],
         );
 
-        const paymentStatusId = paymentStatusResult.rows[0].payment_status_id;
+        console.log("Payment Status", paymentStatusResult);
+        const paymentStatusId = paymentStatusResult.rows[0]?.payment_status_id;
 
         const existingCourse = await client.query(
           "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
-          [userId, courseId]
+          [userId, courseId],
         );
 
         console.log("Existing Course", existingCourse);
@@ -289,7 +291,7 @@ export async function POST(req: Request) {
         const enrollmentResult = await client.query(
           `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
           VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING RETURNING user_id`,
-          [userId, courseId, sessionId]
+          [userId, courseId, sessionId],
         );
 
         if (enrollmentResult.rows.length === 0) {
@@ -334,12 +336,13 @@ export async function POST(req: Request) {
             paymentStatusId,
             price,
             trackingId,
-          ]
+          ],
         );
 
         console.log("Order Result", orderResult);
+
         if (orderResult.rows.length === 0)
-          return NextResponse.json({ message: "Now order was inserted" });
+          return NextResponse.json({ message: "No order was inserted" });
 
         orderId = orderResult.rows[0].order_id;
         console.log("Course order ID:", orderId);
@@ -355,12 +358,12 @@ export async function POST(req: Request) {
             };
             await createZohoLead(leadData);
             console.log(
-              `Zoho Lead created for free course enrollment: ${email}`
+              `Zoho Lead created for free course enrollment: ${email}`,
             );
           } catch (zohoError) {
             console.error(
               "Failed to create Zoho Lead for free course:",
-              zohoError
+              zohoError,
             );
           }
         }
@@ -388,7 +391,7 @@ export async function POST(req: Request) {
             "User created successfully! Please check your email to verify your account.",
           userId: result.userId,
         },
-        { status: 201 }
+        { status: 201 },
       );
     } else {
       return NextResponse.json(
@@ -396,7 +399,7 @@ export async function POST(req: Request) {
           message: "Course enrollment created successfully!",
           userId: result.userId,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
   } catch (error) {

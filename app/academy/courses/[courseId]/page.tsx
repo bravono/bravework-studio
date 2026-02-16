@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Course } from "@/app/types/app";
 
-
 import {
   Users,
   Clock,
@@ -196,7 +195,7 @@ export default function CoursePage() {
                           <p className="font-bold text-gray-900">
                             {course?.sessions !== null &&
                               course?.sessions[0].duration}{" "}
-                            {course.price === 0 ? "2hrs":"hrs/week"}
+                            {course.price === 0 ? "2hrs" : "hrs/week"}
                           </p>
                         ) : (
                           "Open Shortly"

@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: { courseId: string } },
 ) {
   try {
     const { courseId } = params;
@@ -17,7 +17,7 @@ export async function GET(
     if (!isAuthenticated || !userId) {
       return NextResponse.json(
         { error: "Authentication failed. Please log in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -130,7 +130,7 @@ export async function GET(
     console.error("Error fetching course payment details:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
