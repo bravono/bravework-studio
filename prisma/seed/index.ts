@@ -9,7 +9,7 @@ import { seedCourseCategories } from "./shared/courseCategories";
 import { seedTags } from "./shared/tags";
 import { seedSessions } from "./dev/sessions";
 import { seedTools } from "./shared/tools";
-import { seedCourseTools } from "./shared/course_tools";
+import { seedCourseTools } from "./shared/courseTools";
 import { prisma } from "./client";
 
 async function main() {
@@ -29,7 +29,7 @@ async function main() {
     await seedCourseCategories();
     await seedTags();
     await seedTools();
-    await seedCourseTools();
+
     // Order: users and roles must exist before user_roles (foreign key dependencies)
     await seedUsers();
     await seedInstructors(); // Must exist before courses
@@ -38,6 +38,8 @@ async function main() {
     await seedCourses(); // Courses depend on users (instructor_id)
     await seedUserRoles();
     await seedSessions();
+
+    await seedCourseTools(); // Must exist after courses and tools
   }
 }
 
