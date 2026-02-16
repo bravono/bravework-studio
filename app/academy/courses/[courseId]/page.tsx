@@ -331,17 +331,11 @@ export default function CoursePage() {
                     >
                       Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
-                    <Link
-                      href={`/newsletter?isActive=true`}
-                      className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-gray-200 text-lg font-bold rounded-full text-gray-700 bg-white hover:border-primary hover:text-primary transition-all duration-200"
-                    >
-                      Get Updates
-                    </Link>
                   </>
                 ) : (
                   <Link
-                    href={`/newsletter?isActive=false`}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-secondary hover:bg-secondary-dark transition-all duration-200 shadow-lg"
+                    href={`/newsletter?isActive=false&courseId=${courseId}`}
+                    className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-white bg-secondary hover:bg-secondary-dark transition-all duration-200 shadow-lg"
                   >
                     Notify Me When Opens
                   </Link>

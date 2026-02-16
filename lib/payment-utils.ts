@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { createTrackingId } from "./utils/tracking";
+import { getOrCreateSenderGroup, subscribeToSender } from "./sender";
 
 interface OrderStatusMap {
   [statusName: string]: number;
@@ -85,12 +86,41 @@ export async function processSuccessfulOrder(
   // 5. Update Course Enrollment if applicable (Full payment usually required for access, but logic depends on business rule)
   // Assuming if status is 'paid', we grant access.
   if (serviceType === "course" && newStatusId === orderStatusMap["paid"]) {
+    // 5a. Update Enrollment
     await client.query(
       `UPDATE course_enrollments
        SET payment_status = $1
        WHERE course_id = $2 AND user_id = $3`,
       [newStatusId, productId, order.user_id],
     );
+
+    // 5b. Subscribe to Sender
+    try {
+      // Fetch user details
+      const userRes = await client.query(
+        "SELECT email, first_name, last_name FROM users WHERE user_id = $1",
+        [order.user_id],
+      );
+
+      if (userRes.rows.length > 0) {
+        const { email, first_name, last_name } = userRes.rows[0];
+        const fullName = `${first_name} ${last_name}`;
+
+        // Ensure group exists
+        const groupId = await getOrCreateSenderGroup(orderTitle);
+
+        if (groupId) {
+          await subscribeToSender(email, fullName, [groupId]);
+          console.log(`Subscribed ${email} to Sender group: ${orderTitle}`);
+        }
+      }
+    } catch (senderError) {
+      console.error(
+        "Error subscribing to Sender during payment processing:",
+        senderError,
+      );
+      // Don't block the order completion if Sender fails
+    }
   }
 
   return { success: true, newStatusId, newAmountPaid };
@@ -137,9 +167,9 @@ export async function processSuccessfulRentalBooking(
 
   let categoryId: number;
   if (categoryRes.rows.length === 0) {
-      const newCategory = await client.query(
+    const newCategory = await client.query(
       "INSERT INTO product_categories (category_name, category_description) VALUES ($1, $2) RETURNING category_id",
-      ["Hardware Rental", "Rental of hardware devices and equipment."]
+      ["Hardware Rental", "Rental of hardware devices and equipment."],
     );
     categoryId = newCategory.rows[0].category_id;
   } else {

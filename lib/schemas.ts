@@ -30,6 +30,7 @@ export const subscriptionSchema = Joi.object({
   email: Joi.string().email().required(),
   name: Joi.string().min(2).max(100).required(),
   isActive: Joi.boolean().optional(),
+  courseId: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
 });
 
 // Admin Custom Offer Schema
