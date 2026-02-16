@@ -19,35 +19,15 @@ interface TeamMember {
 
 const teamMembers: TeamMember[] = [
   {
-    name: "Shaka",
+    name: "Ahbideen Yusuf",
     role: "Founder & Creative Director",
     bio: "Visionary leader driving digital innovation in Nigeria.",
-    image: "/team/shaka.jpg", // Replace with real paths later
+    image: "/assets/Profile_Picture.jpg", // Replace with real paths later
     links: {
-      linkedin: "#",
-      twitter: "#",
+      linkedin: "https://www.linkedin.com/in/ahbideen-y-74a232179",
+      twitter: "https://twitter.com/yahbideen",
     },
   },
-  {
-    name: "Jane Doe",
-    role: "Head of Academy",
-    bio: "Passionate educator with 10+ years in tech education.",
-    image: "/team/jane.jpg",
-    links: {
-      linkedin: "#",
-    },
-  },
-  {
-    name: "John Smith",
-    role: "Lead 3D Artist",
-    bio: "Expert in creating immersive 3D experiences.",
-    image: "/team/john.jpg",
-    links: {
-      twitter: "#",
-      website: "#",
-    },
-  },
-  // Add more members as needed
 ];
 
 export default function TeamGrid() {
