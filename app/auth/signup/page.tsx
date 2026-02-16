@@ -199,7 +199,6 @@ function Signup() {
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
         courseId: Number(courseId),
-        referralCode: form.referralCode,
       };
 
       if (!user) {
