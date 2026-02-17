@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { PlusCircle, Edit, Trash2, Search } from "lucide-react";
 
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import CourseModal from "../../../components/CourseModal";
+import CourseModal from "@/app/components/CourseModal";
 import { Course } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import Pagination from "@/app/components/Pagination";
