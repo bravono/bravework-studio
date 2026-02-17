@@ -21,6 +21,28 @@ import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    ["link"],
+    ["clean"],
+  ],
+};
+
+const formats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "list",
+  "bullet",
+  "indent",
+  "link",
+];
+
 // Helper to generate a unique Jitsi link
 const generateJitsiLink = () => {
   const uniqueId = Math.random().toString(36).substring(2, 10);
@@ -68,7 +90,7 @@ const generateGoogleCalendarLink = (
   datetime: string,
   duration: number,
   details: string,
-  location: string
+  location: string,
 ) => {
   if (!datetime) return "";
 
@@ -154,7 +176,7 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "label",
-                e.target.value
+                e.target.value,
               )
             }
             required
@@ -183,7 +205,7 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "duration",
-                parseInt(e.target.value || "0", 10)
+                parseInt(e.target.value || "0", 10),
               )
             }
             required
@@ -210,7 +232,7 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "datetime",
-                e.target.value
+                e.target.value,
               )
             }
             required
@@ -223,7 +245,7 @@ const SessionForm = ({
                 option.datetime,
                 option.duration,
                 `Join the session here: ${option.link}`,
-                option.link
+                option.link,
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -252,7 +274,7 @@ const SessionForm = ({
                   session.id,
                   option.optionNumber,
                   "link",
-                  e.target.value
+                  e.target.value,
                 )
               }
               placeholder="https://meet.jit.si/..."
@@ -265,7 +287,7 @@ const SessionForm = ({
                   session.id,
                   option.optionNumber,
                   "link",
-                  generateJitsiLink()
+                  generateJitsiLink(),
                 )
               }
               className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600"
@@ -303,41 +325,41 @@ export default function CourseModal({
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
   const [price, setPrice] = useState<number>(existingCourse?.price || 0);
   const [description, setDescription] = useState<string>(
-    existingCourse?.description || ""
+    existingCourse?.description || "",
   );
   const [startDate, setStartDate] = useState<string>(
-    existingCourse?.startDate || ""
+    existingCourse?.startDate || "",
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
   const initialInstructorName =
     existingCourse?.instructor || currentInstructorName; // Use the logged-in instructor's name for instructor role
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
-    existingCourse?.isActive || false
+    existingCourse?.isActive || false,
   );
   const [maxStudents, setMaxStudents] = useState<string>(
-    existingCourse?.maxStudents || "0"
+    existingCourse?.maxStudents || "0",
   );
   const [thumbnailUrl, setThumbnailUrl] = useState<string>(
-    existingCourse?.thumbnailUrl || ""
+    existingCourse?.thumbnailUrl || "",
   );
   const [category, setCategory] = useState<string>(
-    existingCourse?.category || ""
+    existingCourse?.category || "",
   );
   const [level, setLevel] = useState<string>(
-    existingCourse?.level || "Beginner"
+    existingCourse?.level || "Beginner",
   );
   const [language, setLanguage] = useState<string>(
-    existingCourse?.language || "English"
+    existingCourse?.language || "English",
   );
   const [slug, setSlug] = useState<string>(existingCourse?.slug || "");
   const [content, setContent] = useState<string>(existingCourse?.content || "");
   const [excerpt, setExcerpt] = useState<string>(existingCourse?.excerpt || "");
   const [ageBracket, setAgeBracket] = useState<string>(
-    existingCourse?.ageBracket || ""
+    existingCourse?.ageBracket || "",
   );
   const [selectedTools, setSelectedTools] = useState<number[]>(
-    existingCourse?.tools?.map((t) => t.id) || []
+    existingCourse?.tools?.map((t) => t.id) || [],
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -370,7 +392,7 @@ export default function CourseModal({
             ...opt,
           })),
         }))
-      : [createInitialSession()]
+      : [createInitialSession()],
   );
 
   // NEW: Session Management Functions
@@ -379,7 +401,7 @@ export default function CourseModal({
       sessionId: number,
       optionNumber: number,
       field: keyof SessionOption,
-      value: any
+      value: any,
     ) => {
       setSessions((prevSessions) =>
         prevSessions.map((session) => {
@@ -393,10 +415,10 @@ export default function CourseModal({
             return { ...session, options: newOptions };
           }
           return session;
-        })
+        }),
       );
     },
-    []
+    [],
   );
 
   const addSession = () => {
@@ -409,7 +431,7 @@ export default function CourseModal({
       return;
     }
     setSessions((prevSessions) =>
-      prevSessions.filter((session) => session.id !== sessionId)
+      prevSessions.filter((session) => session.id !== sessionId),
     );
   };
 
@@ -427,7 +449,7 @@ export default function CourseModal({
           };
         }
         return session;
-      })
+      }),
     );
   };
 
@@ -442,17 +464,17 @@ export default function CourseModal({
           return {
             ...session,
             options: session.options.filter(
-              (o) => o.optionNumber !== optionNumber
+              (o) => o.optionNumber !== optionNumber,
             ),
           };
         }
         return session;
-      })
+      }),
     );
   };
 
   useEffect(() => {
-    console.log("Existing Course Instructor", existingCourse?.instructor);
+    console.log("Existing Course", existingCourse);
   }, [existingCourse]);
 
   // Auto-generate slug from title
@@ -471,7 +493,7 @@ export default function CourseModal({
     if (content) {
       const plainText = content.replace(/<[^>]+>/g, "");
       setExcerpt(
-        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : "")
+        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : ""),
       );
     }
   }, [content]);
@@ -525,9 +547,12 @@ export default function CourseModal({
             id: index + 1,
             options: s.options.map((opt: any) => ({
               ...opt,
-              datetime: opt.datetime || opt.time || "",
+              datetime:
+                formatDateTimeLocal(opt.datetime) ||
+                formatDateTimeLocal(opt.time) ||
+                "",
             })),
-          }))
+          })),
         );
       }
     }
@@ -584,7 +609,7 @@ export default function CourseModal({
         }).map(([key, value]) => [
           key,
           typeof value === "string" ? value.trim() : value,
-        ])
+        ]),
       );
 
       console.log("Payload:", body); // Log the payload including sessions
@@ -598,11 +623,11 @@ export default function CourseModal({
 
       if (!res.ok)
         throw new Error(
-          `Failed to ${method === "PATCH" ? "update" : "create"} course.`
+          `Failed to ${method === "PATCH" ? "update" : "create"} course.`,
         );
 
       toast.success(
-        `Course ${existingCourse ? "updated" : "created"} successfully!`
+        `Course ${existingCourse ? "updated" : "created"} successfully!`,
       );
       onSave?.();
       onClose(); // Close the modal
@@ -854,7 +879,7 @@ export default function CourseModal({
                           setSelectedTools([...selectedTools, id]);
                         } else {
                           setSelectedTools(
-                            selectedTools.filter((tId) => tId !== id)
+                            selectedTools.filter((tId) => tId !== id),
                           );
                         }
                       }}
@@ -904,6 +929,8 @@ export default function CourseModal({
                   theme="snow"
                   value={content}
                   onChange={setContent}
+                  modules={modules}
+                  formats={formats}
                   className="h-64 mb-12"
                 />
               </div>

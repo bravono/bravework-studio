@@ -2,14 +2,16 @@ import React from "react";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { DM_Sans } from "next/font/google";
+import { Suspense } from "react";
+import NextAuthSessionProvider from "./components/SessionProider";
+import { ToastContainer } from "react-toastify";
+import "react-quill/dist/quill.snow.css";
+import "react-toastify/dist/ReactToastify.css";
+import "./globals.css";
+
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
-import { Suspense } from "react";
-import NextAuthSessionProvider from "./components/SessionProider";
-import "react-toastify/dist/ReactToastify.css";
-import "./globals.css";
-import { ToastContainer } from "react-toastify";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400"] });
 

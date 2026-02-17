@@ -416,12 +416,16 @@ export default function CoursePage() {
         {/* Program Levels */}
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-20">
           <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark mb-10 text-center">
-            Curriculum & Levels
+            Curriculum
           </h2>
-          <div
-            className="prose prose-lg max-w-none prose-headings:text-secondary-dark prose-a:text-primary hover:prose-a:text-primary-dark"
-            dangerouslySetInnerHTML={{ __html: course?.content || "" }}
-          />
+
+          <div className="ql-snow">
+            <div
+              className="ql-editor !p-0 prose prose-lg max-w-none prose-headings:text-secondary-dark prose-a:text-primary hover:prose-a:text-primary-dark"
+              dangerouslySetInnerHTML={{ __html: course?.content || "" }}
+            />
+          </div>
+
         </div>
 
         {/* Why Choose Us & Policies */}
