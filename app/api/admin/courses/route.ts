@@ -27,7 +27,7 @@ function groupSessionOptions(sessionRows: any[]) {
     });
 
     // Every two options form a complete session group
-    if (sessionGroup.length === 2) {
+    if (sessionGroup.length >= 1) {
       sessions.push({
         // We use a temporary ID (like a hash or a counter) since the DB doesn't have a group ID
         id: sessions.length + 1,
@@ -123,13 +123,13 @@ export async function GET(request: Request) {
       return course;
     });
 
-    console.log("Courses", serializableCourses);
+    console.log("Courses Serialized", serializableCourses);
     return NextResponse.json(serializableCourses);
   } catch (error: any) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
           error:
             "Missing required fields: title, description, instructor, or sessions array.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -193,8 +193,8 @@ export async function POST(request: Request) {
             isNaN(parseInt(option.duration)) || // Ensure duration is a valid number
             !option.time ||
             !option.label ||
-            !option.optionNumber
-        )
+            !option.optionNumber,
+        ),
     );
 
     console.log("Has Invalid Session", hasInvalidSession);
@@ -204,7 +204,7 @@ export async function POST(request: Request) {
           error:
             "Each course must have sessions, and each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -218,14 +218,14 @@ export async function POST(request: Request) {
       console.log("Now in Transaction");
       const instructorResult = await client.query(
         `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
-        [instructorName[0], instructorName[1]]
+        [instructorName[0], instructorName[1]],
       );
       const instructorId = instructorResult.rows[0]?.instructor_id;
       if (!instructorId) throw new Error("Instructor not found.");
 
       const categoryResult = await client.query(
         `SELECT category_id FROM course_categories WHERE category_name = $1`,
-        [category]
+        [category],
       );
       const categoryId = categoryResult.rows[0]?.category_id;
       if (!categoryId) throw new Error("Category not found.");
@@ -271,7 +271,7 @@ export async function POST(request: Request) {
         for (const toolId of tools) {
           await client.query(
             `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [courseId, toolId]
+            [courseId, toolId],
           );
         }
       }
@@ -304,14 +304,14 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         { courseId, message: "Course and sessions created successfully" },
-        { status: 201 }
+        { status: 201 },
       );
     });
   } catch (error: any) {
     console.error("Error creating course:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
