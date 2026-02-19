@@ -15,15 +15,12 @@ import {
   ChevronDown,
   Bell,
   Code,
-  Clapperboard,
   House,
   Briefcase,
   Info,
   Mail,
-  BookOpen,
   GraduationCap,
   Gamepad2,
-  Building2,
   Users,
   Key,
   FileText,
@@ -105,18 +102,33 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navLinks = [
-    { label: "Home", href: "/", icon: House },
-    {
-      label: "Studio",
+  type NavLinkItem =
+    | {
+        label: string;
+        icon: any;
+        items: {
+          label: string;
+          href: string;
+          icon: any;
+        }[];
+        href?: never;
+      }
+    | {
+        label: string;
+        icon: any;
+        href: string;
+        items?: never;
+      };
+
+  const navLinks: NavLinkItem[] = [
+  {
+      label: "Company",
       icon: ChevronDown,
       items: [
-        { label: "Studio Home", href: "/studio", icon: House },
-        { label: "About Studio", href: "/studio/about", icon: Info },
-        { label: "Our Services", href: "/studio/services", icon: Code },
-        { label: "Portfolio", href: "/studio/portfolio", icon: Briefcase },
-        { label: "Resources", href: "/studio/resources", icon: FileText },
-        { label: "Get a Quote", href: "/studio/contact", icon: Mail },
+        { label: "Home", href: "/", icon: House },
+        { label: "About", href: "/about", icon: Info },
+        { label: "Contact", href: "/contact", icon: Mail },
+        { label: "Jobs", href: "/jobs", icon: Users },
       ],
     },
     {
@@ -129,14 +141,19 @@ export default function Navbar() {
       ],
     },
     {
-      label: "Company",
+      label: "Studio",
       icon: ChevronDown,
       items: [
-        { label: "About", href: "/about", icon: Info },
-        { label: "Contact", href: "/contact", icon: Mail },
-        { label: "Jobs", href: "/jobs", icon: Users },
+        { label: "Studio Home", href: "/studio", icon: House },
+        { label: "About Studio", href: "/studio/about", icon: Info },
+        { label: "Our Services", href: "/studio/services", icon: Code },
+        { label: "Portfolio", href: "/studio/portfolio", icon: Briefcase },
+        { label: "Resources", href: "/studio/resources", icon: FileText },
+        { label: "Get a Quote", href: "/studio/contact", icon: Mail },
       ],
     },
+    
+    
   ];
 
   const commonLinkClasses = `flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold transition-all duration-300`;
@@ -433,55 +450,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* Links */}
-              <div className="space-y-2">
-                {navLinks.map((link) => (
-                  <div key={link.label} className="space-y-1">
-                    {link.items ? (
-                      <div className="pt-2">
-                        <p className="px-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">
-                          {link.label}
-                        </p>
-                        <div className="grid grid-cols-1 gap-1">
-                          {link.items.map((item) => (
-                            <Link
-                              key={item.label}
-                              href={item.href}
-                              onClick={() => setIsMenuOpen(false)}
-                              className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
-                            >
-                              <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-green-100 transition-colors">
-                                <item.icon className="w-5 h-5 text-gray-500" />
-                              </div>
-                              {item.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all ${
-                          pathname === link.href
-                            ? "bg-green-50 text-green-700"
-                            : "text-gray-900 border border-transparent"
-                        }`}
-                      >
-                        <link.icon
-                          className={`w-6 h-6 ${
-                            pathname === link.href
-                              ? "text-green-600"
-                              : "text-gray-400"
-                          }`}
-                        />
-                        {link.label}
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-
               {status === "authenticated" && (
                 <div className="pt-4 border-t border-gray-100 space-y-2">
                   <p className="px-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">
@@ -530,6 +498,55 @@ export default function Navbar() {
                   </button>
                 </div>
               )}
+
+              {/* Links */}
+              <div className="space-y-2">
+                {navLinks.map((link) => (
+                  <div key={link.label} className="space-y-1">
+                    {link.items ? (
+                      <div className="pt-2">
+                        <p className="px-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">
+                          {link.label}
+                        </p>
+                        <div className="grid grid-cols-1 gap-1">
+                          {link.items.map((item) => (
+                            <Link
+                              key={item.label}
+                              href={item.href}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
+                            >
+                              <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-green-100 transition-colors">
+                                <item.icon className="w-5 h-5 text-gray-500" />
+                              </div>
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all ${
+                          pathname === link.href
+                            ? "bg-green-50 text-green-700"
+                            : "text-gray-900 border border-transparent"
+                        }`}
+                      >
+                        <link.icon
+                          className={`w-6 h-6 ${
+                            pathname === link.href
+                              ? "text-green-600"
+                              : "text-gray-400"
+                          }`}
+                        />
+                        {link.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
