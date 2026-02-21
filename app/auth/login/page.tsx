@@ -77,6 +77,8 @@ function LoginForm() {
         setMessage("Please enter your MFA code.");
       } else if (result.error === "Invalid MFA code") {
         setMessage("Invalid MFA code. Please try again.");
+      } else if (result.error.includes("Incorrect")) {
+        setMessage("Email or Password is Incorrect, please try again");
       } else {
         setMessage("Something went wrong, please try again");
       }
