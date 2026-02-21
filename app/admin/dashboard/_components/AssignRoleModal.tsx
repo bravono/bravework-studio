@@ -9,9 +9,8 @@ import Modal from "@/app/components/Modal";
 interface AssignRoleModalProps {
   user: {
     email: string;
-    first_name: string;
-    last_name: string;
-    user_id: number;
+    fullName: string;
+    id: number;
   };
   onClose: () => void;
   onSave: () => void;
@@ -22,22 +21,34 @@ export default function AssignRoleModal({
   onClose,
   onSave,
 }: AssignRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("Received user ID", user.user_id);
+  // Fetch current roles on mount
+  React.useEffect(() => {
+    const fetchCurrentRoles = async () => {
+      try {
+        const res = await fetch(`/api/admin/roles/${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSelectedRoles(data.roles || []);
+        }
+      } catch (err) {
+        console.error("Error fetching current roles:", err);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchCurrentRoles();
+  }, [user.id]);
+
+  console.log("Received user ID", user.id);
 
   // Define available roles (customize as per your application's roles)
-  const availableRoles = [
-    "user",
-    "customer",
-    "student",
-    "instructor",
-    "admin",
-    "freelancer",
-    "guest",
-  ];
+  const availableRoles = ["instructor", "admin", "freelancer"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,23 +56,35 @@ export default function AssignRoleModal({
     setError(null);
 
     try {
-      const res = await fetch(`/api/admin/roles/${user.user_id}`, {
+      const res = await fetch(`/api/admin/roles/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole }),
+        body: JSON.stringify({ roles: selectedRoles }),
       });
 
-      if (!res.ok) throw new Error("Failed to assign role.");
+      const data = await res.json();
 
-      toast.success(
-        `Role for ${user.first_name} ${user.last_name} updated to ${selectedRole} successfully!`
-      );
-      onSave(); // Trigger data re-fetch in parent
-      onClose(); // Close the modal
+      if (res.ok) {
+        const assignedCount = data.assigned?.length || 0;
+        const skippedCount = data.skipped?.length || 0;
+
+        let message = `Successfully assigned ${assignedCount} role(s).`;
+        if (skippedCount > 0) {
+          message += ` (${skippedCount} already existed)`;
+        }
+
+        toast.success(message);
+        onSave(); // Trigger data re-fetch in parent
+        onClose(); // Close the modal
+      } else {
+        const errorMessage = data.error || "Failed to assign role.";
+        setError(errorMessage);
+        toast.error("Error: " + errorMessage);
+      }
     } catch (err: any) {
-      console.error("Error assigning role:", err);
-      setError(err.message || "Failed to assign role.");
-      toast.error("Error assigning role: " + (err.message || "Unknown error."));
+      console.log("Error", err);
+      setError("An unexpected error occurred.");
+      toast.error("An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +94,7 @@ export default function AssignRoleModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={`Assign Role to ${user.first_name} ${user.last_name}`}
+      title={`Assign Role to ${user.fullName}`}
     >
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <div className="flex items-center space-x-3 text-gray-700">
@@ -80,26 +103,47 @@ export default function AssignRoleModal({
             <strong>User:</strong> {user.email}
           </span>
         </div>
-        <div>
-          <label
-            htmlFor="role"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Select Role
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Roles
           </label>
-          <select
-            id="role"
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            required
-          >
-            {availableRoles.map((role) => (
-              <option key={role} value={role}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-1 gap-2">
+            {initialLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-10 bg-gray-100 animate-pulse rounded-md"
+                  />
+                ))}
+              </div>
+            ) : (
+              availableRoles.map((role) => (
+                <label
+                  key={role}
+                  className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-50 border border-gray-100 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    value={role}
+                    checked={selectedRoles.includes(role)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedRoles((prev) =>
+                        checked
+                          ? [...prev, role]
+                          : prev.filter((r) => r !== role),
+                      );
+                    }}
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </span>
+                </label>
+              ))
+            )}
+          </div>
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="flex justify-end space-x-2">
@@ -112,7 +156,7 @@ export default function AssignRoleModal({
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || initialLoading}
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             {loading ? (
@@ -120,7 +164,7 @@ export default function AssignRoleModal({
             ) : (
               <UserCheck className="h-5 w-5 mr-2" />
             )}
-            {loading ? "Saving..." : "Update Role"}
+            {loading ? "Updating..." : "Update Roles"}
           </button>
         </div>
       </form>

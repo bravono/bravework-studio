@@ -16,9 +16,9 @@ export default function AdminUsersSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
-    first_name: string;
-    last_name: string;
-    user_id: number;
+    firstName: string;
+    lastName: string;
+    id: number;
     email: string;
   } | null>(null);
 
