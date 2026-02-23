@@ -26,12 +26,12 @@ async function initializeTransporter() {
 
   if (process.env.NODE_ENV === "production") {
     transporter = nodemailer.createTransport({
-      host: process.env.ZUSTOM_MAIL_HOST,
-      port: parseInt(process.env.ZUSTOM_MAIL_PORT || "587", 10),
-      secure: process.env.ZUSTOM_MAIL_PORT === "465", // true for 465, false for other ports
+      host: (process.env.ZUSTOM_MAIL_HOST || "").trim(),
+      port: parseInt((process.env.ZUSTOM_MAIL_PORT || "587").trim(), 10),
+      secure: (process.env.ZUSTOM_MAIL_PORT || "").trim() === "465", // true for 465, false for other ports
       auth: {
-        user: process.env.ZUSTOM_MAIL_USER,
-        pass: process.env.ZUSTOM_MAIL_PASS,
+        user: (process.env.ZUSTOM_MAIL_USER || "").trim(),
+        pass: (process.env.ZUSTOM_MAIL_PASS || "").trim(),
       },
     });
   } else {
@@ -94,8 +94,15 @@ export async function sendEmail({
   } catch (error) {
     console.error(
       `Error sending email to ${toEmail} for subject ${subject}:`,
-      error,
+      JSON.stringify(error, null, 2),
     );
+    // Log message specifically if it exists (for SMTP errors)
+    if (error instanceof Error) {
+      console.error("Error Message:", error.message);
+      if ((error as any).response) {
+        console.error("SMTP Response:", (error as any).response);
+      }
+    }
     throw new Error(`Failed to send email: ${subject}`);
   }
 }
