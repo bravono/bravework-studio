@@ -28,3 +28,22 @@ export function generateArticleSchema(post: Partial<BlogPost>) {
     },
   };
 }
+
+export function generateHowToSchema(post: Partial<BlogPost>) {
+  // Simple extraction of steps from content if hyphenated or numbered
+  // In a real scenario, we might want a specific field, but for now we'll mock the structure
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: post.title,
+    description: post.excerpt,
+    image: post.coverImage || "https://braveworkstudio.com/assets/DOF0160.png",
+    step: [
+      {
+        "@type": "HowToStep",
+        text: "Read the article to discover the full guide.",
+        url: `https://braveworkstudio.com/blog/${post.slug}`,
+      },
+    ],
+  };
+}

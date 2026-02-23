@@ -11,6 +11,7 @@ const categoryStyles: Record<string, string> = {
   Kids: "bg-pink-100 text-pink-700",
   Studio: "bg-purple-100 text-purple-700",
   Rentals: "bg-green-100 text-green-700",
+  "How To": "bg-yellow-100 text-yellow-700",
   General: "bg-gray-100 text-gray-700",
   Company: "bg-indigo-100 text-indigo-700",
 };

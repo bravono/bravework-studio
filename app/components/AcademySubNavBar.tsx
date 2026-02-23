@@ -14,6 +14,7 @@ import {
   Mail,
   Sparkles,
   Users,
+  MessageSquareText,
 } from "lucide-react";
 
 const academyLinks = [
@@ -53,6 +54,12 @@ const academyLinks = [
     href: "/academy/contact",
     icon: Mail,
     color: "bg-rose-600",
+  },
+  {
+    label: "Blog",
+    href: "/academy/blog",
+    icon: MessageSquareText,
+    color: "bg-blue-700",
   },
 ];
 

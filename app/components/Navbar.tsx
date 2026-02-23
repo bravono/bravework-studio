@@ -129,6 +129,7 @@ export default function Navbar() {
         { label: "About", href: "/about", icon: Info },
         { label: "Contact", href: "/contact", icon: Mail },
         { label: "Jobs", href: "/jobs", icon: Users },
+        { label: "Blog", href: "/blog", icon: SparklesIcon },
       ],
     },
     {

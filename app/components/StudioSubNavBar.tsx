@@ -4,7 +4,15 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Info, Sparkles, Briefcase, FileText, Mail, Home } from "lucide-react";
+import {
+  Info,
+  Sparkles,
+  Briefcase,
+  FileText,
+  Mail,
+  Home,
+  Newspaper,
+} from "lucide-react";
 
 const studioLinks = [
   { label: "Studio Home", href: "/studio", icon: Home, color: "bg-green-600" },
@@ -37,6 +45,12 @@ const studioLinks = [
     href: "/studio/contact",
     icon: Mail,
     color: "bg-blue-600",
+  },
+  {
+    label: "Blog",
+    href: "/studio/blog",
+    icon: Newspaper,
+    color: "bg-purple-600",
   },
 ];
 

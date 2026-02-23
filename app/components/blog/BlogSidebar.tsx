@@ -1,16 +1,17 @@
-import React from "react";
 import Link from "next/link";
 import { Search, Mail, Tag, List } from "lucide-react";
 import { Outfit } from "next/font/google";
+import { getAllPosts } from "@/lib/blog";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
-const categories = [
-  { name: "Academy", count: 12, color: "text-blue-600" },
-  { name: "Kids", count: 8, color: "text-pink-600" },
-  { name: "Studio", count: 15, color: "text-purple-600" },
-  { name: "Rentals", count: 5, color: "text-green-600" },
-  { name: "General", count: 4, color: "text-gray-600" },
+const availableCategories = [
+  { name: "Academy", color: "text-blue-600" },
+  { name: "Kids", color: "text-pink-600" },
+  { name: "Studio", color: "text-purple-600" },
+  { name: "Rentals", color: "text-green-600" },
+  { name: "How To", color: "text-yellow-600" },
+  { name: "General", color: "text-gray-600" },
 ];
 
 const tags = [
@@ -24,6 +25,17 @@ const tags = [
 ];
 
 export default function BlogSidebar() {
+  const allPosts = getAllPosts(["category"]);
+
+  const categories = availableCategories
+    .map((cat) => ({
+      ...cat,
+      count: allPosts.filter((post) => post.category === cat.name).length,
+    }))
+    .filter(
+      (cat) =>
+        cat.count > 0 || ["Academy", "Kids", "Studio"].includes(cat.name),
+    ); // Keep main categories even if empty
   return (
     <aside className="space-y-12">
       {/* Search Bar */}
