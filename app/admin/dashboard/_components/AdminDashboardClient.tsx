@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   CalendarCheck,
   RefreshCw,
+  ShieldCheck,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
 import AdminCourseSection from "./AdminCourseSection";
 import AdminBookingsSection from "./AdminBookingsSection";
+import AdminVerificationReview from "./AdminVerificationReview";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -73,11 +75,20 @@ const navItems = [
   { id: "users", label: "Users Management", icon: <Users size={20} /> },
   { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
-  { id: "bookings", label: "Bookings Management", icon: <CalendarCheck size={20} /> },
+  {
+    id: "bookings",
+    label: "Bookings Management",
+    icon: <CalendarCheck size={20} />,
+  },
   {
     id: "job-applications",
     label: "Job Applications",
     icon: <Briefcase size={20} />,
+  },
+  {
+    id: "verifications",
+    label: "Verification Requests",
+    icon: <ShieldCheck size={20} />,
   },
   { id: "notifications", label: "All Notifications", icon: <Bell size={20} /> },
   { id: "settings", label: "Profile Settings", icon: <Settings size={20} /> },
@@ -463,6 +474,8 @@ export default function AdminDashboardClient({
         return <AdminJobApplicationsSection />;
       case "bookings":
         return <AdminBookingsSection />;
+      case "verifications":
+        return <AdminVerificationReview />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">

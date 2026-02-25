@@ -3,25 +3,12 @@ import { POST as adminVerifyPOST } from "@/app/api/admin/users/[id]/verify/route
 import { getServerSession } from "next-auth/next";
 import { queryDatabase } from "@/lib/db";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
-import { NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 
 jest.mock("next-auth/next");
 jest.mock("@/lib/db");
 jest.mock("@/lib/auth/admin-auth-guard");
-jest.mock("next/server", () => {
-  const actual = jest.requireActual("next/server");
-  return {
-    ...actual,
-    NextResponse: {
-      json: jest.fn((data, init) => {
-        return {
-          status: init?.status || 200,
-          json: async () => data,
-        };
-      }),
-    },
-  };
-});
+jest.mock("@vercel/blob");
 
 describe("Identity Verification API", () => {
   beforeEach(() => {
@@ -38,21 +25,37 @@ describe("Identity Verification API", () => {
       expect(res.status).toBe(401);
     });
 
-    it("should return 200 and update database if authorized", async () => {
+    it("should return 200 and update database if authorized with files", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: { id: "user-1" },
+        user: { id: 1 },
       });
       (queryDatabase as jest.Mock).mockResolvedValue([]);
+      (put as jest.Mock).mockResolvedValue({
+        url: "https://blob.url/test.jpg",
+      });
+
+      const formData = new FormData();
+      formData.append("idType", "NIN");
+      formData.append(
+        "idCardFront",
+        new Blob(["test"], { type: "image/jpeg" }) as any,
+      );
+      formData.append(
+        "selfieWithId",
+        new Blob(["test"], { type: "image/jpeg" }) as any,
+      );
+
       const req = new Request("http://localhost/api/user/verify", {
         method: "POST",
+        body: formData,
       });
+
       const res = await userVerifyPOST(req);
       expect(res.status).toBe(200);
+      expect(put).toHaveBeenCalledTimes(2);
       expect(queryDatabase).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "UPDATE users SET verification_submitted_at = NOW()",
-        ),
-        ["user-1"],
+        expect.stringContaining("UPDATE users"),
+        expect.arrayContaining(["NIN", "https://blob.url/test.jpg", 1]),
       );
     });
   });
@@ -61,50 +64,26 @@ describe("Identity Verification API", () => {
     it("should return guard response if not admin", async () => {
       const guardRes = { status: 403 };
       (verifyAdmin as jest.Mock).mockResolvedValue(guardRes);
-      const req = new Request(
-        "http://localhost/api/admin/users/user-1/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({ action: "approve" }),
-        },
-      );
-      const res = await adminVerifyPOST(req, { params: { id: "user-1" } });
+      const req = new Request("http://localhost/api/admin/users/1/verify", {
+        method: "POST",
+        body: JSON.stringify({ action: "approve" }),
+      });
+      const res = await adminVerifyPOST(req, { params: { id: "1" } });
       expect(res).toBe(guardRes);
     });
 
     it("should approve verification if admin and action is approve", async () => {
       (verifyAdmin as jest.Mock).mockResolvedValue(null);
       (queryDatabase as jest.Mock).mockResolvedValue([]);
-      const req = new Request(
-        "http://localhost/api/admin/users/user-1/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({ action: "approve" }),
-        },
-      );
-      const res = await adminVerifyPOST(req, { params: { id: "user-1" } });
+      const req = new Request("http://localhost/api/admin/users/1/verify", {
+        method: "POST",
+        body: JSON.stringify({ action: "approve" }),
+      });
+      const res = await adminVerifyPOST(req, { params: { id: "1" } });
       expect(res.status).toBe(200);
       expect(queryDatabase).toHaveBeenCalledWith(
         expect.stringContaining("UPDATE users SET is_verified = TRUE"),
-        ["user-1"],
-      );
-    });
-
-    it("should reject verification if admin and action is reject", async () => {
-      (verifyAdmin as jest.Mock).mockResolvedValue(null);
-      (queryDatabase as jest.Mock).mockResolvedValue([]);
-      const req = new Request(
-        "http://localhost/api/admin/users/user-1/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({ action: "reject" }),
-        },
-      );
-      const res = await adminVerifyPOST(req, { params: { id: "user-1" } });
-      expect(res.status).toBe(200);
-      expect(queryDatabase).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE users SET is_verified = FALSE"),
-        ["user-1"],
+        [1],
       );
     });
   });

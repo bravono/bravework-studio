@@ -160,6 +160,10 @@ interface UserProfile {
   coupons: string[]; // Array of coupon codes
   isVerified: boolean;
   verificationSubmittedAt?: string | null;
+  idType?: string | null;
+  idCardFrontUrl?: string | null;
+  idCardBackUrl?: string | null;
+  selfieWithIdUrl?: string | null;
   // Add other fields you might have, like user ID
   id?: string;
 }
