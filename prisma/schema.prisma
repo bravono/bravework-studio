@@ -575,6 +575,8 @@ model users {
   two_factor_secret                                           String?               @db.VarChar(255)
   two_factor_enabled                                          Boolean?              @default(false)
   pending_email                                               String?               @unique @db.VarChar(255)
+  is_verified                                                 Boolean               @default(false)
+  verification_submitted_at                                   DateTime?             @db.Timestamptz(6)
 }
 
 model verification_tokens {

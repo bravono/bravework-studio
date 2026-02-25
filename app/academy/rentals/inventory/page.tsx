@@ -54,7 +54,7 @@ export default function AcademyInventoryPage() {
   };
 
   const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
@@ -71,7 +71,7 @@ export default function AcademyInventoryPage() {
       if (!res.ok) throw new Error("Failed to record demand");
       setDemandRecorded(true);
       toast.success(
-        "We've recorded your interest! We'll notify you when rentals become available nearby."
+        "We've recorded your interest! We'll notify you when rentals become available nearby.",
       );
     } catch (error) {
       console.error("Error recording demand:", error);
@@ -198,7 +198,7 @@ export default function AcademyInventoryPage() {
                       <span className="block text-2xl font-black text-gray-900">
                         ₦
                         {Number(
-                          rental.hourlyRate / KOBO_PER_NAIRA
+                          rental.hourlyRate / KOBO_PER_NAIRA,
                         ).toLocaleString()}
                       </span>
                       <span className="text-xs font-bold text-gray-400 uppercase">
@@ -206,9 +206,21 @@ export default function AcademyInventoryPage() {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-green-600 transition-colors">
-                    {rental.deviceName}
-                  </h3>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-2xl font-black text-gray-900 group-hover:text-green-600 transition-colors">
+                      {rental.deviceName}
+                    </h3>
+                    {(rental as any).ownerVerified ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-100 whitespace-nowrap">
+                        Verified Owner
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-red-50 text-red-600 uppercase tracking-widest border border-red-100 whitespace-nowrap italic">
+                        Not Verified
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-500 text-sm mb-6 line-clamp-2 leading-relaxed">
                     {rental.description}
                   </p>

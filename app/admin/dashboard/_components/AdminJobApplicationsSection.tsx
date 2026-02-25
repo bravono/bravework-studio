@@ -6,17 +6,8 @@ import { format } from "date-fns";
 import { FileText, Search } from "lucide-react";
 import Pagination from "@/app/components/Pagination";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import { JobApplication } from "@/app/types/app";
 
-interface JobApplication {
-  id: string;
-  applicantName: string;
-  applicantEmail: string;
-  roleApplied: string;
-  status: "Pending" | "Reviewed" | "Interviewing" | "Rejected" | "Hired";
-  appliedDate: string;
-  resumeUrl?: string;
-  coverLetter?: string;
-}
 
 export default function AdminJobApplicationsSection() {
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);

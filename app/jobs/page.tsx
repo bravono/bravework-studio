@@ -37,7 +37,6 @@ interface JobApplication {
   portfolio: string;
   experience: string;
   availability: string;
-  message: string;
 }
 
 export default function JobsPage() {
@@ -50,7 +49,6 @@ export default function JobsPage() {
     portfolio: "",
     experience: "",
     availability: "",
-    message: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -127,7 +125,6 @@ export default function JobsPage() {
           portfolio: "",
           experience: "",
           availability: "",
-          message: "",
         });
         setFile(null);
         setFileInfo(null);
@@ -156,8 +153,6 @@ export default function JobsPage() {
         portfolio: application.portfolio,
         experience: application.experience,
         availability: application.availability,
-        message: application.message,
-        // Do not include file
       };
 
       await fetch("https://formspree.io/f/meokkjyz", {
@@ -809,30 +804,6 @@ export default function JobsPage() {
                 }}
               />
             )}
-
-            {/* Cover Letter */}
-            <div className="flex flex-col">
-              <label
-                htmlFor="message"
-                className="mb-2 text-sm font-medium text-gray-700"
-              >
-                Cover Letter
-              </label>
-              <textarea
-                id="message"
-                value={application.message}
-                onChange={(e) =>
-                  setApplication((prev) => ({
-                    ...prev,
-                    message: e.target.value,
-                  }))
-                }
-                rows={5}
-                required
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              />
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"

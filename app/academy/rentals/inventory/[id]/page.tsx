@@ -205,9 +205,20 @@ export default function AcademyRentalDetailsPage() {
                     <span className="inline-block px-4 py-1.5 bg-green-50 text-green-700 text-xs font-black uppercase tracking-widest rounded-full mb-4">
                       {rental.deviceType}
                     </span>
-                    <h1 className="text-4xl font-black text-gray-900 leading-tight">
-                      {rental.deviceName}
-                    </h1>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h1 className="text-4xl font-black text-gray-900 leading-tight">
+                        {rental.deviceName}
+                      </h1>
+                      {(rental as any).ownerVerified ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-100">
+                          Verified Owner
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black bg-red-50 text-red-600 uppercase tracking-widest border border-red-100 italic">
+                          Not Verified - Proceed with Caution
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="text-4xl font-black text-green-600">
@@ -222,11 +233,18 @@ export default function AcademyRentalDetailsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-2xl mb-10">
-                  <MapPin className="h-5 w-5 mr-3 text-green-600" />
-                  <span className="font-medium text-sm">
-                    {rental.locationCity}, {rental.locationAddress}
-                  </span>
+                <div className="flex flex-wrap items-center gap-4 text-gray-600 bg-gray-50 p-4 rounded-2xl mb-10">
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 mr-3 text-green-600" />
+                    <span className="font-medium text-xs">
+                      {rental.locationCity}, {rental.locationAddress}
+                    </span>
+                  </div>
+                  <div className="w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                  <div className="flex items-center text-gray-600 font-bold text-xs uppercase tracking-wider">
+                    Owner: {(rental as any).ownerFirstName}{" "}
+                    {(rental as any).ownerLastName}
+                  </div>
                 </div>
 
                 <div className="space-y-8">

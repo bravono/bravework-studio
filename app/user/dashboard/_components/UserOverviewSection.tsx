@@ -29,6 +29,8 @@ import {
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
@@ -907,6 +909,50 @@ export default function UserOverviewSection({
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover border-4 border-green-200"
                       />
+                      <div className="mt-3 flex flex-col items-center">
+                        {userProfile.isVerified ? (
+                          <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-100">
+                            <CheckCircle size={10} /> Verified Account
+                          </span>
+                        ) : userProfile.verificationSubmittedAt ? (
+                          <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-100">
+                            <Clock size={10} /> Verification Pending
+                          </span>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-red-100">
+                              <XCircle size={10} /> Unverified
+                            </span>
+                            {!isEditingProfile && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(
+                                      "/api/user/verify",
+                                      {
+                                        method: "POST",
+                                      },
+                                    );
+                                    if (res.ok) {
+                                      window.location.reload();
+                                    } else {
+                                      throw new Error("Failed to submit");
+                                    }
+                                  } catch (e) {
+                                    console.error(e);
+                                    toast.error(
+                                      "Failed to submit verification request",
+                                    );
+                                  }
+                                }}
+                                className="text-[10px] font-black text-green-600 hover:text-green-700 underline uppercase tracking-widest"
+                              >
+                                Verify Identity Now
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {isEditingProfile ? (
                       <div className="space-y-4">

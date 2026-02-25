@@ -32,7 +32,6 @@ export async function POST(request: Request) {
       portfolio: formData.get("portfolio") as string,
       experience: formData.get("experience") as string,
       availability: formData.get("availability") as string,
-      message: formData.get("message") as string,
     };
 
     // Validate payload
@@ -53,7 +52,6 @@ export async function POST(request: Request) {
       portfolio,
       experience,
       availability,
-      message,
     } = value;
 
     const fileString = formData.get("file") as string;
@@ -88,7 +86,6 @@ export async function POST(request: Request) {
         portfolio,
         experience,
         availability,
-        message,
       ];
       const appResult = await client.query(insertAppQuery, appValues);
       const jobApplicationId = appResult.rows[0].job_application_id;

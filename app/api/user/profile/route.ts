@@ -54,7 +54,9 @@ export async function GET(request: Request) {
         company_name AS "companyName", 
         phone, 
         created_at AS "memberSince", 
-        email_verified AS "emailVerified"
+        email_verified AS "emailVerified",
+        is_verified AS "isVerified",
+        verification_submitted_at AS "verificationSubmittedAt"
       FROM users 
       WHERE user_id = $1`;
 
@@ -239,7 +241,9 @@ export async function PATCH(request: Request) {
         company_name AS "companyName", 
         phone, 
         created_at AS "memberSince", 
-        email_verified AS "emailVerified"
+        email_verified AS "emailVerified",
+        is_verified AS "isVerified",
+        verification_submitted_at AS "verificationSubmittedAt"
     `;
 
     console.log("[PATCH /api/user/profile] Executing Query:", updateQueryText);

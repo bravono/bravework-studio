@@ -96,6 +96,8 @@ function Page() {
     memberSince: "",
     referrals: 0,
     coupons: [],
+    isVerified: false,
+    verificationSubmittedAt: null,
   });
 
   // State for editing mode
@@ -653,9 +655,10 @@ function Page() {
       case "rentals":
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <UserRentalsSection />
+            <UserRentalsSection isVerified={userProfile?.isVerified} />
           </div>
         );
+
       case "bookings":
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
