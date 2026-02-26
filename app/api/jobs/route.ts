@@ -21,7 +21,8 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
 
-    // Extract fields
+    console.log("Form Data", formData);
+
     // Extract fields
     const payload = {
       role: formData.get("role") as string,
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
       availability: formData.get("availability") as string,
       message: formData.get("message") as string,
     };
+
+    console.log("Payload", payload);
 
     // Validate payload
     const { error, value } = jobApplicationSchema.validate(payload);
@@ -84,11 +87,11 @@ export async function POST(request: Request) {
         firstName,
         lastName,
         email,
-        phone,
-        portfolio,
+        phone || null,
+        portfolio || null,
         experience,
         availability,
-        message,
+        message || null,
       ];
       const appResult = await client.query(insertAppQuery, appValues);
       const jobApplicationId = appResult.rows[0].job_application_id;

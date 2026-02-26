@@ -3,19 +3,229 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import { FileText, Search } from "lucide-react";
+import {
+  FileText,
+  Search,
+  Eye,
+  X,
+  User,
+  Mail,
+  Phone,
+  Globe,
+  Clock,
+  Briefcase,
+  Calendar,
+} from "lucide-react";
 import Pagination from "@/app/components/Pagination";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import Modal from "@/app/components/Modal";
 
 interface JobApplication {
   id: string;
   applicantName: string;
   applicantEmail: string;
+  phone?: string;
+  portfolio?: string;
+  experience?: string;
+  availability?: string;
   roleApplied: string;
   status: "Pending" | "Reviewed" | "Interviewing" | "Rejected" | "Hired";
   appliedDate: string;
-  resumeUrl?: string;
   coverLetter?: string;
+  files?: { name: string; url: string }[];
+}
+
+function ApplicationDetailsModal({
+  app,
+  onClose,
+}: {
+  app: JobApplication;
+  onClose: () => void;
+}) {
+  return (
+    <Modal isOpen={true} onClose={onClose} title="Application Details">
+      <div className="p-6 space-y-8 max-h-[80vh] overflow-y-auto">
+        {/* Header Info */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+              <User size={32} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {app.applicantName}
+              </h3>
+              <p className="text-gray-500 flex items-center gap-2">
+                <Mail size={14} /> {app.applicantEmail}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
+              Status
+            </p>
+            <span
+              className={`px-3 py-1 text-xs font-bold rounded-full ${
+                app.status === "Pending"
+                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                  : app.status === "Reviewed"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                    : app.status === "Interviewing"
+                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                      : app.status === "Rejected"
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+              }`}
+            >
+              {app.status}
+            </span>
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Briefcase size={16} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Role Applied
+                </p>
+                <p className="font-medium">{app.roleApplied}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Phone size={16} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Phone Number
+                </p>
+                <p className="font-medium">{app.phone || "Not provided"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Clock size={16} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Availability
+                </p>
+                <p className="font-medium">
+                  {app.availability || "Not provided"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Globe size={16} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Portfolio / Website
+                </p>
+                {app.portfolio ? (
+                  <a
+                    href={app.portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline font-medium"
+                  >
+                    View Portfolio
+                  </a>
+                ) : (
+                  <p className="font-medium">Not provided</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Calendar />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Applied On
+                </p>
+                <p className="font-medium">
+                  {app.appliedDate
+                    ? format(new Date(app.appliedDate), "MMMM dd, yyyy")
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
+                <Clock size={16} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-bold">
+                  Experience
+                </p>
+                <p className="font-medium">
+                  {app.experience || "Not provided"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cover Letter */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <FileText size={16} /> Cover Letter / Message
+          </h4>
+          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800 italic text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            {app.coverLetter || "No cover letter provided."}
+          </div>
+        </div>
+
+        {/* Files */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+            Attached Files
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {app.files && app.files.length > 0 ? (
+              app.files.map((file, idx) => (
+                <a
+                  key={idx}
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                    <FileText size={20} />
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-semibold truncate">
+                      {file.name || "Resume/File"}
+                    </p>
+                    <p className="text-xs text-gray-500 uppercase">
+                      Click to view
+                    </p>
+                  </div>
+                </a>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500 italic">No files attached.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
 }
 
 export default function AdminJobApplicationsSection() {
@@ -31,26 +241,29 @@ export default function AdminJobApplicationsSection() {
 
   // Modal state
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
   const [newStatus, setNewStatus] = useState<JobApplication["status"] | null>(
     null,
   );
 
   const fetchJobApplications = useCallback(async () => {
+    console.log("Component fetching job applications...");
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `/api/admin/jobs${filterRole ? `?role=${filterRole}` : ""}`,
-      );
+      const url = `/api/admin/jobs${filterRole ? `?role=${filterRole}` : ""}`;
+      console.log("Fetching from URL:", url);
+      const res = await fetch(url);
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to fetch job applications.");
       }
       const data: JobApplication[] = await res.json();
+      console.log("Job Applications Data Received:", data);
       setJobApplications(data);
     } catch (err: any) {
-      console.error("Error fetching job applications:", err);
+      console.error("Error fetching job applications in component:", err);
       setError(err.message || "Failed to load job applications.");
       toast.error(err.message || "Failed to load job applications.");
     } finally {
@@ -71,22 +284,26 @@ export default function AdminJobApplicationsSection() {
     setIsConfirmModalOpen(true);
   };
 
+  const handleViewDetails = (app: JobApplication) => {
+    setSelectedApp(app);
+    setIsDetailsModalOpen(true);
+  };
+
   const handleConfirmStatusChange = async () => {
     if (!selectedApp || !newStatus) return;
 
     setLoading(true);
     setIsConfirmModalOpen(false);
     try {
-      const res = await fetch(
-        `/api/admin/job-applications/${selectedApp.id}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        },
-      );
+      console.log("Updating status for ID:", selectedApp.id, "to:", newStatus);
+      const res = await fetch(`/api/admin/jobs`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedApp.id, status: newStatus }),
+      });
       if (!res.ok) {
         const errorData = await res.json();
+        console.error("Status update failed:", errorData);
         throw new Error(errorData.error || "Failed to update status.");
       }
       toast.success("Application status updated successfully!");
@@ -104,10 +321,10 @@ export default function AdminJobApplicationsSection() {
   const filteredApplications = useMemo(() => {
     return jobApplications.filter(
       (app) =>
-        app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.applicantEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.roleApplied.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.id.toLowerCase().includes(searchQuery.toLowerCase()),
+        app.applicantName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.applicantEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.roleApplied?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.id?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [jobApplications, searchQuery]);
 
@@ -132,9 +349,15 @@ export default function AdminJobApplicationsSection() {
       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
   };
 
-  const uniqueRoles = Array.from(
-    new Set(jobApplications.map((app) => app.roleApplied)),
-  );
+  const uniqueRoles = useMemo(() => {
+    return Array.from(
+      new Set(
+        jobApplications
+          .map((app) => app.roleApplied)
+          .filter((role): role is string => !!role),
+      ),
+    );
+  }, [jobApplications]);
 
   return (
     <div className="space-y-6">
@@ -212,7 +435,7 @@ export default function AdminJobApplicationsSection() {
               ) : currentApplications.length > 0 ? (
                 currentApplications.map((app) => (
                   <tr
-                    key={app.id}
+                    key={app.id || Math.random().toString()}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
                     <td className="px-6 py-4">
@@ -230,7 +453,18 @@ export default function AdminJobApplicationsSection() {
                       <p className="text-xs text-gray-500">ID: #{app.id}</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {format(new Date(app.appliedDate), "MMM dd, yyyy")}
+                      {app.appliedDate
+                        ? (() => {
+                            try {
+                              return format(
+                                new Date(app.appliedDate),
+                                "MMM dd, yyyy",
+                              );
+                            } catch (e) {
+                              return "Invalid Date";
+                            }
+                          })()
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -243,13 +477,20 @@ export default function AdminJobApplicationsSection() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {app.resumeUrl && (
+                        <button
+                          onClick={() => handleViewDetails(app)}
+                          className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        {app.files && app.files.length > 0 && (
                           <a
-                            href={app.resumeUrl}
+                            href={app.files[0].url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
-                            title="View Resume"
+                            className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+                            title="View Primary Resume"
                           >
                             <FileText size={16} />
                           </a>
@@ -307,6 +548,16 @@ export default function AdminJobApplicationsSection() {
           setNewStatus(null);
         }}
       />
+
+      {isDetailsModalOpen && selectedApp && (
+        <ApplicationDetailsModal
+          app={selectedApp}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedApp(null);
+          }}
+        />
+      )}
     </div>
   );
 }
