@@ -263,8 +263,8 @@ export async function PATCH(request: Request) {
           "SELECT offer_status_id FROM custom_offer_statuses WHERE name = $1",
           [status],
         );
-        if (statusResult.rows.length > 0) {
-          statusId = statusResult.rows[0].offer_status_id;
+        if (statusResult.length > 0) {
+          statusId = statusResult[0].offer_status_id;
         } else {
           return NextResponse.json(
             { error: `Invalid status name: ${status}` },
@@ -333,8 +333,8 @@ export async function PATCH(request: Request) {
       "SELECT name FROM custom_offer_statuses WHERE offer_status_id = $1",
       [updatedOffer.status],
     );
-    if (statusNameResult.rows.length > 0) {
-      updatedOffer.status = statusNameResult.rows[0].name; // Replace ID with name
+    if (statusNameResult.length > 0) {
+      updatedOffer.status = statusNameResult[0].name; // Replace ID with name
     } else {
       console.warn(`Status name not found for ID: ${updatedOffer.status}`);
     }

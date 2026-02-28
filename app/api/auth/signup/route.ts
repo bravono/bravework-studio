@@ -110,7 +110,7 @@ export async function POST(req: Request) {
         );
 
         userId = existingUserResult.rows[0].user_id;
-        if (existingUserResult.length === 0) {
+        if (existingUserResult.rows.length === 0) {
           // This case should ideally not happen if the session is valid, but we handle it
           throw new Error("User not found for the current session.");
         }
@@ -240,7 +240,7 @@ export async function POST(req: Request) {
           "SELECT title, description, price_in_kobo, start_date, end_date FROM courses WHERE course_id = $1",
           [courseId],
         );
-        if (courseResult.length === 0) {
+        if (courseResult.rows.length === 0) {
           throw new Error("Course not found.");
         }
         const {
@@ -258,7 +258,7 @@ export async function POST(req: Request) {
           `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
           [courseId, Number(preferredSessionTime)],
         );
-        if (sessionResult.length === 0) {
+        if (sessionResult.rows.length === 0) {
           throw new Error("No session found for the selected time.");
         }
 
@@ -269,12 +269,18 @@ export async function POST(req: Request) {
         const paymentStatus = price === 0 ? "paid" : "pending";
 
         // Fetch 'pending' order status
-        const paymentStatusResult = await client.query([paymentStatus]);
+        const paymentStatusResult = await client.query(
+          "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
+          [paymentStatus],
+        );
 
         logger.debug({ paymentStatusResult }, "Payment status result");
         const paymentStatusId = paymentStatusResult.rows[0]?.payment_status_id;
 
-        const existingCourse = await client.query([userId, courseId]);
+        const existingCourse = await client.query(
+          "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
+          [userId, courseId],
+        );
 
         logger.debug(
           { existingCourseCount: existingCourse.rows.length },
