@@ -11,10 +11,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
+    console.log(`🔍 Forget password attempt for email: ${email}`);
     // 1. Find the user in the database
     const user = await queryDatabase("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
+
+    console.log(`👤 User query result: ${JSON.stringify(user)}`);
 
     let userId;
     let userEmail;
@@ -27,17 +30,21 @@ export async function POST(req: Request) {
     }
 
     if (userId) {
+      console.log(`🎫 Generating token for user: ${userId}`);
       // 3. Generate a secure, time-limited token
       const obj = await generateSecureToken(userId);
 
       // 5. Send the email with the reset link
       const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${obj.token}`;
+      console.log(`✉️ Triggering sendPasswordResetEmail for ${userEmail}`);
       await sendPasswordResetEmail(
         userEmail,
         userName,
         resetLink,
-        obj.expiration
+        obj.expiration,
       );
+    } else {
+      console.log(`⚠️ User not found for email: ${email}`);
     }
 
     // Always return a success message, even if the user wasn't found (for security)
@@ -46,13 +53,13 @@ export async function POST(req: Request) {
         message:
           "If an account with that email exists, a password reset link has been sent to your inbox.",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Forget password API error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
