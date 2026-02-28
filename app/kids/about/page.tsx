@@ -135,7 +135,7 @@ export default function KidsAboutPage() {
               Studio Synergy
             </h3>
             <p className="text-gray-600 leading-relaxed mb-6">
-              This project is powered by **Bravework Studio's** expertise in:
+              This project is powered by Bravework Studio's expertise in:
             </p>
             <ul className="space-y-4">
               <li className="flex items-center gap-3 text-gray-700 font-bold">
