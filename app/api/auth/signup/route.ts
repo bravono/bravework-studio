@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { sendOrderReceivedEmail, sendVerificationEmail } from "@/lib/mailer";
 import { createZohoLead } from "@/lib/zoho";
 import Joi from "joi";
+import logger from "@/lib/logger";
 
 // Define Joi schemas
 const baseSignupSchema = Joi.object({
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
     let validationResult;
     // Determine the correct schema based on the request body and session status
     if (body.courseId) {
-      console.log("Session", session);
+      logger.debug({ session }, "Signup session check");
       if (session && session.user) {
         validationResult = enrollExistingUserSchema.validate(body);
       } else {
@@ -113,7 +114,7 @@ export async function POST(req: Request) {
           // This case should ideally not happen if the session is valid, but we handle it
           throw new Error("User not found for the current session.");
         }
-        console.log("Enrolling existing user with ID:", userId);
+        logger.info({ userId }, "Enrolling existing user");
       } else {
         // Scenario 2: New user signing up, potentially with a course enrollment
         const existingUserResult = await client.query(
@@ -150,17 +151,17 @@ export async function POST(req: Request) {
             "SELECT user_id FROM users WHERE referral_code = $1",
             [referralCode],
           );
-          console.log("Referrer Result", referrerResult);
+          logger.debug({ referrerResult }, "Referrer result");
           if (referrerResult.rows.length > 0) {
             const referrerId = referrerResult.rows[0].user_id;
             await client.query(
               "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
               [referrerId, userId],
             );
-            console.log(`User ${userId} referred by ${referrerId}`);
+            logger.info({ userId, referrerId }, "User referred");
           }
         }
-        console.log("New user created with ID:", userId);
+        logger.info({ userId }, "New user created");
 
         // Assign 'user' role
         const roleResult = await client.query(
@@ -184,7 +185,7 @@ export async function POST(req: Request) {
 
         try {
           await sendVerificationEmail(email, verificationToken, name, course);
-          console.log(`Verification email sent to ${email}`);
+          logger.info({ email }, "Verification email sent");
 
           // Add to Sender.net Marketing List
           const senderApiKey = process.env.SENDER_API_KEY;
@@ -208,14 +209,14 @@ export async function POST(req: Request) {
             })
               .then((res) => res.json())
               .then((data) =>
-                console.log("Sender marketing subscription result:", data),
+                logger.info({ data }, "Sender marketing subscription result"),
               )
               .catch((err) =>
-                console.error("Sender subscription error:", err.message),
+                logger.error({ err: err.message }, "Sender subscription error"),
               );
           }
         } catch (mailError) {
-          console.error("Failed to send verification email:", mailError);
+          logger.error({ err: mailError }, "Failed to send verification email");
         }
       }
 
@@ -263,25 +264,22 @@ export async function POST(req: Request) {
 
         const { session_id: sessionId, session_number: sessionNumber } =
           sessionResult.rows[0];
-        console.log("Session Id", sessionId);
+        logger.debug({ sessionId }, "Session ID found");
 
         const paymentStatus = price === 0 ? "paid" : "pending";
 
         // Fetch 'pending' order status
-        const paymentStatusResult = await client.query(
-          "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
-          [paymentStatus],
-        );
+        const paymentStatusResult = await client.query([paymentStatus]);
 
-        console.log("Payment Status", paymentStatusResult);
+        logger.debug({ paymentStatusResult }, "Payment status result");
         const paymentStatusId = paymentStatusResult.rows[0]?.payment_status_id;
 
-        const existingCourse = await client.query(
-          "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
-          [userId, courseId],
-        );
+        const existingCourse = await client.query([userId, courseId]);
 
-        console.log("Existing Course", existingCourse);
+        logger.debug(
+          { existingCourseCount: existingCourse.rows.length },
+          "Checking existing course enrollment",
+        );
         if (existingCourse.rows.length > 0)
           return NextResponse.json({
             message: "You are already enrolled in this course",
@@ -339,13 +337,13 @@ export async function POST(req: Request) {
           ],
         );
 
-        console.log("Order Result", orderResult);
+        logger.info({ orderResult }, "Order created");
 
         if (orderResult.rows.length === 0)
           return NextResponse.json({ message: "No order was inserted" });
 
         orderId = orderResult.rows[0].order_id;
-        console.log("Course order ID:", orderId);
+        logger.info({ orderId }, "Course order ID");
 
         // Integrate Zoho CRM for Free Courses
         if (price === 0) {
@@ -357,13 +355,14 @@ export async function POST(req: Request) {
               Lead_Source: "Free Course Enrollment",
             };
             await createZohoLead(leadData);
-            console.log(
-              `Zoho Lead created for free course enrollment: ${email}`,
+            logger.info(
+              { email },
+              "Zoho Lead created for free course enrollment",
             );
           } catch (zohoError) {
-            console.error(
-              "Failed to create Zoho Lead for free course:",
-              zohoError,
+            logger.error(
+              { err: zohoError },
+              "Failed to create Zoho Lead for free course",
             );
           }
         }
@@ -374,9 +373,9 @@ export async function POST(req: Request) {
       if (orderId) {
         try {
           await sendOrderReceivedEmail(email, name, orderId, course);
-          console.log(`Course order email sent to ${email}`);
+          logger.info({ email }, "Course order email sent");
         } catch (mailError) {
-          console.error("Failed to send course order email:", mailError);
+          logger.error({ err: mailError }, "Failed to send course order email");
         }
       }
 
@@ -403,7 +402,7 @@ export async function POST(req: Request) {
       );
     }
   } catch (error) {
-    console.error("Error during signup/enrollment:", error);
+    logger.error({ err: error }, "Error during signup/enrollment");
 
     let message = "Failed to process request.";
     let status = 500;

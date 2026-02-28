@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withTransaction } from "@/lib/db";
 import { jobApplicationSchema } from "@/lib/schemas";
+import logger from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
 
-    console.log("Form Data", formData);
+    logger.debug(
+      { formData: Array.from(formData.entries()) },
+      "Form Data received",
+    );
 
     // Extract fields
     const payload = {
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
       message: formData.get("message") as string,
     };
 
-    console.log("Payload", payload);
+    logger.debug({ payload }, "Extracted payload");
 
     // Validate payload
     const { error, value } = jobApplicationSchema.validate(payload);
@@ -70,7 +74,7 @@ export async function POST(request: Request) {
       try {
         fileInfo = JSON.parse(fileString);
       } catch (e) {
-        console.error("Error parsing file info:", e);
+        logger.error({ err: (e as Error).message }, "Error parsing file info");
       }
     }
 
@@ -130,7 +134,7 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error: any) {
-    console.error("Error submitting job application:", error);
+    logger.error({ err: error }, "Error submitting job application");
     return NextResponse.json(
       { error: "Failed to submit application" },
       { status: 500 },
