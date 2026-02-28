@@ -23,6 +23,75 @@ declare module "next-auth" {
   }
 }
 
+export async function authorizeUser(
+  credentials: Record<string, string> | undefined,
+): Promise<NextAuthUser | null> {
+  if (!credentials) {
+    return null;
+  }
+
+  // Find the user by email in PostgreSQL
+  // Assuming queryDatabase returns an array of rows, and you take the first one
+  const result = await queryDatabase(
+    "SELECT user_id, first_name, last_name, email, password, email_verified, company_name, phone, two_factor_secret, two_factor_enabled FROM users WHERE email = $1",
+    [credentials.email],
+  );
+  const user = result[0];
+
+  if (!user) {
+    throw new Error("No user found with that email.");
+  }
+
+  // Check email verification status
+  if (!user.email_verified) {
+    // Use user.email_verified from DB
+    throw new Error("Please verify your email first.");
+  }
+
+  // Verify password (use bcryptjs for hashing and comparing)
+  const isValid = await bcrypt.compare(
+    credentials.password as string,
+    user.password as string,
+  );
+
+  if (!isValid) {
+    throw new Error("Incorrect password.");
+  }
+
+  if (user.two_factor_enabled) {
+    if (!credentials.mfaCode || credentials.mfaCode === "undefined") {
+      throw new Error("MFA_REQUIRED");
+    }
+
+    // Verify MFA code
+    const { verify } = await import("otplib");
+    try {
+      const isValidToken = await verify({
+        token: credentials.mfaCode as string,
+        secret: user.two_factor_secret as string,
+      });
+
+      if (!isValidToken) {
+        throw new Error("Invalid MFA code");
+      }
+    } catch (err: any) {
+      // If it's already "Invalid MFA code", rethrow
+      if (err.message === "Invalid MFA code") throw err;
+      // Otherwise, it's likely a validation error from otplib (e.g. "Token must be 6 digits")
+      throw new Error(err.message || "MFA validation failed");
+    }
+  }
+
+  // Return user object. NextAuth.js will serialize this into the JWT.
+  return {
+    id: user.user_id,
+    email: user.email,
+    name: `${user.first_name} ${user.last_name}`,
+    companyName: user.company_name,
+    phone: user.phone,
+  };
+}
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -32,64 +101,8 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
         mfaCode: { label: "MFA Code", type: "text" },
       },
-      async authorize(credentials): Promise<NextAuthUser | null> {
-        if (!credentials) {
-          return null;
-        }
-
-        // Find the user by email in PostgreSQL
-        // Assuming queryDatabase returns an array of rows, and you take the first one
-        const result = await queryDatabase(
-          "SELECT user_id, first_name, last_name, email, password, email_verified, company_name, phone, two_factor_secret, two_factor_enabled FROM users WHERE email = $1",
-          [credentials.email],
-        );
-        const user = result[0];
-
-        if (!user) {
-          throw new Error("No user found with that email.");
-        }
-
-        // Check email verification status
-        if (!user.email_verified) {
-          // Use user.email_verified from DB
-          throw new Error("Please verify your email first.");
-        }
-
-        // Verify password (use bcryptjs for hashing and comparing)
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password as string,
-        );
-
-        if (!isValid) {
-          throw new Error("Incorrect password.");
-        }
-
-        if (user.two_factor_enabled) {
-          if (!credentials.mfaCode) {
-            throw new Error("MFA_REQUIRED");
-          }
-
-          // Verify MFA code
-          const { verify } = await import("otplib");
-          const isValidToken = await verify({
-            token: credentials.mfaCode as string,
-            secret: user.two_factor_secret as string,
-          });
-
-          if (!isValidToken) {
-            throw new Error("Invalid MFA code");
-          }
-        }
-
-        // Return user object. NextAuth.js will serialize this into the JWT.
-        return {
-          id: user.user_id,
-          email: user.email,
-          name: `${user.first_name} ${user.last_name}`,
-          companyName: user.company_name,
-          phone: user.phone,
-        };
+      async authorize(credentials) {
+        return authorizeUser(credentials as Record<string, string> | undefined);
       },
     }),
   ],
