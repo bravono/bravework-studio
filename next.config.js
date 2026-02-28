@@ -13,8 +13,8 @@ const sentryConfig = {
 
   // Suppresses source map uploading logs during bundling
   silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+  org: process.env.SENTRY_ORG || "bravework-studio",
+  project: process.env.SENTRY_PROJECT || "bravework-studio",
 };
 
 const sentryOptions = {
@@ -46,6 +46,4 @@ const sentryOptions = {
 
 module.exports = withSentryConfig(nextConfig, sentryConfig, sentryOptions);
 
-
 // Injected content via Sentry wizard below
-
