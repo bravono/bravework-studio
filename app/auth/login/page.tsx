@@ -68,11 +68,14 @@ function LoginForm() {
     });
 
     if (result?.error) {
+      console.log("Login Error:", result.error);
+      const errorMsg = result.error.toUpperCase();
+
       if (result.error === "Please verify your email first.") {
         setMessage(
           `Your email address is not verified. Please check your inbox for a verification link or`,
         );
-      } else if (result.error === "MFA_REQUIRED") {
+      } else if (errorMsg === "MFA_REQUIRED") {
         setMfaRequired(true);
         setMessage("Please enter your MFA code.");
       } else if (result.error === "Invalid MFA code") {
@@ -80,8 +83,10 @@ function LoginForm() {
       } else if (result.error.includes("Incorrect")) {
         setMessage("Email or Password is Incorrect, please try again");
       } else {
-        setMessage("Something went wrong, please try again");
+        // Show the actual error message from the server if it exists
+        setMessage(result.error);
       }
+
       setLoading(false);
     } else {
       // Login successful, now attempt to claim guest orders
@@ -102,69 +107,80 @@ function LoginForm() {
         <h2 className="text-3xl font-bold text-center text-green-800">Login</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!mfaRequired && (
-            <>
+          <div className="relative">
+            <label htmlFor="email" className="sr-only">
+              Email
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Mail className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className={`w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 ${mfaRequired ? "bg-gray-100 cursor-not-allowed opacity-75" : ""}`}
+              placeholder="Email *"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              required
+              disabled={mfaRequired}
+            />
+          </div>
+          <div className="relative">
+            <label htmlFor="password" className="sr-only">
+              Password
+            </label>
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className="w-5 h-5 text-gray-400" />
+            </div>
+
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className={`w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 ${mfaRequired ? "bg-gray-100 cursor-not-allowed opacity-75" : ""}`}
+              placeholder="Password *"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+              required
+              disabled={mfaRequired}
+            />
+          </div>
+
+          {mfaRequired && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="relative">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-                  placeholder="Email *"
-                  value={form.email}
-                  onChange={handleChange}
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <label htmlFor="password" className="sr-only">
-                  Password
+                <label htmlFor="mfaCode" className="sr-only">
+                  MFA Code
                 </label>
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Lock className="w-5 h-5 text-gray-400" />
                 </div>
-
                 <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-                  placeholder="Password *"
-                  value={form.password}
+                  type="text"
+                  id="mfaCode"
+                  name="mfaCode"
+                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 bg-white"
+                  placeholder="6-digit MFA Code"
+                  value={form.mfaCode}
                   onChange={handleChange}
-                  autoComplete="current-password"
+                  autoFocus
                   required
                 />
               </div>
-            </>
-          )}
-
-          {mfaRequired && (
-            <div className="relative">
-              <label htmlFor="mfaCode" className="sr-only">
-                MFA Code
-              </label>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Lock className="w-5 h-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                id="mfaCode"
-                name="mfaCode"
-                className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
-                placeholder="MFA Code"
-                value={form.mfaCode}
-                onChange={handleChange}
-                autoFocus
-                required
-              />
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaRequired(false);
+                  setMessage(null);
+                  setForm((prev) => ({ ...prev, mfaCode: "" }));
+                }}
+                className="text-sm text-green-600 hover:text-green-800 font-medium transition-colors"
+              >
+                &larr; Back to login
+              </button>
             </div>
           )}
 
