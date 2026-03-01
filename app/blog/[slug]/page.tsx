@@ -14,6 +14,7 @@ import { getPostBySlug } from "@/lib/blog";
 import { generateArticleSchema, generateHowToSchema } from "@/lib/seo-utils";
 import CategoryBadge from "@/app/components/blog/CategoryBadge";
 import BlogSidebar from "@/app/components/blog/BlogSidebar";
+import PostShareActions from "@/app/components/blog/PostShareActions";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
@@ -53,21 +54,6 @@ export default function PostDetail({ params }: PostProps) {
     notFound();
   }
 
-  const handleShare = () => {
-    if (typeof window !== "undefined" && navigator.share) {
-      navigator
-        .share({
-          title: post.title,
-          text: post.excerpt,
-          url: window.location.href,
-        })
-        .catch(console.error);
-    } else if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
-    }
-  };
-
   const schema =
     post.category === "How To"
       ? generateHowToSchema(post)
@@ -106,13 +92,10 @@ export default function PostDetail({ params }: PostProps) {
             <header className="mb-12">
               <div className="mb-6 flex items-center justify-between">
                 <CategoryBadge category={post.category || "General"} />
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span className="text-sm font-bold">Share</span>
-                </button>
+                <PostShareActions
+                  title={post.title}
+                  excerpt={post.excerpt || ""}
+                />
               </div>
 
               <h1
