@@ -16,6 +16,7 @@
     "seed": "tsx prisma/seed/index.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@paystack/inline-js": "^2.22.6",
     "@prisma/client": "^6.19.1",
     "@re-dev/react-truncate": "^0.5.2",
