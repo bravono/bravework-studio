@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
 
+export const dynamic = "force-dynamic";
+
 const prisma = new PrismaClient();
 
 interface MonitoringData {
