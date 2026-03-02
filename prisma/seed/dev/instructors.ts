@@ -4,11 +4,11 @@ export async function seedInstructors() {
     const instructors = [
         {
             instructor_id: 1,
-            first_name: "Ahbideen",
+            first_name: "Ajisefini",
             last_name: "Yusuf",
             bio: "Lead 3D artist and instructor with 10+ years of experience in Blender.",
             photo_url: "",
-            email: "ahbideeny@braveworkstudio.com",
+            email: "yusufahbideen@yahoo.com",
         },
     ];
 

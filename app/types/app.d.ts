@@ -172,6 +172,7 @@ interface Course {
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
   isActive: boolean;
+  isPublished: boolean;
   startDate: string;
   endDate: string;
   maxStudents: string;
@@ -262,7 +263,7 @@ interface SessionFormProps {
     sessionId: number,
     optionNumber: number,
     field: keyof SessionOption,
-    value: any
+    value: any,
   ) => void;
   addOption: (sessionId: number) => void;
   removeOption: (sessionId: number, optionNumber: number) => void;

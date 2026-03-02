@@ -337,6 +337,9 @@ export default function CourseModal({
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false,
   );
+  const [isPublished, setIsPublished] = useState<boolean>(
+    existingCourse?.isPublished || false,
+  );
   const [maxStudents, setMaxStudents] = useState<string>(
     existingCourse?.maxStudents || "0",
   );
@@ -526,9 +529,9 @@ export default function CourseModal({
       setTitle(existingCourse.title);
       setPrice(existingCourse.price / KOBO_PER_NAIRA);
       setInstructor(existingCourse.instructor);
-      setIsActive(existingCourse.isActive);
-      setMaxStudents(existingCourse.maxStudents);
       setThumbnailUrl(existingCourse.thumbnailUrl);
+      setIsActive(existingCourse.isActive);
+      setIsPublished(existingCourse.isPublished || false);
       setCategory(existingCourse.category);
       setLevel(existingCourse.level);
       setLanguage(existingCourse.language);
@@ -595,6 +598,7 @@ export default function CourseModal({
           end_date: endDate,
           instructor,
           is_active: isActive,
+          is_published: isPublished,
           max_students: maxStudents,
           thumbnail_url: thumbnailUrl,
           course_category: category,
@@ -782,16 +786,29 @@ export default function CourseModal({
               </div>
             )}
 
+            <div>
+              <label htmlFor="isActive" className={labelStyle}>
+                Is Active (Visible to students)
+              </label>
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+            </div>
+
             {userRole === "admin" && (
               <div>
-                <label htmlFor="isActive" className={labelStyle}>
-                  Is Active
+                <label htmlFor="isPublished" className={labelStyle}>
+                  Is Published (Admin Approval)
                 </label>
                 <input
                   type="checkbox"
-                  id="isActive"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
+                  id="isPublished"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
                   className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                 />
               </div>

@@ -63,6 +63,7 @@ export async function GET(
                 c.title,
                 c.description,
                 c.is_active AS "isActive",
+                c.is_published AS "isPublished",
                 c.start_date AS "startDate",
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
@@ -228,7 +229,7 @@ export async function PATCH(
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, max_students = $8, thumbnail_url = $9, 
-                    course_category_id = $10, level = $11, language = $12
+                    course_category_id = $10, level = $11, language = $12, updated_at = NOW()
                 WHERE course_id = $13 AND instructor_id = $6; -- << CRUCIAL OWNERSHIP CLAUSE
             `;
       const courseParams = [

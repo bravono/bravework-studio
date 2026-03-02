@@ -711,7 +711,7 @@ function Page() {
         <div className="mb-10 px-2 flex items-center justify-center md:justify-start">
           <Link href="/">
             <Image
-              src="/assets/Braveword_Studio-Logo-Color.png"
+              src="/assets/Bravework_Studio-Logo-Color.png"
               alt="Bravework"
               width={140}
               height={40}

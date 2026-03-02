@@ -85,6 +85,7 @@ model courses {
   title               String               @db.VarChar(255)
   description         String
   is_active           Boolean?             @default(false)
+  is_published        Boolean?             @default(false)
   start_date          DateTime?            @db.Timestamptz(6)
   end_date            DateTime?            @db.Timestamptz(6)
   instructor_id       Int?

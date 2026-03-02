@@ -142,7 +142,7 @@ export default function AdminCourseSection() {
                   Course Info
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Details
+                  Status
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Pricing
@@ -182,15 +182,27 @@ export default function AdminCourseSection() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          <span className="font-bold">Instructor:</span>{" "}
-                          {course.instructor}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          <span className="font-bold">Language:</span>{" "}
-                          {course.language ?? "-"}
-                        </p>
+                      <div className="flex flex-col gap-1">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${
+                            course.isPublished
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                          }`}
+                        >
+                          {course.isPublished
+                            ? "Published"
+                            : "Pending Approval"}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${
+                            course.isActive
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {course.isActive ? "Active" : "Disabled"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
