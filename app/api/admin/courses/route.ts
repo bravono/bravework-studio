@@ -52,6 +52,7 @@ export async function GET(request: Request) {
                 c.title,
                 c.description,
                 c.is_active AS "isActive",
+                c.is_published AS "isPublished",
                 c.start_date AS "startDate",
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
