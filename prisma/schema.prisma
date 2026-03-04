@@ -39,7 +39,7 @@ model coupons {
 
 model course_categories {
   category_id   Int     @id @default(autoincrement())
-  category_name String  @db.VarChar(100)
+  category_name String  @unique @db.VarChar(100)
   description   String?
 }
 
@@ -478,7 +478,7 @@ model solutions {
 
 model tags {
   tag_id      Int           @id @default(autoincrement())
-  tag_name    String?       @db.VarChar(100)
+  tag_name    String?       @unique @db.VarChar(100)
   course_tags course_tags[]
 }
 
@@ -514,7 +514,7 @@ model todos {
 
 model tools {
   tool_id       Int             @id @default(autoincrement())
-  name          String          @db.VarChar(45)
+  name          String          @unique @db.VarChar(45)
   course_tools  course_tools[]
   project_tools project_tools[]
 }

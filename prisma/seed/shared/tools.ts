@@ -2,21 +2,17 @@ import { prisma } from "../client";
 
 export async function seedTools() {
   const tools = [
-    { name: "Blender", tool_id: 1 },
-    { name: "Figma", tool_id: 2 },
-    { name: "Unity", tool_id: 3 },
-    { name: "Unreal Engine", tool_id: 4 },
-    { name: "Visual Studio Code", tool_id: 5 },
-    { name: "Unreal Engine", tool_id: 6 },
-    
+    { name: "Blender" },
+    { name: "Figma" },
+    { name: "Unity" },
+    { name: "Unreal Engine" },
+    { name: "Visual Studio Code" },
   ];
 
   for (const tool of tools) {
     await prisma.tools.upsert({
-      where: { tool_id: tool.tool_id },
-      update: {
-       name: tool.name,
-      },
+      where: { name: tool.name },
+      update: {},
       create: tool,
     });
   }
