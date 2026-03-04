@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
-import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
+import {
+  Trash2,
+  PlusCircle,
+  Video,
+  Calendar,
+  Image as ImageIcon,
+} from "lucide-react";
 
 import dynamic from "next/dynamic";
 
@@ -367,12 +373,6 @@ export default function CourseModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [fileInfo, setFileInfo] = useState<{
-    fileName: string;
-    fileSize: string;
-    fileUrl: string;
-  } | null>(null);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
@@ -568,8 +568,6 @@ export default function CourseModal({
     setSubmitStatus("idle");
     setIsConfirmationOpen(true);
 
-    // File upload logic remains the same (omitted for brevity, assume success updates fileInfo)
-
     // Prepare the body with the new sessions data
     const sessionsPayload = sessions.map((session) => ({
       options: session.options.map((option) => ({
@@ -641,28 +639,6 @@ export default function CourseModal({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Existing file change logic (omitted for brevity)
-    const selectedFile =
-      e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    setFile(selectedFile);
-
-    if (!selectedFile) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target && typeof event.target.result === "string") {
-        setFileInfo({
-          fileName: selectedFile.name,
-          fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
-          fileUrl: event.target.result,
-        });
-        toast.success(`File ${selectedFile.name} has been attached!`);
-      }
-    };
-    reader.readAsDataURL(selectedFile);
   };
 
   // --- Render ---
@@ -966,30 +942,35 @@ export default function CourseModal({
               ></textarea>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Upload Thumbnail
+              <label htmlFor="thumbnailUrl" className={labelStyle}>
+                Thumbnail URL
               </label>
-              <div className="relative border-2 border-dashed border-gray-300 rounded-md p-6 text-center transition-colors duration-200 hover:border-gray-400">
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  <ImageIcon className="h-4 w-4" />
+                </span>
                 <input
-                  type="file"
-                  id="resume"
-                  onChange={handleFileChange}
-                  accept=".webp,.jpg,.jpeg,.png" // Changed accepted formats to image files
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  type="url"
+                  id="thumbnailUrl"
+                  value={thumbnailUrl}
+                  onChange={(e) => setThumbnailUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
-                <div className="flex flex-col items-center justify-center">
-                  <FileUpIcon />
-                  <p className="mt-2 text-gray-500">
-                    Drag and drop files here or{" "}
-                    <span className="text-blue-600 font-medium">
-                      click to browse
-                    </span>
-                  </p>
-                  <small className="mt-1 text-xs text-gray-400">
-                    Accepted formats: Webp, Jpeg, Png
-                  </small>
-                </div>
               </div>
+              {thumbnailUrl && (
+                <div className="mt-2 relative w-full h-40 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
+                  <img
+                    src={thumbnailUrl}
+                    alt="Thumbnail preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "https://via.placeholder.com/400x225?text=Invalid+Image+URL";
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* NEW: Sessions Management Section */}
