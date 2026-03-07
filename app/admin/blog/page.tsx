@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Outfit } from "next/font/google";
-import { Plus, Save, Trash2, Edit, FileText, X } from "lucide-react";
+import { Plus, Save, Trash2, Edit, FileText, X, Sparkles } from "lucide-react";
+import BlogGeneratorUI from "@/app/components/blog/BlogGeneratorUI";
 import { toast } from "react-toastify";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
@@ -17,6 +18,7 @@ export default function AdminBlogManager() {
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     slug: "",
@@ -102,26 +104,35 @@ export default function AdminBlogManager() {
               Create and manage your markdown blog posts.
             </p>
           </div>
-          <button
-            onClick={() => {
-              setFormData({
-                slug: "",
-                title: "",
-                date: new Date().toISOString().split("T")[0],
-                excerpt: "",
-                category: "Academy",
-                author: "Bravework Team",
-                tags: "",
-                content: "",
-                coverImage: "/assets/DOF0160.png",
-              });
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg"
-          >
-            <Plus className="w-5 h-5" />
-            New Post
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setIsAIModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 border-2 border-indigo-600 font-bold rounded-2xl hover:bg-indigo-50 transition-all shadow-lg"
+            >
+              <Sparkles className="w-5 h-5" />
+              AI Generate
+            </button>
+            <button
+              onClick={() => {
+                setFormData({
+                  slug: "",
+                  title: "",
+                  date: new Date().toISOString().split("T")[0],
+                  excerpt: "",
+                  category: "Academy",
+                  author: "Bravework Team",
+                  tags: "",
+                  content: "",
+                  coverImage: "/assets/DOF0160.png",
+                });
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              New Post
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -288,6 +299,44 @@ export default function AdminBlogManager() {
             </div>
           </div>
         </div>
+      )}
+      {isAIModalOpen && (
+        <BlogGeneratorUI
+          onClose={() => setIsAIModalOpen(false)}
+          onGenerated={(content) => {
+            // Extract frontmatter using a simple regex since we are on the client
+            const titleMatch = content.match(/title:\s*["']?(.*?)["']?\n/);
+            const excerptMatch = content.match(/excerpt:\s*["']?(.*?)["']?\n/);
+            const categoryMatch = content.match(
+              /category:\s*["']?(.*?)["']?\n/,
+            );
+            const slugMatch = content.match(/slug:\s*["']?(.*?)["']?\n/);
+
+            const title = titleMatch ? titleMatch[1] : "";
+            const excerpt = excerptMatch ? excerptMatch[1] : "";
+            const category = categoryMatch ? categoryMatch[1] : "General";
+            const slug = title
+              ? title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/(^-|-$)/g, "")
+              : "";
+
+            // Clean content by removing frontmatter block
+            const cleanContent = content.replace(/^---[\s\S]*?---\n*/, "");
+
+            setFormData({
+              ...formData,
+              title: title || formData.title,
+              excerpt: excerpt || formData.excerpt,
+              category: category || formData.category,
+              slug: slug || formData.slug,
+              content: cleanContent,
+            });
+            setIsAIModalOpen(false);
+            setIsModalOpen(true);
+          }}
+        />
       )}
     </div>
   );
