@@ -18,9 +18,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ content });
   } catch (error: any) {
     console.error("Generation error:", error);
+
+    const isQuotaError =
+      error.message?.includes("rate limit") ||
+      error.message?.includes("quota") ||
+      error.message?.includes("upgrade your Google AI plan");
+
     return NextResponse.json(
       { error: error.message || "Failed to generate blog post" },
-      { status: 500 },
+      { status: isQuotaError ? 503 : 500 },
     );
   }
 }

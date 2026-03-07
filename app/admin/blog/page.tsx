@@ -304,12 +304,34 @@ export default function AdminBlogManager() {
         <BlogGeneratorUI
           onClose={() => setIsAIModalOpen(false)}
           onGenerated={(content) => {
-            // Very basic parser for the sake of demo,
-            // the content usually contains frontmatter and markdown.
-            // We should ideally extract fields here if possible.
+            // Extract frontmatter using a simple regex since we are on the client
+            const titleMatch = content.match(/title:\s*["']?(.*?)["']?\n/);
+            const excerptMatch = content.match(/excerpt:\s*["']?(.*?)["']?\n/);
+            const categoryMatch = content.match(
+              /category:\s*["']?(.*?)["']?\n/,
+            );
+            const slugMatch = content.match(/slug:\s*["']?(.*?)["']?\n/);
+
+            const title = titleMatch ? titleMatch[1] : "";
+            const excerpt = excerptMatch ? excerptMatch[1] : "";
+            const category = categoryMatch ? categoryMatch[1] : "General";
+            const slug = title
+              ? title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/(^-|-$)/g, "")
+              : "";
+
+            // Clean content by removing frontmatter block
+            const cleanContent = content.replace(/^---[\s\S]*?---\n*/, "");
+
             setFormData({
               ...formData,
-              content: content,
+              title: title || formData.title,
+              excerpt: excerpt || formData.excerpt,
+              category: category || formData.category,
+              slug: slug || formData.slug,
+              content: cleanContent,
             });
             setIsAIModalOpen(false);
             setIsModalOpen(true);
