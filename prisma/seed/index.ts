@@ -10,6 +10,8 @@ import { seedTags } from "./shared/tags";
 import { seedSessions } from "./dev/sessions";
 import { seedTools } from "./shared/tools";
 import { seedCourseTools } from "./shared/courseTools";
+import { seedJobApplications } from "./shared/jobApplications";
+import { seedJobAppStatuses } from "./shared/jobAppStatuses";
 import { prisma } from "./client";
 
 async function main() {
@@ -23,6 +25,8 @@ async function main() {
     // Order: roles must be seeded before config (foreign key dependency)
     await seedRoles();
     await seedConfig();
+    await seedJobAppStatuses();
+    await seedJobApplications();
   } else {
     console.log("Running development seeds...");
     // Shared seeds (run in both environments)
@@ -40,6 +44,8 @@ async function main() {
     await seedSessions();
 
     await seedCourseTools(); // Must exist after courses and tools
+    await seedJobAppStatuses();
+    await seedJobApplications();
   }
 }
 

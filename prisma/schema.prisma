@@ -194,7 +194,7 @@ model job_applications {
   portfolio             String?                 @db.VarChar(255)
   experience            String?                 @db.VarChar(45)
   availability          String?                 @db.VarChar(45)
-  cover_letter          String?                 @db.VarChar(255)
+  cover_letter          String?
   created_at            DateTime?               @default(dbgenerated("'2025-06-27 15:18:28.071445+01'::timestamp with time zone")) @db.Timestamptz(6)
   updated_at            DateTime?               @default(dbgenerated("'2025-06-27 15:18:28.40919+01'::timestamp with time zone")) @db.Timestamptz(6)
   status_id             Int?
