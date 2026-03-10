@@ -16,7 +16,7 @@ const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
 interface BlogGeneratorUIProps {
   onClose: () => void;
-  onGenerated: (content: string) => void;
+  onGenerated: (content: string, thumbnailUrl?: string) => void;
 }
 
 export default function BlogGeneratorUI({
@@ -51,7 +51,7 @@ export default function BlogGeneratorUI({
       if (response.ok) {
         setStatus("Post generated successfully!");
         setTimeout(() => {
-          onGenerated(data.content);
+          onGenerated(data.content, data.thumbnailUrl);
         }, 1000);
       } else {
         setError(data.error || "Failed to generate blog post.");

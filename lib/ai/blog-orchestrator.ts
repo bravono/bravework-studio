@@ -1,9 +1,11 @@
 import { GoogleAgent } from "./google-adk";
+import { ImageAgent } from "./image-agent";
 import { AgentInput, AgentOutput } from "./BaseAgent";
 
 export class BlogOrchestrator {
   private writer: GoogleAgent;
   private critic: GoogleAgent;
+  private imageAgent: ImageAgent;
   private editor: GoogleAgent;
 
   constructor() {
@@ -19,10 +21,14 @@ export class BlogOrchestrator {
       "You are a sharp, analytical editor and critic. Your task is to review a blog draft. You must ensure the content is high quality, logically sound, and either perfectly aligns with the user's POV or provides a sophisticated, constructive counter-argument if the POV is weak or logically flawed. Suggest specific improvements or rewrite sections if necessary.",
     );
 
+    this.imageAgent = new ImageAgent();
+
     this.editor = new GoogleAgent(
       "Editor",
       "EDITOR",
-      "You are a markdown and SEO specialist. Your task is to take a finalized blog post and format it perfectly in Markdown with frontmatter. Ensure the title, excerpt, category, and tags are correctly extracted and formatted as YAML frontmatter.",
+      "You are a markdown and SEO specialist. Your task is to take a finalized blog post draft and its image metadata, and format it perfectly in Markdown with frontmatter. \n\n" +
+        "CRITICAL: If a thumbnail URL is provided in the history/context, ensure the 'thumbnail' field in the frontmatter is populated with it. \n" +
+        "CRITICAL: Insert at least one relevant image into the body of the blog post using the syntax ![Descriptive Alt Text](URL) where the URL is derived from the image metadata provided. Use the keywords to create a descriptive alt text.",
     );
   }
 
@@ -44,14 +50,27 @@ export class BlogOrchestrator {
       history: [draft.content],
     });
 
-    // Step 3: Editor finalizes the markdown
-    onStatus?.("Editor is applying final formatting and SEO...");
+    // Step 3: ImageAgent generates image metadata
+    onStatus?.("Visualist is generating image concepts...");
+    const imageData = await this.imageAgent.process({
+      ...input,
+      history: [review.content],
+    });
+
+    // Step 4: Editor finalizes the markdown
+    onStatus?.("Editor is applying final formatting and embedding images...");
     const final = await this.editor.process({
       ...input,
-      history: [draft.content, review.content],
+      history: [
+        review.content,
+        `IMAGE_METADATA: ${JSON.stringify(imageData.metadata)}`,
+      ],
     });
 
     onStatus?.("Generation complete!");
-    return final.content;
+    return {
+      content: final.content,
+      thumbnailUrl: imageData.metadata?.thumbnailUrl,
+    };
   }
 }

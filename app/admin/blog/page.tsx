@@ -303,7 +303,7 @@ export default function AdminBlogManager() {
       {isAIModalOpen && (
         <BlogGeneratorUI
           onClose={() => setIsAIModalOpen(false)}
-          onGenerated={(content) => {
+          onGenerated={(content, thumbnailUrl) => {
             // Extract frontmatter using a simple regex since we are on the client
             const titleMatch = content.match(/title:\s*["']?(.*?)["']?\n/);
             const excerptMatch = content.match(/excerpt:\s*["']?(.*?)["']?\n/);
@@ -332,6 +332,7 @@ export default function AdminBlogManager() {
               category: category || formData.category,
               slug: slug || formData.slug,
               content: cleanContent,
+              coverImage: thumbnailUrl || formData.coverImage,
             });
             setIsAIModalOpen(false);
             setIsModalOpen(true);

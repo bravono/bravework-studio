@@ -13,9 +13,12 @@ export async function POST(req: NextRequest) {
 
     // For now, we wait for the full generation.
     // In a more advanced version, we could use SSE for streaming status.
-    const content = await orchestrator.generate(topic, pointOfView);
+    const result = await orchestrator.generate(topic, pointOfView);
 
-    return NextResponse.json({ content });
+    return NextResponse.json({
+      content: result.content,
+      thumbnailUrl: result.thumbnailUrl,
+    });
   } catch (error: any) {
     console.error("Generation error:", error);
 
