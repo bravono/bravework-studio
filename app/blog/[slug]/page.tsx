@@ -15,6 +15,9 @@ import { generateArticleSchema, generateHowToSchema } from "@/lib/seo-utils";
 import CategoryBadge from "@/app/components/blog/CategoryBadge";
 import BlogSidebar from "@/app/components/blog/BlogSidebar";
 import PostShareActions from "@/app/components/blog/PostShareActions";
+import PostImage from "@/app/components/blog/PostImage";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
@@ -133,24 +136,41 @@ export default function PostDetail({ params }: PostProps) {
 
             {/* Featured Image */}
             <div className="relative h-[300px] md:h-[500px] rounded-[2.5rem] overflow-hidden mb-12 shadow-2xl">
-              <img
-                src={post.coverImage || "/assets/DOF0160.png"}
-                alt={post.title}
+              <PostImage
+                src={post.coverImage}
+                alt={post.title || "Featured Image"}
                 className="w-full h-full object-cover"
               />
             </div>
 
             {/* Content Rendering */}
             <div className="prose prose-lg prose-indigo max-w-none mb-16 px-2">
-              {/* For now, we'll render content as a simple string or use a dangerouslySetInnerHTML if we had a parser. 
-                 Since dependencies were installed, in a real environment we'd use ReactMarkdown or MDXRemote.
-                 For this MVP, we will render the content as blocks. */}
-              <div
-                className="text-gray-700 leading-relaxed space-y-6 text-lg"
-                dangerouslySetInnerHTML={{
-                  __html: post.content?.replace(/\n/g, "<br />") || "",
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  img: ({ node, ...props }) => (
+                    <PostImage
+                      src={props.src}
+                      alt={props.alt || "Article Image"}
+                      className="rounded-3xl shadow-lg my-12 w-full object-cover border border-gray-100"
+                    />
+                  ),
+                  h2: ({ node, ...props }) => (
+                    <h2
+                      {...props}
+                      className={`${outfit.className} text-3xl font-bold text-gray-900 mt-16 mb-6`}
+                    />
+                  ),
+                  p: ({ node, ...props }) => (
+                    <p
+                      {...props}
+                      className="text-gray-700 leading-relaxed text-lg mb-6"
+                    />
+                  ),
                 }}
-              />
+              >
+                {post.content || ""}
+              </ReactMarkdown>
             </div>
 
             {/* Tags */}

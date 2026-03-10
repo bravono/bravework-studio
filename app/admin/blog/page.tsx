@@ -73,6 +73,21 @@ export default function AdminBlogManager() {
     }
   };
 
+  const handleEdit = async (slug: string) => {
+    try {
+      const res = await fetch(`/api/admin/blog?slug=${slug}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFormData(data);
+        setIsModalOpen(true);
+      } else {
+        toast.error("Failed to load post");
+      }
+    } catch (err) {
+      toast.error("Error loading post");
+    }
+  };
+
   const handleDelete = async (slug: string) => {
     if (!confirm("Are you sure?")) return;
     try {
@@ -156,6 +171,12 @@ export default function AdminBlogManager() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleEdit(post.slug)}
+                    className="p-3 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </button>
                   <button
                     onClick={() => handleDelete(post.slug)}
                     className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
@@ -245,6 +266,20 @@ export default function AdminBlogManager() {
                       value={formData.date}
                       onChange={(e) =>
                         setFormData({ ...formData, date: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Cover Image URL
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500"
+                      value={formData.coverImage}
+                      onChange={(e) =>
+                        setFormData({ ...formData, coverImage: e.target.value })
                       }
                     />
                   </div>
