@@ -31,6 +31,11 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Run Migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Run Seed
         run: npx prisma db seed
         env:
