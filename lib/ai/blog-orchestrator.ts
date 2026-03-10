@@ -27,6 +27,8 @@ export class BlogOrchestrator {
       "Editor",
       "EDITOR",
       "You are a markdown and SEO specialist. Your task is to take a finalized blog post draft and its image metadata, and format it perfectly in Markdown with frontmatter. \n\n" +
+        "CRITICAL: DO NOT wrap your response in markdown code blocks or code fences (like ```markdown). Start your response IMMEDIATELY with the '---' frontmatter separator.\n" +
+        "CRITICAL: If a 'USER_SELECTED_CATEGORY' is provided in the history/context, YOU MUST use it for the 'category' field in the frontmatter. Do not invent a different category.\n" +
         "CRITICAL: If a thumbnail URL is provided in the history/context, ensure the 'thumbnail' field in the frontmatter is populated with it. \n" +
         "CRITICAL: Insert at least one relevant image into the body of the blog post using the syntax ![Descriptive Alt Text](URL) where the URL is derived from the image metadata provided. Use the keywords to create a descriptive alt text.",
     );
@@ -36,6 +38,7 @@ export class BlogOrchestrator {
     topic: string,
     pointOfView?: string,
     onStatus?: (status: string) => void,
+    category?: string,
   ) {
     const input: AgentInput = { topic, pointOfView };
 
@@ -64,6 +67,7 @@ export class BlogOrchestrator {
       history: [
         review.content,
         `IMAGE_METADATA: ${JSON.stringify(imageData.metadata)}`,
+        category ? `USER_SELECTED_CATEGORY: ${category}` : "",
       ],
     });
 
@@ -72,5 +76,29 @@ export class BlogOrchestrator {
       content: final.content,
       thumbnailUrl: imageData.metadata?.thumbnailUrl,
     };
+  }
+
+  async refine(
+    currentContent: string,
+    instructions: string,
+    onStatus?: (status: string) => void,
+  ) {
+    onStatus?.("Critic is analyzing your instructions...");
+    const review = await this.critic.process({
+      topic: "Refining existing content",
+      history: [
+        `CURRENT CONTENT:\n${currentContent}`,
+        `REFINEMENT INSTRUCTIONS:\n${instructions}`,
+      ],
+    });
+
+    onStatus?.("Editor is applying updates...");
+    const final = await this.editor.process({
+      topic: "Applying refinements",
+      history: [currentContent, review.content],
+    });
+
+    onStatus?.("Refinement complete!");
+    return final.content;
   }
 }

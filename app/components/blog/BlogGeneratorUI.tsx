@@ -25,6 +25,7 @@ export default function BlogGeneratorUI({
 }: BlogGeneratorUIProps) {
   const [topic, setTopic] = useState("");
   const [pointOfView, setPointOfView] = useState("");
+  const [category, setCategory] = useState("General");
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +44,7 @@ export default function BlogGeneratorUI({
       const response = await fetch("/api/blog/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, pointOfView }),
+        body: JSON.stringify({ topic, pointOfView, category }),
       });
 
       const data = await response.json();
@@ -103,6 +104,25 @@ export default function BlogGeneratorUI({
                 onChange={(e) => setTopic(e.target.value)}
                 disabled={isGenerating}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
+                Category
+              </label>
+              <select
+                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                disabled={isGenerating}
+              >
+                <option>Academy</option>
+                <option>Kids</option>
+                <option>Studio</option>
+                <option>Rentals</option>
+                <option>How To</option>
+                <option>General</option>
+              </select>
             </div>
 
             <div>
