@@ -80,7 +80,7 @@ model course_tools {
 
 model courses {
   course_id           Int                  @id @default(autoincrement())
-  title               String               @db.VarChar(255)
+  title               String               @unique @db.VarChar(255)
   description         String
   created_at          DateTime?            @default(now()) @db.Timestamp(6)
   is_active           Boolean?             @default(false)
@@ -464,6 +464,8 @@ model sessions {
   course_enrollments course_enrollments[]
   courses            courses?             @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   student_sessions   student_sessions[]
+
+  @@unique([course_id, session_number])
 }
 
 model solutions {
