@@ -234,6 +234,7 @@ export default function AdminJobApplicationsSection() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -252,7 +253,7 @@ export default function AdminJobApplicationsSection() {
     setLoading(true);
     setError(null);
     try {
-      const url = `/api/admin/jobs${filterRole ? `?role=${filterRole}` : ""}`;
+      const url = "/api/admin/jobs";
       console.log("Fetching from URL:", url);
       const res = await fetch(url);
       if (!res.ok) {
@@ -269,7 +270,7 @@ export default function AdminJobApplicationsSection() {
     } finally {
       setLoading(false);
     }
-  }, [filterRole]);
+  }, []);
 
   useEffect(() => {
     fetchJobApplications();
@@ -319,14 +320,19 @@ export default function AdminJobApplicationsSection() {
   };
 
   const filteredApplications = useMemo(() => {
-    return jobApplications.filter(
-      (app) =>
+    return jobApplications.filter((app) => {
+      const matchesSearch =
         app.applicantName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.applicantEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.roleApplied?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.id?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [jobApplications, searchQuery]);
+        app.id?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesRole = !filterRole || app.roleApplied === filterRole;
+      const matchesStatus = !filterStatus || app.status === filterStatus;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [jobApplications, searchQuery, filterRole, filterStatus]);
 
   const totalPages = Math.ceil(
     filteredApplications.length / applicationsPerPage,
@@ -381,6 +387,21 @@ export default function AdminJobApplicationsSection() {
               </option>
             ))}
           </select>
+          <select
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Reviewed">Reviewed</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Hired">Hired</option>
+          </select>
         </div>
       </div>
 
@@ -410,6 +431,9 @@ export default function AdminJobApplicationsSection() {
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Role Applied
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Experience
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Applied Date
@@ -451,6 +475,11 @@ export default function AdminJobApplicationsSection() {
                         {app.roleApplied}
                       </p>
                       <p className="text-xs text-gray-500">ID: #{app.id}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        {app.experience || "N/A"}
+                      </p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {app.appliedDate
