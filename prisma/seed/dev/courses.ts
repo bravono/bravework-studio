@@ -1,21 +1,28 @@
 import { prisma } from "../client";
 
 export async function seedCourses() {
+  const instructor = await prisma.instructors.findUnique({
+    where: { email: "yusufahbideen@yahoo.com" },
+  });
+
+  if (!instructor) {
+    throw new Error("Instructor not found for seeding courses");
+  }
+
   const courses = [
     {
-      course_id: 3,
       title: "Medical 3D Visualization in Just 2 Hours",
       description:
         "This 2-hour interactive session will give you a solid understanding of the potential of 3D animation in healthcare and motivate you to take the next step in exploring its applications in patient care, medical education, and communication.",
       is_active: false,
       start_date: new Date("2025-09-27T10:00:00Z"),
       end_date: new Date("2025-09-27T22:00:00Z"),
-      instructor_id: 1,
+      instructor_id: instructor.instructor_id,
       max_students: 20,
       price_in_kobo: 0,
       thumbnail_url:
         "https://live.staticflickr.com/65535/54854647085_5975235ccf.jpg",
-      course_category_id: 1,
+      course_category_id: null, // Since we don't have a reliable non-ID lookup for course_categories yet, or we'd need to find it
       level: "Beginner",
       language: "English",
       tag_id: null,
@@ -29,16 +36,14 @@ export async function seedCourses() {
       age_bracket: null,
       updated_at: new Date("2025-11-27T12:41:59.848Z"),
     },
-
     {
-      course_id: 4,
       title: "3D Technology for Medical Professionals",
       description:
         "This beginner-friendly program equips doctors with 3D design and animation skills to create medical visualizations, patient education tools, and custom prosthetics. Through hands-on projects, doctors will learn to use Blender to enhance clinical practice, improve patient communication, and support medical training. No prior 3D experience is required—just a desire to innovate in healthcare.",
       is_active: true,
       start_date: new Date("2026-11-01T10:00:00Z"),
       end_date: new Date("2026-11-29T04:00:00Z"),
-      instructor_id: 1,
+      instructor_id: instructor.instructor_id,
       max_students: 15,
       price_in_kobo: 5000000,
       thumbnail_url:
@@ -57,16 +62,14 @@ export async function seedCourses() {
       age_bracket: null,
       updated_at: new Date("2025-11-27T12:41:59.848Z"),
     },
-
     {
-      course_id: 1,
       title: "3D Animation Training for Kids",
       description:
         "This beginner-friendly program introduces kids to 3D animation through fun, hands-on projects using Blender. From creating simple shapes to animating flying cars and mysterious characters, kids will build their own 3D world while learning valuable STEM/STEAM skills. No prior experience is required—just curiosity and creativity!",
       is_active: true,
       start_date: new Date("2026-09-01T00:00:00Z"),
       end_date: new Date("2026-09-30T00:00:00Z"),
-      instructor_id: 1,
+      instructor_id: instructor.instructor_id,
       max_students: 20,
       price_in_kobo: 250000,
       thumbnail_url:
@@ -89,9 +92,8 @@ export async function seedCourses() {
 
   for (const course of courses) {
     await prisma.courses.upsert({
-      where: { course_id: course.course_id },
+      where: { title: course.title },
       update: {
-        title: course.title,
         description: course.description,
         is_active: course.is_active,
         start_date: course.start_date,
