@@ -15,8 +15,10 @@ import { seedJobAppStatuses } from "./shared/jobAppStatuses";
 import { prisma } from "./client";
 
 async function main() {
-  if (process.env.NODE_ENV === "production") {
-    console.log("Running production seeds...");
+  const env = (process.env.NODE_ENV || "development").toLowerCase();
+
+  if (env === "production" || env === "staging") {
+    console.log(`Running ${env} seeds...`);
     // Shared seeds (run in both environments)
     await seedCourseCategories();
     await seedTags();
