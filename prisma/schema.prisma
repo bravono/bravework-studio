@@ -464,8 +464,6 @@ model sessions {
   course_enrollments course_enrollments[]
   courses            courses?             @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   student_sessions   student_sessions[]
-
-  @@unique([course_id, session_number])
 }
 
 model solutions {
