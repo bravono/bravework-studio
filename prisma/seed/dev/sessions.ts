@@ -66,21 +66,30 @@ export async function seedSessions() {
     },
   ];
 
-  for (const session of sessions) {
-    await prisma.sessions.upsert({
+  for (const sessionData of sessions) {
+    // Since we don't have a unique key anymore, we look for an existing record
+    // that matches course, number, AND time.
+    const existing = await prisma.sessions.findFirst({
       where: {
-        course_id_session_number: {
-          course_id: session.course_id,
-          session_number: session.session_number,
-        },
+        course_id: sessionData.course_id,
+        session_number: sessionData.session_number,
+        session_timestamp: sessionData.session_timestamp,
       },
-      update: {
-        session_link: session.session_link,
-        session_timestamp: session.session_timestamp,
-        hour_per_session: session.hour_per_session,
-        recording_link: (session as any).recording_link || null,
-      },
-      create: session,
     });
+
+    if (existing) {
+      await prisma.sessions.update({
+        where: { session_id: existing.session_id },
+        data: {
+          session_link: sessionData.session_link,
+          hour_per_session: sessionData.hour_per_session,
+          recording_link: (sessionData as any).recording_link || null,
+        },
+      });
+    } else {
+      await prisma.sessions.create({
+        data: sessionData,
+      });
+    }
   }
 }
