@@ -1,60 +1,60 @@
 # Bravework Studio Website
 
-A modern, interactive website showcasing Bravework Studio's services in 3D modeling, web development, and UI/UX design.
+A modern, interactive platform showcasing Bravework Studio's ecosystem: creative services, an academy hub, and resource rentals.
 
-## Features
+---
 
-- Interactive 3D elements using Three.js
-- Modern, responsive design
-- Smooth animations with Framer Motion
-- Nigerian-inspired color scheme
-- Service showcase sections
+## 🚀 Quick Start
 
-## Tech Stack
+1. **Install Dependencies**:
 
-- Next.js 14
-- React 18
-- Three.js
-- Tailwind CSS
-- Framer Motion
-- TypeScript
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
    ```bash
    npm install
    ```
-3. Run the development server:
+
+2. **Environment Setup**:
+   Copy `.env.example` to `.env.local` and fill in the required keys.
+
+3. **Database Initialization**:
+
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
+
+4. **Run Development Server**:
    ```bash
    npm run dev
    ```
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+   Open [http://localhost:3000](http://localhost:3000).
 
-5. Set up env variables
+---
 
-6. Run the database migrations: npx prisma migrate dev
+## 📚 Documentation
 
-7. If they’re connecting to an existing database instead of starting fresh: npx prisma db pull
+For a deep dive into the architecture, features, and technical details, please refer to the:
 
-8. Generate Prisma Client (if not already done): npx prisma generate
+👉 **[Full Documentation (DOCUMENTATION.md)](./DOCUMENTATION.md)**
 
+---
 
-## Project Structure
+## 🛠️ Key Technologies
 
-- `/app` - Next.js app directory containing pages and layouts
-- `/components` - Reusable React components
-- `/public` - Static assets
-- `/styles` - Global styles and Tailwind configuration
+- **Frontend**: Next.js 14, Tailwind CSS, Framer Motion
+- **Interactive**: Three.js (@react-three/fiber)
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL
+- **Auth**: NextAuth.js
+- **Payment**: Paystack
 
-## Development
+---
 
-- The website uses Next.js 14 with the App Router
-- Three.js components are client-side rendered to avoid SSR issues
-- Tailwind CSS is used for styling
-- Framer Motion handles animations
+## 🤖 AI Agents
 
-## License
+If you are an AI assistant working on this codebase, please prioritize following the guidelines in **[AGENTS.md](./AGENTS.md)** and the ADK skill.
 
-This project is private and confidential. 
+---
+
+## 📜 License
+
+This project is private and confidential property of Bravework Studio.
