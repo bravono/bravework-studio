@@ -3,7 +3,7 @@ import { BlogOrchestrator } from "@/lib/ai/blog-orchestrator";
 
 export async function POST(req: NextRequest) {
   try {
-    const { topic, pointOfView } = await req.json();
+    const { topic, pointOfView, category } = await req.json();
 
     if (!topic) {
       return NextResponse.json({ error: "Topic is required" }, { status: 400 });
@@ -13,9 +13,17 @@ export async function POST(req: NextRequest) {
 
     // For now, we wait for the full generation.
     // In a more advanced version, we could use SSE for streaming status.
-    const content = await orchestrator.generate(topic, pointOfView);
+    const result = await orchestrator.generate(
+      topic,
+      pointOfView,
+      undefined,
+      category,
+    );
 
-    return NextResponse.json({ content });
+    return NextResponse.json({
+      content: result.content,
+      thumbnailUrl: result.thumbnailUrl,
+    });
   } catch (error: any) {
     console.error("Generation error:", error);
 
