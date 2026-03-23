@@ -7,6 +7,8 @@ import NextAuthSessionProvider from "./components/SessionProider";
 import { ToastContainer } from "react-toastify";
 import "react-quill/dist/quill.snow.css";
 import "react-toastify/dist/ReactToastify.css";
+import { GoogleTagManager } from "@next/third-parties/google";
+
 import "./globals.css";
 
 import Navbar from "./components/Navbar";
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
     siteName: "Bravework Studio",
     images: [
       {
-        url: "/assets/bws_white_logo-black_bg.png", 
+        url: "/assets/bws_white_logo-black_bg.png",
         width: 1200,
         height: 630,
         alt: "Bravework Studio – Empowering Nigerian Digital Creators",
@@ -84,20 +86,6 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* Google Tag Manager Script (in Head) */}
-      {/* Use Next.js Script component for better performance */}
-      {GTM_ID && env !== "development" && (
-        <Script id="google-tag-manager" strategy="afterInteractive">
-          {`
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','${GTM_ID}');
-          `}
-        </Script>
-      )}
-      {/* End Google Tag Manager Script */}
       <head>
         <link
           rel="icon"
@@ -142,16 +130,17 @@ export default async function RootLayout({
       </head>
       <body className={dmSans.className}>
         {/* Google Tag Manager (noscript) (immediately after body tag) */}
-        {GTM_ID && (
-          <noscript
-            dangerouslySetInnerHTML={{
-              __html: `
-                <iframe src="https://www.googletagmanager.com/ns.html?id=${GTM_ID}"
-                height="0" width="0" style="display:none;visibility:hidden"></iframe>
-              `,
-            }}
-          />
+        {GTM_ID && env !== "development" && (
+          <GoogleTagManager gtmId={GTM_ID} />
         )}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         {/* End Google Tag Manager (noscript) */}
         <NextAuthSessionProvider>
           <ToastContainer position="bottom-right" theme="colored" />
