@@ -3,7 +3,6 @@ import { prisma } from "../client";
 export async function seedUsers() {
   const users = [
     {
-      user_id: 1,
       first_name: "Ahbideen",
       last_name: "Yusuf",
       email: "ahbideeny@gmail.com",
@@ -17,10 +16,8 @@ export async function seedUsers() {
       last_verification_email_sent_at: null,
       email_verified: new Date("2025-10-16T19:37:39.761Z"),
       referral_code: null,
-      referred_by_id: null,
     },
     {
-      user_id: 36,
       first_name: "New",
       last_name: "buddy",
       email: "newbuddy@gmail.com",
@@ -34,10 +31,8 @@ export async function seedUsers() {
       last_verification_email_sent_at: null,
       email_verified: new Date("2025-10-30T20:06:29.103Z"),
       referral_code: null,
-      referred_by_id: null,
     },
     {
-      user_id: 32,
       first_name: "Ajisefini",
       last_name: "Yusuf",
       email: "yusufahbideen@yahoo.com",
@@ -51,11 +46,8 @@ export async function seedUsers() {
       last_verification_email_sent_at: null,
       email_verified: new Date("2025-10-16T19:37:39.761Z"),
       referral_code: "5C8C458A",
-      referred_by_id: null,
     },
-
     {
-      user_id: 26,
       first_name: "Adeshina",
       last_name: "Yusuf",
       email: "ahbideen@yahoo.com",
@@ -69,10 +61,8 @@ export async function seedUsers() {
       last_verification_email_sent_at: null,
       email_verified: new Date("2025-10-16T19:37:39.761Z"),
       referral_code: null,
-      referred_by_id: null,
     },
     {
-      user_id: 35,
       first_name: "Last",
       last_name: "Body",
       email: "lastbody@gmail.com",
@@ -86,13 +76,12 @@ export async function seedUsers() {
       last_verification_email_sent_at: null,
       email_verified: new Date("2025-10-16T19:37:39.761Z"),
       referral_code: null,
-      referred_by_id: null,
     },
   ];
 
   for (const user of users) {
     await prisma.users.upsert({
-      where: { user_id: user.user_id },
+      where: { email: user.email },
       update: user,
       create: user,
     });

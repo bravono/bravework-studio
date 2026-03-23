@@ -177,6 +177,7 @@ interface Course {
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
   isActive: boolean;
+  isPublished: boolean;
   startDate: string;
   endDate: string;
   maxStudents: string;

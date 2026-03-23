@@ -234,7 +234,7 @@ export default function AdminDashboardClient({
                     {stats.pendingJobApplications}
                   </span>
                   <span className="block text-sm text-gray-500 dark:text-gray-400">
-                    Pending Job Apps
+                    Job Applications
                   </span>
                 </div>
               </div>

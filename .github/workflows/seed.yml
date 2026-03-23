@@ -1,0 +1,59 @@
+name: Database Seed
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to seed"
+        required: true
+        default: "Staging"
+        type: choice
+        options:
+          - Staging
+          - Production
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'Staging' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          # satisfy prisma.config.ts during postinstall
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          # use dummy URL here too, generation doesn't need real DB
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+
+      - name: Verify Database Secret
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is missing for the '${{ github.event.inputs.environment }}' environment. Please check your GitHub Repository Settings > Environments."
+            exit 1
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run Migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run Seed
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: ${{ github.event.inputs.environment || 'production' }}

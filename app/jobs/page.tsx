@@ -99,8 +99,10 @@ export default function JobsPage() {
     const formDataToSend = new FormData();
 
     const entries = Object.entries(application);
-    entries.slice(0, -1).forEach(([key, value]) => {
+    entries.forEach(([key, value]) => {
       formDataToSend.append(key, value);
+
+      console.log(`Key: ${key} Value: ${value}`);
     });
 
     console.log("File info to send:", currentFileInfo || fileInfo);
@@ -197,7 +199,7 @@ export default function JobsPage() {
           fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
           fileUrl: event.target.result,
         });
-        toast.success(`File ${selectedFile.name} has been attached!`);
+        toast.info(`File ${selectedFile.name} has been attached!`);
       }
     };
     reader.readAsDataURL(selectedFile);
@@ -767,7 +769,6 @@ export default function JobsPage() {
                   id="resume"
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx"
-                  required
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div className="flex flex-col items-center justify-center space-y-2">
@@ -804,6 +805,29 @@ export default function JobsPage() {
                 }}
               />
             )}
+
+            {/* Cover Letter */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="message"
+                className="mb-2 text-sm font-medium text-gray-700"
+              >
+                Cover Letter
+              </label>
+              <textarea
+                id="message"
+                value={application.message}
+                onChange={(e) =>
+                  setApplication((prev) => ({
+                    ...prev,
+                    message: e.target.value,
+                  }))
+                }
+                rows={5}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              />
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"

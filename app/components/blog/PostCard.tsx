@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Calendar, User, ArrowRight } from "lucide-react";
 import CategoryBadge from "./CategoryBadge";
 import { BlogPost } from "@/lib/blog";
+import PostImage from "./PostImage";
 
 interface PostCardProps {
   post: Partial<BlogPost>;
@@ -15,9 +16,9 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <div className="group bg-white rounded-3xl shadow-xl overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl flex flex-col h-full border border-gray-100">
       <div className="relative overflow-hidden h-52">
-        <img
-          src={coverImage || "/assets/DOF0160.png"}
-          alt={title}
+        <PostImage
+          src={coverImage}
+          alt={title || "Blog Post"}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

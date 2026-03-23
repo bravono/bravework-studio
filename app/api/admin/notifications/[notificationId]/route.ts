@@ -12,23 +12,23 @@ export async function GET(request: Request) {
     if (!notificationId) {
       return NextResponse.json(
         { error: "Notification ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const notifResult = await queryDatabase(
       "SELECT * FROM notifications n WHERE n.notificationId = $1",
-      [notificationId]
+      [notificationId],
     );
 
-    const selectedNotif = notifResult.rows[0];
+    const selectedNotif = notifResult[0];
 
     return NextResponse.json(selectedNotif);
   } catch (error: any) {
     console.error("Error fetching user notifications:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

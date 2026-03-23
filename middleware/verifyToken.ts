@@ -5,7 +5,7 @@ import { queryDatabase } from "lib/db";
 export async function verifyTokenMiddleware(
   req: NextApiRequest,
   res: NextApiResponse,
-  next: () => void
+  next: () => void,
 ) {
   const token = req.query.token as string;
 
@@ -16,9 +16,9 @@ export async function verifyTokenMiddleware(
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 
-  const { rows } = await queryDatabase(
+  const rows = await queryDatabase(
     "SELECT * FROM secure_tokens WHERE token = $1",
-    [token]
+    [token],
   );
   const dbToken = rows[0];
 

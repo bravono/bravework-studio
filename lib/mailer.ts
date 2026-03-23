@@ -16,36 +16,60 @@ interface SendEmailOptions {
   fromEmail?: string;
 }
 
-let transporter: Mail | null = null; // Use Mail type for better type inference
+let defaultTransporter: Mail | null = null;
 
 // Initialize transporter once
 async function initializeTransporter() {
-  if (transporter) {
-    return transporter;
+  if (defaultTransporter) {
+    console.log(`♻️ Reusing existing SMTP Transporter.`);
+    return defaultTransporter;
   }
 
-  if (process.env.NODE_ENV === "production") {
-    transporter = nodemailer.createTransport({
-      host: (process.env.ZUSTOM_MAIL_HOST || "").trim(),
-      port: parseInt((process.env.ZUSTOM_MAIL_PORT || "587").trim(), 10),
-      secure: (process.env.ZUSTOM_MAIL_PORT || "").trim() === "465", // true for 465, false for other ports
+  const host = (process.env.MAIL_HOST || "smtp.resend.com").trim();
+  const port = parseInt((process.env.MAIL_PORT || "587").trim(), 10);
+  const user = (process.env.MAIL_USER || "resend").trim();
+  const pass = (process.env.MAIL_PASS || "").trim();
+
+  // Prefer real SMTP if credentials are provided, regardless of NODE_ENV
+  if (host && user && pass) {
+    console.log(
+      `📧 Initializing SMTP Transporter: ${host}:${port} (authenticated as ${user})`,
+    );
+    console.log(`🔑 Using API Key prefix: ${pass.substring(0, 10)}...`);
+    const newTransporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
       auth: {
-        user: (process.env.ZUSTOM_MAIL_USER || "").trim(),
-        pass: (process.env.ZUSTOM_MAIL_PASS || "").trim(),
+        user,
+        pass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
+
+    try {
+      await newTransporter.verify();
+      console.log(`✅ Resend email transporter verified successfully.`);
+      defaultTransporter = newTransporter;
+    } catch (err) {
+      console.error(
+        `❌ Resend email transporter verification failed:`,
+        err.message,
+      );
+      defaultTransporter = newTransporter; // Set anyway to avoid repeat logs if failing consistently
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    console.error(
+      `❌ Production environment detected but Resend credentials are missing!`,
+    );
   } else {
-    // Development: Use Ethereal.email for testing without real emails
+    // Development fallback
     try {
       const account = await nodemailer.createTestAccount();
-      console.log("--- Ethereal.email Credentials ---");
-      console.log("User: " + account.user);
-      console.log("Pass: " + account.pass);
-      console.log(
-        "--- Access your test emails at: %s ---",
-        nodemailer.getTestMessageUrl(null),
-      ); // Placeholder for base URL
-      transporter = nodemailer.createTransport({
+      console.log(`--- Ethereal.email Credentials (fallback) ---`);
+      defaultTransporter = nodemailer.createTransport({
         host: account.smtp.host,
         port: account.smtp.port,
         secure: account.smtp.secure,
@@ -54,19 +78,16 @@ async function initializeTransporter() {
           pass: account.pass,
         },
       });
-      // Capture the preview URL from the account object for later use if needed
-      // Note: The specific preview URL for an email is returned by sendMail
     } catch (err) {
       console.error(
-        "Failed to create a testing account for Ethereal.email. " + err.message,
+        `Failed to create a testing account for Ethereal.email: ` + err.message,
       );
-      // Fallback or exit if essential for development
     }
   }
-  return transporter;
+  return defaultTransporter;
 }
 
-// Call this once on server start (e.g., in an entry point or immediately here)
+// Pre-initialize
 initializeTransporter();
 
 // Generic function to send emails
@@ -75,10 +96,15 @@ export async function sendEmail({
   subject,
   htmlContent,
   textContent,
-  fromEmail = process.env.EMAIL_FROM || "support@braveworkstudio.com",
+  fromEmail = (process.env.EMAIL_FROM || "support@braveworkstudio.com").trim(),
 }: SendEmailOptions) {
   try {
-    const info = await transporter.sendMail({
+    const currentTransporter = await initializeTransporter();
+    if (!currentTransporter) throw new Error(`Email transporter not available`);
+
+    console.log(`📤 Sending email to: ${toEmail} (Subject: "${subject}")`);
+
+    const info = await currentTransporter.sendMail({
       from: fromEmail,
       to: toEmail,
       subject: subject,
@@ -86,7 +112,7 @@ export async function sendEmail({
       text: textContent,
     });
     console.log(
-      `Email sent successfully to ${toEmail} for subject: ${subject}`,
+      `✅ Email sent successfully to ${toEmail}. MessageID: ${info.messageId}`,
     );
     if (process.env.NODE_ENV !== "production") {
       console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
@@ -115,12 +141,6 @@ export async function sendVerificationEmail(
 ) {
   console.log(`Verification token for ${userName}: ${token}`);
 
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
-
   const verificationLink = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
 
   const subject = "Verify Your Email Address for Our Services";
@@ -139,7 +159,12 @@ export async function sendVerificationEmail(
   }! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not sign up for an account, please ignore this email.\n\nThanks,\nOur Services Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
   } catch (error) {
     console.log(error.message);
   }
@@ -151,12 +176,6 @@ export async function sendEmailChangeVerificationEmail(
   userName: string,
 ) {
   console.log(`Email change verification token for ${userName}: ${token}`);
-
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
 
   const verificationLink = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${token}`;
 
@@ -172,7 +191,12 @@ export async function sendEmailChangeVerificationEmail(
   const textContent = `Hello ${userName},\n\nYou have requested to change your email address. Please verify your new email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you did not request this change, please ignore this email. Your current email address will remain unchanged.\n\nThanks,\nOur Services Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
   } catch (error) {
     console.log(error.message);
   }
@@ -184,12 +208,6 @@ export async function sendPasswordResetEmail(
   resetLink: string,
   expiration: number,
 ) {
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
-
   const subject = "Reset Your Password";
   const htmlContent = `
     <p>Hello ${userName},</p>
@@ -201,8 +219,16 @@ export async function sendPasswordResetEmail(
   `;
   const textContent = `Hello ${userName} You have requested to reset your password! Proceed by clicking the link below:\n\n${resetLink}\n\nThis link will expire in ${expiration} hours.\n\nIf you did not initiate the password reset, please ignore this email.\n\nThanks,\nBravework Studio Services Team`;
 
+  console.log("Password Reset Email Called");
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
+
+    console.log("Send Email Called");
   } catch (error) {
     console.log(error.message);
   }
@@ -216,12 +242,6 @@ export async function sendOrderReceivedEmail(
   course?: string,
   userId?: string,
 ) {
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
-
   const subject = "We've Received Your Order!";
   const htmlContent = `
     <p>Hello ${userName},</p>
@@ -242,7 +262,12 @@ export async function sendOrderReceivedEmail(
   }\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification
     const finalUserId = userId || (await getUserIdByEmail(toEmail));
@@ -269,12 +294,6 @@ export async function sendPaymentReceivedEmail(
   course?: string,
   userId?: string,
 ) {
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
-
   const subject = `Payment Received - ${
     course ? "You Have Purchase a new Course" : "Your Project is Underway!"
   }`;
@@ -293,7 +312,12 @@ export async function sendPaymentReceivedEmail(
   const textContent = `Hello ${userName},\n\nWe have successfully received your payment for Order ID: ${orderId}.\n\nWork will begin on your project right away! To see and track the progress of your current project, please go to your dashboard:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification
     const finalUserId = userId || (await getUserIdByEmail(toEmail));
@@ -323,11 +347,6 @@ export async function sendCustomOfferNotificationEmail(
   userId: string,
   expiresAt: string | null, // NEW: Pass expiry date
 ) {
-  const currentTransporter = await initializeTransporter(); // Ensure transporter is ready
-  if (!currentTransporter) {
-    console.error("Email transporter not initialized! Cannot send email.");
-    return;
-  }
   const subject = "New Custom Offer from Bravework Studio!";
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard/notifications?offerId=${offerId}`; // Link to their dashboard offer details page
 
@@ -406,7 +425,12 @@ export async function sendCustomOfferNotificationEmail(
     "",
   )}\n\nPlease log in to your dashboard to view the full details and accept or reject this offer:\n${dashboardLink}\n\nAccept Offer: ${acceptLink}\nReject Offer: ${rejectLink}\n\nWe look forward to working with you!\n\nThanks,\nThe Bravework Studio Team`;
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification
     await createNotification({
@@ -436,9 +460,6 @@ export async function sendBookingRequestEmail(
   totalAmount: number,
   ownerId?: string,
 ) {
-  const currentTransporter = await initializeTransporter();
-  if (!currentTransporter) return;
-
   const subject = `New Booking Request for ${deviceName}`;
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`; // Link to My Listings
 
@@ -460,7 +481,12 @@ export async function sendBookingRequestEmail(
   ).toLocaleString()}\nTotal Amount: ₦${totalAmount.toLocaleString()}\n\nPlease log in to your dashboard to accept or decline this request:\n${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification to owner
     const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
@@ -486,9 +512,6 @@ export async function sendBookingStatusEmail(
   reason?: string,
   userId?: string,
 ) {
-  const currentTransporter = await initializeTransporter();
-  if (!currentTransporter) return;
-
   const subject = `Booking Update: ${deviceName} - ${status.toUpperCase()}`;
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
 
@@ -516,8 +539,14 @@ export async function sendBookingStatusEmail(
     "",
   )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
+  console.log(`📧 Sending booking status update to: ${toEmail}`);
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification to renter
     const finalUserId = userId || (await getUserIdByEmail(toEmail));
@@ -546,9 +575,6 @@ export async function sendBookingRescheduledEmail(
   newEndTime: string,
   ownerId?: string,
 ) {
-  const currentTransporter = await initializeTransporter();
-  if (!currentTransporter) return;
-
   const subject = `Booking Rescheduled: ${deviceName}`;
   const dashboardLink = `${process.env.NEXTAUTH_URL}/user/dashboard?tab=bookings`;
 
@@ -585,7 +611,12 @@ export async function sendBookingRescheduledEmail(
   ).toLocaleString()}\n\nView details: ${dashboardLink}`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification to owner
     const finalOwnerId = ownerId || (await getUserIdByEmail(toEmail));
@@ -611,9 +642,6 @@ export async function sendFundsReleasedEmail(
   amountKobo?: number,
   userId?: string,
 ) {
-  const currentTransporter = await initializeTransporter();
-  if (!currentTransporter) return;
-
   const subject =
     role === "owner"
       ? `Earnings Credited: ${deviceName}`
@@ -642,7 +670,12 @@ export async function sendFundsReleasedEmail(
   )}\n\nGo to Dashboard: ${dashboardLink}\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification
     const finalUserId = userId || (await getUserIdByEmail(toEmail));
@@ -673,9 +706,6 @@ export async function sendClassReminderEmail(
   sessionLink: string,
   userId?: string,
 ) {
-  const currentTransporter = await initializeTransporter();
-  if (!currentTransporter) return;
-
   const formattedTime = new Date(sessionTime).toLocaleString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -709,7 +739,12 @@ export async function sendClassReminderEmail(
   }\n\nWe look forward to seeing you there!\n\nThanks,\nThe Bravework Studio Team`;
 
   try {
-    await sendEmail({ toEmail, subject, htmlContent, textContent });
+    await sendEmail({
+      toEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
 
     // Send in-app notification
     const finalUserId = userId || (await getUserIdByEmail(toEmail));

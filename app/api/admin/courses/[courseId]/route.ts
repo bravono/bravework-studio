@@ -49,7 +49,7 @@ function groupSessionOptions(sessionRows: any[]) {
 // GET by ID (optional, but good practice for editing)
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const guardResponse = await verifyAdmin(request);
@@ -64,6 +64,7 @@ export async function GET(
                 c.title,
                 c.description,
                 c.is_active AS "isActive",
+                c.is_published AS "isPublished",
                 c.start_date AS "startDate",
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
@@ -119,7 +120,7 @@ export async function GET(
     console.error(`Error fetching course ${params.id}:`, error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -127,7 +128,7 @@ export async function GET(
 // PATCH (Update Course and Sessions)
 export async function PATCH(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: { courseId: string } },
 ) {
   try {
     const guardResponse = await verifyAdmin(request);
@@ -176,8 +177,8 @@ export async function PATCH(
             !option.link ||
             !option.time ||
             !option.label ||
-            !option.optionNumber
-        )
+            !option.optionNumber,
+        ),
     );
 
     if (hasInvalidSession) {
@@ -186,7 +187,7 @@ export async function PATCH(
           error:
             "Each session group must contain 1 or 2 options, each with valid duration, link, time, and label.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -200,14 +201,14 @@ export async function PATCH(
       // 1. Find Instructor and Category IDs (required for update)
       const instructorResult = await client.query(
         `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
-        [instructorName[0], instructorName[1]]
+        [instructorName[0], instructorName[1]],
       );
       const instructorId = instructorResult.rows[0]?.instructor_id;
       if (!instructorId) throw new Error("Instructor not found.");
 
       const categoryResult = await client.query(
         `SELECT category_id FROM course_categories WHERE category_name = $1`,
-        [category]
+        [category],
       );
       const categoryId = categoryResult.rows[0]?.category_id;
       if (!categoryId) throw new Error("Category not found.");
@@ -216,9 +217,9 @@ export async function PATCH(
       const updateCourseQuery = `
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
-                    instructor_id = $6, is_active = $7, max_students = $8, thumbnail_url = $9, 
-                    course_category_id = $10, level = $11, language = $12, slug = $13, content = $14, excerpt = $15, age_bracket = $16
-                WHERE course_id = $17;
+                    instructor_id = $6, is_active = $7, is_published = $8, max_students = $9, thumbnail_url = $10, 
+                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, age_bracket = $17
+                WHERE course_id = $18;
             `;
       const courseParams = [
         title,
@@ -228,6 +229,7 @@ export async function PATCH(
         endDate,
         instructorId,
         isActive,
+        isActive, // is_published (keeping it as isActive for now but admin can change it)
         maxStudents,
         thumbnailUrl,
         categoryId,
@@ -243,7 +245,7 @@ export async function PATCH(
       const updateResult = await client.query(updateCourseQuery, courseParams);
       if (updateResult.rowCount === 0) {
         throw new Error(
-          `Course with ID ${courseId} not found or failed to update.`
+          `Course with ID ${courseId} not found or failed to update.`,
         );
       }
 
@@ -256,7 +258,7 @@ export async function PATCH(
         for (const toolId of tools) {
           await client.query(
             `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [courseId, toolId]
+            [courseId, toolId],
           );
         }
       }
@@ -288,21 +290,21 @@ export async function PATCH(
 
       return NextResponse.json(
         { courseId, message: "Course and sessions updated successfully" },
-        { status: 200 }
+        { status: 200 },
       );
     });
   } catch (error: any) {
     console.error("Error updating course:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: { courseId: string } },
 ) {
   try {
     const guardResponse = await verifyAdmin(request);
@@ -313,7 +315,7 @@ export async function DELETE(
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -336,7 +338,7 @@ export async function DELETE(
     console.error("Error deleting course:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

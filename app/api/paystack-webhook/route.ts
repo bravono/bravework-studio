@@ -4,6 +4,7 @@ import { sendPaymentReceivedEmail } from "lib/mailer";
 
 import { queryDatabase, withTransaction } from "../../../lib/db";
 import { createZohoLead, createZohoContact } from "@/lib/zoho";
+import logger from "@/lib/logger";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -29,25 +30,26 @@ async function loadOrderStatusMap() {
 
   orderStatusLoadPromise = (async () => {
     try {
-      console.log("Attempting to load order statuses into cache...");
+      logger.info("Attempting to load order statuses into cache...");
       // Querying 'payment_statuses' as confirmed by user
 
-      const statusResult = await queryDatabase("SELECT * FROM payment_statuses");
+      const statusResult = await queryDatabase(
+        "SELECT * FROM payment_statuses",
+      );
 
       if (statusResult.length === 0) {
         throw new Error("No order statuses found in the database.");
       }
 
-      statusResult.forEach((row: { payment_status_id: number; name: string }) => {
-        orderStatusMap[row.name] = row.payment_status_id;
-      });
-      isOrderStatusMapLoaded = true;
-      console.log("Order statuses loaded successfully:", orderStatusMap);
-    } catch (error) {
-      console.error(
-        "Failed to load order statuses from DB on startup/request:",
-        error
+      statusResult.forEach(
+        (row: { payment_status_id: number; name: string }) => {
+          orderStatusMap[row.name] = row.payment_status_id;
+        },
       );
+      isOrderStatusMapLoaded = true;
+      logger.info({ orderStatusMap }, "Order statuses loaded successfully");
+    } catch (error) {
+      logger.error({ err: error }, "Failed to load order statuses from DB");
       isOrderStatusMapLoaded = false;
       orderStatusMap = {};
     } finally {
@@ -64,28 +66,29 @@ export async function POST(req: NextRequest) {
   try {
     await loadOrderStatusMap();
     if (!isOrderStatusMapLoaded) {
-      console.error("Order status map failed to load. Cannot process webhook.");
+      logger.error("Order status map failed to load. Cannot process webhook.");
       return NextResponse.json(
         { message: "Server is not ready: Order status data unavailable." },
-        { status: 503 }
+        { status: 503 },
       );
     }
   } catch (error) {
-    console.error("Unexpected error during order status map loading:", error);
+    logger.error(
+      { err: error },
+      "Unexpected error during order status map loading",
+    );
     return NextResponse.json(
       { message: "Internal server error during initialization." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
   // 1. Basic Security Check: Ensure Secret Key is configured
   if (!PAYSTACK_SECRET_KEY) {
-    console.error(
-      "Server configuration error: Paystack Secret Key is missing. Cannot process webhook."
-    );
+    logger.error("Server configuration error: Paystack Secret Key is missing");
     return NextResponse.json(
       { message: "Server configuration error." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -100,12 +103,12 @@ export async function POST(req: NextRequest) {
     .digest("hex");
 
   if (hash !== signature) {
-    console.warn(
-      "Webhook signature mismatch. Potential unauthorized access attempt."
+    logger.warn(
+      "Webhook signature mismatch. Potential unauthorized access attempt",
     );
     return NextResponse.json(
       { message: "Signature verification failed." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -114,15 +117,15 @@ export async function POST(req: NextRequest) {
   try {
     event = JSON.parse(rawBody);
   } catch (error) {
-    console.error("Error parsing webhook JSON body:", error);
+    logger.error({ err: error }, "Error parsing webhook JSON body");
     return NextResponse.json(
       { message: "Invalid JSON payload." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  console.log("Received Paystack Webhook Event:", event.event);
-  console.log("Event Data:", event.data);
+  logger.info({ event: event.event }, "Received Paystack Webhook Event");
+  logger.debug({ eventData: event.data }, "Event Data");
 
   let customerEmail;
   let orderId;
@@ -145,27 +148,35 @@ export async function POST(req: NextRequest) {
       clientName = metadata?.customer_name;
       const paystackPaymentOption = metadata?.payment_option;
       const paystackPaymentPercentage = parseFloat(
-        metadata?.payment_percentage
+        metadata?.payment_percentage,
       );
       const paystackDiscountApplied = parseFloat(metadata?.discount_applied);
       const paystackmetaDataOriginalAmountKobo = parseFloat(
-        metadata?.original_amount_kobo
+        metadata?.original_amount_kobo,
       );
       const courseId = metadata?.courseId;
       const offerId = metadata?.offerId;
 
       if (!orderId || !serviceType) {
-        console.error(
-          `Webhook for reference ${paystackReference} missing order_id in metadata.`
+        logger.error(
+          { paystackReference },
+          "Webhook missing order_id in metadata",
         );
         return NextResponse.json(
           { message: "Missing order_id in metadata." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      console.log(
-        `Processing charge.success event for Order ID: ${orderId}, Paystack Ref: ${paystackReference}, Amount: ${paystackAmountKobo}, Currency: ${paystackCurrency}, Service Type: ${serviceType}`
+      logger.info(
+        {
+          orderId,
+          paystackReference,
+          paystackAmountKobo,
+          paystackCurrency,
+          serviceType,
+        },
+        "Processing charge.success event",
       );
 
       // Wrap all database operations in a transaction
@@ -174,16 +185,17 @@ export async function POST(req: NextRequest) {
           // --- Idempotency Check for Payments Table ---
           const { rows: existingPaymentRows } = await client.query(
             "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND paystack_status = $2",
-            [paystackReference, "success"]
+            [paystackReference, "success"],
           );
 
           if (existingPaymentRows.length > 0) {
-            console.log(
-              `Payment with Paystack reference ${paystackReference} already processed. Skipping duplicate webhook.`
+            logger.info(
+              { paystackReference },
+              "Payment already processed. Skipping duplicate webhook.",
             );
             return NextResponse.json(
               { message: "Webhook already processed." },
-              { status: 200 }
+              { status: 200 },
             );
           }
 
@@ -196,22 +208,23 @@ export async function POST(req: NextRequest) {
           if (serviceType === "course") {
             if (!courseId) {
               throw new Error(
-                "Missing courseId in metadata for course payment."
+                "Missing courseId in metadata for course payment.",
               );
             }
             const courseRows = await client.query(
               "SELECT price_in_kobo, title, start_date, end_date FROM courses WHERE course_id = $1",
-              [courseId]
+              [courseId],
             );
             if (courseRows.rows.length === 0) {
               throw new Error(`Course with ID ${courseId} not found.`);
             }
             const courseDetails = courseRows.rows[0];
 
-            console.log(
-              "Original Amount from Metadata:",
-              paystackmetaDataOriginalAmountKobo
+            logger.debug(
+              { paystackmetaDataOriginalAmountKobo },
+              "Original Amount from Metadata",
             );
+
             totalExpectedOrderAmountKobo = paystackDiscountApplied
               ? (courseDetails.price_in_kobo / 100) * paystackPaymentPercentage
               : paystackAmountKobo;
@@ -220,13 +233,13 @@ export async function POST(req: NextRequest) {
               ? Math.ceil(
                   (new Date(courseDetails.end_date).getTime() -
                     new Date(courseDetails.start_date).getTime()) /
-                    (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24),
                 )
               : null;
 
             if (paystackAmountKobo !== totalExpectedOrderAmountKobo) {
               throw new Error(
-                `Amount mismatch for course. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`
+                `Amount mismatch for course. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`,
               );
             }
             newOrderStatusId = orderStatusMap["paid"];
@@ -235,10 +248,11 @@ export async function POST(req: NextRequest) {
               `UPDATE course_enrollments
            SET payment_status = $1
            WHERE course_id = $2`,
-              [newOrderStatusId, courseId]
+              [newOrderStatusId, courseId],
             );
-            console.log(
-              `TODO: Grant access to course ${courseId} for ${clientName}`
+            logger.info(
+              { courseId, clientName },
+              "TODO: Grant access to course",
             );
           } else if (serviceType === "custom-offer") {
             if (!offerId) {
@@ -246,7 +260,7 @@ export async function POST(req: NextRequest) {
             }
             const customOfferRows = await client.query(
               "SELECT offer_amount_in_kobo, description, project_duration_days FROM custom_offers WHERE offer_id = $1",
-              [offerId]
+              [offerId],
             );
             if (customOfferRows.rows.length === 0) {
               throw new Error(`Custom Offer with ID ${offerId} not found.`);
@@ -262,38 +276,39 @@ export async function POST(req: NextRequest) {
             switch (paystackPaymentOption) {
               case "deposit_50":
                 totalExpectedOrderAmountKobo = Math.round(
-                  totalExpectedOrderAmountKobo * 0.5
+                  totalExpectedOrderAmountKobo * 0.5,
                 );
                 break;
               case "deposit_70_discount":
                 totalExpectedOrderAmountKobo = Math.round(
-                  totalExpectedOrderAmountKobo * 0.7 * (1 - 5 / 100)
+                  totalExpectedOrderAmountKobo * 0.7 * (1 - 5 / 100),
                 );
                 break;
               case "full_100_discount":
                 totalExpectedOrderAmountKobo = Math.round(
-                  totalExpectedOrderAmountKobo * (1 - 10 / 100)
+                  totalExpectedOrderAmountKobo * (1 - 10 / 100),
                 );
                 break;
               default:
                 throw new Error(
-                  `Unknown payment option: ${paystackPaymentOption}`
+                  `Unknown payment option: ${paystackPaymentOption}`,
                 );
             }
 
             if (paystackAmountKobo !== totalExpectedOrderAmountKobo) {
               throw new Error(
-                `Amount mismatch for custom offer. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`
+                `Amount mismatch for custom offer. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`,
               );
             }
 
             // Update custom offer status if applicable
             await client.query(
               `UPDATE custom_offers SET status_id = (SELECT offer_status_id FROM custom_offer_statuses WHERE name = 'accepted'), updated_at = NOW() WHERE offer_id = $1`,
-              [offerId]
+              [offerId],
             );
-            console.log(
-              `Custom offer ${offerId} status updated to 'accepted'.`
+            logger.info(
+              { offerId },
+              "Custom offer status updated to 'accepted'",
             );
           } else {
             throw new Error(`Unknown service type: ${serviceType}`);
@@ -302,12 +317,12 @@ export async function POST(req: NextRequest) {
           // --- Fetch Order Data ---
           const { rows: orderRows } = await client.query(
             "SELECT * FROM orders WHERE order_id = $1",
-            [orderId]
+            [orderId],
           );
 
           if (orderRows.length === 0) {
             throw new Error(
-              `Order with ID ${orderId} not found in DB. Cannot process webhook.`
+              `Order with ID ${orderId} not found in DB. Cannot process webhook.`,
             );
           }
           let order = orderRows[0];
@@ -328,10 +343,11 @@ export async function POST(req: NextRequest) {
               false, // is_fraudulent
               paystackPaymentOption,
               paystackDiscountApplied,
-            ]
+            ],
           );
-          console.log(
-            `Payment record for Paystack Ref ${paystackReference} inserted into 'payments' table, linked to order ${order.order_id}.`
+          logger.info(
+            { paystackReference, orderId: order.order_id },
+            "Payment record inserted and linked to order",
           );
 
           // --- Update 'orders' table's running total and status ---
@@ -367,27 +383,35 @@ export async function POST(req: NextRequest) {
               orderTitle,
               totalExpectedOrderAmountKobo,
               order.order_id,
-            ]
+            ],
           );
-          console.log(
-            `Order ${order.order_id} updated: New amount_paid_to_date_kobo = ${newAmountPaidToDateKobo}, Status ID = ${newOrderStatusId}`
+          logger.info(
+            {
+              orderId: order.order_id,
+              newAmountPaidToDateKobo,
+              newOrderStatusId,
+            },
+            "Order updated",
           );
 
           // --- Grant Access & Send Confirmation Email (Placeholder) ---
           const finalOrderStatusName =
             Object.keys(orderStatusMap).find(
-              (key) => orderStatusMap[key] === newOrderStatusId
+              (key) => orderStatusMap[key] === newOrderStatusId,
             ) || "unknown";
-          console.log(
-            `TODO: Grant access and send email to ${
-              clientName || customerEmail
-            } for Order ID: ${order.order_id} (Status: ${finalOrderStatusName})`
+          logger.info(
+            {
+              client: clientName || customerEmail,
+              orderId: order.order_id,
+              status: finalOrderStatusName,
+            },
+            "TODO: Grant access and send email",
           );
           sendPaymentReceivedEmail(
             customerEmail,
             clientName,
             orderId,
-            (course = null)
+            (course = null),
           );
 
           // Integrate Zoho CRM
@@ -401,25 +425,29 @@ export async function POST(req: NextRequest) {
               Lead_Source: "Course Enrollment/Order",
             };
             await createZohoContact(contactData);
-            console.log(`Zoho Contact created for ${customerEmail}`);
+            logger.info({ customerEmail }, "Zoho Contact created");
           } catch (zohoError) {
-            console.error("Failed to create Zoho Contact:", zohoError);
+            logger.error({ err: zohoError }, "Failed to create Zoho Contact");
             // Don't fail the webhook if Zoho fails
           }
 
           return NextResponse.json(
             { message: "Webhook received successfully." },
-            { status: 200 }
+            { status: 200 },
           );
         });
       } catch (error) {
-        console.error(
-          `Error processing charge.success webhook for Order ID ${orderId}, Ref ${paystackReference}:`,
-          error
+        logger.error(
+          {
+            err: error,
+            orderId,
+            paystackReference,
+          },
+          "Error processing charge.success webhook",
         );
         return NextResponse.json(
           { message: "Internal server error processing webhook." },
-          { status: 500 }
+          { status: 500 },
         );
       }
       break;
@@ -434,8 +462,13 @@ export async function POST(req: NextRequest) {
       const failedPaystackStatus = event.data.status; // 'failed'
       const failedPaymentOption = event.data.payment_option;
       const failedDiscountApplied = event.data.discount_applied;
-      console.log(
-        `Processing charge.failed event for Order ID: ${failedOrderId}, Paystack Ref: ${failedPaystackReference}, Amount: ${failedAmountKobo}`
+      logger.info(
+        {
+          failedOrderId,
+          failedPaystackReference,
+          failedAmountKobo,
+        },
+        "Processing charge.failed event",
       );
       try {
         await withTransaction(async (client) => {
@@ -454,15 +487,16 @@ export async function POST(req: NextRequest) {
               false,
               failedPaymentOption,
               failedDiscountApplied,
-            ]
+            ],
           );
-          console.log(
-            `Failed payment record for Paystack Ref ${failedPaystackReference} inserted into 'payments' table.`
+          logger.info(
+            { failedPaystackReference },
+            "Failed payment record inserted into 'payments' table",
           );
           if (failedOrderId) {
             const { rows: orderRows } = await client.query(
               "SELECT amount_paid_to_date_kobo, payment_status_id FROM orders WHERE order_id = $1",
-              [failedOrderId]
+              [failedOrderId],
             );
             if (
               orderRows.length > 0 &&
@@ -471,33 +505,34 @@ export async function POST(req: NextRequest) {
               const failedStatusId = orderStatusMap["failed"];
               await client.query(
                 `UPDATE orders SET payment_status_id = $1, updated_at = NOW() WHERE order_id = $2`,
-                [failedStatusId, failedOrderId]
+                [failedStatusId, failedOrderId],
               );
-              console.log(
-                `Order ${failedOrderId} status updated to 'failed' as no payments were made yet.`
+              logger.info(
+                { failedOrderId },
+                "Order status updated to 'failed'",
               );
             }
           }
         });
       } catch (error) {
-        console.error(
-          `Error processing charge.failed webhook for Ref ${failedPaystackReference}:`,
-          error
+        logger.error(
+          { err: error, failedPaystackReference },
+          "Error processing charge.failed webhook",
         );
         return NextResponse.json(
           { message: "Internal server error processing webhook." },
-          { status: 500 }
+          { status: 500 },
         );
       }
       break;
 
     default:
-      console.log(`Unhandled Paystack Event: ${event.event}. No action taken.`);
+      logger.info({ event: event.event }, "Unhandled Paystack Event");
       break;
   }
   return NextResponse.json(
     { message: "Webhook received successfully." },
-    { status: 200 }
+    { status: 200 },
   );
 }
 

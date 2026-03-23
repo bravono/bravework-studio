@@ -19,7 +19,6 @@ import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
 // Main InstructorCoursePage component
 export default function InstructorCoursePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -62,7 +61,7 @@ export default function InstructorCoursePage() {
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
   const currentCourses = useMemo(
     () => courses.slice(indexOfFirstCourse, indexOfLastCourse),
-    [courses, indexOfFirstCourse, indexOfLastCourse]
+    [courses, indexOfFirstCourse, indexOfLastCourse],
   );
   const totalPages = Math.ceil(courses.length / coursesPerPage);
 
@@ -111,7 +110,7 @@ export default function InstructorCoursePage() {
   };
 
   if (isLoading) {
-    return <Loader user={'user'}/>;
+    return <Loader user={"user"} />;
   }
 
   return (
@@ -145,6 +144,9 @@ export default function InstructorCoursePage() {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tags
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Approval
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Language
@@ -181,6 +183,17 @@ export default function InstructorCoursePage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {/* Display Category/Tags */}
                     {course.category || "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-xs font-bold">
+                    <span
+                      className={`px-2 py-1 rounded-full ${
+                        course.isPublished
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {course.isPublished ? "Approved" : "Pending"}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {course.language ?? "-"}
@@ -247,7 +260,7 @@ export default function InstructorCoursePage() {
                 "px-4 py-2 rounded-md font-semibold transition-colors",
                 currentPage === index + 1
                   ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
+                  : "bg-white text-gray-700 hover:bg-gray-100",
               )}
             >
               {index + 1}

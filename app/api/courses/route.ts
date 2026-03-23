@@ -44,14 +44,15 @@ export async function GET(request: Request) {
           FROM course_tags ct
           JOIN tags t ON ct.tag_id = t.tag_id
           GROUP BY ct.course_id
-        ) t_agg ON c.course_id = t_agg.course_id`);
+        ) t_agg ON c.course_id = t_agg.course_id
+        WHERE c.is_published = true`);
 
     return NextResponse.json(courseResults, { status: 200 });
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { message: "Error fetching courses" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -12,6 +12,8 @@ const NotificationDetailModal = ({ notification, onClose }) => {
   if (!notification) return null;
 
   const statusColors = {
+    approved:
+      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
     accepted:
       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
     rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
@@ -104,6 +106,34 @@ const NotificationDetailModal = ({ notification, onClose }) => {
               </span>
             </p>
           </div>
+          {notification.link?.includes("courseId") && (
+            <div className="mt-4">
+              <button
+                onClick={async () => {
+                  try {
+                    const courseId = new URLSearchParams(
+                      notification.link!.split("?")[1],
+                    ).get("courseId");
+                    const res = await fetch(
+                      `/api/admin/courses/${courseId}/publish`,
+                      {
+                        method: "POST",
+                      },
+                    );
+                    if (!res.ok) throw new Error("Failed to approve course");
+                    toast.success("Course approved successfully!");
+                    onClose();
+                  } catch (error: any) {
+                    toast.error(error.message);
+                  }
+                }}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={20} />
+                Approve Course Now
+              </button>
+            </div>
+          )}
         </div>
         <div className="mt-8">
           <button

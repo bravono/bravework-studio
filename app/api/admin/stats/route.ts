@@ -23,21 +23,21 @@ export async function GET(request: Request) {
 
     // Total Orders
     const totalOrdersResult = await queryDatabase(
-      "SELECT COUNT(*) FROM orders"
+      "SELECT COUNT(*) FROM orders WHERE amount_paid_to_date_kobo > 0"
     );
     stats.totalOrders = parseInt(totalOrdersResult[0].count || "0", 10);
 
     // Total Revenue (sum of total_expected_amount_kobo)
     // Remember to convert from kobo to your main currency unit (e.g., divide by 100) on the frontend
     const totalRevenueResult = await queryDatabase(
-      "SELECT SUM(total_expected_amount_kobo) FROM orders"
+      "SELECT SUM(amount_kobo) FROM payments WHERE paystack_status = 'success' AND is_fraudulent = false"
     );
     stats.totalRevenue = parseFloat(totalRevenueResult[0].sum || "0");
 
     // Pending Orders
     //'Pending' is a valid status in  'payment_statuses' table and '3' is the ID for pending orders
     const pendingOrdersResult = await queryDatabase(
-      "SELECT COUNT(*) FROM orders WHERE payment_status_id = '3'"
+      "SELECT COUNT(*) FROM orders WHERE amount_paid_to_date_kobo = 0"
     );
     stats.pendingOrders = parseInt(pendingOrdersResult[0].count || "0", 10);
 
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     // Pending Job Applications
     // 'Pending' is a valid status in 'job_app_statuses' table and '1' is the ID for pending orders
     const pendingJobAppsResult = await queryDatabase(
-      "SELECT COUNT(*) FROM job_applications WHERE status_id = 1"
+      "SELECT COUNT(*) FROM job_applications"
     );
     stats.pendingJobApplications = parseInt(
       pendingJobAppsResult[0].count || "0",
