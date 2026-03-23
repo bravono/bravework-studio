@@ -88,6 +88,23 @@ export default function CoursePage() {
   }, [fetchCourse]);
 
   useEffect(() => {
+    if (!course) return;
+
+    window.dataLayer = window.dataLayer || [];
+
+    window.dataLayer.push({
+      event: "course_data_ready",
+      course_name: course.title,
+      course_category: course.category,
+      course_level: course.level,
+      price: course.price,
+      currency: "NGN",
+      course_id: course.id,
+      page: ""
+    });
+  }, [course]);
+
+  useEffect(() => {
     console.log("Course", course);
   }, [course]);
 
