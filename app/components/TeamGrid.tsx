@@ -22,10 +22,30 @@ const teamMembers: TeamMember[] = [
     name: "Ahbideen Yusuf",
     role: "Founder & Creative Director",
     bio: "Visionary leader driving digital innovation in Nigeria.",
-    image: "/assets/Profile_Picture.jpg", // Replace with real paths later
+    image: "/assets/Profile_Picture.jpg",
     links: {
       linkedin: "https://www.linkedin.com/in/ahbideen-y-74a232179",
       twitter: "https://twitter.com/yahbideen",
+    },
+  },
+  {
+    name: "Musa Mbaya Ibrahim Biu",
+    role: "Systems Strengthening Specialist",
+    bio: "Systems strengthening and development specialist with over 15 years of expertise in climate change, healthcare delivery, and community resilience. PhD candidate in Project Management with extensive experience working with USAID, FCDO, and the Global Fund.",
+    image: "/assets/musa-mbaya.png",
+    links: {
+      linkedin: "#",
+      twitter: "#",
+    },
+  },
+  {
+    name: "Hussain Biodun Abdulmajeed",
+    role: "Writer & Researcher",
+    bio: "Emerging researcher, poet, and public relations enthusiast. Author of 'The Necessities for Choosing a Career' and 'A Rough Road', with a profound passion for literary arts and business planning.",
+    image: "/assets/hussain-biodun.png",
+    links: {
+      linkedin: "#",
+      twitter: "#",
     },
   },
 ];
@@ -43,11 +63,12 @@ export default function TeamGrid() {
           className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden group"
         >
           <div className="relative h-64 bg-gray-200">
-            {/* Using a placeholder if image doesn't exist */}
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-              <span className="text-4xl font-black">{member.name[0]}</span>
-            </div>
-            {/* <Image src={member.image} alt={member.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> */}
+            <Image
+              src={member.image}
+              alt={member.name}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+            />
           </div>
           <div className="p-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-1">
