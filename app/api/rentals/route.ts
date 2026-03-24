@@ -25,9 +25,11 @@ export async function GET(request: Request) {
         r.has_internet AS "hasInternet",
         r.has_backup_power AS "hasBackupPower",
         r.approval_status,
-        r.created_at AS "createdAt"
+        r.created_at AS "createdAt",
+        u.is_verified AS "ownerVerified"
       FROM rentals r
-      WHERE approval_status = 'approved' AND is_active = true AND deleted_at IS NULL
+      JOIN users u ON r.user_id = u.user_id
+      WHERE r.approval_status = 'approved' AND r.is_active = true AND r.deleted_at IS NULL
       `;
     const params: any[] = [];
 

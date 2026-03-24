@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Monitor } from "lucide-react";
 import { toast } from "react-toastify";
 
-
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -12,8 +11,11 @@ import CreateRentalModal from "./CreateRentalModal";
 import { Rental } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
-
-export default function UserRentalsSection() {
+export default function UserRentalsSection({
+  isVerified,
+}: {
+  isVerified?: boolean;
+}) {
   const { data: session } = useSession();
   const [isEditRentalModalOpen, setIsEditRentalModalOpen] = useState(false);
   const [rentalToEdit, setRentalToEdit] = useState(null);
@@ -77,11 +79,16 @@ export default function UserRentalsSection() {
                       <span className="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full mt-1">
                         {rental.deviceType}
                       </span>
+                      {isVerified && (
+                        <span className="ml-2 inline-block px-2 py-1 text-[10px] font-black bg-blue-50 text-blue-600 rounded-full border border-blue-100 uppercase tracking-tighter">
+                          Verified Listing
+                        </span>
+                      )}
                     </div>
                     <span className="text-lg font-bold text-green-600">
                       ₦
                       {Number(
-                        rental.hourlyRate / KOBO_PER_NAIRA
+                        rental.hourlyRate / KOBO_PER_NAIRA,
                       ).toLocaleString()}
                       /hr
                     </span>
@@ -118,7 +125,7 @@ export default function UserRentalsSection() {
                           onClick={async () => {
                             const res = await fetch(
                               `/api/user/rentals/${rental.id}`,
-                              { method: "DELETE" }
+                              { method: "DELETE" },
                             );
                             if (res.ok) {
                               toast.success("Rental deleted");

@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import TeamGrid from "../components/TeamGrid";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 

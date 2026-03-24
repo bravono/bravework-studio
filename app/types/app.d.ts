@@ -62,7 +62,6 @@ interface JobApplication {
   status: "Pending" | "Reviewed" | "Interviewing" | "Rejected" | "Hired";
   appliedDate: string;
   resumeUrl?: string; // Link to resume
-  coverLetter?: string; // Text of cover letter
 }
 
 // New: Custom Offer interface
@@ -159,6 +158,12 @@ interface UserProfile {
   memberSince: string; // Date string or actual Date object
   referrals: number;
   coupons: string[]; // Array of coupon codes
+  isVerified: boolean;
+  verificationSubmittedAt?: string | null;
+  idType?: string | null;
+  idCardFrontUrl?: string | null;
+  idCardBackUrl?: string | null;
+  selfieWithIdUrl?: string | null;
   // Add other fields you might have, like user ID
   id?: string;
 }

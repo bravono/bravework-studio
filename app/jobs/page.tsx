@@ -37,7 +37,6 @@ interface JobApplication {
   portfolio: string;
   experience: string;
   availability: string;
-  message: string;
 }
 
 export default function JobsPage() {
@@ -50,7 +49,6 @@ export default function JobsPage() {
     portfolio: "",
     experience: "",
     availability: "",
-    message: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -129,7 +127,6 @@ export default function JobsPage() {
           portfolio: "",
           experience: "",
           availability: "",
-          message: "",
         });
         setFile(null);
         setFileInfo(null);
@@ -158,8 +155,6 @@ export default function JobsPage() {
         portfolio: application.portfolio,
         experience: application.experience,
         availability: application.availability,
-        message: application.message,
-        // Do not include file
       };
 
       await fetch("https://formspree.io/f/meokkjyz", {

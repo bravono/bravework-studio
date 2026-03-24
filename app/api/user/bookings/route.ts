@@ -36,6 +36,7 @@ export async function GET(request: Request) {
           r.location_city AS "locationCity",
           CONCAT(u.first_name, ' ', u.last_name) AS "renterName",
           u.email AS "renterEmail",
+          u.is_verified AS "renterVerified",
           rb.rejection_reason AS "rejectionReason",
           rb.cancellation_reason AS "cancellationReason",
           rb.escrow_released AS "escrowReleased"
@@ -64,6 +65,7 @@ export async function GET(request: Request) {
           r.location_city AS "locationCity",
           CONCAT(u.first_name, ' ', u.last_name) AS "ownerName",
           u.email AS "ownerEmail",
+          u.is_verified AS "ownerVerified",
           rb.rejection_reason AS "rejectionReason",
           rb.cancellation_reason AS "cancellationReason",
           rb.escrow_released AS "escrowReleased"
@@ -84,7 +86,7 @@ export async function GET(request: Request) {
     console.error("Error fetching bookings:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -21,8 +21,6 @@ export const jobApplicationSchema = Joi.object({
   portfolio: Joi.string().uri().allow("").optional(),
   experience: Joi.string().required(),
   availability: Joi.string().required(),
-  message: Joi.string().max(5000).allow("").optional(),
-  // File validation is handled separately via the JSON parsing check in the route
 });
 
 // Newsletter Subscription Schema
