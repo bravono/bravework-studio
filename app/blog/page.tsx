@@ -35,8 +35,12 @@ export default function BlogHub() {
             Our <span className="text-indigo-600">Blog</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Explore the latest from Bravework: From 3D animation tutorials to
-            web development case studies.
+            "Welcome to the Bravework blog! We'll be sharing practical tips,
+            thought-provoking articles, and inspiring stories to help you get
+            the most out of our website and digital services. From how-to guides
+            to case studies and industry insights, we're here to empower
+            Nigerian entrepreneurs and creatives to turn their passions into
+            successful businesses. Let's get started!"
           </p>
         </div>
 
