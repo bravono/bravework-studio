@@ -21,7 +21,7 @@ const teamMembers: TeamMember[] = [
   {
     name: "Ahbideen Yusuf",
     role: "Founder & Creative Director",
-    bio: "Visionary leader driving digital innovation in Nigeria.",
+    bio: "Visionary leader and Software Engineer with a degree in Mass Communication. With 8 years of experience in 3D design, he is a tech enthusiast and serial learner driving digital innovation in Nigeria.",
     image: "/assets/Profile_Picture.jpg",
     links: {
       linkedin: "https://www.linkedin.com/in/ahbideen-y-74a232179",
