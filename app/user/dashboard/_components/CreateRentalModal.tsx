@@ -121,7 +121,9 @@ export default function CreateRentalModal({
         throw new Error(error.error || "Failed to create rental");
       }
 
-      toast.success("Rental listed successfully!");
+      toast.success(
+        "Hardware listing submitted for approval. You will be notified once it is approved.",
+      );
       onSuccess();
       onClose();
       // Reset form

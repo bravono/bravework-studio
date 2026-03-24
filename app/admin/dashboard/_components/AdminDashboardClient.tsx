@@ -38,6 +38,8 @@ import AdminNotificationsSection from "./AdminNotificationsSection";
 import AdminCourseSection from "./AdminCourseSection";
 import AdminBookingsSection from "./AdminBookingsSection";
 import AdminVerificationReview from "./AdminVerificationReview";
+import AdminRentalsSection from "./AdminRentalsSection";
+import { Monitor } from "lucide-react";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -89,6 +91,11 @@ const navItems = [
     id: "verifications",
     label: "Verification Requests",
     icon: <ShieldCheck size={20} />,
+  },
+  {
+    id: "hardware",
+    label: "Hardware Management",
+    icon: <Monitor size={20} />,
   },
   { id: "notifications", label: "All Notifications", icon: <Bell size={20} /> },
   { id: "settings", label: "Profile Settings", icon: <Settings size={20} /> },
@@ -476,6 +483,8 @@ export default function AdminDashboardClient({
         return <AdminBookingsSection />;
       case "verifications":
         return <AdminVerificationReview />;
+      case "hardware":
+        return <AdminRentalsSection />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
