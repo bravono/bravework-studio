@@ -231,6 +231,9 @@ interface Rental {
   status: string;
   createdAt: string;
   imagesArray: string[];
+  isPartner: boolean;
+  isOffice: boolean;
+  rentalType: string;
 }
 
 interface Booking {
