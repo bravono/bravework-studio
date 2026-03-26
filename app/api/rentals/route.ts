@@ -8,6 +8,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const city = searchParams.get("city");
     const deviceType = searchParams.get("deviceType");
+    const rentalType = searchParams.get("rentalType");
+    const isPartner = searchParams.get("isPartner");
 
     let queryText = `
       SELECT
@@ -26,6 +28,9 @@ export async function GET(request: Request) {
         r.has_backup_power AS "hasBackupPower",
         r.approval_status,
         r.created_at AS "createdAt",
+        r.rental_type AS "rentalType",
+        r.is_partner AS "isPartner",
+        r.is_office AS "isOffice",
         u.is_verified AS "ownerVerified"
       FROM rentals r
       JOIN users u ON r.user_id = u.user_id
@@ -41,6 +46,16 @@ export async function GET(request: Request) {
     if (deviceType) {
       params.push(deviceType);
       queryText += ` AND device_type = $${params.length}`;
+    }
+
+    if (rentalType) {
+      params.push(rentalType);
+      queryText += ` AND rental_type = $${params.length}`;
+    }
+
+    if (isPartner !== null) {
+      params.push(isPartner === "true");
+      queryText += ` AND is_partner = $${params.length}`;
     }
 
     queryText += ` ORDER BY r.created_at DESC`;

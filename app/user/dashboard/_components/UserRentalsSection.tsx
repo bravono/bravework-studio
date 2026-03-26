@@ -55,8 +55,16 @@ export default function UserRentalsSection({
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 p-6 bg-white rounded-xl shadow-lg">
           <h1 className="text-3xl font-bold text-gray-800">My Listing</h1>
           <button
-            onClick={() => setIsCreateRentalModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition duration-150 shadow-md"
+            onClick={() => {
+              if (!isVerified) {
+                toast.warning("Verification Required: Please verify your identity in the Overview tab before listing a device.");
+                return;
+              }
+              setIsCreateRentalModalOpen(true);
+            }}
+            className={`flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold transition duration-150 shadow-md ${
+              isVerified ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             <Plus size={20} />
             List New Device
@@ -84,13 +92,25 @@ export default function UserRentalsSection({
                           Verified Listing
                         </span>
                       )}
+                      {rental.isPartner && (
+                        <span className="ml-2 inline-block px-2 py-1 text-[10px] font-black bg-green-50 text-green-600 rounded-full border border-green-100 uppercase tracking-tighter">
+                          Official Partner
+                        </span>
+                      )}
                     </div>
                     <span className="text-lg font-bold text-green-600">
                       ₦
-                      {Number(
-                        rental.hourlyRate / KOBO_PER_NAIRA,
-                      ).toLocaleString()}
+                      {rental.rentalType === "hub" && rental.isPartner
+                        ? "500"
+                        : Number(
+                            rental.hourlyRate / KOBO_PER_NAIRA,
+                          ).toLocaleString()}
                       /hr
+                    </span>
+                  </div>
+                  <div className="flex gap-2 mb-4">
+                    <span className="inline-block px-2 py-1 text-[10px] font-bold bg-gray-100 text-gray-600 rounded-md uppercase">
+                      {rental.rentalType === "hub" ? "Hub Location" : "P2P Device"}
                     </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">

@@ -27,23 +27,25 @@ export async function POST(
     await withTransaction(async (client) => {
       // Get rental info to notify the user
       const rentalResult = await client.query(
-        "SELECT user_id, device_name FROM rentals WHERE rental_id = $1",
-        [id]
+        "SELECT user_id, device_name, rental_type, is_partner FROM rentals WHERE rental_id = $1",
+        [id],
       );
       const rental = rentalResult.rows[0];
 
       await client.query(
         "UPDATE rentals SET approval_status = $1, updated_at = CURRENT_TIMESTAMP WHERE rental_id = $2",
-        [status, id]
+        [status, id],
       );
 
       if (rental) {
-        const notificationTitle = `Rental ${
-          status === "approved" ? "Approved" : "Rejected"
-        }`;
-        const notificationMessage = `Your rental listing for "${
-          rental.device_name
-        }" has been ${status.toUpperCase()} by the admin.`;
+        const isPartnerHub =
+          rental.rental_type === "hub" && rental.is_partner;
+        const notificationTitle = `${
+          isPartnerHub ? "Partner Hub" : "Rental"
+        } ${status === "approved" ? "Approved" : "Rejected"}`;
+        const notificationMessage = `Your ${
+          isPartnerHub ? "Partner Hub" : "rental"
+        } listing for "${rental.device_name}" has been ${status.toUpperCase()} by the admin.${isPartnerHub && status === "approved" ? " It is now live in the hubs directory." : ""}`;
         const notificationLink = `/user/dashboard?tab=rentals`;
 
         await client.query(

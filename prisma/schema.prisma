@@ -432,6 +432,9 @@ model rentals {
   updated_at       DateTime?         @default(now()) @db.Timestamptz(6)
   deleted_at       DateTime?         @db.Timestamptz(6)
   hourly_rate_kobo Int
+  rental_type      String?           @default("p2p") @db.VarChar(20)
+  is_partner       Boolean?          @default(false)
+  is_office        Boolean?          @default(false)
   rental_bookings  rental_bookings[]
 }
 

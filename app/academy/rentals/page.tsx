@@ -51,22 +51,22 @@ export default function AcademyRentalsPage() {
                   Starting from ₦500/hour.
                 </span>
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/academy/rentals/inventory"
-                  className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-xl shadow-green-600/20 transition-all flex items-center gap-3"
-                >
-                  <Monitor size={20} />
-                  Vendor Rentals
-                </Link>
-                <Link
-                  href="/academy/rentals/booking"
-                  className="px-8 py-4 bg-white border-2 border-green-100 hover:border-green-600 text-gray-700 font-bold rounded-2xl transition-all flex items-center gap-3"
-                >
-                  Book with Us
-                  <ChevronRight size={20} />
-                </Link>
-              </div>
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/academy/rentals/inventory"
+                    className="px-8 py-4 bg-white border-2 border-gray-100 hover:border-green-600 text-gray-700 font-bold rounded-2xl transition-all flex items-center gap-3"
+                  >
+                    <Monitor size={20} />
+                    P2P Inventory
+                  </Link>
+                  <Link
+                    href="/academy/rentals/booking"
+                    className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-xl shadow-green-600/20 transition-all flex items-center gap-3"
+                  >
+                    Partner Hubs
+                    <ChevronRight size={20} />
+                  </Link>
+                </div>
 
               <div className="mt-10 flex items-center gap-6 text-sm text-gray-500 font-medium">
                 <div className="flex items-center gap-2">
@@ -144,23 +144,23 @@ export default function AcademyRentalsPage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Student Discounts",
-                desc: "Active Academy students get up to 15% off regular rental rates during their course duration.",
-                icon: GraduationCap,
+                title: "Partner Hubs (₦500/hr)",
+                desc: "Book a space in our partner offices across Nigeria. Enjoy guaranteed power, high-speed internet, and a professional workspace.",
+                icon: ShieldCheck,
                 color: "text-green-600",
                 bg: "bg-green-50",
               },
               {
-                title: "Optimized for Academy",
-                desc: "All devices come pre-installed with the software you need for your Bravework courses.",
-                icon: CheckCircle2,
+                title: "Free Expert Mentorship",
+                desc: "Hub bookings include access to on-site or remote expert mentors to help you with your projects and learning.",
+                icon: GraduationCap,
                 color: "text-blue-600",
                 bg: "bg-blue-50",
               },
               {
-                title: "Reliable Infrastructure",
-                desc: "High-speed internet and consistent power protection ensure your work is never lost.",
-                icon: Wifi,
+                title: "Optimized for Academy",
+                desc: "All hub devices come pre-installed with the industry-standard software you need for your Bravework courses.",
+                icon: CheckCircle2,
                 color: "text-amber-600",
                 bg: "bg-amber-50",
               },
