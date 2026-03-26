@@ -94,6 +94,8 @@ function Signup() {
   const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
   const email = user?.email || "";
 
+  
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -123,6 +125,23 @@ function Signup() {
       console.log("Internal error fetching course: ", error.message);
     }
   }, [course]);
+
+  useEffect(() => {
+    if (course) {
+      window.dataLayer.push({
+        event: "academy_enroll_start",
+        course_name: course.title,
+        course_category: course.category,
+        course_level: course.level,
+        price: course.price,
+        currency: "NGN",
+        course_id: course.id,
+        page: window.location.pathname 
+      });
+    }
+  }, [course]);
+
+  
 
   useEffect(() => {
     if (isEnrollmentPage && courseId) {

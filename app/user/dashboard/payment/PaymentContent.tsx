@@ -261,9 +261,7 @@ export default function PaymentContent() {
             if (verifyData.success) {
               toast.success("Payment successful!");
               router.push(
-                orderData.type === "rental"
-                  ? "/user/dashboard"
-                  : "/user/dashboard"
+                `/user/dashboard/payment/success?reference=${transaction.reference}&id=${orderData.data.id}&type=${orderData.type}`
               );
             } else {
               toast.error("Payment verification failed: " + verifyData.message);

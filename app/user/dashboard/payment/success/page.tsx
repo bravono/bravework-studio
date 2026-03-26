@@ -10,6 +10,9 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [course, setCourse] = useState<any>(null);
+  const type = searchParams.get("type");
+  const productId = searchParams.get("id");
 
   useEffect(() => {
     if (reference) {
@@ -18,10 +21,19 @@ function PaymentSuccessContent() {
           // Simulate fetching order details
           setOrderId(`BW-ORD-${reference.substring(reference.length - 6)}`);
           toast.success("Your payment was successfully processed!");
+
+          // If it's a course, fetch actual course details for GTM
+          if (type === "course" && productId) {
+            const res = await fetch(`/api/courses/${productId}`);
+            if (res.ok) {
+              const data = await res.json();
+              setCourse(data[0]);
+            }
+          }
         } catch (error) {
           console.error("Error fetching order details on success page:", error);
           toast.error(
-            "There was an issue loading order details. Please check your email."
+            "There was an issue loading order details. Please check your email.",
           );
         }
       };
@@ -29,7 +41,26 @@ function PaymentSuccessContent() {
     } else {
       toast.info("Payment successful. Thank you!");
     }
-  }, [reference, router]);
+  }, [reference, type, productId]);
+
+  useEffect(() => {
+    if (type === "course" && course) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "academy_enroll_complete",
+        course_name: course.title,
+        course_category: course.category,
+        course_level: course.level,
+        price: course.price,
+        currency: "NGN",
+        course_id: course.id,
+        course_slug: course.slug || "",
+        transaction_id: "ENR-" + (reference || Date.now()), // unique ID
+        value: course.price, // for revenue
+        page: window.location.pathname,
+      });
+    }
+  }, [course, type, reference]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100 p-4">
