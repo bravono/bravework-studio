@@ -37,6 +37,7 @@ interface JobApplication {
   portfolio: string;
   experience: string;
   availability: string;
+  message: string;
 }
 
 export default function JobsPage() {
@@ -49,6 +50,7 @@ export default function JobsPage() {
     portfolio: "",
     experience: "",
     availability: "",
+    message: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -127,6 +129,7 @@ export default function JobsPage() {
           portfolio: "",
           experience: "",
           availability: "",
+          message: "",
         });
         setFile(null);
         setFileInfo(null);

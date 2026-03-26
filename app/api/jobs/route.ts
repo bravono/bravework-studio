@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       portfolio: formData.get("portfolio") as string,
       experience: formData.get("experience") as string,
       availability: formData.get("availability") as string,
+      message: formData.get("message") as string,
     };
 
     logger.debug({ payload }, "Extracted payload");
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
       portfolio,
       experience,
       availability,
+      message,
     } = value;
 
     const fileString = formData.get("file") as string;

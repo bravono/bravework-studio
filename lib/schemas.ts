@@ -21,6 +21,7 @@ export const jobApplicationSchema = Joi.object({
   portfolio: Joi.string().uri().allow("").optional(),
   experience: Joi.string().required(),
   availability: Joi.string().required(),
+  message: Joi.string().allow("").optional(),
 });
 
 // Newsletter Subscription Schema
