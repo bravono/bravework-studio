@@ -44,7 +44,7 @@ export const customOfferSchema = Joi.object({
 
 // Rental Booking Schema
 export const rentalBookingSchema = Joi.object({
-  rentalId: Joi.string().uuid().required(),
+  rentalId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
   startTime: Joi.string().isoDate().required(),
   endTime: Joi.string().isoDate().required(),
   totalAmount: Joi.number().min(0).required(),
