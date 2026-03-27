@@ -46,8 +46,7 @@ export async function GET(request: Request) {
     const queryText = `
       SELECT 
         user_id, 
-        first_name AS "firstName",
-        last_name AS "lastName",
+        CONCAT(first_name, ' ', last_name) AS "fullName",
         email, 
         bio, 
         profile_picture_url AS "profileImage", 
@@ -201,8 +200,13 @@ export async function PATCH(request: Request) {
     let paramIndex = 1;
 
     if (fullName !== undefined) {
-      updateFields.push(`full_name = $${paramIndex++}`);
-      updateParams.push(fullName);
+      const parts = fullName.trim().split(" ");
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(" ");
+      updateFields.push(`first_name = $${paramIndex++}`);
+      updateParams.push(firstName);
+      updateFields.push(`last_name = $${paramIndex++}`);
+      updateParams.push(lastName);
     }
     if (bio !== undefined) {
       updateFields.push(`bio = $${paramIndex++}`);
@@ -233,8 +237,7 @@ export async function PATCH(request: Request) {
       WHERE user_id = $${paramIndex} 
       RETURNING 
         user_id, 
-        first_name AS "firstName",
-        last_name AS "lastName",
+        CONCAT(first_name, ' ', last_name) AS "fullName",
         email, 
         bio, 
         profile_picture_url AS "profileImage", 
