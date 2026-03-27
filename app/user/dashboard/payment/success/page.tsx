@@ -11,6 +11,7 @@ function PaymentSuccessContent() {
   const reference = searchParams.get("reference");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [course, setCourse] = useState<any>(null);
+  const [rental, setRental] = useState<any>(null);
   const type = searchParams.get("type");
   const productId = searchParams.get("id");
 
@@ -30,6 +31,21 @@ function PaymentSuccessContent() {
               setCourse(data[0]);
             }
           }
+
+          // If it's a rental, fetch actual rental details for GTM
+          if (type === "rental" && productId) {
+            const res = await fetch(`/api/user/bookings/${productId}`);
+            if (res.ok) {
+              const data = await res.json();
+              // Map booking data to the format expected by the GTM logic
+              setRental({
+                deviceName: data.deviceName,
+                rentalType: data.deviceType,
+                id: data.id,
+                hourlyRate: data.amount / 100, // converting kobo to NGN for GTM
+              });
+            }
+          }
         } catch (error) {
           console.error("Error fetching order details on success page:", error);
           toast.error(
@@ -44,8 +60,9 @@ function PaymentSuccessContent() {
   }, [reference, type, productId]);
 
   useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+
     if (type === "course" && course) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "academy_enroll_complete",
         course_name: course.title,
@@ -60,7 +77,21 @@ function PaymentSuccessContent() {
         page: window.location.pathname,
       });
     }
-  }, [course, type, reference]);
+    
+    if (!rental) return; // replace "rental" with your actual rental data variable
+    
+    window.dataLayer.push({
+      event: "purchase",
+      item_name: rental.deviceName,
+      item_category: rental.rentalType,
+      item_id: rental.id,
+      price: rental.hourlyRate,
+      currency: "NGN",
+      transaction_id: "REN-" + (reference || Date.now()), // unique ID
+      value: rental.price, // for revenue
+      page: window.location.pathname,
+    });
+  }, [course, type, reference, rental]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100 p-4">

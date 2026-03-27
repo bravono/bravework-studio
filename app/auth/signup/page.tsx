@@ -126,20 +126,7 @@ function Signup() {
     }
   }, [course]);
 
-  useEffect(() => {
-    if (course) {
-      window.dataLayer.push({
-        event: "academy_enroll_start",
-        course_name: course.title,
-        course_category: course.category,
-        course_level: course.level,
-        price: course.price,
-        currency: "NGN",
-        course_id: course.id,
-        page: window.location.pathname 
-      });
-    }
-  }, [course]);
+  
 
   
 

@@ -37,6 +37,24 @@ export default function AcademyRentalDetailsPage() {
     fetchRentalDetails();
   }, [id]);
 
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+
+  if (!rental) return;   // replace "rental" with your actual rental data variable
+
+  window.dataLayer = window.dataLayer || [];
+
+  window.dataLayer.push({
+    event: "rental_data_ready",
+    item_name: rental.deviceName,           
+    item_category: rental.rentalType,        
+    item_id: rental.id,
+    price: rental.hourlyRate,
+    currency: "NGN",
+    page: window.location.pathname,
+  });
+}, [rental]);
+
   const fetchRentalDetails = async () => {
     try {
       const res = await fetch(`/api/rentals/${id}`);
@@ -64,7 +82,7 @@ export default function AcademyRentalDetailsPage() {
   const handleBookNow = async () => {
     if (!session) {
       toast.error("Please log in to book this device");
-      router.push("/auth/signin");
+      router.push("/auth/signup");
       return;
     }
 
