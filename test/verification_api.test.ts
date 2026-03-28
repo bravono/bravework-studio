@@ -29,7 +29,7 @@ describe("Identity Verification API", () => {
       (getServerSession as jest.Mock).mockResolvedValue({
         user: { id: 1 },
       });
-      (queryDatabase as jest.Mock).mockResolvedValue([]);
+      (queryDatabase as jest.Mock).mockResolvedValue([{ user_id: 1 }]);
       (put as jest.Mock).mockResolvedValue({
         url: "https://blob.url/test.jpg",
       });
