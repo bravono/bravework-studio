@@ -28,6 +28,7 @@ export default function AcademyCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { exchangeRates } = useExchangeRates();
@@ -59,6 +60,22 @@ export default function AcademyCoursesPage() {
     ];
   }, [courses]);
 
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    courses.forEach((course) => {
+      if (Array.isArray(course.tags)) {
+        course.tags.forEach((tag) => tags.add(tag));
+      }
+    });
+    return Array.from(tags).sort();
+  }, [courses]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
+
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const matchesFilter =
@@ -70,9 +87,14 @@ export default function AcademyCoursesPage() {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
-      return matchesFilter && matchesSearch;
+      const matchesTags =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) => course.tags?.includes(tag));
+
+      return matchesFilter && matchesSearch && matchesTags;
     });
-  }, [courses, activeFilter, searchQuery]);
+  }, [courses, activeFilter, searchQuery, selectedTags]);
+
 
   return (
     <div className="bg-white min-h-screen">
@@ -115,6 +137,47 @@ export default function AcademyCoursesPage() {
               />
             </div>
           </div>
+
+          {allTags.length > 0 && (
+            <div className="mt-10 pt-8 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                  Filter by Specialization
+                </p>
+                {selectedTags.length > 0 && (
+                  <button
+                    onClick={() => setSelectedTags([])}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Clear all tags
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => {
+                  const isActive = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-blue-50 text-blue-600 border-2 border-blue-600 ring-4 ring-blue-50/50"
+                          : "bg-white text-gray-500 border border-gray-200 hover:border-blue-300 hover:bg-gray-50/50"
+                      }`}
+                    >
+                      {tag}
+                      {isActive && (
+                        <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white text-[10px]">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="mt-8 flex flex-col items-center md:items-start">
             <p className="text-sm font-medium text-gray-700 mb-2">
@@ -198,6 +261,24 @@ export default function AcademyCoursesPage() {
                     >
                       <div>{course.description}</div>
                     </ShowMore>
+
+                    {course.tags && course.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-8">
+                        {course.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2.5 py-1 bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-gray-100"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {course.tags.length > 3 && (
+                          <span className="text-[10px] font-black text-gray-400 mt-1">
+                            +{course.tags.length - 3} MORE
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     <div className="space-y-3 mb-8">
                       <div className="flex items-center gap-3 text-sm text-gray-600">
