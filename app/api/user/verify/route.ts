@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-options";
 import { queryDatabase } from "@/lib/db";
+import { uploadToBlob } from "@/lib/blob-upload";
 
 export const dynamic = "force-dynamic";
 
@@ -13,15 +14,30 @@ export async function POST(request: Request) {
     }
 
     const userId = (session.user as any).id;
-    const body = await request.json();
-    const { idType, idCardFrontUrl, idCardBackUrl, selfieWithIdUrl } = body;
+    const formData = await request.formData();
+    const idType = formData.get("idType") as string;
+    const idCardFront = formData.get("idCardFront") as File;
+    const idCardBack = formData.get("idCardBack") as File | null;
+    const selfieWithId = formData.get("selfieWithId") as File;
 
     // Basic validation
-    if (!idType || !idCardFrontUrl || !selfieWithIdUrl) {
+    if (!idType || !idCardFront || !selfieWithId) {
       return NextResponse.json(
         { error: "Missing required verification fields" },
         { status: 400 }
       );
+    }
+
+    // Upload files to Vercel Blob
+    const [frontResult, selfieResult] = await Promise.all([
+      uploadToBlob(idCardFront, "verification"),
+      uploadToBlob(selfieWithId, "verification"),
+    ]);
+
+    let backUrl = null;
+    if (idCardBack && idCardBack.size > 0) {
+      const backResult = await uploadToBlob(idCardBack, "verification");
+      backUrl = backResult.url;
     }
 
     // Update the user's verification data
@@ -39,9 +55,9 @@ export async function POST(request: Request) {
 
     const result = await queryDatabase(query, [
       idType,
-      idCardFrontUrl,
-      idCardBackUrl || null,
-      selfieWithIdUrl,
+      frontResult.url,
+      backUrl,
+      selfieResult.url,
       userId,
     ]);
 
