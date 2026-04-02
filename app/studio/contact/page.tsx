@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Outfit } from "next/font/google";
 import { useSearchParams } from "next/navigation";
@@ -15,11 +16,16 @@ const outfit = Outfit({
 
 function StudioContactContent() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
 
   const getPreFilledMessage = () => {
     const category = searchParams.get("category");
     const scope = searchParams.get("scope");
     const timeline = searchParams.get("timeline");
+
+    if (searchParams.get("fromWizard") === "true") {
+      return "";
+    }
 
     if (category || scope || timeline) {
       let msg = "I'm interested in a project with the following details:\n";
@@ -30,6 +36,17 @@ function StudioContactContent() {
     }
     return "";
   };
+
+  const [wizardData, setWizardData] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (searchParams.get("fromWizard") === "true") {
+      const stored = sessionStorage.getItem("wizardOrderData");
+      if (stored) {
+        setWizardData(JSON.parse(stored));
+      }
+    }
+  }, [searchParams]);
 
   return (
     <main className="bg-black min-h-screen">
@@ -57,14 +74,26 @@ function StudioContactContent() {
               anywhere globally, our specialized team is ready to bring your
               vision to life.
             </p>
+            {wizardData && (
+              <div className="mt-8 p-6 bg-green-500/10 border border-green-500/30 rounded-2xl">
+                <h2 className="text-xl font-bold text-green-400 mb-2">
+                  Wizard Details Saved
+                </h2>
+                <p className="text-gray-300">
+                  Your project details have been recorded safely. Please complete this final form with your contact information to finalize and submit your quote request.
+                </p>
+              </div>
+            )}
           </div>
 
           <ContactForm
             defaultDepartment="Studio"
             showDepartmentSelector={false}
-            title="Studio Inquiry"
-            description="Our specialized team typically responds within 12-24 hours. Tell us about your vision, and let's build something elite."
+            title={wizardData ? "Finalize Your Quote" : "Studio Inquiry"}
+            description={wizardData ? "Please provide your contact information to proceed." : "Our specialized team typically responds within 12-24 hours. Tell us about your vision, and let's build something elite."}
             accentColor="green"
+            wizardData={wizardData}
+            defaultEmail={session?.user?.email ?? undefined}
           />
         </div>
       </section>

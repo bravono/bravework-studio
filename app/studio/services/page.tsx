@@ -14,8 +14,16 @@ const outfit = Outfit({
 
 export default function StudioServices() {
   const studioServices = services.filter(
-    (s) => s.title !== "Training Services"
+    (s) => s.title !== "Training Services",
   );
+
+  const [expandedServices, setExpandedServices] = React.useState<{
+    [key: number]: boolean;
+  }>({});
+
+  const toggleExpand = (index: number) => {
+    setExpandedServices((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
 
   return (
     <main className="bg-black min-h-screen">
@@ -65,38 +73,83 @@ export default function StudioServices() {
           </div>
 
           <div className="space-y-12">
-            {studioServices.map((service, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col md:flex-row gap-8 items-center bg-gray-900/20 rounded-[2.5rem] p-8 sm:p-12 border border-gray-800"
-              >
-                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-800 rounded-3xl flex items-center justify-center text-5xl shrink-0">
-                  {service.icon}
-                </div>
-                <div className="flex-grow text-center md:text-left">
-                  <h3 className="text-3xl font-bold text-white mb-4">
-                    {service.title}
-                  </h3>
-                  <p className="text-xl text-gray-400 mb-8 leading-relaxed">
-                    {service.description}
-                  </p>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                    <span className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-bold text-xs uppercase tracking-tighter">
-                      Industry Standard Tools
-                    </span>
-                    <span className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs uppercase tracking-tighter">
-                      Dedicated Project Manager
-                    </span>
-                    <span className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold text-xs uppercase tracking-tighter">
-                      Scalable Architecture
-                    </span>
+            {studioServices.map((service, index) => {
+              const isExpanded = expandedServices[index];
+              const visibleSubServices = service.subServices
+                ? isExpanded
+                  ? service.subServices
+                  : service.subServices.slice(0, 4)
+                : [];
+
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex flex-col md:flex-row gap-8 items-start bg-gray-900/20 rounded-[2.5rem] p-8 sm:p-12 border border-gray-800"
+                >
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-800 rounded-3xl flex items-center justify-center text-5xl shrink-0">
+                    {service.icon}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="flex-grow text-center md:text-left flex flex-col h-full">
+                    <h3 className="text-3xl font-bold text-white mb-4">
+                      {service.title}
+                    </h3>
+                    <p className="text-xl text-gray-400 mb-8 leading-relaxed">
+                      {service.description}
+                    </p>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
+                      {(service.tags || [
+                        "Industry Standard Tools",
+                        "Dedicated Project Manager",
+                        "Scalable Architecture"
+                      ]).map((tag, idx) => {
+                        const colors = [
+                          "bg-green-500/10 border-green-500/20 text-green-400",
+                          "bg-blue-500/10 border-blue-500/20 text-blue-400",
+                          "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                        ];
+                        return (
+                          <span key={idx} className={`px-4 py-2 rounded-xl border font-bold text-xs uppercase tracking-tighter ${colors[idx % colors.length]}`}>
+                            {tag}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {service.subServices && (
+                      <div className="flex flex-col h-full">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                          {visibleSubServices.map((sub, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-black/30 p-4 rounded-2xl border border-gray-800"
+                            >
+                              <h4 className="text-white font-bold mb-1">
+                                {sub.name}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {sub.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {service.subServices.length > 4 && (
+                          <div className="mt-4 text-right">
+                            <button
+                              onClick={() => toggleExpand(index)}
+                              className="text-green-500 hover:text-green-400 font-semibold underline underline-offset-4 decoration-green-500/30 hover:decoration-green-400 transition-colors"
+                            >
+                              {isExpanded ? "Show less" : "Show more"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -47,11 +47,18 @@ interface Portfolio {
   sampleNames?: string[];
 }
 
+interface ServiceSub {
+  name: string;
+  description: string;
+}
+
 interface Services {
   title: string;
   description: string;
   icon: string;
   kidFriendly?: boolean;
+  subServices?: ServiceSub[];
+  tags?: string[];
 }
 
 interface Todo {
@@ -638,30 +645,332 @@ const services: Services[] = [
       "Professional 3D modeling, animation, and visualization services for your projects.",
     icon: "🎨",
     kidFriendly: true,
+    tags: [
+      "Photorealistic Renders",
+      "Industry Standard Tools",
+      "Optimized Assets",
+    ],
+    subServices: [
+      {
+        name: "Product Visualization",
+        description: "Photorealistic 3D renders for marketing and design.",
+      },
+      {
+        name: "3D modeling for printing",
+        description: "Watertight, print-ready models.",
+      },
+      {
+        name: "ArchViz",
+        description: "Realistic 3D renders for architecture and real estate.",
+      },
+      {
+        name: "Prototype Design",
+        description: "3D models for product prototypes and concept designs.",
+      },
+
+      {
+        name: "Virtual Reality (VR) / Augmented Reality (AR) Assets",
+        description:
+          "Interactive 3D models optimized for immersive experiences.",
+      },
+
+      {
+        name: "Motion Graphics",
+        description:
+          "Sleek 2D/3D hybrid animations for branding, intros, and advertisements.",
+      },
+
+      {
+        name: "Character Design & Animation",
+        description:
+          "Stylized or realistic characters for storytelling, branding, or mascots.",
+      },
+
+      {
+        name: "Training & Educational Animations",
+        description:
+          "Step-by-step instructional videos for corporate or academic use.",
+      },
+
+      {
+        name: "Advertising Spots",
+        description:
+          "Short, impactful 3D commercials for social media and broadcast.",
+      },
+
+      {
+        name: "Kids Animation (Nursery Rhymes)",
+        description: "Fun, vibrant 3D animations for kids.",
+      },
+      {
+        name: "Video Explainer",
+        description: "Engaging 3D animations explaining complex ideas.",
+      },
+    ],
   },
   {
-    title: "Web Development",
+    title: "Software Development",
     description:
-      "Custom web applications and websites built with modern technologies.",
+      "Custom software, web applications, and mobile apps built with modern technologies.",
     icon: "🌐",
     kidFriendly: true,
+    tags: ["Scalable Architecture", "Agile Methodology", "Custom Solutions"],
+    subServices: [
+      {
+        name: "Web Applications",
+        description: "Robust and scalable full-stack web platforms.",
+      },
+      {
+        name: "Progressive Web Apps (PWAs)",
+        description:
+          "Web apps that behave like native mobile apps, with offline support and push notifications.",
+      },
+      {
+        name: "Mobile App Development",
+        description: "Native and cross-platform mobile apps.",
+      },
+
+      {
+        name: "E-Commerce Solutions",
+        description: "Custom storefronts and payment integrations.",
+      },
+      {
+        name: "Enterprise Systems",
+        description: "Secure backends and custom SaaS tools.",
+      },
+      {
+        name: "API Development & Integration",
+        description:
+          "Secure, scalable APIs and third-party integrations (payment gateways, CRMs, social platforms).",
+      },
+
+      {
+        name: "CMS Development",
+        description:
+          "Custom WordPress, Drupal, or headless CMS solutions for content-heavy sites.",
+      },
+
+      {
+        name: "Workflow Automation Tools",
+        description:
+          "Streamlining repetitive business processes with custom dashboards.",
+      },
+
+      {
+        name: "DevOps & CI/CD Setup",
+        description:
+          "Automated pipelines for faster, more reliable deployments.",
+      },
+
+      {
+        name: "Performance Optimization",
+        description:
+          "Speed, scalability, and SEO-focused improvements for web and mobile apps.",
+      },
+    ],
+  },
+  {
+    title: "AI Integration",
+    description:
+      "Integrating cutting-edge Artificial Intelligence capabilities into your business operations and products.",
+    icon: "🤖",
+    kidFriendly: false,
+    tags: [
+      "Advanced Machine Learning",
+      "Data Security",
+      "Seamless Integration",
+    ],
+    subServices: [
+      {
+        name: "AI Chatbots",
+        description: "Intelligent conversational agents for support.",
+      },
+      {
+        name: "Automations",
+        description: "AI-driven workflows and data processing.",
+      },
+      {
+        name: "Custom Models",
+        description: "Tailored machine learning models built for your data.",
+      },
+      {
+        name: "Product Recommendation Engines",
+        description: "AI-driven personalization for boosting sales.",
+      },
+      {
+        name: "Predictive Analytics",
+        description:
+          "Data-driven forecasts for trends, demand, and performance.",
+      },
+      {
+        name: "Computer Vision Solutions",
+        description:
+          "Image recognition, object detection, and visual AI applications.",
+      },
+      {
+        name: "Natural Language Processing (NLP)",
+        description:
+          "Text analysis, sentiment detection, and language understanding.",
+      },
+      {
+        name: "Voice Assistants",
+        description: "AI-powered voice interfaces for hands-free interaction.",
+      },
+      {
+        name: "Fraud Detection Systems",
+        description:
+          "AI models to identify anomalies and prevent fraudulent activity.",
+      },
+      {
+        name: "AI-Powered Search",
+        description: "Smart search engines with semantic understanding.",
+      },
+    ],
   },
   {
     title: "UI/UX Design",
     description: "User-centered design solutions that enhance user experience.",
     icon: "✨",
+    tags: [
+      "User-Centric Approach",
+      "Interactive Prototypes",
+      "Modern Aesthetics",
+    ],
+    subServices: [
+      {
+        name: "Wireframing & Prototyping",
+        description: "Interactive blueprints.",
+      },
+      {
+        name: "User Research",
+        description: "In-depth insights into your target audience.",
+      },
+      {
+        name: "Interface Design",
+        description: "Modern, stunning visuals for web and mobile.",
+      },
+      {
+        name: "Usability Testing",
+        description: "Hands-on testing to refine user experience.",
+      },
+      {
+        name: "Information Architecture",
+        description: "Organized content structures for intuitive navigation.",
+      },
+      {
+        name: "Interaction Design",
+        description: "Smooth, engaging user flows and micro-interactions.",
+      },
+      {
+        name: "Accessibility Design",
+        description: "Inclusive designs that meet accessibility standards.",
+      },
+      {
+        name: "Design Systems",
+        description: "Reusable components and style guides for consistency.",
+      },
+      {
+        name: "Brand Identity Integration",
+        description: "Aligning UI with brand guidelines and storytelling.",
+      },
+    ],
   },
   {
     title: "Game Development",
-    description: "Engaging game development services for various platforms.",
+    description:
+      "Making optimized game assets and animations for your mobile and pc games.",
     icon: "🎮",
     kidFriendly: true,
+    tags: [
+      "Cross-Platform Experiences",
+      "Immersive Gameplay",
+      "High Performance",
+    ],
+    subServices: [
+      {
+        name: "Game Assets",
+        description: "Optimized props, environments, and characters.",
+      },
+      {
+        name: "Game Animation",
+        description: "Dynamic rigging and animations for engines.",
+      },
+      {
+        name: "Texturing",
+        description: "Optimized PBR Texturing for game assets.",
+      },
+      {
+        name: "Assets Optimization",
+        description:
+          "Optimized game assets like characters, props, environments for performance.",
+      },
+      {
+        name: "Game Development",
+        description: "Full game development using Unity and Unreal Engine.",
+      },
+      {
+        name: "Level Design",
+        description: "Immersive and balanced gameplay environments.",
+      },
+      {
+        name: "UI/UX for Games",
+        description: "Custom game interfaces and player experience design.",
+      },
+      {
+        name: "Sound Design",
+        description: "Audio effects, ambient sounds, and music integration.",
+      },
+      {
+        name: "Multiplayer & Networking",
+        description:
+          "Online gameplay systems with matchmaking and server integration.",
+      },
+      {
+        name: "Game Testing & QA",
+        description:
+          "Bug tracking, performance testing, and gameplay balancing.",
+      },
+      {
+        name: "Porting & Optimization",
+        description: "Adapting games for different platforms and devices.",
+      },
+    ],
   },
   {
     title: "Voice-Over Services",
     description:
       "Professional voice-over services for your videos, games, and multimedia projects.",
     icon: "🎙️",
+    tags: ["Professional Equipment", "Native Speakers", "Quick Turnaround"],
+    subServices: [
+      { name: "Commercial Voice-overs", description: "High-quality ad reads." },
+      {
+        name: "Character Voices",
+        description: "Distinct voices for animation and games.",
+      },
+      { name: "Audiobooks", description: "Clear and engaging narration." },
+      {
+        name: "Podcast Intros & Outros",
+        description: "Professional branding for podcasts and shows.",
+      },
+      {
+        name: "Narration for Explainers",
+        description: "Concise, engaging voice tracks for explainer videos.",
+      },
+      {
+        name: "IVR & Corporate Systems",
+        description:
+          "Polished recordings for phone menus and corporate communications.",
+      },
+      {
+        name: "Dubbing & Localization",
+        description: "Voice adaptation for different languages and regions.",
+      },
+      {
+        name: "Jingles & Radio Spots",
+        description: "Energetic voice-overs for radio and music ads.",
+      },
+    ],
   },
   {
     title: "Training Services",
@@ -669,6 +978,18 @@ const services: Services[] = [
       "Interactive and engaging training programs for individuals and organizations in all the service we offer.",
     icon: "🤼‍♂️",
     kidFriendly: true,
+    tags: ["Expert Mentorship", "Hands-On Projects", "Industry Curriculum"],
+    subServices: [
+      {
+        name: "Mentorship",
+        description: "One-on-one guidance in tech and art.",
+      },
+      { name: "Corporate Training", description: "Upskilling your team." },
+      {
+        name: "Kids Academy",
+        description: "Fun tech and creative skills for kids.",
+      },
+    ],
   },
 ];
 

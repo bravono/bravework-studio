@@ -108,7 +108,7 @@ export default async function RootLayout({
               url: "https://braveworkstudio.com",
               logo: "https://braveworkstudio.com/assets/bws_white_logo_black_bg.png",
               description:
-                "We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless web development.",
+                "We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless software development.",
               sameAs: [
                 "https://www.facebook.com/BraveworkStudio?mibextid=ZbWKwL",
                 "https://www.instagram.com/bravework_studio?igsh=bzJjZDlxNTZnY2h4",

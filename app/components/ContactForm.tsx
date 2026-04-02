@@ -13,6 +13,8 @@ interface ContactFormProps {
   title?: string;
   description?: string;
   accentColor?: string;
+  wizardData?: any;
+  defaultEmail?: string;
 }
 
 export default function ContactForm({
@@ -21,14 +23,33 @@ export default function ContactForm({
   title = "Get in Touch",
   description = "Have a project in mind? We'd love to hear from you.",
   accentColor = "blue",
+  wizardData,
+  defaultEmail = "",
 }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    email: defaultEmail,
+    phone: "",
     subject: "",
     message: "",
     department: defaultDepartment,
   });
+
+  React.useEffect(() => {
+    if (wizardData && wizardData.category) {
+      setFormData(prev => ({
+        ...prev,
+        subject: `Order For ${wizardData.category}`,
+      }));
+    }
+  }, [wizardData]);
+
+  React.useEffect(() => {
+    if (defaultEmail && !formData.email) {
+      setFormData(prev => ({ ...prev, email: defaultEmail }));
+    }
+  }, [defaultEmail]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,17 +62,21 @@ export default function ContactForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, wizardData }),
       });
 
       if (response.ok) {
         setFormData({
           name: "",
           email: "",
+          phone: "",
           subject: "",
           message: "",
           department: defaultDepartment,
         });
+        if (wizardData) {
+          sessionStorage.removeItem("wizardOrderData");
+        }
         toast.success("Message sent successfully!");
       } else {
         const data = await response.json();
@@ -171,6 +196,22 @@ export default function ContactForm({
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors duration-200"
           />
         </div>
+        <div className="flex flex-col">
+          <label
+            htmlFor="phone"
+            className="mb-2 text-sm font-medium text-gray-700"
+          >
+            Phone Number (Optional)
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors duration-200"
+          />
+        </div>
 
         {showDepartmentSelector && (
           <div className="flex flex-col">
@@ -231,6 +272,7 @@ export default function ContactForm({
             onChange={handleChange}
             required
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors duration-200"
+            placeholder={wizardData ? "Additional notes or leave exactly what's pre-filled" : ""}
           />
         </div>
         <button

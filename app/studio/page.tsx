@@ -8,6 +8,8 @@ import { Outfit, Inter } from "next/font/google";
 import { services } from "../services/localDataService";
 import TestimonialCarousel from "../components/TestimonialCarousel";
 import ArrowButton from "../components/ArrowButton";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -59,8 +61,15 @@ export default function StudioHome() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
+            className="flex gap-4 justify-center"
           >
             <ArrowButton label="Explore Our Services" link="/studio/services" />
+            <Link
+              href="/studio/contact"
+              className="group flex items-center justify-center gap-2 px-8 py-3 rounded-full border border-gray-500 hover:border-white text-white font-bold transition-all relative overflow-hidden"
+            >
+              <span className="relative z-10">Book a Consultation</span>
+            </Link>
           </motion.div>
         </div>
 
@@ -99,6 +108,14 @@ export default function StudioHome() {
                   {service.title}
                 </h3>
                 <p className="text-gray-400 mb-6">{service.description}</p>
+                <Link
+                  href={`/studio/services?service=${encodeURIComponent(
+                    service.title
+                  )}`}
+                  className="inline-flex items-center text-green-500 hover:text-green-400 font-semibold group-hover:translate-x-2 transition-transform mt-auto"
+                >
+                  Order Service <ArrowRight size={18} className="ml-2" />
+                </Link>
               </motion.div>
             ))}
           </div>

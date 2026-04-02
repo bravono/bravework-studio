@@ -28,7 +28,7 @@ const slides = [
     title: "Bravework Studio",
     subtitle: "Innovative Web, Mobile & 3D Solutions",
     description:
-      "Your one-stop-shop to create blazing-fast apps and stunning 3D visualizations.",
+      "Your one-stop-shop to create blazing-fast apps powered by AI and stunning 3D visualization of your products.",
     cta: "Get Started",
     link: "/studio",
     textColor: "text-white",

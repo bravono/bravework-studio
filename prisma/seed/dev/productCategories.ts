@@ -9,7 +9,7 @@ export async function seedProductCategories() {
       accepted_files: ".fbx,.obj,.blend,.3ds,.max,.dae,.glb,.stl",
     },
     {
-      category_name: "UiUx Design",
+      category_name: "UI/UX Design",
       category_description:
         "User-centered design solutions that enhance user experience.",
       accepted_files: ".psd,.ai,.sketch,.fig,.xd,.pdf,.png,.jpg",
@@ -21,9 +21,9 @@ export async function seedProductCategories() {
       accepted_files: ".pdf,.docx,.txt,.png,.jpg",
     },
     {
-      category_name: "Web Development",
+      category_name: "Software Development",
       category_description:
-        "Custom web applications and websites built with modern technologies.",
+        "Custom software, web applications, and mobile apps built with modern technologies.",
       accepted_files: ".zip,.rar,.pdf,.doc,.docx,.txt,.ai,.psd,.fig,.png,.jpg",
     },
     {
@@ -39,10 +39,16 @@ export async function seedProductCategories() {
       accepted_files: ".unity,.uproject,.fbx,.obj,.blend,.pdf,.zip,.rar,.docx",
     },
     {
-      category_name: "Video & Voice Over",
+      category_name: "Voice-Over Services",
       category_description:
         "Professional voice-over services for your videos, games, and multimedia projects.",
       accepted_files: ".mp3,.wav,.ogg,.aac,.m4a,.pdf,.docx,.txt,.png,.jpg",
+    },
+    {
+      category_name: "AI Integration",
+      category_description:
+        "Integrating cutting-edge Artificial Intelligence capabilities into your business operations and products.",
+      accepted_files: ".zip,.rar,.pdf,.doc,.docx,.txt,.csv,.json",
     },
     {
       category_name: "Course",
