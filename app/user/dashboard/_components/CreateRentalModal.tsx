@@ -31,6 +31,9 @@ export default function CreateRentalModal({
     locationAddress: "",
     hasInternet: false,
     hasBackupPower: false,
+    rentalType: "p2p",
+    isPartner: false,
+    isOffice: false,
     images: [] as string[],
     locationLat: 6.5244,
     locationLng: 3.3792,
@@ -121,7 +124,9 @@ export default function CreateRentalModal({
         throw new Error(error.error || "Failed to create rental");
       }
 
-      toast.success("Rental listed successfully!");
+      toast.success(
+        "Hardware listing submitted for approval. You will be notified once it is approved.",
+      );
       onSuccess();
       onClose();
       // Reset form
@@ -135,6 +140,9 @@ export default function CreateRentalModal({
         locationAddress: "",
         hasInternet: false,
         hasBackupPower: false,
+        rentalType: "p2p",
+        isPartner: false,
+        isOffice: false,
         images: [],
         locationLat: 6.5244,
         locationLng: 3.3792,
@@ -150,6 +158,74 @@ export default function CreateRentalModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="List a New Device">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+          <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            Listing Type
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  rentalType: "p2p",
+                  isPartner: false,
+                  isOffice: false,
+                }))
+              }
+              className={`p-4 rounded-xl border-2 text-left transition-all ${
+                formData.rentalType === "p2p"
+                  ? "border-green-600 bg-green-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <p className="font-bold text-gray-900">Standard P2P</p>
+              <p className="text-xs text-gray-500">
+                Rent your hardware directly to individuals.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  rentalType: "hub",
+                  isPartner: true,
+                  isOffice: true,
+                  hourlyRate: "500",
+                  hasInternet: true,
+                  hasBackupPower: true,
+                }))
+              }
+              className={`p-4 rounded-xl border-2 text-left transition-all ${
+                formData.rentalType === "hub"
+                  ? "border-green-600 bg-green-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <p className="font-bold text-gray-900">Partner Hub</p>
+                <span className="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase">
+                  Featured
+                </span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Partner with us. Fixed ₦500/hr. Mentorship included.
+              </p>
+            </button>
+          </div>
+          {formData.rentalType === "hub" && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 items-start">
+              <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700 leading-relaxed">
+                By listing as a Partner Hub, your location will be listed as an
+                official Bravework Hub. This requires a professional office
+                setting with guaranteed power and high-speed internet.
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -289,12 +365,17 @@ export default function CreateRentalModal({
               value={formData.hourlyRate}
               onChange={handleChange}
               required
+              disabled={formData.rentalType === "hub"}
               min="500"
-              max="2000"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              max="500000"
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border ${
+                formData.rentalType === "hub" ? "bg-gray-100 italic" : ""
+              }`}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Min: ₦500 - Max: ₦2,000
+              {formData.rentalType === "hub"
+                ? "Fixed rate for Partners"
+                : "Min: ₦500 - Suggestion: ₦1,000+"}
             </p>
           </div>
 

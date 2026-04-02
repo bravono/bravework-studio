@@ -1,1137 +1,332 @@
 "use client";
 
-import React from "react";
-import {
-  Bell,
-  DollarSign,
-  BookOpen,
-  Pencil,
-  Save,
-  X,
-  KeyRound,
-  Mail,
-  Package,
-  Gift,
-  FileText,
-  User,
-  HeartHandshake,
-  CheckCircle,
-  Clock,
+import React, { useState } from "react";
+import Image from "next/image";
+import { 
+  User, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  AlertCircle,
   ExternalLink,
-  Wallet,
-  XCircle,
-  Plus,
-  List,
-  Key,
+  ShieldCheck,
+  Building,
+  Edit3,
+  Loader2,
+  Phone,
+  CheckCircle2,
+  Zap,
   Briefcase,
-  Users,
+  GraduationCap,
+  Wallet
 } from "lucide-react";
+import VerificationModal from "./VerificationModal";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-import { convertCurrency } from "@/lib/utils/convertCurrency";
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-
-import CourseDetailCard from "@/app/components/CourseDetailCard";
-import CourseModal from "@/app/components/CourseModal";
-import RejectReasonModal from "./RejectReasonModal";
-import Pagination from "@/app/components/Pagination";
-
-import {
-  Order,
-  Course,
-  UserProfile,
-  Invoice,
-  Notification,
-  CustomOffer,
+import { 
+  Order, 
+  Course, 
+  UserProfile, 
+  Invoice, 
+  CustomOffer, 
+  Rental, 
+  Booking,
+  ExchangeRates
 } from "app/types/app";
-import { KOBO_PER_NAIRA } from "@/lib/constants";
+
+type Currency = "NGN" | "USD" | "GBP" | "EUR";
 
 interface UserOverviewSectionProps {
   session: any;
   courses: Course[];
-  selectedCurrency: string;
-  exchangeRates: any;
+  selectedCurrency: Currency;
+  exchangeRates: ExchangeRates;
   handleCreateCourse: () => void;
   orders: Order[];
   paginatedOrders: Order[];
   ordersPage: number;
   totalOrdersPages: number;
-  setOrdersPage: (page: number) => void;
+  setOrdersPage: (p: number) => void;
   offers: CustomOffer[];
   paginatedOffers: CustomOffer[];
   offersPage: number;
   totalOffersPages: number;
-  setOffersPage: (page: number) => void;
+  setOffersPage: (p: number) => void;
   invoices: Invoice[];
   paginatedInvoices: Invoice[];
   invoicesPage: number;
   totalInvoicesPages: number;
-  setInvoicesPage: (page: number) => void;
-  rentals: any[];
-  paginatedRentals: any[];
+  setInvoicesPage: (p: number) => void;
+  rentals: Rental[];
+  paginatedRentals: Rental[];
   rentalsPage: number;
   totalRentalsPages: number;
-  setRentalsPage: (page: number) => void;
-  bookings: any[];
-  paginatedBookings: any[];
+  setRentalsPage: (p: number) => void;
+  bookings: Booking[];
+  paginatedBookings: Booking[];
   bookingsPage: number;
   totalBookingsPages: number;
-  setBookingsPage: (page: number) => void;
+  setBookingsPage: (p: number) => void;
   userProfile: UserProfile;
   isEditingProfile: boolean;
-  setIsEditingProfile: (isEditing: boolean) => void;
+  setIsEditingProfile: (v: boolean) => void;
   editableProfile: UserProfile;
-  setEditableProfile: (profile: UserProfile) => void;
-  handleProfileChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => void;
+  setEditableProfile: (p: UserProfile) => void;
+  handleProfileChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSaveProfile: () => void;
   loading: boolean;
   handleChangePassword: () => void;
   notificationCount: number;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (t: string) => void;
   isModalOpen: boolean;
-  setIsModalOpen: (isOpen: boolean) => void;
+  setIsModalOpen: (v: boolean) => void;
   selectedCourse: Course | null;
-  handleInitiatePayment: (id: string, type?: "invoice" | "booking") => void;
-  handleOfferAction: (
-    offer: CustomOffer,
-    action: "accept" | "reject",
-    reason?: string,
-  ) => void;
+  handleInitiatePayment: (id: any, type?: "invoice" | "booking") => void;
+  handleOfferAction: (offer: CustomOffer, action: "accept" | "reject", reason?: string) => void;
   handleRejectClick: (offer: CustomOffer) => void;
   actionLoading: boolean;
   isRejectReasonModalOpen: boolean;
-  setIsRejectReasonModalOpen: (isOpen: boolean) => void;
+  setIsRejectReasonModalOpen: (v: boolean) => void;
   selectedOfferForRejection: CustomOffer | null;
   handleConfirmReject: (reason: string) => void;
-  handleReleaseFunds: (id: number) => void;
+  handleReleaseFunds: (bookingId: number) => void;
   handleRentAgain: (rentalId: number) => void;
 }
 
 export default function UserOverviewSection({
   session,
-  courses,
-  selectedCurrency,
-  exchangeRates,
-  handleCreateCourse,
-  orders,
-  paginatedOrders,
-  ordersPage,
-  totalOrdersPages,
-  setOrdersPage,
-  offers,
-  paginatedOffers,
-  offersPage,
-  totalOffersPages,
-  setOffersPage,
-  invoices,
-  paginatedInvoices,
-  invoicesPage,
-  totalInvoicesPages,
-  setInvoicesPage,
-  rentals,
-  paginatedRentals,
-  rentalsPage,
-  totalRentalsPages,
-  setRentalsPage,
-  bookings,
-  paginatedBookings,
-  bookingsPage,
-  totalBookingsPages,
-  setBookingsPage,
   userProfile,
   isEditingProfile,
   setIsEditingProfile,
   editableProfile,
-  setEditableProfile,
   handleProfileChange,
   handleSaveProfile,
   loading,
-  handleChangePassword,
-  notificationCount,
-  setActiveTab,
-  isModalOpen,
-  setIsModalOpen,
-  selectedCourse,
-  handleInitiatePayment,
-  handleOfferAction,
-  handleRejectClick,
-  actionLoading,
-  isRejectReasonModalOpen,
-  setIsRejectReasonModalOpen,
-  selectedOfferForRejection,
-  handleConfirmReject,
-  handleReleaseFunds,
-  handleRentAgain,
+  courses,
+  orders,
+  bookings,
+  setActiveTab
 }: UserOverviewSectionProps) {
-  const router = useRouter();
-  const PERCENT_100 = 100;
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+
+  const stats = [
+    { label: "Studio Hub", value: orders.length, icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Courses", value: courses.length, icon: GraduationCap, color: "text-green-600", bg: "bg-green-50" },
+    { label: "Total Bookings", value: bookings.length, icon: Calendar, color: "text-amber-600", bg: "bg-amber-50" },
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
-          <div className="container mx-auto px-6 py-8">
-            {/* Welcome Header & Stats Grid */}
-            <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
-              <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-
-                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 relative">
-                  Welcome back,{" "}
-                  <span className="text-green-600">{session?.user?.name}</span>
-                </h2>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-                  {session?.user?.roles?.includes("student") && (
-                    <div className="bg-blue-50/50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-lg">
-                          <BookOpen size={20} />
-                        </div>
-                        <span className="text-2xl font-black text-blue-700 dark:text-blue-400">
-                          {courses.length}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
-                        Academy Courses
-                      </p>
-                      <button
-                        onClick={() => setActiveTab("courses")}
-                        className="mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                      >
-                        View Academy <ExternalLink size={10} />
-                      </button>
-                    </div>
-                  )}
-
-                  {session?.user?.roles?.includes("client") && (
-                    <>
-                      <div className="bg-purple-50/50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-100 dark:border-purple-800 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="p-2 bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 rounded-lg">
-                            <Briefcase size={20} />
-                          </div>
-                          <span className="text-2xl font-black text-purple-700 dark:text-purple-400">
-                            {orders.length}
-                          </span>
-                        </div>
-                        <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
-                          Studio Projects
-                        </p>
-                        <button
-                          onClick={() => setActiveTab("orders")}
-                          className="mt-3 text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
-                        >
-                          View Studio <ExternalLink size={10} />
-                        </button>
-                      </div>
-
-                      <div className="bg-indigo-50/50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="p-2 bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 rounded-lg">
-                            <Wallet size={20} />
-                          </div>
-                          <span className="text-2xl font-black text-indigo-700 dark:text-indigo-400">
-                            {invoices.length}
-                          </span>
-                        </div>
-                        <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
-                          Finance Invoices
-                        </p>
-                        <button
-                          onClick={() => setActiveTab("invoices")}
-                          className="mt-3 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
-                        >
-                          View Finance <ExternalLink size={10} />
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  {session?.user?.roles?.includes("renter") && (
-                    <div className="bg-orange-50/50 dark:bg-orange-900/20 p-6 rounded-2xl border border-orange-100 dark:border-orange-800 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="p-2 bg-orange-100 dark:bg-orange-800 text-orange-600 dark:text-orange-300 rounded-lg">
-                          <Key size={20} />
-                        </div>
-                        <span className="text-2xl font-black text-orange-700 dark:text-orange-400">
-                          {bookings.length}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
-                        Device Rentals
-                      </p>
-                      <button
-                        onClick={() => setActiveTab("bookings")}
-                        className="mt-3 text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
-                      >
-                        View Rentals <ExternalLink size={10} />
-                      </button>
-                    </div>
-                  )}
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Welcome & Verification Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl shadow-gray-100/50 dark:shadow-none border border-gray-100 dark:border-gray-800">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+            Hello, <span className="text-green-600">{userProfile?.fullName?.split(" ")[0]}</span>!
+          </h1>
+          <p className="text-gray-500 mt-1 font-medium">Welcome back to your dashboard.</p>
+        </div>
+        
+        {!userProfile?.isVerified && (
+          <div className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+            userProfile?.verificationSubmittedAt 
+              ? "bg-amber-50 border-amber-200 text-amber-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}>
+            {userProfile?.verificationSubmittedAt ? (
+              <>
+                <Loader2 className="animate-spin shrink-0" size={24} />
+                <div className="text-xs">
+                  <p className="font-black uppercase tracking-widest">Verification Pending</p>
+                  <p className="font-medium opacity-90 mt-0.5">We're currently reviewing your ID.</p>
                 </div>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="shrink-0 animate-pulse" size={24} />
+                <div className="text-xs">
+                  <p className="font-black uppercase tracking-widest">Verification Required</p>
+                  <p className="font-medium opacity-90 mt-0.5">Start renting by verifying your identity.</p>
+                </div>
+                <button
+                  onClick={() => setIsVerificationModalOpen(true)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-red-700 transition shadow-lg shadow-red-200"
+                >
+                  Verify Now
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Sidebar */}
+        <div className="lg:col-span-1 space-y-8">
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-xl shadow-gray-100/50 dark:shadow-none border border-gray-100 dark:border-gray-800">
+            <div className="relative mb-6">
+              <div className="w-32 h-32 mx-auto rounded-3xl overflow-hidden border-4 border-white dark:border-gray-800 ring-4 ring-green-50 aspect-square relative shadow-2xl">
+                <Image
+                  src={userProfile?.profileImage || "/assets/Bravework_Studio-Logo-Color.png"}
+                  alt="Avatar"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              {userProfile?.isVerified && (
+                <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2 rounded-2xl shadow-lg border-4 border-white dark:border-gray-900">
+                  <ShieldCheck size={20} />
+                </div>
+              )}
+            </div>
+
+            <div className="text-center mb-8">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white truncate">{userProfile?.fullName}</h2>
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mt-1 font-bold tracking-widest uppercase">
+                <Mail size={12} />
+                {userProfile?.email}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                {/* Course Progress */}
-                {session?.user?.roles?.includes("student") && (
-                  <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                        <BookOpen size={24} className="text-green-600" />
-                        My Courses
-                      </h2>
-                      <Link
-                        href="/academy/courses"
-                        className="text-green-600 hover:underline font-medium"
-                      >
-                        Explore More
-                      </Link>
-                    </div>
-
-                    {courses
-                      .filter(
-                        (course) =>
-                          course.price === 0 || course.paymentStatus === 1,
-                      )
-                      .map((course) => (
-                        <CourseDetailCard
-                          key={course.id}
-                          course={course}
-                          selectedCurrency={selectedCurrency}
-                          exchangeRates={exchangeRates}
-                        />
-                      ))}
-
-                    {courses.length === 0 && (
-                      <p className="text-center text-gray-500 mt-12">
-                        No courses found.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {session?.user?.roles?.includes("instructor") && (
-                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                    <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-                      <div className="flex items-center gap-2 text-2xl font-bold text-gray-800 mb-4 md:mb-0">
-                        Course Management
-                      </div>
-
-                      <button
-                        onClick={handleCreateCourse}
-                        className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center gap-2"
-                      >
-                        <Plus size={20} />
-                        Create New Course
-                      </button>
-                    </div>
-                    <p className="text-gray-500 mt-2 text-center md:text-left">
-                      Start building your next educational masterpiece.
-                    </p>
-                    existing courses
-                    <div className="mt-4 border-t pt-4">
-                      <Link
-                        href="/instructor/courses"
-                        className="text-gray-600 hover:text-blue-600 hover:underline font-medium flex items-center gap-1"
-                      >
-                        <List size={18} />
-                        View All Drafts & Published Courses
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {/* Recent Orders */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                      <Package size={24} className="text-green-600" />
-                      Recent Orders
-                    </h2>
-                    <button
-                      onClick={() => setActiveTab("orders")}
-                      className="text-green-600 hover:underline font-medium"
-                    >
-                      View All
-                    </button>
-                  </div>
-                  {orders.length > 0 && (
-                    <div className="space-y-4">
-                      {paginatedOrders.map((order) => (
-                        <div
-                          key={order.id}
-                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex-grow mb-2 sm:mb-0">
-                            <h3 className="font-semibold text-lg text-gray-800">
-                              {order.serviceName}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              Order ID: {order.id}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Date:{" "}
-                              {order.date
-                                ? new Date(order.date).toLocaleDateString()
-                                : "N/A"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
-                            <span
-                              className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                order.status === "paid"
-                                  ? "bg-green-200 text-green-800"
-                                  : order.status === "pending"
-                                    ? "bg-yellow-200 text-yellow-800"
-                                    : "bg-red-200 text-red-800"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                            <span className="font-bold text-gray-800">
-                              {exchangeRates && exchangeRates[selectedCurrency]
-                                ? convertCurrency(
-                                    order.amount / KOBO_PER_NAIRA,
-                                    exchangeRates[selectedCurrency],
-                                    getCurrencySymbol(selectedCurrency),
-                                  ).toLocaleString()
-                                : `${getCurrencySymbol(selectedCurrency)} ${(
-                                    order.amount / KOBO_PER_NAIRA
-                                  ).toLocaleString()}`}
-                            </span>
-                            {(order.status === "paid" ||
-                              order.status === "partially_paid" ||
-                              order.status === "overpayment_detected") && (
-                              <Link
-                                href={`/orders/track/${
-                                  order?.trackingId && order?.trackingId
-                                }`}
-                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                              >
-                                Track
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <Pagination
-                        currentPage={ordersPage}
-                        totalPages={totalOrdersPages}
-                        onPageChange={setOrdersPage}
-                      />
-                    </div>
-                  )}
-                </div>
-                {/* Custom Offers */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                      <Gift size={24} className="text-green-600" />
-                      Custom Offers
-                    </h2>
-                    <button
-                      onClick={() => setActiveTab("custom-offers")}
-                      className="text-green-600 hover:underline font-medium"
-                    >
-                      View All
-                    </button>
-                  </div>
-                  {offers.length > 0 && (
-                    <div className="space-y-4">
-                      {paginatedOffers.map((offer) => {
-                        // Status color mapping
-                        const statusColors: any = {
-                          pending: "bg-yellow-100 text-yellow-800",
-                          accepted: "bg-green-100 text-green-800",
-                          rejected: "bg-red-100 text-red-800",
-                          expired: "bg-gray-200 text-gray-600",
-                        };
-
-                        // Check if offer is expired
-                        const isOfferExpired =
-                          offer.expiresAt &&
-                          new Date(offer.expiresAt) < new Date() &&
-                          offer.status !== "accepted" &&
-                          offer.status !== "rejected";
-
-                        // Compute status key
-                        const offerStatusKey = isOfferExpired
-                          ? "expired"
-                          : offer.status?.toLowerCase() || "unknown";
-
-                        const canActOnOffer =
-                          offer.status === "pending" && !isOfferExpired;
-
-                        const owing =
-                          offer.offerAmount -
-                          (Number(offer.totalPaid) +
-                            (offer.discount
-                              ? offer.offerAmount *
-                                (offer.discount / PERCENT_100)
-                              : 0));
-                        return (
-                          <div className="space-y-6" key={offer.id}>
-                            <div
-                              className={`bg-white border rounded-xl shadow-sm p-6 cursor-pointer transition-transform duration-300 ease-in-out hover:shadow-lg`}
-                            >
-                              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm mt-4 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <p className="flex items-center gap-2 text-gray-600">
-                                    <Wallet className="w-4 h-4 text-gray-500 font-bold" />
-                                    <strong>Amount:</strong>{" "}
-                                    <span className="text-gray-900 font-bold">
-                                      {exchangeRates &&
-                                      exchangeRates[selectedCurrency]
-                                        ? convertCurrency(
-                                            offer.offerAmount / KOBO_PER_NAIRA,
-                                            exchangeRates[selectedCurrency],
-                                            getCurrencySymbol(selectedCurrency),
-                                          ).toLocaleString()
-                                        : `${getCurrencySymbol(
-                                            selectedCurrency,
-                                          )} ${(
-                                            offer.offerAmount / KOBO_PER_NAIRA
-                                          ).toLocaleString()}`}
-                                    </span>
-                                  </p>
-                                  {
-                                    <span
-                                      className={`px-3 py-1 rounded-full text-xs  ${
-                                        statusColors[offerStatusKey] ||
-                                        "bg-gray-100 text-gray-700"
-                                      }`}
-                                    >
-                                      {offerStatusKey.charAt(0).toUpperCase() +
-                                        offerStatusKey.slice(1)}
-                                    </span>
-                                  }
-                                </div>
-                                {owing && offer.status === "accepted" ? (
-                                  <div className="flex items-center justify-between">
-                                    <p className="flex items-center gap-2 text-gray-600">
-                                      <DollarSign className="w-4 h-4 text-gray-500 font-bold" />
-                                      <strong>Balance:</strong>{" "}
-                                      <span className="text-gray-900 font-bold">
-                                        {exchangeRates &&
-                                        exchangeRates[selectedCurrency]
-                                          ? convertCurrency(
-                                              owing / KOBO_PER_NAIRA,
-                                              exchangeRates[selectedCurrency],
-                                              getCurrencySymbol(
-                                                selectedCurrency,
-                                              ),
-                                            ).toLocaleString()
-                                          : `${getCurrencySymbol(
-                                              selectedCurrency,
-                                            )} ${(
-                                              owing / KOBO_PER_NAIRA
-                                            ).toLocaleString()}`}
-                                      </span>
-                                    </p>
-                                  </div>
-                                ) : null}
-                                <div className="flex items-center justify-between">
-                                  <p className="flex items-center gap-2 text-gray-600">
-                                    <FileText className="w-4 h-4 text-gray-500 font-bold" />
-                                    <strong>Description:</strong>{" "}
-                                    <span className="text-gray-900 font-bold">
-                                      {offer.description}
-                                    </span>
-                                  </p>
-                                </div>
-
-                                {offer.expiresAt && (
-                                  <p
-                                    className={`flex items-center gap-2 text-gray-600`}
-                                  >
-                                    <Clock className="w-4 h-4 text-gray-500 font-bold" />
-                                    <strong>Expires:</strong>{" "}
-                                    <span className="text-gray-900 font-bold">
-                                      {offer.expiresAt
-                                        ? new Date(
-                                            offer.expiresAt,
-                                          ).toLocaleDateString()
-                                        : "N/A"}
-                                    </span>
-                                  </p>
-                                )}
-                                {offer.status === "rejected" &&
-                                  offer.rejectionReason && (
-                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-                                      <h4 className="text-red-700 font-bold mb-1">
-                                        Reason for Rejection:
-                                      </h4>
-                                      <p className="text-red-600 italic">
-                                        {offer.rejectionReason}
-                                      </p>
-                                    </div>
-                                  )}
-                                {canActOnOffer ? (
-                                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-4">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsRejectReasonModalOpen(false);
-
-                                        handleOfferAction(offer, "accept");
-                                      }}
-                                      disabled={actionLoading}
-                                      className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                      <CheckCircle className="w-5 h-5" />
-                                      {actionLoading
-                                        ? "Accepting..."
-                                        : "Accept Offer"}
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRejectClick(offer);
-                                      }}
-                                      disabled={actionLoading}
-                                      className="flex-1 px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                      <XCircle className="w-5 h-5" />
-                                      {actionLoading
-                                        ? "Rejecting..."
-                                        : "Reject Offer"}
-                                    </button>
-                                  </div>
-                                ) : owing && offer.status === "accepted" ? (
-                                  <div className="pt-4 border-t border-gray-200 mt-4">
-                                    <button
-                                      onClick={() =>
-                                        router.push(
-                                          `/user/dashboard/payment?offerId=${offer.id}&balance=true`,
-                                        )
-                                      }
-                                      className="w-[50] px-5 py-2 rounded-lg font-semibold transition-all duration-200 ease-in-out text-center bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                      Pay Balance
-                                    </button>
-                                  </div>
-                                ) : null}
-                              </div>
-                              <button
-                                onClick={() => {
-                                  setActiveTab("custom-offers");
-                                }}
-                                className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
-                              >
-                                View Details{" "}
-                                <ExternalLink className="w-4 h-4" />
-                              </button>
-                            </div>
-                            {isRejectReasonModalOpen &&
-                              selectedOfferForRejection && (
-                                <RejectReasonModal
-                                  onClose={() =>
-                                    setIsRejectReasonModalOpen(false)
-                                  }
-                                  onConfirm={handleConfirmReject}
-                                  isLoading={actionLoading}
-                                />
-                              )}
-                          </div>
-                        );
-                      })}
-                      <Pagination
-                        currentPage={offersPage}
-                        totalPages={totalOffersPages}
-                        onPageChange={setOffersPage}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Invoices */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                      <FileText size={24} className="text-green-600" />
-                      My Invoices
-                    </h2>
-                    <button
-                      onClick={() => setActiveTab("invoices")}
-                      className="text-green-600 hover:underline font-medium"
-                    >
-                      View All
-                    </button>
-                  </div>
-                  {invoices.length > 0 && (
-                    <div className="space-y-4">
-                      {paginatedInvoices.map((invoice) => (
-                        <div
-                          key={invoice.id}
-                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex-grow mb-2 sm:mb-0">
-                            <h3 className="font-semibold text-lg text-gray-800">
-                              Invoice #{invoice.id}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              Date: {invoice.issueDate}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Amount: ₦
-                              {(
-                                invoice.amount / KOBO_PER_NAIRA
-                              ).toLocaleString()}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
-                            <span
-                              className={`px-3 py-1 text-xs font-bold rounded-full ${
-                                invoice.status === "Paid"
-                                  ? "bg-green-200 text-green-800"
-                                  : "bg-red-200 text-red-800"
-                              }`}
-                            >
-                              {invoice.status}
-                            </span>
-                            {invoice.status !== "Paid" && (
-                              <button
-                                onClick={() =>
-                                  handleInitiatePayment(invoice.id)
-                                }
-                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                              >
-                                Initiate Payment
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <Pagination
-                        currentPage={invoicesPage}
-                        totalPages={totalInvoicesPages}
-                        onPageChange={setInvoicesPage}
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-                      <Package size={24} className="text-green-600" />
-                      Rentals & Bookings
-                    </h2>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setActiveTab("rentals")}
-                        className="text-green-600 hover:underline font-semibold text-sm"
-                      >
-                        My Listings
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("bookings")}
-                        className="text-green-600 hover:underline font-semibold text-sm"
-                      >
-                        My Bookings
-                      </button>
-                    </div>
-                  </div>
-                  {bookings.length > 0 ? (
-                    <div className="space-y-4">
-                      {paginatedBookings.map((booking) => {
-                        const isCompleted =
-                          new Date(booking.endTime) < new Date();
-                        const canRelease =
-                          booking.paymentStatus === "paid" &&
-                          !booking.escrowReleased &&
-                          isCompleted;
-                        const canRentAgain = booking.escrowReleased;
-
-                        // Check if owner needs to wait for renter
-                        // We need to know if the current user is owner or renter.
-                        // In Overview, we mix them or show generic.
-                        // Actually, Overview usually shows "My Bookings" (where user is renter) or "My Listings" (where user is owner)
-                        // But here `bookings` prop might contain both or depends on fetch.
-                        // Let's assume for now we can infer from context or just show neutral "Funds Pending Release" if generic.
-                        // However, the request specifically asked for "Waiting for renter to release fund".
-                        // Let's look at `UserBookingsSection`, there `activeTab` "rentals" = owner, "my-bookings" = renter.
-                        // properties: booking.ownerId, booking.renterId.
-                        // We assume session.user.id is available.
-
-                        const isOwner = booking.ownerId === session?.user?.id;
-                        const showWaitingForRenter =
-                          isOwner && isCompleted && !booking.escrowReleased;
-
-                        return (
-                          <div
-                            key={booking.id}
-                            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-green-200 transition-all duration-300"
-                          >
-                            <div className="flex-grow mb-3 sm:mb-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-bold text-gray-900 group-hover:text-green-700 transition-colors">
-                                  {booking.deviceName}
-                                </h3>
-                                {booking.escrowReleased && (
-                                  <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase tracking-wider border border-green-100">
-                                    <CheckCircle size={10} /> Completed
-                                  </span>
-                                )}
-                                {showWaitingForRenter && (
-                                  <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-100">
-                                    <Clock size={10} /> Waiting for renter to
-                                    release fund
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                <p className="text-xs text-gray-500 flex items-center gap-1">
-                                  <Clock size={12} />{" "}
-                                  {new Date(
-                                    booking.startTime,
-                                  ).toLocaleDateString()}
-                                </p>
-                                <p className="text-xs text-gray-400">
-                                  ID: #{booking.id}
-                                </p>
-                                <p className="text-xs font-bold text-green-800 bg-green-100/50 px-2 rounded">
-                                  {exchangeRates &&
-                                  exchangeRates[selectedCurrency]
-                                    ? convertCurrency(
-                                        booking.amount / KOBO_PER_NAIRA,
-                                        exchangeRates[selectedCurrency],
-                                        getCurrencySymbol(selectedCurrency),
-                                      ).toLocaleString()
-                                    : `${getCurrencySymbol(
-                                        selectedCurrency,
-                                      )} ${(
-                                        booking.amount / KOBO_PER_NAIRA
-                                      ).toLocaleString()}`}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                              <span
-                                className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${
-                                  booking.status === "accepted"
-                                    ? "bg-green-50 text-green-700 border-green-100"
-                                    : booking.status === "pending"
-                                      ? "bg-yellow-50 text-yellow-700 border-yellow-100"
-                                      : "bg-red-50 text-red-700 border-red-100"
-                                }`}
-                              >
-                                {booking.status}
-                              </span>
-
-                              {booking.status === "accepted" &&
-                                booking.paymentStatus === "pending" && (
-                                  <button
-                                    onClick={() =>
-                                      handleInitiatePayment(
-                                        booking.id,
-                                        "booking",
-                                      )
-                                    }
-                                    className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-600/20 active:scale-95"
-                                  >
-                                    Pay Now
-                                  </button>
-                                )}
-
-                              {canRelease && (
-                                <button
-                                  onClick={() => handleReleaseFunds(booking.id)}
-                                  className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 active:scale-95"
-                                >
-                                  Release Funds
-                                </button>
-                              )}
-
-                              {canRentAgain && (
-                                <button
-                                  onClick={() =>
-                                    handleRentAgain(booking.rentalId)
-                                  }
-                                  className="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-all active:scale-95"
-                                >
-                                  Rent Again
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <Pagination
-                        currentPage={bookingsPage}
-                        totalPages={totalBookingsPages}
-                        onPageChange={setBookingsPage}
-                      />
-                    </div>
-                  ) : (
-                    <div className="py-12 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                      <Package
-                        size={48}
-                        className="mx-auto text-gray-300 mb-3"
-                      />
-                      <p className="text-gray-500 font-semibold">
-                        No active bookings found
-                      </p>
-                      <Link
-                        href="/academy/rentals"
-                        className="mt-4 inline-block text-green-600 font-bold text-sm hover:text-green-700 hover:underline transition-colors"
-                      >
-                        Find devices to rent →
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Sidebar Area */}
-              <div className="lg:col-span-1 space-y-8">
-                {/* User Profile Details (Editable) */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800 mb-4">
-                    <User size={24} className="text-green-600" />
-                    Your Profile
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={
-                          userProfile.profileImage ||
-                          "/assets/Bravework_Studio-Logo-Color.png"
-                        }
-                        alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover border-4 border-green-200"
-                      />
-                    </div>
-                    {isEditingProfile ? (
-                      <div className="space-y-4">
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={editableProfile.fullName}
-                          onChange={handleProfileChange}
-                          placeholder="Full Name"
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <input
-                          type="text"
-                          name="companyName"
-                          value={editableProfile.companyName}
-                          onChange={handleProfileChange}
-                          placeholder="Company Name"
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <input
-                          type="text"
-                          name="phone"
-                          value={editableProfile.phone}
-                          onChange={handleProfileChange}
-                          placeholder="Phone"
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <textarea
-                          name="bio"
-                          value={editableProfile.bio}
-                          onChange={handleProfileChange}
-                          placeholder="Bio"
-                          rows={3}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        ></textarea>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleSaveProfile}
-                            disabled={loading}
-                            className="flex items-center justify-center gap-2 flex-grow p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors disabled:opacity-50"
-                          >
-                            <Save size={16} />
-                            {loading ? "Saving..." : "Save Changes"}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsEditingProfile(false);
-                              setEditableProfile(userProfile);
-                            }}
-                            disabled={loading}
-                            className="flex items-center justify-center gap-2 flex-grow p-3 text-gray-700 bg-gray-200 rounded-lg shadow hover:bg-gray-300 transition-colors disabled:opacity-50"
-                          >
-                            <X size={16} />
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <p>
-                          <strong>Email:</strong>{" "}
-                          {userProfile.email || session?.user?.email}
-                        </p>
-                        <p>
-                          <strong>Member Since:</strong>{" "}
-                          {userProfile.memberSince
-                            ? new Date(
-                                userProfile.memberSince,
-                              ).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                        <p>
-                          <strong>Full Name:</strong> {session?.user?.name}
-                        </p>
-                        <p>
-                          <strong>Company Name:</strong>{" "}
-                          {userProfile.companyName || "Not set"}
-                        </p>
-                        <p>
-                          <strong>Phone:</strong>{" "}
-                          {userProfile.phone || "Not set"}
-                        </p>
-                        <p>
-                          <strong>Bio:</strong>{" "}
-                          {userProfile.bio || "No bio yet."}
-                        </p>
-                        <button
-                          onClick={() => setIsEditingProfile(true)}
-                          className="flex items-center gap-2 w-full p-3 text-white bg-green-600 rounded-lg shadow hover:bg-green-700 transition-colors"
-                        >
-                          <Pencil size={16} />
-                          Edit Profile
-                        </button>
-                      </div>
-                    )}
-                    <hr className="my-4 border-gray-200" />
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={handleChangePassword}
-                        className="flex items-center gap-2 w-full p-3 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-                      >
-                        <KeyRound size={16} />
-                        Change Password
-                      </button>
-                      <Link
-                        href="/profile/change-email"
-                        className="flex items-center gap-2 w-full p-3 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-                      >
-                        <Mail size={16} />
-                        Change Email
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Referrals & Coupons */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800 mb-4">
-                    <HeartHandshake size={24} className="text-green-600" />
-                    Referrals & Coupons
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-lg font-semibold text-gray-700">
-                        Referrals
-                      </p>
-                      <p className="text-gray-600">
-                        {userProfile.referrals} total referrals
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Share your unique referral link to earn rewards!
-                      </p>
-                      <button
-                        onClick={() => setActiveTab("referrals")}
-                        className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        Manage Referrals
-                      </button>
-                    </div>
-                    <hr className="border-gray-200" />
-                    <div>
-                      <p className="text-lg font-semibold text-gray-700">
-                        Your Coupons
-                      </p>
-                      {userProfile?.coupons?.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-1 mt-2">
-                          {userProfile.coupons.map((coupon, index) => (
-                            <li key={index} className="text-gray-600">
-                              {coupon}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      <Link
-                        href="/coupons"
-                        className="mt-3 inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        View All Coupons
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800 mb-4">
-                    <Bell size={24} className="text-green-600" />
-                    Quick Actions
-                  </h2>
-                  <div className="flex flex-col gap-4">
-                    <Link
-                      href="/contact"
-                      className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
-                    >
-                      <User size={20} />
-                      Get Support
-                    </Link>
-                    <button
-                      onClick={() =>
-                        router.push("/user/dashboard/notifications")
-                      }
-                      className="relative flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
-                    >
-                      <Bell size={20} />
-                      Notifications
-                      {notificationCount > 0 && (
-                        <span className="absolute top-2 right-2 flex items-center justify-center px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab("referrals")}
-                      className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
-                    >
-                      <Users size={20} />
-                      Referrals
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab("wallet")}
-                      className="flex items-center justify-center gap-2 w-full p-4 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors font-semibold"
-                    >
-                      <Wallet size={20} />
-                      Wallet
-                    </button>
-
-                    {isModalOpen && (
-                      <CourseModal
-                        onClose={() => setIsModalOpen(false)}
-                        existingCourse={selectedCourse}
-                        onSave={null}
-                        userRole="instructor"
-                        currentInstructorName={session?.user?.name}
-                        currentInstructorId={session?.user?.id}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-4 pt-6 border-t border-gray-50 dark:border-gray-800">
+              <button
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 dark:bg-gray-800 text-white rounded-2xl font-black text-xs uppercase hover:scale-[1.02] transition shadow-xl"
+              >
+                {isEditingProfile ? "Cancel Editing" : <><Edit3 size={16} /> Edit Profile</>}
+              </button>
             </div>
           </div>
-        </main>
+
+          <div className="bg-gradient-to-br from-green-500 to-green-700 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-green-200/50 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-500">
+              <Zap size={100} />
+            </div>
+            <h3 className="text-lg font-black mb-2 flex items-center gap-2">
+              <Zap size={20} /> Professional Plan
+            </h3>
+            <p className="text-green-100 text-xs font-medium leading-relaxed mb-6">
+              You are currently on a free account. Upgrade to access premium features and mentorship.
+            </p>
+            <button className="w-full bg-white text-green-700 py-3 rounded-2xl font-black text-xs uppercase hover:bg-green-50 transition shadow-xl">
+              Coming Soon
+            </button>
+          </div>
+        </div>
+
+        {/* Info Content Area */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Stats Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {stats.map((stat, i) => (
+              <div key={i} className="bg-white dark:bg-gray-900 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-100/30 dark:shadow-none hover:-translate-y-1 transition-all">
+                <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-5`}>
+                  <stat.icon size={24} />
+                </div>
+                <div className="text-3xl font-black text-gray-900 dark:text-white mb-1">{stat.value}</div>
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Detailed Info Card */}
+          <div className="bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl shadow-gray-100/30 dark:shadow-none border border-gray-100 dark:border-gray-800">
+            {isEditingProfile ? (
+              <div className="space-y-6 animate-in slide-in-from-top-2">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">Edit Your Profile</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input 
+                        name="fullName"
+                        value={editableProfile.fullName}
+                        onChange={handleProfileChange}
+                        className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Phone</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input 
+                        name="phone"
+                        value={editableProfile.phone}
+                        onChange={handleProfileChange}
+                        className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Bio / Professional Intro</label>
+                    <textarea 
+                      name="bio"
+                      value={editableProfile.bio}
+                      onChange={handleProfileChange}
+                      rows={4}
+                      className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all resize-none"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                  className="w-full md:w-auto px-10 py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-xs uppercase shadow-xl shadow-green-600/20 flex items-center justify-center gap-2 transition-all"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : "Save Profile Changes"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+                   <div className="space-y-6">
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white">Profile Overview</h3>
+                      <p className="text-gray-500 text-sm font-medium leading-relaxed max-w-lg italic">
+                        {userProfile?.bio || "Describe your professional background and interests here..."}
+                      </p>
+                   </div>
+                   <div className="flex gap-3">
+                      <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase border border-blue-100">
+                        <Calendar size={14} />
+                        Joined {new Date(userProfile?.memberSince || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </div>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {[
+                    { label: "Company", value: userProfile?.companyName, icon: Building, placeholder: "No company specified" },
+                    { label: "Phone", value: userProfile?.phone, icon: Phone, placeholder: "No phone specified" },
+                    { label: "Full Name", value: userProfile?.fullName, icon: User, placeholder: "Enter your name" },
+                    { label: "Contact Email", value: userProfile?.email, icon: Mail, placeholder: "No email specified" },
+                  ].map((field, i) => (
+                    <div key={i} className="flex items-center gap-4 p-5 bg-gray-50 dark:bg-gray-800 rounded-2xl group border border-transparent hover:border-gray-100 transition-all">
+                      <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-green-600 transition-all shadow-sm">
+                        <field.icon size={20} />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{field.label}</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[180px]">
+                          {field.value || <span className="text-gray-300 italic">{field.placeholder}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      <VerificationModal 
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        onSuccess={() => {
+          // You might want to refresh profile data here
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

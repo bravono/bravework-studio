@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const rentalId = params.id;
@@ -28,9 +28,14 @@ export async function GET(
         r.has_backup_power AS "hasBackupPower",
         r.approval_status,
         r.created_at AS "createdAt",
+        u.first_name AS "ownerFirstName",
+        u.last_name AS "ownerLastName",
+        u.email AS "ownerEmail",
+        u.is_verified AS "ownerVerified",
         ARRAY_REMOVE(ARRAY_AGG(ri.image_url), NULL) AS "imagesArray"
       FROM rentals r
       LEFT JOIN rental_images ri ON r.rental_id = ri.rental_id
+      JOIN users u ON r.user_id = u.user_id
       WHERE r.rental_id = $1
       GROUP BY
         r.rental_id,
@@ -47,8 +52,12 @@ export async function GET(
         r.has_internet,
         r.has_backup_power,
         r.approval_status,
-        r.created_at`,
-      [rentalId]
+        r.created_at,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.is_verified`,
+      [rentalId],
     );
 
     console.log("Rental details:", rentals);
@@ -57,7 +66,7 @@ export async function GET(
     console.error("Error fetching user rentals:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

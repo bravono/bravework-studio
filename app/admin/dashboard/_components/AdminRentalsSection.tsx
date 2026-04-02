@@ -10,9 +10,17 @@ import {
   Eye,
   Search,
   Filter,
+  MapPin,
+  Wifi,
+  Battery,
+  Clock,
+  User,
+  Mail,
+  Phone,
 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import Modal from "@/app/components/Modal";
 import Image from "next/image";
 
 const ITEMS_PER_PAGE = 10;
@@ -56,6 +64,7 @@ export default function AdminRentalsSection() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedRental, setSelectedRental] = useState<AdminRental | null>(
     null
   );
@@ -92,6 +101,10 @@ export default function AdminRentalsSection() {
     setSelectedRental(rental);
     setActionType(type);
     setIsConfirmModalOpen(true);
+  };
+  const handleViewClick = (rental: AdminRental) => {
+    setSelectedRental(rental);
+    setIsDetailModalOpen(true);
   };
 
   const handleConfirmAction = async () => {
@@ -353,7 +366,10 @@ export default function AdminRentalsSection() {
                             )}
                           </>
                         )}
-                        <button className="p-2 text-gray-400 hover:text-indigo-500 transition-colors">
+                        <button
+                          onClick={() => handleViewClick(rental)}
+                          className="p-2 text-gray-400 hover:text-indigo-500 transition-colors"
+                        >
                           <Eye size={18} />
                         </button>
                       </div>
@@ -394,6 +410,222 @@ export default function AdminRentalsSection() {
             setActionType(null);
           }}
         />
+      )}
+      {isDetailModalOpen && selectedRental && (
+        <Modal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedRental(null);
+          }}
+          title="Rental Details"
+        >
+          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+            {/* Image Gallery */}
+            {selectedRental.images && selectedRental.images.length > 0 && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="relative h-64 w-full rounded-2xl overflow-hidden shadow-lg">
+                  <Image
+                    src={selectedRental.images[0].file_url}
+                    alt={selectedRental.deviceName}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                {selectedRental.images.length > 1 && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedRental.images.slice(1).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative h-32 w-full rounded-xl overflow-hidden shadow-md"
+                      >
+                        <Image
+                          src={img.file_url}
+                          alt={`${selectedRental.deviceName} ${idx + 2}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Device Info */}
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 text-[10px] font-black uppercase tracking-widest rounded-full mb-2">
+                    {selectedRental.deviceType}
+                  </span>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">
+                    {selectedRental.deviceName}
+                  </h3>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">
+                    ₦{(selectedRental.hourlyRate / 100).toLocaleString()}
+                  </p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">
+                    Per Hour
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Description
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {selectedRental.description || "No description provided."}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Specifications
+                  </h4>
+                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                    {selectedRental.specs || "No specs provided."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Features & Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+                  Features
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`p-2 rounded-lg ${selectedRental.hasInternet ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30"}`}
+                    >
+                      <Wifi size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">
+                        Internet Access
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {selectedRental.hasInternet ? "High-speed WiFi available" : "No internet access"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`p-2 rounded-lg ${selectedRental.hasBackupPower ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30"}`}
+                    >
+                      <Battery size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">
+                        Backup Power
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {selectedRental.hasBackupPower ? "Uninterrupted power supply" : "No backup power"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+                  Location
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 rounded-lg">
+                      <MapPin size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">
+                        {selectedRental.locationCity}
+                      </p>
+                      <p className="text-[10px] text-gray-500 truncate max-w-[120px]">
+                        {selectedRental.locationAddress || "Address confidential"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 rounded-lg">
+                      <Clock size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white">
+                        Listed On
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {format(new Date(selectedRental.createdAt), "PPP")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Owner Details */}
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+              <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">
+                Owner Information
+              </h4>
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 bg-indigo-200 dark:bg-indigo-900 rounded-full flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold text-xl">
+                  {selectedRental.firstName[0]}
+                  {selectedRental.lastName[0]}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    {selectedRental.firstName} {selectedRental.lastName}
+                  </p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                      <Mail size={12} />
+                      {selectedRental.email}
+                    </div>
+                    {selectedRental.phone && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                        <Phone size={12} />
+                        {selectedRental.phone}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions for Pending */}
+            {selectedRental.approvalStatus === "pending" && (
+              <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    handleActionClick(selectedRental, "approve");
+                  }}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <CheckCircle size={18} />
+                  Approve Hardware
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    handleActionClick(selectedRental, "reject");
+                  }}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <XCircle size={18} />
+                  Reject Listing
+                </button>
+              </div>
+            )}
+          </div>
+        </Modal>
       )}
     </div>
   );

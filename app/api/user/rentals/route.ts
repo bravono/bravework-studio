@@ -30,6 +30,9 @@ export async function GET(request: Request) {
         r.location_lng AS "locationLng",
         r.has_internet AS "hasInternet",
         r.has_backup_power AS "hasBackupPower",
+        r.rental_type AS "rentalType",
+        r.is_partner AS "isPartner",
+        r.is_office AS "isOffice",
         r.created_at AS "createdAt",
         u.first_name AS "firstName",
         u.last_name AS "lastName",
@@ -101,9 +104,18 @@ export async function POST(request: Request) {
       locationAddress,
       hasInternet,
       hasBackupPower,
+      rentalType,
+      isPartner,
+      isOffice,
       images,
     } = body;
-    const hourlyRateKobo = hourlyRate * 100;
+
+    let hourlyRateKobo = hourlyRate * 100;
+
+    // Enforce fixed rate for partner hubs
+    if (rentalType === "hub" && isPartner) {
+      hourlyRateKobo = 50000; // ₦500
+    }
 
     console.log("Rental Request Body", body);
 
@@ -119,7 +131,7 @@ export async function POST(request: Request) {
 
     return await withTransaction(async (client) => {
       const rentalResult = await client.query(
-        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate_kobo, location_city, location_address, has_internet, has_backup_power, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) RETURNING rental_id",
+        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, hourly_rate_kobo, location_city, location_address, has_internet, has_backup_power, rental_type, is_partner, is_office, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW()) RETURNING rental_id",
         [
           userId,
           deviceType,
@@ -131,6 +143,9 @@ export async function POST(request: Request) {
           locationAddress,
           hasInternet,
           hasBackupPower,
+          rentalType || "p2p",
+          isPartner || false,
+          isOffice || false,
           "pending",
         ],
       );
@@ -206,6 +221,9 @@ export async function PUT(
       locationAddress,
       hasInternet,
       hasBackupPower,
+      rentalType,
+      isPartner,
+      isOffice,
       status,
     } = body;
 
@@ -221,6 +239,9 @@ export async function PUT(
           location_address = COALESCE($7, location_address),
           has_internet = COALESCE($8, has_internet),
           has_backup_power = COALESCE($9, has_backup_power),
+          rental_type = COALESCE($12, rental_type),
+          is_partner = COALESCE($13, is_partner),
+          is_office = COALESCE($14, is_office),
           status = COALESCE($10, status),
           updated_at = CURRENT_TIMESTAMP
         WHERE rental_id = $11`,
@@ -236,6 +257,9 @@ export async function PUT(
           hasBackupPower,
           status,
           id,
+          rentalType,
+          isPartner,
+          isOffice,
         ],
       );
     });

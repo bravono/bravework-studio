@@ -33,6 +33,9 @@ export default function EditRentalModal({
     locationAddress: rental?.locationAddress || "",
     hasInternet: rental?.hasInternet || false,
     hasBackupPower: rental?.hasBackupPower || false,
+    rentalType: rental?.rentalType || "p2p",
+    isPartner: rental?.isPartner || false,
+    isOffice: rental?.isOffice || false,
   });
 
   const handleChange = (
@@ -81,6 +84,16 @@ export default function EditRentalModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Rental">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {formData.rentalType === "hub" && formData.isPartner && (
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200 flex gap-2 items-center mb-4">
+            <span className="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase">
+              Partner Hub
+            </span>
+            <p className="text-xs text-green-700 font-bold">
+              Fixed ₦500/hr Rate & Mentorship
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -145,9 +158,14 @@ export default function EditRentalModal({
               value={formData.hourlyRate}
               onChange={handleChange}
               required
+              disabled={formData.rentalType === "hub" && formData.isPartner}
               min="500"
-              max="2000"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
+              max="500000"
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border ${
+                formData.rentalType === "hub" && formData.isPartner
+                  ? "bg-gray-100 italic"
+                  : ""
+              }`}
             />
           </div>
           <div>

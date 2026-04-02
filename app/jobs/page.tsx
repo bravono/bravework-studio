@@ -158,8 +158,6 @@ export default function JobsPage() {
         portfolio: application.portfolio,
         experience: application.experience,
         availability: application.availability,
-        message: application.message,
-        // Do not include file
       };
 
       await fetch("https://formspree.io/f/meokkjyz", {

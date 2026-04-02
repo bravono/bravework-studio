@@ -47,7 +47,13 @@ export async function GET(request: Request) {
         ) t_agg ON c.course_id = t_agg.course_id
         WHERE c.is_published = true`);
 
-    return NextResponse.json(courseResults, { status: 200 });
+    const result = courseResults.map((course: any) => ({
+      ...course,
+      tags:
+        typeof course.tags === "string" ? JSON.parse(course.tags) : course.tags,
+    }));
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(

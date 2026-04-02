@@ -28,6 +28,8 @@ interface Course {
   description: string;
   startDate: string;
   endDate: string;
+  category?: string;
+  level?: string;
 }
 
 interface CustomOffer {
@@ -44,6 +46,9 @@ interface RentalBooking {
   amount: number; // in Kobo
   description: string;
   status: string;
+  deviceName?: string;
+  rentalType?: string;
+  hourlyRate?: number;
 }
 
 export default function PaymentContent() {
@@ -126,6 +131,39 @@ export default function PaymentContent() {
     }
   }, [sessionStatus, offerId, courseId, bookingId, router]);
 
+  useEffect(() => {
+    if (orderData?.type === "course") {
+      const course = orderData.data as Course;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "academy_enroll_start",
+        course_name: course.title,
+        course_category: course.category || "Academy",
+        course_level: course.level || "N/A",
+        price: course.price,
+        currency: "NGN",
+        course_id: course.id,
+        page: window.location.pathname,
+      });
+    }
+  }, [orderData]);
+
+  useEffect(() => {
+    if (orderData?.type === "rental") {
+      const rental = orderData.data as RentalBooking;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "rental_booking_start",
+        item_name: rental.title,
+        item_category: rental.rentalType || "Rental",
+        item_id: rental.id,
+        price: rental.amount / 100,
+        currency: "NGN",
+        page: window.location.pathname,
+      });
+    }
+  }, [orderData]);
+
   const paymentDetails = useMemo(() => {
     if (!orderData) return null;
 
@@ -133,8 +171,8 @@ export default function PaymentContent() {
       orderData.type === "course"
         ? (orderData.data as Course).price
         : orderData.type === "rental"
-        ? (orderData.data as RentalBooking).amount
-        : (orderData.data as CustomOffer).amount;
+          ? (orderData.data as RentalBooking).amount
+          : (orderData.data as CustomOffer).amount;
 
     let amountToPay = baseAmount;
     let discount = 0;
@@ -198,8 +236,8 @@ export default function PaymentContent() {
               orderData.type === "course"
                 ? (orderData.data as Course).title
                 : orderData.type === "rental"
-                ? (orderData.data as RentalBooking).title
-                : (orderData.data as CustomOffer).description,
+                  ? (orderData.data as RentalBooking).title
+                  : (orderData.data as CustomOffer).description,
             projectDurationDays:
               orderData.type === "custom-offer"
                 ? (orderData.data as CustomOffer).projectDurationDays
@@ -234,16 +272,16 @@ export default function PaymentContent() {
               ? paymentOption === "deposit_70"
                 ? "deposit_70_discount"
                 : paymentOption === "full"
-                ? "full_100_discount"
-                : paymentOption
+                  ? "full_100_discount"
+                  : paymentOption
               : "full",
           payment_percentage:
             orderData.type === "custom-offer"
               ? paymentOption === "deposit_50"
                 ? 0.5
                 : paymentOption === "deposit_70"
-                ? 0.7
-                : 1.0
+                  ? 0.7
+                  : 1.0
               : 1.0,
           discount_applied: paymentDetails.discount.toString(),
           original_amount_kobo: paymentDetails.baseAmount.toString(),
@@ -261,9 +299,7 @@ export default function PaymentContent() {
             if (verifyData.success) {
               toast.success("Payment successful!");
               router.push(
-                orderData.type === "rental"
-                  ? "/user/dashboard"
-                  : "/user/dashboard"
+                `/user/dashboard/payment/success?reference=${transaction.reference}&id=${orderData.data.id}&type=${orderData.type}`,
               );
             } else {
               toast.error("Payment verification failed: " + verifyData.message);
@@ -332,15 +368,15 @@ export default function PaymentContent() {
                       {orderData.type === "course"
                         ? (orderData.data as Course).title
                         : orderData.type === "rental"
-                        ? (orderData.data as RentalBooking).title
-                        : "Custom Project Offer"}
+                          ? (orderData.data as RentalBooking).title
+                          : "Custom Project Offer"}
                     </h3>
                     <p className="text-gray-500 text-sm mt-1">
                       {orderData.type === "course"
                         ? "Course Enrollment"
                         : orderData.type === "rental"
-                        ? "Rental Booking"
-                        : (orderData.data as CustomOffer).description}
+                          ? "Rental Booking"
+                          : (orderData.data as CustomOffer).description}
                     </p>
                   </div>
                   <div className="text-right">
@@ -349,10 +385,10 @@ export default function PaymentContent() {
                         orderData.type === "course"
                           ? (orderData.data as Course).price / KOBO_PER_NAIRA
                           : orderData.type === "rental"
-                          ? (orderData.data as RentalBooking).amount /
-                            KOBO_PER_NAIRA
-                          : (orderData.data as CustomOffer).amount /
-                            KOBO_PER_NAIRA
+                            ? (orderData.data as RentalBooking).amount /
+                              KOBO_PER_NAIRA
+                            : (orderData.data as CustomOffer).amount /
+                              KOBO_PER_NAIRA,
                       )}
                     </p>
                   </div>
@@ -468,7 +504,7 @@ export default function PaymentContent() {
                       ? "₦0.00"
                       : convertAmount(
                           paymentDetails?.finalPaystackAmount /
-                            KOBO_PER_NAIRA || 0
+                            KOBO_PER_NAIRA || 0,
                         )}
                   </span>
                   {paymentDetails?.discount! > 0 && (

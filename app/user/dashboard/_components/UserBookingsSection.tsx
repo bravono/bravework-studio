@@ -16,8 +16,6 @@ import ReasonModal from "@/app/components/ReasonModal";
 import Modal from "@/app/components/Modal";
 import { UserBookingsSectionProps } from "@/app/types/app";
 
-
-
 export default function UserBookingsSection({
   handleInitiatePayment,
 }: UserBookingsSectionProps) {
@@ -301,11 +299,25 @@ export default function UserBookingsSection({
                               <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <User size={14} className="text-gray-400" />
                                 <span className="font-medium">
-                                  {activeTab === "my-bookings"
-                                    ? `Owner: ${booking.ownerName || "Unknown"}`
-                                    : `Renter: ${
-                                        booking.renterName || "Unknown"
-                                      }`}
+                                  {activeTab === "my-bookings" ? (
+                                    <>
+                                      Owner: {booking.ownerName || "Unknown"}
+                                      {(booking as any).ownerVerified && (
+                                        <span className="ml-1.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black border border-blue-100 uppercase tracking-tighter">
+                                          Verified
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      Renter: {booking.renterName || "Unknown"}
+                                      {(booking as any).renterVerified && (
+                                        <span className="ml-1.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black border border-blue-100 uppercase tracking-tighter">
+                                          Verified
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 text-sm text-gray-500">

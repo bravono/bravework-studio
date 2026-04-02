@@ -94,6 +94,8 @@ function Signup() {
   const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
   const email = user?.email || "";
 
+  
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -123,6 +125,10 @@ function Signup() {
       console.log("Internal error fetching course: ", error.message);
     }
   }, [course]);
+
+  
+
+  
 
   useEffect(() => {
     if (isEnrollmentPage && courseId) {

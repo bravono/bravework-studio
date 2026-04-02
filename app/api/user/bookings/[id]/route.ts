@@ -41,8 +41,8 @@ export async function GET(
         rb.escrow_released AS "escrowReleased"
       FROM rental_bookings rb
       JOIN rentals r ON rb.rental_id = r.rental_id
-      JOIN users u_owner ON r.user_id = u_owner.id
-      JOIN users u_renter ON rb.client_id = u_renter.rental_id
+      JOIN users u_owner ON r.user_id = u_owner.user_id
+      JOIN users u_renter ON rb.client_id = u_renter.user_id
       WHERE rb.rental_booking_id = $1
     `;
 

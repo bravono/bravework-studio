@@ -21,8 +21,7 @@ export const jobApplicationSchema = Joi.object({
   portfolio: Joi.string().uri().allow("").optional(),
   experience: Joi.string().required(),
   availability: Joi.string().required(),
-  message: Joi.string().max(5000).allow("").optional(),
-  // File validation is handled separately via the JSON parsing check in the route
+  message: Joi.string().allow("").optional(),
 });
 
 // Newsletter Subscription Schema
@@ -45,7 +44,7 @@ export const customOfferSchema = Joi.object({
 
 // Rental Booking Schema
 export const rentalBookingSchema = Joi.object({
-  rentalId: Joi.string().uuid().required(),
+  rentalId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
   startTime: Joi.string().isoDate().required(),
   endTime: Joi.string().isoDate().required(),
   totalAmount: Joi.number().min(0).required(),
