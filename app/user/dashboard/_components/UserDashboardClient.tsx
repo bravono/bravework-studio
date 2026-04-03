@@ -27,6 +27,7 @@ import {
   Key,
   Trophy,
   LayoutDashboard,
+  Monitor,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -529,16 +530,28 @@ function Page() {
       roles: ["client"],
     },
     {
-      id: "invoices",
-      label: "Finance",
-      icon: <Wallet size={20} />,
+      id: "custom-offers",
+      label: "Offers",
+      icon: <Gift size={20} />,
       roles: ["client"],
     },
     {
+      id: "invoices",
+      label: "Finance",
+      icon: <FileText size={20} />,
+      roles: ["client", "student"],
+    },
+    {
+      id: "rentals",
+      label: "My Listings",
+      icon: <Monitor size={20} />,
+      roles: ["any"],
+    },
+    {
       id: "bookings",
-      label: "Rentals",
+      label: "Bookings",
       icon: <Key size={20} />,
-      roles: ["renter"],
+      roles: ["any"],
     },
     {
       id: "notifications",
