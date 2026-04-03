@@ -623,10 +623,14 @@ export default function CourseModal({
         body: JSON.stringify(body),
       });
 
-      if (!res.ok)
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
         throw new Error(
-          `Failed to ${method === "PATCH" ? "update" : "create"} course.`,
+          errorData.error ||
+            errorData.message ||
+            `Failed to ${method === "PATCH" ? "update" : "create"} course.`,
         );
+      }
 
       toast.success(
         `Course ${existingCourse ? "updated" : "created"} successfully!`,

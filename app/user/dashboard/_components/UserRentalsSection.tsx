@@ -32,7 +32,10 @@ export default function UserRentalsSection({
     setError(null);
     try {
       const res = await fetch("/api/user/rentals");
-      if (!res.ok) throw new Error("Failed to fetch rentals.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.message || "Failed to load rentals.");
+      }
       const data: Rental[] = await res.json();
       setRentals(data);
       setCurrentPage(1); // Reset to the first page when new data is fetched
@@ -151,8 +154,8 @@ export default function UserRentalsSection({
                               toast.success("Rental deleted");
                               fetchRentals();
                             } else {
-                              const err = await res.json();
-                              toast.error(err.error || "Failed to delete");
+                              const err = await res.json().catch(() => ({}));
+                              toast.error(err.error || err.message || "Failed to delete");
                             }
                           }}
                           className="text-red-600 hover:underline text-sm font-medium"

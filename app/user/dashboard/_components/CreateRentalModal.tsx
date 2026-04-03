@@ -77,9 +77,9 @@ export default function CreateRentalModal({
         images: [...prev.images, result.fileUrl],
       }));
       toast.success("Image uploaded!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
+      toast.error(error.message || "Failed to upload image");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -121,7 +121,7 @@ export default function CreateRentalModal({
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Failed to create rental");
+        throw new Error(error.error || error.message || "Failed to create rental");
       }
 
       toast.success(
