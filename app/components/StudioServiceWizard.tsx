@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Mail, Paperclip, Loader2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { services } from "../services/localDataService";
 import CurrencySelector from "./CurrencySelector";
+import useExchangeRates from "@/hooks/useExchangeRates";
 
 const timelineOptions = [
   { id: "urgent", label: "Urgent ( < 1 month)", description: "Fast track development" },
@@ -16,12 +17,15 @@ const timelineOptions = [
 export default function StudioServiceWizard() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const { exchangeRates } = useExchangeRates();
   const [formData, setFormData] = useState({
     category: "",
     scope: "",
     description: "",
+    minBudget: "",
+    maxBudget: "",
     budgetAmount: "",
-    budgetCurrency: "NGN",
+    budgetCurrency: "USD",
     requirements: "",
     fileUrl: "",
     timeline: "",
@@ -34,6 +38,19 @@ export default function StudioServiceWizard() {
 
   const handleNext = () => setCurrentStep((prev) => prev + 1);
   const handleBack = () => setCurrentStep((prev) => prev - 1);
+
+    useEffect(() => {
+        if (!selectedService) return;
+    
+        window.dataLayer = window.dataLayer || [];
+    
+        window.dataLayer.push({
+          event: "studio_services_view",
+          service_name: selectedService.title,
+          service_id: selectedService.id,
+          page: ""
+        });
+      }, [selectedService]);
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
@@ -56,7 +73,22 @@ export default function StudioServiceWizard() {
         }
       }
 
-      const finalData = { ...formData, fileUrl: uploadedFileUrl };
+      // Convert budget to USD if necessary
+      let finalBudgetAmount = formData.budgetAmount;
+      let finalBudgetCurrency = formData.budgetCurrency;
+
+      if (exchangeRates && formData.budgetCurrency !== "USD") {
+        const currentRate = exchangeRates[formData.budgetCurrency];
+        const usdRate = exchangeRates["USD"] || 1;
+        if (currentRate && formData.minBudget && formData.maxBudget) {
+          const minUSD = ((parseFloat(formData.minBudget) / currentRate) * usdRate).toFixed(0);
+          const maxUSD = ((parseFloat(formData.maxBudget) / currentRate) * usdRate).toFixed(0);
+          finalBudgetAmount = `${minUSD}-${maxUSD}`;
+          finalBudgetCurrency = "USD";
+        }
+      }
+
+      const finalData = { ...formData, budgetAmount: finalBudgetAmount, budgetCurrency: finalBudgetCurrency, fileUrl: uploadedFileUrl };
       sessionStorage.setItem("wizardOrderData", JSON.stringify(finalData));
 
       // Route to contact
@@ -148,6 +180,16 @@ export default function StudioServiceWizard() {
           </>
         );
       case 3:
+        const handleBudgetContinue = () => {
+          if (!formData.minBudget || !formData.maxBudget) return;
+          
+          setFormData({
+            ...formData,
+            budgetAmount: `${formData.minBudget}-${formData.maxBudget}`,
+          });
+          handleNext();
+        };
+
         return (
           <>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-8">What's your project budget?</h2>
@@ -159,19 +201,31 @@ export default function StudioServiceWizard() {
                   onSelect={(currency) => setFormData({ ...formData, budgetCurrency: currency })}
                 />
               </div>
-              <div>
-                <label className="block text-gray-400 mb-2 font-medium mt-4">Estimated Budget Amount</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 500000"
-                  className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors"
-                  value={formData.budgetAmount}
-                  onChange={(e) => setFormData({ ...formData, budgetAmount: e.target.value })}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-400 mb-2 font-medium">Min Amount</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 500"
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors"
+                    value={formData.minBudget}
+                    onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 mb-2 font-medium">Max Amount</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 1000"
+                    className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors"
+                    value={formData.maxBudget}
+                    onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                  />
+                </div>
               </div>
               <button
-                onClick={handleNext}
-                disabled={!formData.budgetAmount}
+                onClick={handleBudgetContinue}
+                disabled={!formData.minBudget || !formData.maxBudget}
                 className="w-full sm:w-auto px-8 py-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors mt-6"
               >
                 Continue

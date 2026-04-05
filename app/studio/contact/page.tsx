@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Outfit } from "next/font/google";
@@ -37,9 +37,24 @@ function StudioContactContent() {
     return "";
   };
 
-  const [wizardData, setWizardData] = React.useState<any>(null);
+  const [wizardData, setWizardData] = useState<any>(null);
 
-  React.useEffect(() => {
+    useEffect(() => {
+          if (!wizardData) return;
+      
+          window.dataLayer = window.dataLayer || [];
+      
+          window.dataLayer.push({
+            event: "studio_quote_request",
+            service_name: wizardData.title,
+            service_id: wizardData.id,
+            price: wizardData.budgetAmount,
+            currency: wizardData.budgetCurrency,
+            page: ""
+          });
+        }, [wizardData]);
+
+  useEffect(() => {
     if (searchParams.get("fromWizard") === "true") {
       const stored = sessionStorage.getItem("wizardOrderData");
       if (stored) {
