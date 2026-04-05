@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { projects } from "../services/localDataService"; // Using your original import
 import { Outfit } from "next/font/google";
 
 // Since the data is now being imported, you should also import the types if they exist
@@ -48,6 +47,48 @@ const ChevronRightIcon = () => (
 export default function ProjectCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const projects = [
+    {
+      id: 1,
+      title: "Project 1",
+      subtitle: "Project Name",
+      owner: "John Doe",
+      startDate: "2022-01-01",
+      endDate: "2022-12-31",
+      todos: [
+        { id: 1, text: "Task 1", completed: true },
+        { id: 2, text: "Task 2", completed: false },
+        { id: 3, text: "Task 3", completed: false },
+      ],
+    },
+    {
+      id: 2,
+      title: "Project 2",
+      subtitle: "Project Name",
+      owner: "John Doe",
+      startDate: "2022-01-01",
+      endDate: "2022-12-31",
+      todos: [
+        { id: 1, text: "Task 1", completed: true },
+        { id: 2, text: "Task 2", completed: false },
+        { id: 3, text: "Task 3", completed: false },
+      ],
+    },
+    {
+      id: 3,
+      title: "Project 3",
+      subtitle: "Project Name",
+      owner: "John Doe",
+      startDate: "2022-01-01",
+      endDate: "2022-12-31",
+      todos: [
+        { id: 1, text: "Task 1", completed: true },
+        { id: 2, text: "Task 2", completed: false },
+        { id: 3, text: "Task 3", completed: false },
+      ],
+    },
+  ];
 
   // Memoize the next/prev functions with useCallback for performance
   const nextProject = useCallback(() => {
