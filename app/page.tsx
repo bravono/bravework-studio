@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
-import dynamic from "next/dynamic";
 import { Outfit, Inter } from "next/font/google";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -16,7 +15,6 @@ import EcosystemSection from "./components/EcosystemSection";
 import FloatingCTAs from "./components/FloatingCTAs";
 import Link from "next/link";
 import { Gamepad2 } from "lucide-react";
-import CourseList from "./components/CourseList";
 import ArrowButton from "./components/ArrowButton";
 
 const outfit = Outfit({
