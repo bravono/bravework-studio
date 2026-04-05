@@ -12,6 +12,7 @@ import {
   AlertCircle 
 } from "lucide-react";
 import Modal from "@/app/components/Modal";
+import { uploadFile } from "@/lib/utils/upload";
 
 interface VerificationModalProps {
   isOpen: boolean;
@@ -45,24 +46,7 @@ export default function VerificationModal({
     }
   };
 
-  const uploadFile = async (file: File, category: string) => {
-    const formDataObj = new FormData();
-    formDataObj.append("file", file);
-    formDataObj.append("category", category);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formDataObj,
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || "Failed to upload file");
-    }
-
-    const data = await res.json();
-    return data.url;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,18 +58,17 @@ export default function VerificationModal({
     setIsLoading(true);
     try {
       // 1. Upload files
-      const frontUrlPromise = uploadFile(formData.idFront, "verifications");
-      const selfieUrlPromise = uploadFile(formData.selfie, "verifications");
+      const frontData = await uploadFile(formData.idFront, "verifications");
+      const selfieData = await uploadFile(formData.selfie, "verifications");
       
       let backUrl = null;
       if (formData.idBack) {
-        backUrl = await uploadFile(formData.idBack, "verifications");
+        const backData = await uploadFile(formData.idBack, "verifications");
+        backUrl = backData.fileUrl;
       }
 
-      const [frontUrl, selfieUrl] = await Promise.all([
-        frontUrlPromise,
-        selfieUrlPromise,
-      ]);
+      const frontUrl = frontData.fileUrl;
+      const selfieUrl = selfieData.fileUrl;
 
       // 2. Submit to verification API
       const res = await fetch("/api/user/verify", {
