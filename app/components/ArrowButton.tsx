@@ -4,13 +4,15 @@ interface ArrowButtonProps {
   label: string;
   link: string;
   style?: string;
+  onClick?: () => void;
 }
 
-export default function ArrowButton({ label, link, style = "" }: ArrowButtonProps) {
+export default function ArrowButton({ label, link, style = "", onClick }: ArrowButtonProps) {
   return (
     <div className={`${style} flex justify-center`}>
       <a
         href={link}
+        onClick={onClick}
         className="inline-flex items-center px-10 py-5 border border-transparent text-xl font-bold rounded-full shadow-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 group"
       >
         {label}

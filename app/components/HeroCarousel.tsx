@@ -31,6 +31,7 @@ const slides = [
       "Your one-stop-shop to create blazing-fast apps powered by AI and stunning 3D visualization of your products.",
     cta: "Get Started",
     link: "/studio",
+    carousel_arm: "studio",
     textColor: "text-white",
     gradient: "from-black via-gray-900 to-black",
   },
@@ -42,6 +43,7 @@ const slides = [
       "Professional courses in web dev, UI/UX, and 3D. Certified and flexible learning.",
     cta: "Browse Courses",
     link: "/academy",
+    carousel_arm: "academy",
     textColor: "text-blue-50",
     gradient: "from-blue-950 via-black to-blue-950",
   },
@@ -53,6 +55,7 @@ const slides = [
       "Empowering ages 7+ with creative tech skills in a fun, engaging environment.",
     cta: "Start Learning",
     link: "/kids",
+    carousel_arm: "kids",
     textColor: "text-purple-50",
     gradient: "from-purple-950 via-black to-purple-950",
   },
@@ -64,6 +67,7 @@ const slides = [
       "Rent pro-grade PCs, rendering rigs, and digital tablets. Empowering your creative process.",
     cta: "Rent Gear",
     link: "/academy/rentals",
+    carousel_arm: "rentals",
     textColor: "text-green-50",
     gradient: "from-green-950 via-black to-green-950",
   },
@@ -86,6 +90,18 @@ export default function HeroCarousel() {
           dynamicBullets: true,
         }}
         navigation={true}
+        onSlideChange={(swiper) => {
+          const slide = slides[swiper.realIndex];
+          if (slide) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "carousel_slide_view",
+              carousel_arm: slide.carousel_arm,
+              carousel_slide_name: slide.title,
+              page: window.location.pathname,
+            });
+          }
+        }}
         modules={[Autoplay, Pagination, Navigation, EffectFade]}
         className="mySwiper h-full"
       >
@@ -137,7 +153,19 @@ export default function HeroCarousel() {
                   transition={{ duration: 0.5, delay: 0.6 }}
                   className="flex flex-wrap justify-center gap-4"
                 >
-                  <ArrowButton label={slide.cta} link={slide.link} />
+                  <ArrowButton 
+                    label={slide.cta} 
+                    link={slide.link} 
+                    onClick={() => {
+                      window.dataLayer = window.dataLayer || [];
+                      window.dataLayer.push({
+                        event: "carousel_click",
+                        carousel_arm: slide.carousel_arm,
+                        carousel_slide_name: slide.title,
+                        page: window.location.pathname,
+                      });
+                    }}
+                  />
                 </motion.div>
               </div>
             </div>
