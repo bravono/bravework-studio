@@ -1,14 +1,26 @@
 import React from "react";
 import Link from "next/link";
-import Navbar from "../../components/Navbar";
-import { projects } from "../../services/localDataService";
 import { ArrowLeft } from "lucide-react";
 
-export default function ProjectDetails({
-  params,
-}: {
-  params: { id: number };
-}) {
+export default function ProjectDetails({ params }: { params: { id: number } }) {
+  const projects = [
+    {
+      id: 1,
+      title: "Project 1",
+      subtitle: "Project Name",
+      category: "Web Development",
+      budget: "$1000",
+      description: "Project Description",
+      owner: "John Doe",
+      startDate: "2022-01-01",
+      endDate: "2022-12-31",
+      todos: [
+        { id: 1, title: "Task 1", completed: true },
+        { id: 2, title: "Task 2", completed: false },
+        { id: 3, title: "Task 3", completed: false },
+      ],
+    },
+  ];
   const project = projects.find((p) => p.id == params.id);
 
   const formatDate = (dateString: string) => {
@@ -73,7 +85,8 @@ export default function ProjectDetails({
               <div className="flex flex-col">
                 <span className="font-bold text-gray-900">Timeline</span>
                 <span className="text-gray-600">
-                  {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                  {formatDate(project.startDate)} -{" "}
+                  {formatDate(project.endDate)}
                 </span>
               </div>
             </div>
