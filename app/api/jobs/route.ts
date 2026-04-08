@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withTransaction } from "@/lib/db";
+import { withTransaction, queryDatabase } from "@/lib/db";
 import { jobApplicationSchema } from "@/lib/schemas";
 import logger from "@/lib/logger";
 
@@ -62,6 +62,21 @@ export async function POST(request: Request) {
       availability,
       message,
     } = value;
+
+    // Check if the user has already applied for this role
+    const checkQuery = `
+      SELECT job_application_id 
+      FROM job_applications 
+      WHERE email = $1 AND role = $2
+    `;
+    const existingApps = await queryDatabase(checkQuery, [email, role]);
+
+    if (existingApps.length > 0) {
+      return NextResponse.json(
+        { error: "You have already applied for this role." },
+        { status: 409 },
+      );
+    }
 
     const fileString = formData.get("file") as string;
     let fileInfo: {

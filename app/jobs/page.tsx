@@ -137,7 +137,7 @@ export default function JobsPage() {
         const errorData = await response.json();
         toast.error(
           `Error submitting application: ${
-            errorData.message || "Could not submit application"
+            errorData.error || errorData.message || "Could not submit application"
           }`,
         );
         setSubmitStatus("error");
