@@ -56,12 +56,24 @@ export default function TestimonialCarousel() {
               dynamicBullets: true,
             }}
             navigation={true}
-            onSlideChange={(swiper) => {
+            onNavigationNext={(swiper) => {
               const testimonial = testimonials[swiper.realIndex];
               if (testimonial) {
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push({
-                  event: "testimonial_view",
+                  event: "testimonial_next_click",
+                  testimonial_author: testimonial.companyName,
+                  testimonial_heading: testimonial.heading,
+                  page: window.location.pathname,
+                });
+              }
+            }}
+            onNavigationPrev={(swiper) => {
+              const testimonial = testimonials[swiper.realIndex];
+              if (testimonial) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                  event: "testimonial_prev_click",
                   testimonial_author: testimonial.companyName,
                   testimonial_heading: testimonial.heading,
                   page: window.location.pathname,

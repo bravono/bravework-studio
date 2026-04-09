@@ -150,6 +150,16 @@ export default function EcosystemSection() {
 
                 <Link
                   href={eco.link}
+                  onClick={() => {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                      event: "homepage_section_click", // ← same unified event
+                      section_name: "ecosystems", // ← distinguishes it
+                      carousel_arm: eco.title, // ← change per card
+                      carousel_slide_name: eco.title, // ← card title
+                      page: window.location.pathname,
+                    });
+                  }}
                   className={`w-full py-4 rounded-xl ${eco.btnColor} text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg`}
                 >
                   Explore Now
