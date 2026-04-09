@@ -175,7 +175,6 @@ export async function PATCH(
             !option.duration ||
             isNaN(parseInt(option.duration)) ||
             !option.link ||
-            !option.time ||
             !option.label ||
             !option.optionNumber,
         ),
@@ -185,7 +184,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error:
-            "Each session group must contain 1 or 2 options, each with valid duration, link, time, and label.",
+            "Each session group must contain 1 or 2 options, each with valid duration, link, and label.",
         },
         { status: 400 },
       );

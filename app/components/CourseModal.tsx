@@ -241,7 +241,6 @@ const SessionForm = ({
                 e.target.value,
               )
             }
-            required
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
           />
           {option.datetime && (
@@ -573,7 +572,7 @@ export default function CourseModal({
       options: session.options.map((option) => ({
         optionNumber: option.optionNumber,
         link: option.link,
-        time: option.datetime,
+        time: option.datetime || null,
         label: option.label,
         duration: option.duration, // Now a number (minutes)
       })),
@@ -592,8 +591,8 @@ export default function CourseModal({
           title,
           price_in_kobo: price * KOBO_PER_NAIRA,
           description,
-          start_date: startDate,
-          end_date: endDate,
+          start_date: startDate || null,
+          end_date: endDate || null,
           instructor,
           is_active: isActive,
           is_published: isPublished,

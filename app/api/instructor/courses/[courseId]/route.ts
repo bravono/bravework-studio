@@ -191,13 +191,13 @@ export async function PATCH(
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
-        sessionGroup.options.length !== 2 ||
+        sessionGroup.options.length < 1 ||
+        sessionGroup.options.length > 2 ||
         sessionGroup.options.some(
           (option: any) =>
             !option.duration ||
             isNaN(parseInt(option.duration)) ||
             !option.link ||
-            !option.time ||
             !option.label ||
             !option.optionNumber,
         ),
@@ -207,7 +207,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error:
-            "Each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
+            "Each session group must contain 1 or 2 options, each with valid duration, link, and label.",
         },
         { status: 400 },
       );

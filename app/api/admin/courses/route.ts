@@ -183,7 +183,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate sessions structure: must have two options, and each option must contain duration, link, time, and label.
+    // Validate sessions structure: must have options, each with valid duration, link, label, and optionNumber.
+    // 'time' is now optional.
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
@@ -192,7 +193,6 @@ export async function POST(request: Request) {
           (option: any) =>
             !option.duration ||
             isNaN(parseInt(option.duration)) || // Ensure duration is a valid number
-            !option.time ||
             !option.label ||
             !option.optionNumber,
         ),
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Each course must have sessions, and each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
+            "Each course must have sessions, and each session group must contain valid duration, link, and label.",
         },
         { status: 400 },
       );
