@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
@@ -25,6 +26,24 @@ export default function InstructorCoursePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  const { data: session } = useSession();
+  const [instructorProfile, setInstructorProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          setInstructorProfile(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch profile", e);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -283,6 +302,8 @@ export default function InstructorCoursePage() {
           existingCourse={selectedCourse}
           onSave={fetchCourses}
           userRole="instructor" // Changed from "admin" for instructor access
+          currentInstructorName={instructorProfile?.fullName}
+          currentInstructorId={session?.user?.id as any}
         />
       )}
       <ConfirmationModal

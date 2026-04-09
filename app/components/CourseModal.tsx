@@ -476,6 +476,12 @@ export default function CourseModal({
   };
 
   useEffect(() => {
+    if (userRole === "instructor" && !existingCourse && currentInstructorName) {
+      setInstructor(currentInstructorName);
+    }
+  }, [userRole, existingCourse, currentInstructorName]);
+
+  useEffect(() => {
     console.log("Existing Course", existingCourse);
   }, [existingCourse]);
 

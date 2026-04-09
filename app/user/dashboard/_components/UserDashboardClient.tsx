@@ -65,6 +65,7 @@ import CourseDetailCard from "@/app/components/CourseDetailCard";
 import UserRentalsSection from "./UserRentalsSection";
 import UserBookingsSection from "./UserBookingsSection";
 import UserWalletSection from "./UserWalletSection";
+import InstructorAcademySection from "./InstructorAcademySection";
 import Loader from "@/app/components/Loader";
 
 function Page() {
@@ -519,9 +520,15 @@ function Page() {
     },
     {
       id: "courses",
+      label: "Courses",
+      icon: <Book size={20} />,
+      roles: ["student"],
+    },
+    {
+      id: "academy",
       label: "Academy",
       icon: <GraduationCap size={20} />,
-      roles: ["student"],
+      roles: ["instructor"],
     },
     {
       id: "orders",
@@ -571,6 +578,7 @@ function Page() {
       icon: <Users size={20} />,
       roles: ["any"],
     },
+    
   ];
 
   const filteredNavItems = navItems.filter(
@@ -714,6 +722,13 @@ function Page() {
               )}
             </div>
           </div>
+        );
+      case "academy":
+        return (
+          <InstructorAcademySection
+            instructorId={session?.user?.id as any}
+            instructorName={userProfile.fullName}
+          />
         );
       default:
         return null;
