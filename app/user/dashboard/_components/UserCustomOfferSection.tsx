@@ -174,7 +174,13 @@ const CustomOfferModal = ({
 };
 
 // Main CustomOffersTab component
-export default function UserCustomOffersSection() {
+interface UserCustomOffersSectionProps {
+  offerIdToOpen?: string;
+}
+
+export default function UserCustomOffersSection({
+  offerIdToOpen,
+}: UserCustomOffersSectionProps) {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -222,6 +228,17 @@ export default function UserCustomOffersSection() {
     fetchOffers();
     fetchOrders();
   }, [fetchOffers, fetchOrders]);
+
+  // Handle deep linking to open offer modal
+  useEffect(() => {
+    if (offerIdToOpen && offers.length > 0) {
+      const offer = offers.find((o) => o.id === offerIdToOpen);
+      if (offer) {
+        setSelectedOffer(offer);
+        setIsModalOpen(true);
+      }
+    }
+  }, [offerIdToOpen, offers]);
 
   // Pagination logic
   const indexOfLastOffer = currentPage * offersPerPage;
@@ -353,6 +370,7 @@ export default function UserCustomOffersSection() {
               currentOffers.map((offer) => (
                 <tr
                   key={offer.id}
+                  id={`item-${offer.id}`}
                   className="hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

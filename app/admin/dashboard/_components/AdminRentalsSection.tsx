@@ -55,7 +55,13 @@ interface AdminRental {
   images: RentalImage[] | null;
 }
 
-export default function AdminRentalsSection() {
+interface AdminRentalsSectionProps {
+  rentalIdToOpen?: string;
+}
+
+export default function AdminRentalsSection({
+  rentalIdToOpen,
+}: AdminRentalsSectionProps) {
   const [rentals, setRentals] = useState<AdminRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +99,17 @@ export default function AdminRentalsSection() {
   useEffect(() => {
     fetchRentals();
   }, [fetchRentals]);
+
+  // Handle deep linking to open rental modal
+  useEffect(() => {
+    if (rentalIdToOpen && rentals.length > 0) {
+      const rental = rentals.find((r) => r.id.toString() === rentalIdToOpen);
+      if (rental) {
+        setSelectedRental(rental);
+        setIsDetailModalOpen(true);
+      }
+    }
+  }, [rentalIdToOpen, rentals]);
 
   const handleActionClick = (
     rental: AdminRental,

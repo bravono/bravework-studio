@@ -28,7 +28,13 @@ interface PendingUser {
   selfie_with_id_url: string;
 }
 
-export default function AdminVerificationReview() {
+interface AdminVerificationReviewProps {
+  verificationIdToOpen?: string;
+}
+
+export default function AdminVerificationReview({
+  verificationIdToOpen,
+}: AdminVerificationReviewProps) {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<PendingUser | null>(null);

@@ -30,10 +30,9 @@ export async function GET(request: Request) {
         o.order_id AS "orderId",
         o.budget_range AS "budget"
       FROM notifications n
-      LEFT JOIN custom_offers co ON n.link LIKE '/admin/dashboard/notifications/' || co.offer_id || '%'
+      LEFT JOIN custom_offers co ON n.link LIKE '%' || co.offer_id || '%' AND n.link LIKE '/admin/dashboard/notifications/%'
       LEFT JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
-      LEFT JOIN orders o ON n.link LIKE '/admin/dashboard/notifications/' || o.order_id || '%'
-      WHERE n.link LIKE '/admin/dashboard/notifications/'|| COALESCE(co.offer_id::text, o.order_id::text) || '%'
+      LEFT JOIN orders o ON n.link LIKE '%' || o.order_id || '%' AND n.link LIKE '/admin/dashboard/notifications/%'
       ORDER BY n.created_at DESC;
     `;
 

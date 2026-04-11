@@ -7,6 +7,7 @@ import { Eye, Trash2, XCircle, CheckCircle, Clock, Search } from "lucide-react";
 import { Notification, Order } from "@/app/types/app";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import Pagination from "@/app/components/Pagination";
+import Link from "next/link";
 
 const NotificationDetailModal = ({ notification, onClose }) => {
   if (!notification) return null;
@@ -360,13 +361,82 @@ export default function AdminNotificationSection() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleViewNotification(notification)}
+                        <Link
+                          href={(() => {
+                            if (!notification.link) return "#";
+                            const url = notification.link;
+
+                            if (url.includes("courseId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("courseId");
+                              return `/admin/dashboard?tab=academy&courseId=${id}`;
+                            }
+
+                            if (url.includes("orderId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("orderId");
+                              return `/admin/dashboard?tab=orders&orderId=${id}`;
+                            }
+
+                            if (url.includes("userId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("userId");
+                              return `/admin/dashboard?tab=users&userId=${id}`;
+                            }
+
+                            if (url.includes("applicationId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("applicationId");
+                              return `/admin/dashboard?tab=job-applications&applicationId=${id}`;
+                            }
+
+                            if (url.includes("rentalId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("rentalId");
+                              return `/admin/dashboard?tab=hardware&rentalId=${id}`;
+                            }
+
+                            if (url.includes("bookingId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("bookingId");
+                              return `/admin/dashboard?tab=bookings&bookingId=${id}`;
+                            }
+
+                            if (url.includes("verificationId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("verificationId");
+                              return `/admin/dashboard?tab=verifications&verificationId=${id}`;
+                            }
+
+                            if (url.includes("offerId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("offerId");
+                              return `/admin/dashboard?tab=custom-offers&offerId=${id}`;
+                            }
+
+                            // Fallback for direct dashboard/notification links
+                            if (
+                              url.includes("/admin/dashboard/notifications/")
+                            ) {
+                              const id = url.split("/").pop();
+                              return `/admin/dashboard?tab=notifications&itemId=${id}`;
+                            }
+
+                            return url;
+                          })()}
                           className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
                           title="View Details"
                         >
                           <Eye size={16} />
-                        </button>
+                        </Link>
                         <button
                           onClick={() => handleDeleteClick(notification)}
                           className="p-2 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"

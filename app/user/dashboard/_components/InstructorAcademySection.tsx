@@ -39,11 +39,13 @@ interface CohortCourse {
 interface InstructorAcademySectionProps {
   instructorId: string | number;
   instructorName: string;
+  courseIdToOpen?: string;
 }
 
-export default function InstructorAcademySection({ 
-  instructorId, 
-  instructorName 
+export default function InstructorAcademySection({
+  instructorId,
+  instructorName,
+  courseIdToOpen,
 }: InstructorAcademySectionProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [presentCohorts, setPresentCohorts] = useState<CohortCourse[]>([]);
@@ -71,6 +73,20 @@ export default function InstructorAcademySection({
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  // Handle deep linking to open course modal
+  useEffect(() => {
+    if (courseIdToOpen) {
+      const courseId = parseInt(courseIdToOpen);
+      if (!isNaN(courseId)) {
+        const allCourses = [...presentCohorts, ...pastCohorts];
+        const course = allCourses.find((c) => c.id === courseId);
+        if (course) {
+          handleEditCourse(courseId);
+        }
+      }
+    }
+  }, [courseIdToOpen, presentCohorts, pastCohorts]);
 
   const handleCreateCourse = () => {
     setSelectedCourse(null);

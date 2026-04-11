@@ -12,7 +12,13 @@ import { Course } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import Pagination from "@/app/components/Pagination";
 
-export default function AdminCourseSection() {
+interface AdminCourseSectionProps {
+  courseIdToOpen?: string;
+}
+
+export default function AdminCourseSection({
+  courseIdToOpen,
+}: AdminCourseSectionProps) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +54,17 @@ export default function AdminCourseSection() {
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
+
+  // Handle deep linking to open course modal
+  useEffect(() => {
+    if (courseIdToOpen && courses.length > 0) {
+      const course = courses.find((c) => c.id === courseIdToOpen);
+      if (course) {
+        setSelectedCourse(course);
+        setIsModalOpen(true);
+      }
+    }
+  }, [courseIdToOpen, courses]);
 
   const handleCreateCourse = () => {
     setSelectedCourse(null);

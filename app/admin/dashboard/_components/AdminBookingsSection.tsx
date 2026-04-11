@@ -38,7 +38,13 @@ interface AdminBooking {
   owner_last_name: string;
 }
 
-export default function AdminBookingsSection() {
+interface AdminBookingsSectionProps {
+  bookingIdToOpen?: string;
+}
+
+export default function AdminBookingsSection({
+  bookingIdToOpen,
+}: AdminBookingsSectionProps) {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

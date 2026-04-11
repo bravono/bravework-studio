@@ -473,7 +473,7 @@ export default function Navbar() {
                     Wallet
                   </Link>
                   <Link
-                    href="/user/dashboard?tab=notifications"
+                    href="/user/dashboard/notifications"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold"
                   >

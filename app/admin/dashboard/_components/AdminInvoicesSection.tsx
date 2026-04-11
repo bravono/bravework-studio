@@ -10,7 +10,13 @@ import ConfirmationModal from "@/app/components/ConfirmationModal";
 
 const ITEMS_PER_PAGE = 10;
 
-export default function AdminInvoicesSection() {
+interface AdminInvoicesSectionProps {
+  invoiceIdToOpen?: string;
+}
+
+export default function AdminInvoicesSection({
+  invoiceIdToOpen,
+}: AdminInvoicesSectionProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -18,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Session } from "next-auth";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -108,14 +108,9 @@ export default function AdminDashboardClient({
   const { data: session, status } = useSession();
 
   const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
-
-  const [adminProfile, setAdminProfile] = useState<AdminProfile>({
-    id: (initialSession.user as any)?.id,
-    fullName: initialSession.user?.name,
-    email: initialSession.user?.email,
-    memberSince: "N/A", // This will be fetched from the backend
-  });
-
+  const searchParams = useSearchParams();
+  const [loadingData, setLoadingData] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats>({
     totalOrders: 0,
     totalRevenue: 0,
@@ -126,12 +121,50 @@ export default function AdminDashboardClient({
     totalUnreadNotifications: 0,
   });
 
-  const [loadingData, setLoadingData] = useState(false);
-  const [dataError, setDataError] = useState<string | null>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile>({
+    id: (initialSession.user as any)?.id,
+    fullName: initialSession.user?.name,
+    email: initialSession.user?.email,
+    memberSince: "N/A", // This will be fetched from the backend
+  });
+
   const [monitoringData, setMonitoringData] = useState<MonitoringData | null>(
     null,
   );
   const [monitoringLoading, setMonitoringLoading] = useState(false);
+
+  // Effect for deep linking and scrolling to items
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const itemId =
+      searchParams.get("itemId") ||
+      searchParams.get("courseId") ||
+      searchParams.get("offerId") ||
+      searchParams.get("orderId");
+
+    if (tab) {
+      setActiveTab(tab);
+    }
+
+    if (itemId) {
+      // Delay slightly to allow the tab content to render
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`item-${itemId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("ring-2", "ring-indigo-500", "ring-offset-2");
+          setTimeout(() => {
+            element.classList.remove(
+              "ring-2",
+              "ring-indigo-500",
+              "ring-offset-2"
+            );
+          }, 3000);
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, loadingData]);
 
   const kobo = 100;
 
@@ -468,23 +501,61 @@ export default function AdminDashboardClient({
           </div>
         );
       case "orders":
-        return <AdminOrdersSection />;
+        return (
+          <AdminOrdersSection
+            orderIdToOpen={searchParams.get("orderId") || undefined}
+          />
+        );
       case "custom-offers":
-        return <AdminCustomOffersSection />;
+        return (
+          <AdminCustomOffersSection
+            offerIdToOpen={searchParams.get("offerId") || undefined}
+          />
+        );
       case "users":
-        return <AdminUsersSection />;
+        return (
+          <AdminUsersSection
+            userIdToOpen={searchParams.get("userId") || undefined}
+          />
+        );
       case "courses":
-        return <AdminCourseSection />;
+        return (
+          <AdminCourseSection
+            courseIdToOpen={searchParams.get("courseId") || undefined}
+          />
+        );
       case "invoices":
-        return <AdminInvoicesSection />;
+        return (
+          <AdminInvoicesSection
+            invoiceIdToOpen={searchParams.get("invoiceId") || undefined}
+          />
+        );
       case "job-applications":
-        return <AdminJobApplicationsSection />;
+        return (
+          <AdminJobApplicationsSection
+            applicationIdToOpen={searchParams.get("applicationId") || undefined}
+          />
+        );
       case "bookings":
-        return <AdminBookingsSection />;
+        return (
+          <AdminBookingsSection
+            bookingIdToOpen={searchParams.get("bookingId") || undefined}
+          />
+        );
       case "verifications":
-        return <AdminVerificationReview />;
+        return (
+          <AdminVerificationReview
+            verificationIdToOpen={
+              searchParams.get("verificationId") || undefined
+            }
+          />
+        );
       case "hardware":
-        return <AdminRentalsSection />;
+        return (
+          <AdminRentalsSection
+            rentalIdToOpen={searchParams.get("rentalId") || undefined}
+          />
+        );
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
@@ -596,7 +667,17 @@ export default function AdminDashboardClient({
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === "notifications") {
+                  router.push("/user/dashboard/notifications");
+                } else {
+                  setActiveTab(item.id);
+                  // Update URL without full page reload
+                  router.push(`/admin/dashboard?tab=${item.id}`, {
+                    scroll: false,
+                  });
+                }
+              }}
               className={cn(
                 "flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors duration-200 relative",
                 activeTab === item.id &&
@@ -654,7 +735,10 @@ export default function AdminDashboardClient({
       <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
         {activeTab !== "overview" && (
           <button
-            onClick={() => setActiveTab("overview")}
+            onClick={() => {
+              setActiveTab("overview");
+              router.push("/admin/dashboard?tab=overview", { scroll: false });
+            }}
             className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-indigo-600 dark:bg-indigo-500 rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:scale-105"
           >
             <ChevronLeft size={20} />

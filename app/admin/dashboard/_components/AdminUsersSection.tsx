@@ -9,7 +9,13 @@ import { UserPlus, Tag, Trash2, Search } from "lucide-react";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import Pagination from "@/app/components/Pagination";
 
-export default function AdminUsersSection() {
+interface AdminUsersSectionProps {
+  userIdToOpen?: string;
+}
+
+export default function AdminUsersSection({
+  userIdToOpen,
+}: AdminUsersSectionProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

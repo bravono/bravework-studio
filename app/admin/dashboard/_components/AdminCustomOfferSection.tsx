@@ -11,7 +11,13 @@ import { CustomOffer, Order } from "@/app/types/app";
 import Pagination from "@/app/components/Pagination";
 
 // Main CustomOffersTab component
-export default function AdminCustomOffersSection() {
+interface AdminCustomOffersSectionProps {
+  offerIdToOpen?: string;
+}
+
+export default function AdminCustomOffersSection({
+  offerIdToOpen,
+}: AdminCustomOffersSectionProps) {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +66,17 @@ export default function AdminCustomOffersSection() {
     fetchOffers();
     fetchOrders();
   }, [fetchOffers, fetchOrders]);
+
+  // Handle deep linking to open offer modal
+  useEffect(() => {
+    if (offerIdToOpen && offers.length > 0) {
+      const offer = offers.find((o) => o.id === offerIdToOpen);
+      if (offer) {
+        setSelectedOffer(offer);
+        setIsModalOpen(true);
+      }
+    }
+  }, [offerIdToOpen, offers]);
 
   const handleCreateOffer = () => {
     setSelectedOffer(null);

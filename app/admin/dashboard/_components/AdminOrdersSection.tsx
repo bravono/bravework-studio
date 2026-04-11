@@ -19,7 +19,13 @@ import { Order } from "../../../types/app";
 // Constant for items per page
 const ITEMS_PER_PAGE = 10;
 
-export default function AdminOrdersSection() {
+interface AdminOrdersSectionProps {
+  orderIdToOpen?: string;
+}
+
+export default function AdminOrdersSection({
+  orderIdToOpen,
+}: AdminOrdersSectionProps) {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +67,17 @@ export default function AdminOrdersSection() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Handle deep linking to open order modal
+  useEffect(() => {
+    if (orderIdToOpen && orders.length > 0) {
+      const order = orders.find((o) => o.id.toString() === orderIdToOpen);
+      if (order) {
+        setSelectedOrder(order);
+        setIsOrderFormModalOpen(true);
+      }
+    }
+  }, [orderIdToOpen, orders]);
 
   const handleCreateOrder = () => {
     setSelectedOrder(null);

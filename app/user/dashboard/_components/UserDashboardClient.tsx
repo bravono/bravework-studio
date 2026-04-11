@@ -72,13 +72,6 @@ function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
-
   const { data: session, status } = useSession();
 
   const { exchangeRates } = useExchangeRates();
@@ -117,6 +110,39 @@ function Page() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Effect for deep linking and scrolling to items
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const itemId =
+      searchParams.get("itemId") ||
+      searchParams.get("courseId") ||
+      searchParams.get("offerId") ||
+      searchParams.get("orderId");
+
+    if (tab) {
+      setActiveTab(tab);
+    }
+
+    if (itemId) {
+      // Delay slightly to allow the tab content to render
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`item-${itemId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("ring-2", "ring-green-500", "ring-offset-2");
+          setTimeout(() => {
+            element.classList.remove(
+              "ring-2",
+              "ring-green-500",
+              "ring-offset-2"
+            );
+          }, 3000);
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, loading]);
 
   // Pagination states
   const [ordersPage, setOrdersPage] = useState(1);
@@ -652,13 +678,17 @@ function Page() {
       case "orders":
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <UserOrdersSection />
+            <UserOrdersSection
+              orderIdToOpen={searchParams.get("orderId") || undefined}
+            />
           </div>
         );
       case "invoices":
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <UserInvoicesSection />
+            <UserInvoicesSection
+              invoiceIdToOpen={searchParams.get("invoiceId") || undefined}
+            />
           </div>
         );
       case "notifications":
@@ -670,7 +700,9 @@ function Page() {
       case "custom-offers":
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <UserCustomOffersSection />
+            <UserCustomOffersSection
+              offerIdToOpen={searchParams.get("offerId") || undefined}
+            />
           </div>
         );
       case "rentals":
@@ -755,7 +787,17 @@ function Page() {
           {filteredNavItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === "notifications") {
+                  router.push("/user/dashboard/notifications");
+                } else {
+                  setActiveTab(item.id);
+                  // Update URL without full page reload
+                  router.push(`/user/dashboard?tab=${item.id}`, {
+                    scroll: false,
+                  });
+                }
+              }}
               className={cn(
                 "flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 group",
                 activeTab === item.id
@@ -793,7 +835,10 @@ function Page() {
       <main className="flex-1 p-4 md:p-10 overflow-y-auto">
         {activeTab !== "overview" && (
           <button
-            onClick={() => setActiveTab("overview")}
+            onClick={() => {
+              setActiveTab("overview");
+              router.push("/user/dashboard?tab=overview", { scroll: false });
+            }}
             className="mb-6 flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
           >
             <ChevronLeft size={16} />

@@ -51,7 +51,13 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }: { message: string, 
   );
 };
 
-export default function UserInvoicesSection() {
+interface UserInvoicesSectionProps {
+  invoiceIdToOpen?: string;
+}
+
+export default function UserInvoicesSection({
+  invoiceIdToOpen,
+}: UserInvoicesSectionProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

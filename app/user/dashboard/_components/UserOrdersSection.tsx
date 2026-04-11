@@ -16,7 +16,13 @@ import { KOBO_PER_NAIRA } from "@/lib/constants";
 // Constant for items per page
 const ITEMS_PER_PAGE = 10;
 
-export default function UserOrdersSection() {
+interface UserOrdersSectionProps {
+  orderIdToOpen?: string;
+}
+
+export default function UserOrdersSection({
+  orderIdToOpen,
+}: UserOrdersSectionProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +179,7 @@ export default function UserOrdersSection() {
                 {currentOrders.map((order) => (
                   <tr
                     key={order.id}
+                    id={`item-${order.id}`}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-4 py-3 text-sm text-gray-800">

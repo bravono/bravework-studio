@@ -420,10 +420,21 @@ export default function NotificationsPage() {
                       ) : null}
                       {notification.link && (
                         <Link
-                          href={{
-                            pathname: "/user/dashboard",
-                            query: { tab: "custom-offers" },
-                          }}
+                          href={
+                            notification.link.includes(
+                              "/user/dashboard/courses/"
+                            )
+                              ? `/user/dashboard?tab=academy&courseId=${notification.link.split("/").pop()}`
+                              : notification.link.includes(
+                                  "/user/dashboard/orders/"
+                                )
+                              ? `/user/dashboard?tab=orders&orderId=${notification.link.split("/").pop()}`
+                              : notification.link.includes(
+                                  "/user/dashboard/custom-offers/"
+                                )
+                              ? `/user/dashboard?tab=custom-offers&offerId=${notification.link.split("/").pop()}`
+                              : notification.link
+                          }
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                         >
                           View Full Offer Details{" "}
@@ -435,7 +446,19 @@ export default function NotificationsPage() {
 
                   {!isOfferNotification && notification.link && (
                     <Link
-                      href={notification.link}
+                      href={
+                        notification.link.includes("/user/dashboard/courses/")
+                          ? `/user/dashboard?tab=academy&courseId=${notification.link.split("/").pop()}`
+                          : notification.link.includes(
+                              "/user/dashboard/orders/"
+                            )
+                          ? `/user/dashboard?tab=orders&orderId=${notification.link.split("/").pop()}`
+                          : notification.link.includes(
+                              "/user/dashboard/custom-offers/"
+                            )
+                          ? `/user/dashboard?tab=custom-offers&offerId=${notification.link.split("/").pop()}`
+                          : notification.link
+                      }
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                     >
                       View Details <ExternalLink className="w-4 h-4" />

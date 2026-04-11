@@ -228,7 +228,13 @@ function ApplicationDetailsModal({
   );
 }
 
-export default function AdminJobApplicationsSection() {
+interface AdminJobApplicationsSectionProps {
+  applicationIdToOpen?: string;
+}
+
+export default function AdminJobApplicationsSection({
+  applicationIdToOpen,
+}: AdminJobApplicationsSectionProps) {
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -275,6 +281,17 @@ export default function AdminJobApplicationsSection() {
   useEffect(() => {
     fetchJobApplications();
   }, [fetchJobApplications]);
+
+  // Handle deep linking to open application modal
+  useEffect(() => {
+    if (applicationIdToOpen && jobApplications.length > 0) {
+      const app = jobApplications.find((a) => a.id === applicationIdToOpen);
+      if (app) {
+        setSelectedApp(app);
+        setIsDetailsModalOpen(true);
+      }
+    }
+  }, [applicationIdToOpen, jobApplications]);
 
   const handleUpdateStatusClick = (
     app: JobApplication,

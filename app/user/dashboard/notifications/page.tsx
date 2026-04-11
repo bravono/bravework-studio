@@ -262,7 +262,82 @@ export default function NotificationsPage() {
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       {notif.link && (
                         <Link
-                          href={notif.link}
+                          href={(() => {
+                            if (!notif.link) return "#";
+                            const url = notif.link;
+                            const isAdmin =
+                              (session?.user as any)?.role === "admin" ||
+                              (session?.user as any)?.role === "superadmin";
+
+                            const baseUrl = isAdmin
+                              ? "/admin/dashboard"
+                              : "/user/dashboard";
+
+                            if (url.includes("courseId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("courseId");
+                              return `${baseUrl}?tab=academy&courseId=${id}`;
+                            }
+
+                            if (url.includes("orderId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("orderId");
+                              return `${baseUrl}?tab=orders&orderId=${id}`;
+                            }
+
+                            if (url.includes("offerId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("offerId");
+                              return `${baseUrl}?tab=custom-offers&offerId=${id}`;
+                            }
+
+                            if (url.includes("invoiceId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("invoiceId");
+                              return `${baseUrl}?tab=invoices&invoiceId=${id}`;
+                            }
+
+                            if (url.includes("bookingId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("bookingId");
+                              return `${baseUrl}?tab=bookings&bookingId=${id}`;
+                            }
+
+                            if (url.includes("userId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("userId");
+                              return `/admin/dashboard?tab=users&userId=${id}`;
+                            }
+
+                            if (url.includes("applicationId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("applicationId");
+                              return `/admin/dashboard?tab=job-applications&applicationId=${id}`;
+                            }
+
+                            if (url.includes("rentalId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("rentalId");
+                              return `/admin/dashboard?tab=hardware&rentalId=${id}`;
+                            }
+
+                            if (url.includes("verificationId=")) {
+                              const id = new URLSearchParams(
+                                url.split("?")[1],
+                              ).get("verificationId");
+                              return `/admin/dashboard?tab=verifications&verificationId=${id}`;
+                            }
+
+                            return url;
+                          })()}
                           onClick={() => markAsRead(notif.id)}
                           className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
                             notif.isRead
