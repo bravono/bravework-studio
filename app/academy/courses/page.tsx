@@ -22,7 +22,10 @@ import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
+import Pagination from "../../components/Pagination";
 import { Course } from "../../types/app";
+
+const COURSES_PER_PAGE = 6;
 
 export default function AcademyCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -30,6 +33,7 @@ export default function AcademyCoursesPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { exchangeRates } = useExchangeRates();
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
@@ -51,6 +55,10 @@ export default function AcademyCoursesPage() {
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, selectedTags, searchQuery]);
 
   const categories = useMemo(() => {
     return [
@@ -94,6 +102,17 @@ export default function AcademyCoursesPage() {
       return matchesFilter && matchesSearch && matchesTags;
     });
   }, [courses, activeFilter, searchQuery, selectedTags]);
+
+  const totalPages = Math.ceil(filteredCourses.length / COURSES_PER_PAGE);
+  const paginatedCourses = useMemo(() => {
+    const startIndex = (currentPage - 1) * COURSES_PER_PAGE;
+    return filteredCourses.slice(startIndex, startIndex + COURSES_PER_PAGE);
+  }, [filteredCourses, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
 
   return (
@@ -199,7 +218,7 @@ export default function AcademyCoursesPage() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredCourses.map((course) => (
+              {paginatedCourses.map((course) => (
                 <motion.div
                   key={course.id}
                   layout
@@ -357,6 +376,16 @@ export default function AcademyCoursesPage() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+
+          {!isLoading && (
+            <div className="mt-12">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
 
