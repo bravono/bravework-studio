@@ -367,6 +367,16 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Error during verification:", error);
+    
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      if (error.message.includes("unique_user_category_orders")) {
+        return NextResponse.json(
+          { success: false, message: "You already have an order for this category. Please check your dashboard." },
+          { status: 400 },
+        );
+      }
+    }
+
     return NextResponse.json(
       { success: false, message: error.message || "Internal Error" },
       { status: 500 }

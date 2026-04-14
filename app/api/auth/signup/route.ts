@@ -222,7 +222,7 @@ export async function POST(req: Request) {
               );
           }
         } catch (mailError) {
-            logger.error({ err: mailError }, "Failed to send verification email");
+          logger.error({ err: mailError }, "Failed to send verification email");
         }
       }
 
@@ -230,17 +230,21 @@ export async function POST(req: Request) {
       if (hasHardware) {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
-        await client.query("UPDATE users SET hardware_discount_expiry = $1 WHERE user_id = $2", [expiryDate, userId]);
+        await client.query(
+          "UPDATE users SET hardware_discount_expiry = $1 WHERE user_id = $2",
+          [expiryDate, userId],
+        );
       }
 
       // Logic for course enrollment and order creation (if courseId or bundle exists)
       if (courseId || bundle) {
-        const courseIds = bundle 
-          ? bundle.split(",").map(id => Number(id.trim()))
+        const courseIds = bundle
+          ? bundle.split(",").map((id) => Number(id.trim()))
           : [Number(courseId)];
-        
+
         const bundleSize = courseIds.length;
-        const bundleDiscount = bundleSize === 2 ? 0.1 : (bundleSize >= 3 ? 0.2 : 0);
+        const bundleDiscount =
+          bundleSize === 2 ? 0.1 : bundleSize >= 3 ? 0.2 : 0;
         const bundleGroupId = uuidv4().split("-")[0].toUpperCase();
 
         // Get 'student' role
@@ -269,7 +273,7 @@ export async function POST(req: Request) {
             [cId],
           );
           if (courseResult.rows.length === 0) continue;
-          
+
           const {
             title: courseTitle,
             description: courseDescription,
@@ -284,19 +288,26 @@ export async function POST(req: Request) {
           // Calculate Price with stacking discounts
           let currentPrice = originalPrice;
           const now = new Date();
-          const isEarlyBirdActive = ebDiscount && ebStart && ebEnd && now >= new Date(ebStart) && now <= new Date(ebEnd);
-          
+          const isEarlyBirdActive =
+            ebDiscount &&
+            ebStart &&
+            ebEnd &&
+            now >= new Date(ebStart) &&
+            now <= new Date(ebEnd);
+
           if (isEarlyBirdActive) {
             currentPrice = Math.round(currentPrice * (1 - ebDiscount / 100));
           }
-          
-          const discountedPrice = Math.round(currentPrice * (1 - bundleDiscount));
+
+          const discountedPrice = Math.round(
+            currentPrice * (1 - bundleDiscount),
+          );
 
           const sessionResult = await client.query(
             `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
             [cId, Number(preferredSessionTime)],
           );
-          
+
           let sessionId = null;
           if (sessionResult.rows.length > 0) {
             sessionId = sessionResult.rows[0].session_id;
@@ -304,7 +315,7 @@ export async function POST(req: Request) {
             // Fallback to first session if preferred not found for this course in bundle
             const fallbackSession = await client.query(
               `SELECT session_id FROM sessions WHERE course_id = $1 LIMIT 1`,
-              [cId]
+              [cId],
             );
             sessionId = fallbackSession.rows[0]?.session_id;
           }
@@ -315,7 +326,8 @@ export async function POST(req: Request) {
             "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
             [paymentStatus],
           );
-          const paymentStatusId = paymentStatusResult.rows[0]?.payment_status_id;
+          const paymentStatusId =
+            paymentStatusResult.rows[0]?.payment_status_id;
 
           // Insert into course_enrollments
           await client.query(
@@ -328,9 +340,10 @@ export async function POST(req: Request) {
           const bundlePrefix = bundleSize > 1 ? `BUNDLE-${bundleGroupId}-` : "";
           const trackingId = `${bundlePrefix}${createTrackingId(courseTitle)}`;
 
-          const projectDescription = bundleSize > 1 
-            ? `${courseDescription}\n\n[Bundle Order - Group ${bundleGroupId}]`
-            : courseDescription;
+          const projectDescription =
+            bundleSize > 1
+              ? `${courseDescription}\n\n[Bundle Order - Group ${bundleGroupId}]`
+              : courseDescription;
 
           const orderResult = await client.query(
             `INSERT INTO orders 
@@ -356,7 +369,8 @@ export async function POST(req: Request) {
         }
 
         // Integrate Zoho CRM for Free Courses
-        if (bundleSize === 1) { // For simplicity, only do automated tracking for single courses or first course if free
+        if (bundleSize === 1) {
+          // For simplicity, only do automated tracking for single courses or first course if free
           // We can expand this later to loop through orderIds if needed
         }
 
@@ -394,7 +408,10 @@ export async function POST(req: Request) {
     if (error instanceof Error && error.message.includes("duplicate key")) {
       if (error.message.includes("unique_user_category_orders")) {
         return NextResponse.json(
-          { message: "You already have an order for this category. Please check your dashboard." },
+          {
+            message:
+              "You already have an order for this category. Please check your dashboard.",
+          },
           { status: 400 },
         );
       }
