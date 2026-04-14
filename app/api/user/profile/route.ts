@@ -55,7 +55,8 @@ export async function GET(request: Request) {
         created_at AS "memberSince", 
         email_verified AS "emailVerified",
         is_verified AS "isVerified",
-        verification_submitted_at AS "verificationSubmittedAt"
+        verification_submitted_at AS "verificationSubmittedAt",
+        hardware_discount_expiry AS "hardwareDiscountExpiry"
       FROM users 
       WHERE user_id = $1`;
 
@@ -246,7 +247,8 @@ export async function PATCH(request: Request) {
         created_at AS "memberSince", 
         email_verified AS "emailVerified",
         is_verified AS "isVerified",
-        verification_submitted_at AS "verificationSubmittedAt"
+        verification_submitted_at AS "verificationSubmittedAt",
+        hardware_discount_expiry AS "hardwareDiscountExpiry"
     `;
 
     console.log("[PATCH /api/user/profile] Executing Query:", updateQueryText);

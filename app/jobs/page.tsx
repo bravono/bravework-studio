@@ -20,7 +20,9 @@ import {
   Layout,
   Music,
   Scroll,
+  GraduationCap,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { uploadFile } from "@/lib/utils/upload";
 
 const outfit = Outfit({
@@ -63,6 +65,15 @@ export default function JobsPage() {
     fileSize: string;
     fileUrl: string;
   } | null>(null);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const roleParam = searchParams.get("role");
+    if (roleParam) {
+      setApplication((prev) => ({ ...prev, role: roleParam }));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     console.log("Selected file:", file);
@@ -312,6 +323,36 @@ export default function JobsPage() {
               <li className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-green-500" />
                 Texture mapping
+              </li>
+            </ul>
+          </div>
+
+          {/* Instructor Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-blue-200 ring-2 ring-blue-50">
+            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl mb-4 inline-block">
+              <GraduationCap className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Instructor</h3>
+            <p className="text-gray-600 text-sm">
+              Teach the next generation of creative professionals at Bravework
+              Academy.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-500 text-sm">
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-500" />
+                Industry expertise
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-500" />
+                Curriculum design
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-500" />
+                Mentorship experience
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-500" />
+                Passion for education
               </li>
             </ul>
           </div>
@@ -583,6 +624,7 @@ export default function JobsPage() {
                     2D Artist (Storyboard)
                   </option>
                   <option value="scriptwriter">Scriptwriter</option>
+                  <option value="instructor">Academy Instructor</option>
                 </select>
               </div>
 

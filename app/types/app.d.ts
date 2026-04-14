@@ -164,6 +164,7 @@ interface UserProfile {
   idCardFrontUrl?: string | null;
   idCardBackUrl?: string | null;
   selfieWithIdUrl?: string | null;
+  hardwareDiscountExpiry?: string | null;
   // Add other fields you might have, like user ID
   id?: string;
 }
@@ -185,7 +186,10 @@ interface Course {
   level: "Beginner" | "Intermediate" | "Advance";
   language: string;
   category: string;
-  discount?: number; // Early bird discount percentage
+  early_bird_discount?: number; // Early bird discount percentage
+  discount_start_date?: string;
+  discount_end_date?: string;
+  discount?: number; // Legacy field
   discountStartDate?: string;
   discountEndDate?: string;
   content: string;

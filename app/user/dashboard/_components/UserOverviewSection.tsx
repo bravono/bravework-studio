@@ -18,7 +18,8 @@ import {
   Zap,
   Briefcase,
   GraduationCap,
-  Wallet
+  Wallet,
+  Monitor
 } from "lucide-react";
 import VerificationModal from "./VerificationModal";
 
@@ -154,6 +155,18 @@ export default function UserOverviewSection({
                 </button>
               </>
             )}
+          </div>
+        )}
+
+        {userProfile?.hardwareDiscountExpiry && new Date(userProfile.hardwareDiscountExpiry) > new Date() && (
+          <div className="flex items-center gap-4 p-4 rounded-2xl border bg-blue-50 border-blue-200 text-blue-800">
+            <Monitor className="shrink-0 text-blue-600" size={24} />
+            <div className="text-xs">
+              <p className="font-black uppercase tracking-widest">Hardware Discount Active</p>
+              <p className="font-medium opacity-90 mt-0.5">
+                10% Off Rentals until {new Date(userProfile.hardwareDiscountExpiry).toLocaleDateString()}
+              </p>
+            </div>
           </div>
         )}
       </div>

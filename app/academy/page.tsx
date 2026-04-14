@@ -162,18 +162,18 @@ export default function AcademyLandingPage() {
                 bg: "bg-blue-50",
               },
               {
-                title: "Digital Badges",
-                desc: "Earn verified credentials for every module you complete and showcase your skills.",
+                title: "Money-Back Guarantee",
+                desc: "We are confident in our curriculum. If you're not satisfied, we offer a full refund within the first 14 days.",
                 icon: ShieldCheck,
-                color: "text-indigo-600",
-                bg: "bg-indigo-50",
-              },
-              {
-                title: "Global Community",
-                desc: "Connect with developers and artists from across Africa and beyond.",
-                icon: Globe,
                 color: "text-emerald-600",
                 bg: "bg-emerald-50",
+              },
+              {
+                title: "Course Bundles",
+                desc: "Save up to 20% when you bundle multiple courses. Add hardware rental for a 10% discount on gear.",
+                icon: BookOpen,
+                color: "text-indigo-600",
+                bg: "bg-indigo-50",
               },
             ].map((feature, i) => (
               <motion.div
@@ -278,7 +278,7 @@ export default function AcademyLandingPage() {
                 Pay as you grow.
               </h2>
               <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-                Check out our free intro modules for UI/UX, Next.js, and 3D
+                Check out our free intro modules for UI/UX, Web Development, and 3D
                 Character Design. No credit card required to start your journey.
               </p>
               <ul className="space-y-4 mb-10">
@@ -296,7 +296,7 @@ export default function AcademyLandingPage() {
                 ))}
               </ul>
               <Link
-                href="/academy/courses"
+                href="/academy/courses?filter=Free"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-blue-400 transition-all"
               >
                 Get Started Now
@@ -444,18 +444,17 @@ export default function AcademyLandingPage() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
 
             <h2 className="text-4xl md:text-5xl font-black mb-6 relative z-10">
-              Join the Academy Today
+              Join the Academy's Instructor Team
             </h2>
             <p className="text-xl text-blue-100 mb-10 relative z-10 max-w-2xl mx-auto">
-              Ready to take the next step in your professional journey? Get
-              certified and join a network of elite creators.
+              Ready to share your knowledge and passion with the next generation of creators? 
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Link
-                href="/auth/signup"
+                href="/jobs?role=instructor"
                 className="px-10 py-5 bg-white text-blue-600 font-black rounded-2xl hover:bg-yellow-400 hover:text-gray-900 transition-all shadow-xl"
               >
-                Create Account
+                Join as Instructor
               </Link>
               <Link
                 href="/academy/about"
