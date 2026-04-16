@@ -369,9 +369,9 @@ export async function POST(req: NextRequest) {
     console.error("Error during verification:", error);
     
     if (error instanceof Error && error.message.includes("duplicate key")) {
-      if (error.message.includes("unique_user_category_orders")) {
+      if (error.message.includes("unique_user_title_orders")) {
         return NextResponse.json(
-          { success: false, message: "You already have an order for this category. Please check your dashboard." },
+          { success: false, message: "You already have this order. Please check your dashboard." },
           { status: 400 },
         );
       }

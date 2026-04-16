@@ -406,11 +406,11 @@ export async function POST(req: Request) {
     let status = 500;
 
     if (error instanceof Error && error.message.includes("duplicate key")) {
-      if (error.message.includes("unique_user_category_orders")) {
+      if (error.message.includes("unique_user_title_orders")) {
         return NextResponse.json(
           {
             message:
-              "You already have an order for this category. Please check your dashboard.",
+              "You already have this order. Please check your dashboard.",
           },
           { status: 400 },
         );
