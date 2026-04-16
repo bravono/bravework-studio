@@ -40,11 +40,14 @@ export async function GET(request: Request) {
       ce.preferred_session_id AS "preferredSession",
       csbp.session_option AS "sessionOption",
       csbp.session_label AS "sessionLabel",
-      csbp.sessions AS "sessionGroup"
+      csbp.sessions AS "sessionGroup",
+      o.tracking_id AS "trackingId"
     FROM course_enrollments ce
     JOIN courses c ON c.course_id = ce.course_id
     LEFT JOIN course_sessions_by_preference csbp
       ON csbp.course_id = ce.course_id AND csbp.user_id = ce.user_id
+    LEFT JOIN orders o 
+      ON o.user_id = ce.user_id AND o.title = c.title
     WHERE ce.user_id = $1
     ORDER BY c.created_at;
     `;

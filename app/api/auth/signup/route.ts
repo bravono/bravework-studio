@@ -348,7 +348,16 @@ export async function POST(req: Request) {
           const orderResult = await client.query(
             `INSERT INTO orders 
              (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (user_id, title) DO UPDATE SET
+               total_expected_amount_kobo = EXCLUDED.total_expected_amount_kobo,
+               tracking_id = EXCLUDED.tracking_id,
+               project_description = EXCLUDED.project_description,
+               payment_status_id = CASE 
+                 WHEN orders.payment_status_id = 1 THEN orders.payment_status_id -- if already paid, keep paid
+                 ELSE EXCLUDED.payment_status_id 
+               END
+             RETURNING order_id`,
             [
               userId,
               categoryId,
@@ -356,7 +365,7 @@ export async function POST(req: Request) {
               projectDescription,
               startDate,
               endDate,
-              paymentStatusId,
+              paymentStatusId || 3, // Default to pending (3) if id not found
               discountedPrice,
               trackingId,
             ],

@@ -234,16 +234,26 @@ export default function PaymentContent() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            orderId: orderData.orderId,
+            orderId:
+              orderData.type === "bundle"
+                ? (orderData as any).orders[0].orderId
+                : orderData.orderId,
             amountKobo: paymentDetails.walletDeduction,
             serviceType: orderData.type,
-            productId: orderData.data.id,
+            productId:
+              orderData.type === "bundle"
+                ? (orderData as any).courses[0].id
+                : orderData.data?.id,
             orderTitle:
-              orderData.type === "course"
-                ? (orderData.data as Course).title
-                : orderData.type === "rental"
-                  ? (orderData.data as RentalBooking).title
-                  : (orderData.data as CustomOffer).description,
+              orderData.type === "bundle"
+                ? `Bundle: ${(orderData as any).courses
+                    .map((c: any) => c.title)
+                    .join(", ")}`
+                : orderData.type === "course"
+                  ? (orderData.data as Course).title
+                  : orderData.type === "rental"
+                    ? (orderData.data as RentalBooking).title
+                    : (orderData.data as CustomOffer).description,
             projectDurationDays:
               orderData.type === "custom-offer"
                 ? (orderData.data as CustomOffer).projectDurationDays
@@ -269,7 +279,7 @@ export default function PaymentContent() {
         currency: "NGN",
         ref: `BW_${Math.floor(Math.random() * 1000000000 + 1)}`,
         metadata: {
-          service: orderData.type,
+          service: orderData.type === "bundle" ? "course" : orderData.type,
           orderId: orderData.type === "bundle" ? (orderData as any).orders[0].orderId : (orderData.orderId as number),
           bundleGroupId: orderData.bundleGroupId,
           productId: orderData.data?.id || (orderData.type === "bundle" ? (orderData as any).courses[0].id : undefined),
@@ -305,9 +315,18 @@ export default function PaymentContent() {
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               toast.success("Payment successful!");
-              router.push(
-                `/user/dashboard/payment/success?reference=${transaction.reference}&id=${orderData.data.id}&type=${orderData.type}`,
-              );
+              if (verifyData.redirect) {
+                router.push(verifyData.redirect);
+              } else {
+                const productId =
+                  orderData.type === "bundle"
+                    ? (orderData as any).courses?.[0]?.id
+                    : orderData.data?.id;
+
+                router.push(
+                  `/user/dashboard/payment/success?reference=${transaction.reference}&id=${productId}&type=${orderData.type}`,
+                );
+              }
             } else {
               toast.error("Payment verification failed: " + verifyData.message);
             }
@@ -395,11 +414,11 @@ export default function PaymentContent() {
                       {convertAmount(
                         orderData.type === "course"
                           ? (orderData.data as Course).price / KOBO_PER_NAIRA
-                          : orderData.type === "rental"
-                            ? (orderData.data as RentalBooking).amount /
-                              KOBO_PER_NAIRA
-                            : (orderData.data as CustomOffer).amount /
-                              KOBO_PER_NAIRA,
+                          : orderData.type === "bundle"
+                            ? (orderData as any).totalAmount / KOBO_PER_NAIRA
+                            : orderData.type === "rental"
+                              ? (orderData.data as RentalBooking).amount / KOBO_PER_NAIRA
+                              : (orderData.data as CustomOffer).amount / KOBO_PER_NAIRA,
                       )}
                     </p>
                   </div>

@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
           success: true,
           message: "Payment already processed.",
           data: transactionData,
+          redirect: "/user/dashboard",
         });
       }
 
@@ -207,7 +208,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 4. Handle Bundle vs Single Order
-      if (serviceType === "bundle" && bundleGroupId) {
+      if ((serviceType === "bundle" || serviceType === "course") && bundleGroupId) {
         const bundleOrdersRes = await client.query(
           "SELECT order_id, title, total_expected_amount_kobo, tracking_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2",
           [userId, `BUNDLE-${bundleGroupId}-%`],
@@ -222,20 +223,28 @@ export async function POST(req: NextRequest) {
         for (const bo of bundleOrders) {
           // Check if already paid
           const existingPayment = await client.query(
-            "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND order_id = $2",
-            [reference, bo.order_id]
+            "SELECT payment_id FROM payments WHERE (paystack_reference = $1 OR paystack_reference = $3) AND order_id = $2",
+            [reference, bo.order_id, `${reference}_${bo.order_id}`],
           );
           if (existingPayment.rows.length > 0) continue;
+
+          // Fetch Course ID for this order title
+          const courseRes = await client.query(
+            "SELECT course_id FROM courses WHERE title = $1",
+            [bo.title],
+          );
+          const bundleCourseId = courseRes.rows[0]?.course_id;
 
           // Insert Payment
           await client.query(
             `INSERT INTO payments (
               order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, payment_option_selected, discount_applied_percentage, created_at, updated_at
              )
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+             ON CONFLICT (paystack_reference) DO NOTHING`,
             [
               bo.order_id,
-              reference,
+              `${reference}_${bo.order_id}`,
               bo.total_expected_amount_kobo,
               actualCurrency,
               transactionData.status,
@@ -243,7 +252,7 @@ export async function POST(req: NextRequest) {
               customerEmail,
               paystackPaymentOption,
               discountApplied,
-            ]
+            ],
           );
 
           // Process Completion
@@ -255,7 +264,7 @@ export async function POST(req: NextRequest) {
             bo.title,
             null, // Duration can be fetched if needed
             "course",
-            null // Product ID per order can be tricky in bundles
+            bundleCourseId,
           );
         }
       } else {
@@ -267,7 +276,8 @@ export async function POST(req: NextRequest) {
             ${targetIdField}, 
             paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, payment_option_selected, discount_applied_percentage, created_at, updated_at
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+           ON CONFLICT (paystack_reference) DO NOTHING`,
           [
             orderId,
             reference,

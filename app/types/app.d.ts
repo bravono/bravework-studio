@@ -216,6 +216,7 @@ interface Course {
   ageBracket?: string;
   tools?: Tool[];
   tags?: string[];
+  trackingId?: string;
 }
 
 interface Rental {
