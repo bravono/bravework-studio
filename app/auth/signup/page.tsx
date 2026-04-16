@@ -170,7 +170,7 @@ function Signup() {
     if (!isEnrollmentPage) return baseSignupSchema;
     // For bundles, we relax the courseId requirement in Joi if bundle is present
     return !user ? enrollmentSchema : enrollExistingUserSchema;
-  }, [isEnrollmentPage]);
+  }, [isEnrollmentPage, user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -644,7 +644,7 @@ function Signup() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        {!isEnrollmentPage && user && <div className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
           <a
             href="/auth/login"
@@ -652,7 +652,7 @@ function Signup() {
           >
             Log in
           </a>
-        </div>
+        </div>}
       </div>
     </div>
   );
