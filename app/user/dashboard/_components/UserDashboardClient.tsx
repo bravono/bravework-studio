@@ -220,14 +220,14 @@ function Page() {
     if (status !== "authenticated") return;
     if (!courses || courses.length === 0) return;
 
-    const course = courses.find(
+    const pendingCourse = courses.find(
       (c) =>
         c.paymentStatus != null &&
         c.paymentStatus !== 1 &&
-        c.paymentStatus !== 4, // ADDED (c.paymentStatus != null)
+        c.paymentStatus !== 4,
     );
 
-    if (course && course.price > 0) {
+    if (pendingCourse && pendingCourse.price > 0) {
       // Prevent repeated redirects and avoid redirecting if already on payment page
       if (
         typeof window !== "undefined" &&
@@ -237,8 +237,19 @@ function Page() {
       }
 
       hasRedirectedRef.current = true;
-      console.log("Found courseId with paymentStatus not 1 or 4:", course?.id); // ADDED ?.
-      router.push(`/user/dashboard/payment?courseId=${course.id}`);
+      console.log("Found pending courseId:", pendingCourse?.id);
+
+      if (pendingCourse.trackingId?.startsWith("BUNDLE-")) {
+        const bundleGroupId = pendingCourse.trackingId.split("-")[1];
+        // Find all courses associated with this bundle group
+        const bundleCourses = courses.filter((c) =>
+          c.trackingId?.startsWith(`BUNDLE-${bundleGroupId}-`),
+        );
+        const bundleIds = bundleCourses.map((c) => c.id).join(",");
+        router.push(`/user/dashboard/payment?bundle=${bundleIds}`);
+      } else {
+        router.push(`/user/dashboard/payment?courseId=${pendingCourse.id}`);
+      }
     }
   }, [status, courses, router]);
 

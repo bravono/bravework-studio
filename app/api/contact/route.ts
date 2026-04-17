@@ -82,12 +82,28 @@ export async function POST(req: Request) {
 
       let category_id = category ? category.category_id : 1;
 
-      // 3. Create Order
+      // 3. Prevent Duplicate Wizard Orders
+      const orderTitle = subject ? subject.replace(/^Order For\s+/i, "") : wizardData.category;
+      const existingOrder = await prisma.orders.findFirst({
+        where: {
+          user_id: user.user_id,
+          title: orderTitle,
+        },
+      });
+
+      if (existingOrder) {
+        return NextResponse.json(
+          { error: "You already have this order. Please check your dashboard." },
+          { status: 400 },
+        );
+      }
+
+      // 4. Create Order
       const newOrder = await prisma.orders.create({
         data: {
           user_id: user.user_id,
           category_id: category_id,
-          title: subject ? subject.replace(/^Order For\s+/i, "") : wizardData.category,
+          title: orderTitle,
           project_description: `${wizardData.description}\nScope: ${wizardData.scope}\nRequirements: ${wizardData.requirements}`,
           budget_range: wizardData.budgetAmount,
           timeline: wizardData.timeline,

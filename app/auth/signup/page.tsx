@@ -71,8 +71,10 @@ const enrollmentSchema = Joi.object({
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
   preferredSessionTime: Joi.string().required().label("Preferred Session Time"),
-  courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
-});
+  courseId: Joi.number().optional().label("Course Id"),
+  bundle: Joi.string().allow(null, "").optional().label("Bundle"),
+  includeHardware: Joi.boolean().optional().label("Include Hardware"),
+}).or("courseId", "bundle");
 
 const enrollExistingUserSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -80,14 +82,19 @@ const enrollExistingUserSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
   preferredSessionTime: Joi.string().required().label("Preferred Session Time"),
-  courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
-});
+  courseId: Joi.number().optional().label("Course Id"),
+  bundle: Joi.string().allow(null, "").optional().label("Bundle"),
+  includeHardware: Joi.boolean().optional().label("Include Hardware"),
+  referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
+}).or("courseId", "bundle");
 
 function Signup() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
   const courseId = searchParams.get("courseId");
+  const bundleParam = searchParams.get("bundle");
+  const hardwareParam = searchParams.get("hardware") === "true";
   const { data: session } = useSession();
   const user = session?.user;
   const firstName = user?.name ? user.name.split(" ")[0] : "";
@@ -108,6 +115,7 @@ function Signup() {
     preferredSessionTime: "",
   });
   const [course, setCourse] = useState<Course>();
+  const [bundleCourses, setBundleCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -131,14 +139,23 @@ function Signup() {
   
 
   useEffect(() => {
-    if (isEnrollmentPage && courseId) {
-      if (course?.id && courseId !== course?.id) {
-        setMessage("Invalid course selected. Please go back.");
+    if (isEnrollmentPage) {
+      if (courseId) {
+        fetchCourse();
+      } else if (bundleParam) {
+        const ids = bundleParam.split(",");
+        Promise.all(ids.map(id => fetch(`/api/courses/${id}`).then(r => r.json())))
+          .then(results => {
+            const courses = results.map(r => r[0]);
+            setBundleCourses(courses);
+            if (courses.length > 0) {
+              setCourse(courses[0]);
+            }
+          })
+          .catch(err => console.error("Error fetching bundle courses:", err));
       }
-      setMessage("");
-      fetchCourse();
     }
-  }, [isEnrollmentPage, courseId]);
+  }, [isEnrollmentPage, courseId, bundleParam]);
 
   useEffect(() => {
     const referralCode = searchParams.get("ref");
@@ -151,8 +168,9 @@ function Signup() {
 
   const schemaToValidate = useMemo(() => {
     if (!isEnrollmentPage) return baseSignupSchema;
+    // For bundles, we relax the courseId requirement in Joi if bundle is present
     return !user ? enrollmentSchema : enrollExistingUserSchema;
-  }, [isEnrollmentPage]);
+  }, [isEnrollmentPage, user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -183,7 +201,9 @@ function Signup() {
         email,
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
       };
 
       payloadForValidation = {
@@ -194,7 +214,9 @@ function Signup() {
         password: form.password,
         confirmPassword: form.confirmPassword, // Included for frontend validation
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
         referralCode: form.referralCode,
       };
 
@@ -204,7 +226,9 @@ function Signup() {
         email,
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
       };
 
       if (!user) {
@@ -271,9 +295,10 @@ function Signup() {
           );
         } else {
           const paymentPrompt =
-            course.price > 0 ? " Please proceed to payment." : "";
+            (course?.price || bundleCourses.some(c => c.price > 0)) ? " Please proceed to payment." : "";
+          const displayTitle = course?.title || `${bundleCourses.length} courses`;
           setMessage(
-            `Enrollment successful! You have been enrolled in ${course.title}.${paymentPrompt}`,
+            `Enrollment successful! You have been enrolled in ${displayTitle}.${paymentPrompt}`,
           );
         }
 
@@ -317,37 +342,33 @@ function Signup() {
           </p>
         </div>
 
-        {isEnrollmentPage && course && (
+        {isEnrollmentPage && (course || bundleCourses.length > 0) && (
           <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              <span className="inline-flex items-center gap-2"></span>
-
               <p className="text-lg text-gray-600 font-semibold mb-1">
-                Enroll in: {course.title}
+                {bundleCourses.length > 0 
+                  ? `Enroll in Bundle: ${bundleCourses.map(c => c.title).join(", ")}`
+                  : `Enroll in: ${course?.title}`}
               </p>
             </h3>
 
+            {hardwareParam && (
+              <div className="flex items-center gap-2 text-blue-600 font-bold mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <Building className="w-5 h-5" />
+                <span>+ Hardware Rental Included (10% Discount Active)</span>
+              </div>
+            )}
+
             <p className="text-2xl font-bold text-green-600">
-              {course.discount &&
-              course.discount > 0 &&
-              Date.now() < new Date(course.discountEndDate).getTime() ? (
-                <>
-                  <span className="line-through text-gray-400 mr-2">
-                    ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
-                  </span>
-                  ₦
-                  {(
-                    (course.price * (1 - course.discount / 100)) /
-                    KOBO_PER_NAIRA
-                  ).toLocaleString()}
-                  <span className="ml-2 text-sm text-green-500 font-semibold">
-                    ({course.discount}% off)
-                  </span>
-                </>
-              ) : (
-                <>₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}</>
-              )}
+              {bundleCourses.length > 1 
+                ? `${bundleCourses.length === 2 ? "10%" : "20%"} Bundle Discount Applied` 
+                : "Course Enrollment Ready"}
             </p>
+            {course?.early_bird_discount && (
+               <p className="text-sm text-blue-600 font-medium mt-1">
+                 * Includes Stacking Early Bird Discount
+               </p>
+            )}
           </div>
         )}
 
@@ -623,7 +644,7 @@ function Signup() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        {!isEnrollmentPage && user && <div className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
           <a
             href="/auth/login"
@@ -631,7 +652,7 @@ function Signup() {
           >
             Log in
           </a>
-        </div>
+        </div>}
       </div>
     </div>
   );
