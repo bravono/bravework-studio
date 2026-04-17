@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { toast } from "react-toastify";
 import AcademySubNavBar from "../../components/AcademySubNavBar";
 import { motion } from "framer-motion";
@@ -35,7 +35,7 @@ import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
 import { Course } from "../../types/app";
 
-export default function AcademyCoursesPage() {
+function AcademyCoursesContent() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -599,5 +599,13 @@ export default function AcademyCoursesPage() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+export default function AcademyCoursesPage() {
+  return (
+    <Suspense fallback={<Loader user="admin" />}>
+      <AcademyCoursesContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { toast } from "react-toastify";
 import { Outfit } from "next/font/google";
 
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { uploadFile } from "@/lib/utils/upload";
+import Loader from "../components/Loader";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -42,7 +43,7 @@ interface JobApplication {
   message: string;
 }
 
-export default function JobsPage() {
+function JobsContent() {
   const [application, setApplication] = useState<JobApplication>({
     role: "",
     firstName: "",
@@ -928,5 +929,13 @@ export default function JobsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={<Loader user="user" />}>
+      <JobsContent />
+    </Suspense>
   );
 }
