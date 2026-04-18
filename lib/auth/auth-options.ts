@@ -39,7 +39,7 @@ export async function authorizeUser(
   const user = result[0];
 
   if (!user) {
-    throw new Error("No user found with that email.");
+    throw new Error("No user found with that email and password.");
   }
 
   // Check email verification status

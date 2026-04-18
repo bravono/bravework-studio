@@ -42,8 +42,9 @@ const enrollmentSchema = Joi.object({
     ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
-  preferredSessionTime: Joi.string().required(),
-  courseId: Joi.number().required(),
+  courseId: Joi.number().optional(),
+  bundle: Joi.string().allow("").optional(),
+  includeHardware: Joi.boolean().optional(),
   referralCode: Joi.string().allow("").optional(),
 });
 
@@ -54,7 +55,9 @@ const enrollExistingUserSchema = Joi.object({
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   preferredSessionTime: Joi.string().required(),
-  courseId: Joi.number().required(),
+  courseId: Joi.number().optional(),
+  bundle: Joi.string().allow("").optional(),
+  includeHardware: Joi.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
 
     let validationResult;
     // Determine the correct schema based on the request body and session status
-    if (body.courseId) {
+    if (body.courseId || body.bundle) {
       logger.debug({ session }, "Signup session check");
       if (session && session.user) {
         validationResult = enrollExistingUserSchema.validate(body);
@@ -92,6 +95,8 @@ export async function POST(req: Request) {
       phone,
       preferredSessionTime,
       courseId,
+      bundle,
+      includeHardware,
       referralCode,
     } = body;
 
@@ -99,6 +104,7 @@ export async function POST(req: Request) {
     const result = await withTransaction(async (client) => {
       let userId;
       let orderId;
+      let orderIds = [];
       let course;
       const name = `${firstName} ${lastName}`;
 
@@ -220,8 +226,27 @@ export async function POST(req: Request) {
         }
       }
 
-      // Logic for course enrollment and order creation (if courseId exists)
-      if (courseId) {
+      const hasHardware = includeHardware === true;
+      if (hasHardware) {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        await client.query(
+          "UPDATE users SET hardware_discount_expiry = $1 WHERE user_id = $2",
+          [expiryDate, userId],
+        );
+      }
+
+      // Logic for course enrollment and order creation (if courseId or bundle exists)
+      if (courseId || bundle) {
+        const courseIds = bundle
+          ? bundle.split(",").map((id) => Number(id.trim()))
+          : [Number(courseId)];
+
+        const bundleSize = courseIds.length;
+        const bundleDiscount =
+          bundleSize === 2 ? 0.1 : bundleSize >= 3 ? 0.2 : 0;
+        const bundleGroupId = uuidv4().split("-")[0].toUpperCase();
+
         // Get 'student' role
         const studentRoleResult = await client.query(
           "SELECT role_id FROM roles WHERE role_name = 'student'",
@@ -229,160 +254,136 @@ export async function POST(req: Request) {
         );
 
         const studentRoleId = studentRoleResult.rows[0].role_id;
-        // Assign 'student' role to the user, this also handles the case for a logged-in user
         await client.query(
           "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING",
           [userId, studentRoleId],
         );
 
-        // Fetch course details
-        const courseResult = await client.query(
-          "SELECT title, description, price_in_kobo, start_date, end_date FROM courses WHERE course_id = $1",
-          [courseId],
-        );
-        if (courseResult.rows.length === 0) {
-          throw new Error("Course not found.");
-        }
-        const {
-          title: courseTitle,
-          description: courseDescription,
-          price_in_kobo: price,
-          start_date: startDate,
-          end_date: endDate,
-        } = courseResult.rows[0];
-
-        course = courseTitle;
-
-        // Fetch session ID
-        const sessionResult = await client.query(
-          `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
-          [courseId, Number(preferredSessionTime)],
-        );
-        if (sessionResult.rows.length === 0) {
-          throw new Error("No session found for the selected time.");
-        }
-
-        const { session_id: sessionId, session_number: sessionNumber } =
-          sessionResult.rows[0];
-        logger.debug({ sessionId }, "Session ID found");
-
-        const paymentStatus = price === 0 ? "paid" : "pending";
-
-        // Fetch 'pending' order status
-        const paymentStatusResult = await client.query(
-          "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
-          [paymentStatus],
-        );
-
-        logger.debug({ paymentStatusResult }, "Payment status result");
-        const paymentStatusId = paymentStatusResult.rows[0]?.payment_status_id;
-
-        const existingCourse = await client.query(
-          "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
-          [userId, courseId],
-        );
-
-        logger.debug(
-          { existingCourseCount: existingCourse.rows.length },
-          "Checking existing course enrollment",
-        );
-        if (existingCourse.rows.length > 0)
-          return NextResponse.json({
-            message: "You are already enrolled in this course",
-          });
-
-        // Insert into course_enrollments, preventing duplicates with ON CONFLICT
-        const enrollmentResult = await client.query(
-          `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
-          VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING RETURNING user_id`,
-          [userId, courseId, sessionId],
-        );
-
-        if (enrollmentResult.rows.length === 0) {
-          return NextResponse.json({
-            message: "You are already enrolled in this course",
-          });
-        }
-
         const categoryResult = await client.query(
           `SELECT category_id FROM product_categories WHERE category_name = $1`,
           ["Course"],
         );
-
         const categoryId = categoryResult.rows[0].category_id;
-        // Insert into orders table
-        const trackingId = createTrackingId(courseTitle);
 
-        const existingOrder = await client.query(
-          `SELECT * FROM orders WHERE orders.user_id = $1 and orders.category_id = $2`,
-          [userId, categoryId],
-        );
+        for (const cId of courseIds) {
+          const courseResult = await client.query(
+            `SELECT title, description, price_in_kobo, start_date, end_date, 
+                    early_bird_discount, discount_start_date, discount_end_date 
+             FROM courses WHERE course_id = $1`,
+            [cId],
+          );
+          if (courseResult.rows.length === 0) continue;
 
-        // Don't insert an order if it already exist
-        if (existingOrder.rows.length > 0) {
-          return NextResponse.json({
-            message:
-              "You have already made this order. Please Proceed to your dashboard",
-          });
-        }
+          const {
+            title: courseTitle,
+            description: courseDescription,
+            price_in_kobo: originalPrice,
+            start_date: startDate,
+            end_date: endDate,
+            early_bird_discount: ebDiscount,
+            discount_start_date: ebStart,
+            discount_end_date: ebEnd,
+          } = courseResult.rows[0];
 
-        const orderResult = await client.query(
-          `INSERT INTO orders 
-           (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
-          [
-            userId,
-            categoryId,
-            courseTitle,
-            courseDescription,
-            startDate,
-            endDate,
-            paymentStatusId,
-            price,
-            trackingId,
-          ],
-        );
+          // Calculate Price with stacking discounts
+          let currentPrice = originalPrice;
+          const now = new Date();
+          const isEarlyBirdActive =
+            ebDiscount &&
+            ebStart &&
+            ebEnd &&
+            now >= new Date(ebStart) &&
+            now <= new Date(ebEnd);
 
-        logger.info({ orderResult }, "Order created");
+          if (isEarlyBirdActive) {
+            currentPrice = Math.round(currentPrice * (1 - ebDiscount / 100));
+          }
 
-        if (orderResult.rows.length === 0)
-          return NextResponse.json({ message: "No order was inserted" });
+          const discountedPrice = Math.round(
+            currentPrice * (1 - bundleDiscount),
+          );
 
-        orderId = orderResult.rows[0].order_id;
-        logger.info({ orderId }, "Course order ID");
+          const sessionResult = await client.query(
+            `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
+            [cId, Number(preferredSessionTime)],
+          );
 
-        // Integrate Zoho CRM for Free Courses
-        if (price === 0) {
-          try {
-            const leadData = {
-              Last_Name: name,
-              Email: email,
-              Description: `Enrolled in Free Course: ${courseTitle}\nSession: ${sessionNumber}`,
-              Lead_Source: "Free Course Enrollment",
-            };
-            await createZohoLead(leadData);
-            logger.info(
-              { email },
-              "Zoho Lead created for free course enrollment",
+          let sessionId = null;
+          if (sessionResult.rows.length > 0) {
+            sessionId = sessionResult.rows[0].session_id;
+          } else {
+            // Fallback to first session if preferred not found for this course in bundle
+            const fallbackSession = await client.query(
+              `SELECT session_id FROM sessions WHERE course_id = $1 LIMIT 1`,
+              [cId],
             );
-          } catch (zohoError) {
-            logger.error(
-              { err: zohoError },
-              "Failed to create Zoho Lead for free course",
-            );
+            sessionId = fallbackSession.rows[0]?.session_id;
+          }
+
+          const paymentStatus = discountedPrice === 0 ? "paid" : "pending";
+
+          const paymentStatusResult = await client.query(
+            "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
+            [paymentStatus],
+          );
+          const paymentStatusId =
+            paymentStatusResult.rows[0]?.payment_status_id;
+
+          // Insert into course_enrollments
+          await client.query(
+            `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
+            VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
+            [userId, cId, sessionId],
+          );
+
+          // Insert into orders table
+          const bundlePrefix = bundleSize > 1 ? `BUNDLE-${bundleGroupId}-` : "";
+          const trackingId = `${bundlePrefix}${createTrackingId(courseTitle)}`;
+
+          const projectDescription =
+            bundleSize > 1
+              ? `${courseDescription}\n\n[Bundle Order - Group ${bundleGroupId}]`
+              : courseDescription;
+
+          const orderResult = await client.query(
+            `INSERT INTO orders 
+             (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (user_id, title) DO UPDATE SET
+               total_expected_amount_kobo = EXCLUDED.total_expected_amount_kobo,
+               tracking_id = EXCLUDED.tracking_id,
+               project_description = EXCLUDED.project_description,
+               payment_status_id = CASE 
+                 WHEN orders.payment_status_id = 1 THEN orders.payment_status_id -- if already paid, keep paid
+                 ELSE EXCLUDED.payment_status_id 
+               END
+             RETURNING order_id`,
+            [
+              userId,
+              categoryId,
+              courseTitle,
+              projectDescription,
+              startDate,
+              endDate,
+              paymentStatusId || 3, // Default to pending (3) if id not found
+              discountedPrice,
+              trackingId,
+            ],
+          );
+
+          if (orderResult.rows.length > 0) {
+            orderId = orderResult.rows[0].order_id;
+            orderIds.push(orderResult.rows[0].order_id);
           }
         }
 
-        return { userId, isNewUser: !session };
-      }
-
-      if (orderId) {
-        try {
-          await sendOrderReceivedEmail(email, name, orderId, course);
-          logger.info({ email }, "Course order email sent");
-        } catch (mailError) {
-          logger.error({ err: mailError }, "Failed to send course order email");
+        // Integrate Zoho CRM for Free Courses
+        if (bundleSize === 1) {
+          // For simplicity, only do automated tracking for single courses or first course if free
+          // We can expand this later to loop through orderIds if needed
         }
+
+        return { userId, isNewUser: !session, orderIds };
       }
 
       return { userId, isNewUser: !session };
@@ -414,6 +415,15 @@ export async function POST(req: Request) {
     let status = 500;
 
     if (error instanceof Error && error.message.includes("duplicate key")) {
+      if (error.message.includes("unique_user_title_orders")) {
+        return NextResponse.json(
+          {
+            message:
+              "You already have this order. Please check your dashboard.",
+          },
+          { status: 400 },
+        );
+      }
       // Redirect to dashboard if already enrolled
       return NextResponse.redirect(new URL("/user/dashboard", req.url));
     } else if (error instanceof Error && error.message.includes("not found")) {

@@ -279,7 +279,7 @@ model orders {
   todos                                        todos[]
   wallet_usages                                wallet_usages[]
 
-  @@unique([user_id, category_id], map: "unique_user_category_orders")
+  @@unique([user_id, title], map: "unique_user_title_orders")
   @@index([user_id], map: "fk_projects_admins_idx")
   @@index([category_id], map: "fk_projects_category1_idx")
 }
@@ -581,6 +581,7 @@ model users {
   id_card_front_url                                           String?               @db.VarChar(255)
   id_card_back_url                                            String?               @db.VarChar(255)
   selfie_with_id_url                                          String?               @db.VarChar(255)
+  hardware_discount_expiry     DateTime?             @db.Timestamptz(6)
 }
 
 model verification_tokens {

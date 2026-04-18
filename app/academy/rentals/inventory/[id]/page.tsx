@@ -32,10 +32,22 @@ export default function AcademyRentalDetailsPage() {
   const [duration, setDuration] = useState<number>(1);
   const [isBooking, setIsBooking] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     fetchRentalDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (session) {
+      fetch("/api/user/profile")
+        .then(res => res.json())
+        .then(data => setUserProfile(data))
+        .catch(err => console.error("Error fetching profile:", err));
+    }
+  }, [session]);
+
+  const hasHardwareDiscount = userProfile?.hardwareDiscountExpiry && new Date(userProfile.hardwareDiscountExpiry) > new Date();
 
   useEffect(() => {
     window.dataLayer = window.dataLayer || [];
@@ -96,9 +108,9 @@ export default function AcademyRentalDetailsPage() {
       const calculatedEndDate = new Date(
         startDate.getTime() + duration * 60 * 60 * 1000,
       );
-      const totalAmount = Math.ceil(
-        duration * Number((rental?.hourlyRate || 0) / KOBO_PER_NAIRA),
-      );
+      const baseAmount = Number((rental?.hourlyRate || 0) / KOBO_PER_NAIRA);
+      const discountMultiplier = hasHardwareDiscount ? 0.9 : 1;
+      const totalAmount = Math.ceil(duration * baseAmount * discountMultiplier);
 
       const res = await fetch("/api/user/rentals/book", {
         method: "POST",
@@ -382,10 +394,16 @@ export default function AcademyRentalDetailsPage() {
                         <span className="text-3xl font-black text-green-500">
                           ₦
                           {Number(
-                            duration * (rental.hourlyRate / KOBO_PER_NAIRA),
+                            duration * (rental.hourlyRate / KOBO_PER_NAIRA) * (hasHardwareDiscount ? 0.9 : 1),
                           ).toLocaleString()}
                         </span>
                       </div>
+                      {hasHardwareDiscount && (
+                        <div className="flex items-center gap-2 text-xs text-green-400 font-bold mb-6 bg-green-950/50 p-3 rounded-xl border border-green-900/50">
+                          <Zap size={14} />
+                          10% ACADEMY DISCOUNT APPLIED
+                        </div>
+                      )}
                       <button
                         onClick={handleBookNow}
                         disabled={isBooking}

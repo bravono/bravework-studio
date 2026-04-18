@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Loader2, Mail, Lock } from "lucide-react";
@@ -89,13 +89,27 @@ function LoginForm() {
 
       setLoading(false);
     } else {
-      // Login successful, now attempt to claim guest orders
+      // Attempt to claim guest orders
       try {
         await fetch("/api/auth/claim-guest-orders", { method: "POST" });
         console.log("Attempted to claim guest orders.");
       } catch (claimError) {
         console.error("Failed to claim guest orders:", claimError);
       }
+
+      // GTM Tracking: Successful Login
+      const session = await getSession();
+      if (session?.user) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "auth_event",
+          auth_event: "login",
+          user_role: session.user.roles?.join("+") || "user",
+          user_id: session.user.id,
+          page: window.location.pathname,
+        });
+      }
+
       // Redirect to the homepage after successful login and guest order claim attempt
       router.push("/");
     }

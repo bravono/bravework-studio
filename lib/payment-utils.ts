@@ -94,7 +94,32 @@ export async function processSuccessfulOrder(
       [newStatusId, productId, order.user_id],
     );
 
-    // 5b. Subscribe to Sender
+    // 5b. Assign 'student' role if not already assigned
+    try {
+      // Get role ID for 'student'
+      const roleRes = await client.query(
+        "SELECT role_id FROM roles WHERE role_name = 'student'",
+      );
+      if (roleRes.rows.length > 0) {
+        const studentRoleId = roleRes.rows[0].role_id;
+        // Check if user already has this role
+        const userRoleRes = await client.query(
+          "SELECT 1 FROM user_roles WHERE user_id = $1 AND role_id = $2",
+          [order.user_id, studentRoleId],
+        );
+        if (userRoleRes.rows.length === 0) {
+          await client.query(
+            "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
+            [order.user_id, studentRoleId],
+          );
+          console.log(`Assigned 'student' role to user ID: ${order.user_id}`);
+        }
+      }
+    } catch (roleError) {
+      console.error("Error assigning student role:", roleError);
+    }
+
+    // 5c. Subscribe to Sender
     try {
       // Fetch user details
       const userRes = await client.query(

@@ -205,7 +205,58 @@ export async function POST(req: NextRequest) {
           let newOrderStatusId: number;
 
           // --- Handle Different Service Types Based on Metadata ---
-          if (serviceType === "course") {
+          // --- Handle Different Service Types Based on Metadata ---
+          const isBundle = (serviceType === "bundle") || (serviceType === "course" && metadata?.bundleGroupId);
+          const bundleGroupId = metadata?.bundleGroupId;
+
+          if (isBundle && bundleGroupId) {
+            // Fetch all orders for this bundle
+            const bundleOrdersRes = await client.query(
+              "SELECT order_id, title, total_expected_amount_kobo, tracking_id FROM orders WHERE user_id = (SELECT user_id FROM orders WHERE order_id = $1) AND tracking_id LIKE $2",
+              [orderId, `BUNDLE-${bundleGroupId}-%`],
+            );
+
+            if (bundleOrdersRes.rows.length === 0) {
+              throw new Error(`No orders found for bundle group ${bundleGroupId}`);
+            }
+
+            const bundleOrders = bundleOrdersRes.rows;
+
+            for (const bo of bundleOrders) {
+               // Check if payment already recorded for this specific order with this reference
+               const { rows: existingPaymentItems } = await client.query(
+                 "SELECT payment_id FROM payments WHERE (paystack_reference = $1 OR paystack_reference = $3) AND order_id = $2",
+                 [paystackReference, bo.order_id, `${paystackReference}_${bo.order_id}`]
+               );
+               if (existingPaymentItems.length > 0) continue;
+
+               // Insert Payment
+               await client.query(
+                 `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, payment_option_selected, discount_applied_percentage, created_at, updated_at)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
+                 [bo.order_id, `${paystackReference}_${bo.order_id}`, bo.total_expected_amount_kobo, paystackCurrency, paystackStatus, gatewayResponse, customerEmail, false, paystackPaymentOption, paystackDiscountApplied]
+               );
+
+               // Update Order Status
+               await client.query(
+                 `UPDATE orders SET amount_paid_to_date_kobo = total_expected_amount_kobo, payment_status_id = $1, start_date = NOW(), updated_at = NOW() WHERE order_id = $2`,
+                 [orderStatusMap["paid"], bo.order_id]
+               );
+
+               // Update Enrollment for this course
+               const cRes = await client.query("SELECT course_id FROM courses WHERE title = $1", [bo.title]);
+               if (cRes.rows.length > 0) {
+                 await client.query(
+                   "UPDATE course_enrollments SET payment_status = $1 WHERE course_id = $2 AND user_id = (SELECT user_id FROM orders WHERE order_id = $3)",
+                   [orderStatusMap["paid"], cRes.rows[0].course_id, orderId]
+                 );
+               }
+            }
+            
+            // For bundles, we can simply return success here as the loop handles everything
+            return NextResponse.json({ message: "Bundle webhook processed." }, { status: 200 });
+
+          } else if (serviceType === "course") {
             if (!courseId) {
               throw new Error(
                 "Missing courseId in metadata for course payment.",
@@ -331,7 +382,8 @@ export async function POST(req: NextRequest) {
           // --- Insert new record into `payments` table ---
           await client.query(
             `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, payment_option_selected, discount_applied_percentage, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+             ON CONFLICT (paystack_reference) DO NOTHING`,
             [
               order.order_id,
               paystackReference,
@@ -475,7 +527,8 @@ export async function POST(req: NextRequest) {
           // Record the failed payment in the payments table
           await client.query(
             `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, is_fraudulent, payment_option_selected, discount_applied_percentage, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            ON CONFLICT (paystack_reference) DO NOTHING`,
             [
               failedOrderId,
               failedPaystackReference,

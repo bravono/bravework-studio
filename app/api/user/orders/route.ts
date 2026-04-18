@@ -227,6 +227,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error creating order:", error);
+    
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      return NextResponse.json(
+        { message: "You already have an order for this category. Please check your dashboard." },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { message: "Error creating order" },
       { status: 500 },
