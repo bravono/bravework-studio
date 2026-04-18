@@ -68,8 +68,8 @@ export async function GET(request: Request) {
                 ct_agg.tools AS software,
                 c.slug
             FROM courses c
-            JOIN instructors i ON c.instructor_id = i.instructor_id
-            JOIN course_categories cc ON c.course_category_id = cc.category_id
+            LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
+            LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
             LEFT JOIN (
               SELECT
                 ct.course_id,
