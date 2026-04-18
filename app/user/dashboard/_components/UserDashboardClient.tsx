@@ -252,6 +252,21 @@ function Page() {
       }
     }
   }, [status, courses, router]);
+  
+  // GTM Tracking: Dashboard Module View
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return;
+
+    const user = session.user;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "dashboard_module_view",
+      dashboard_module: activeTab, // Automatically tracks 'overview', 'courses', 'invoices', etc.
+      user_role: user.roles?.join("+") || "user",
+      user_id: user.id,
+      page: window.location.pathname,
+    });
+  }, [activeTab, status, session]);
 
   useEffect(() => {
     console.log("Courses:", courses);

@@ -280,6 +280,16 @@ function Signup() {
 
       const data = await res.json();
       if (res.ok) {
+        // GTM Tracking: Successful Signup
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "auth_event",
+          auth_event: "signup",
+          user_role: user?.roles?.join("+") || "user",
+          user_id: data.userId || user?.id,
+          page: window.location.pathname,
+        });
+
         if (isEnrollmentPage && course) {
           // Relocated to backend signup route for security and reliability
         }
