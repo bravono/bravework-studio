@@ -16,6 +16,7 @@ import CategoryBadge from "@/app/components/blog/CategoryBadge";
 import BlogSidebar from "@/app/components/blog/BlogSidebar";
 import PostShareActions from "@/app/components/blog/PostShareActions";
 import PostImage from "@/app/components/blog/PostImage";
+import BlogAnalytics from "@/app/components/blog/BlogAnalytics";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -64,6 +65,7 @@ export default function PostDetail({ params }: PostProps) {
 
   return (
     <main className="bg-white min-h-screen pt-32 pb-24">
+      <BlogAnalytics post={{ title: post.title, category: post.category }} />
       {/* Article/HowTo Schema */}
       <script
         type="application/ld+json"
