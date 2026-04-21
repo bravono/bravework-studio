@@ -130,9 +130,7 @@ export default async function RootLayout({
       </head>
       <body className={dmSans.className}>
         {/* Google Tag Manager (noscript) (immediately after body tag) */}
-        {GTM_ID && env !== "development" && (
-          <GoogleTagManager gtmId={GTM_ID} />
-        )}
+        {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
