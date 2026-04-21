@@ -407,7 +407,7 @@ function AcademyCoursesContent() {
                             Start Date
                           </p>
                           <p className="font-bold">
-                            {course.isActive
+                            {course.isActive && !(new Date() > new Date(course.startDate) && new Date() > new Date(course.endDate))
                               ? new Date(course.startDate).toLocaleDateString(
                                   "en-US",
                                   {
@@ -416,7 +416,7 @@ function AcademyCoursesContent() {
                                     year: "numeric",
                                   },
                                 )
-                              : "Open Shortly"}
+                              : "Start Shortly"}
                           </p>
                         </div>
                       </div>
@@ -430,12 +430,12 @@ function AcademyCoursesContent() {
                             Duration
                           </p>
                           <p className="font-bold">
-                            {course.isActive
+                            {course.isActive && !(new Date() > new Date(course.startDate) && new Date() > new Date(course.endDate))
                               ? getWeeksBtwDates(
                                   course.startDate,
                                   course.endDate,
                                 )
-                              : "Open Shortly"}
+                              : "Start Shortly"}
                           </p>
                         </div>
                       </div>
