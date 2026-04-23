@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Outfit, Inter } from "next/font/google";
 import Link from "next/link";
+import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
 import {
   ArrowRight,
   Sparkles,
@@ -151,13 +152,10 @@ export default function EcosystemSection() {
                 <Link
                   href={eco.link}
                   onClick={() => {
-                    window.dataLayer = window.dataLayer || [];
-                    window.dataLayer.push({
-                      event: "homepage_section_click", // ← same unified event
-                      section_name: "ecosystems", // ← distinguishes it
-                      carousel_arm: eco.title, // ← change per card
-                      carousel_slide_name: eco.title, // ← card title
-                      page: window.location.pathname,
+                    pushCrossPromotionClick({
+                      to_section: getSectionFromPath(eco.link),
+                      promotion_type: "card",
+                      clicked_item: eco.title,
                     });
                   }}
                   className={`w-full py-4 rounded-xl ${eco.btnColor} text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg`}

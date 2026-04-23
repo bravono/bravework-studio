@@ -27,6 +27,7 @@ import {
   Sparkles as SparklesIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -225,7 +226,14 @@ export default function Navbar() {
                               key={item.label}
                               href={item.href}
                               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors"
-                              onClick={() => setActiveDropdown(null)}
+                              onClick={() => {
+                                setActiveDropdown(null);
+                                pushCrossPromotionClick({
+                                  to_section: getSectionFromPath(item.href),
+                                  promotion_type: "navbar",
+                                  clicked_item: item.label,
+                                });
+                              }}
                             >
                               <item.icon className="w-5 h-5 text-gray-400 group-hover:text-green-500" />
                               {item.label}
@@ -514,7 +522,14 @@ export default function Navbar() {
                             <Link
                               key={item.label}
                               href={item.href}
-                              onClick={() => setIsMenuOpen(false)}
+                              onClick={() => {
+                                setIsMenuOpen(false);
+                                pushCrossPromotionClick({
+                                  to_section: getSectionFromPath(item.href),
+                                  promotion_type: "navbar",
+                                  clicked_item: item.label,
+                                });
+                              }}
                               className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
                             >
                               <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-green-100 transition-colors">

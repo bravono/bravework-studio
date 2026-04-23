@@ -7,6 +7,7 @@ import { Outfit } from "next/font/google";
 import { BookOpen, Lightbulb, TrendingUp, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import ArrowButton from "../../components/ArrowButton";
+import { pushCrossPromotionClick } from "@/lib/gtm";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -86,6 +87,13 @@ export default function StudioResources() {
                 </p>
                 <Link
                   href={guide.link}
+                  onClick={() => {
+                    pushCrossPromotionClick({
+                      to_section: "academy",
+                      promotion_type: "text-link",
+                      clicked_item: guide.title,
+                    });
+                  }}
                   className="flex items-center gap-2 text-green-500 font-bold text-sm uppercase tracking-widest group-hover:gap-4 transition-all"
                 >
                   Read Guide <ArrowRight size={18} />
@@ -110,7 +118,17 @@ export default function StudioResources() {
                   Studio to build world-class digital solutions.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  <ArrowButton label="Visit Academy" link="/academy" />
+                  <ArrowButton 
+                    label="Visit Academy" 
+                    link="/academy" 
+                    onClick={() => {
+                      pushCrossPromotionClick({
+                        to_section: "academy",
+                        promotion_type: "card",
+                        clicked_item: "Visit Academy",
+                      });
+                    }}
+                  />
                 </div>
               </div>
               <div className="w-full md:w-1/3 flex justify-center">

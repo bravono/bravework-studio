@@ -17,6 +17,7 @@ import {
   Monitor,
 } from "lucide-react";
 import AcademySubNavBar from "../components/AcademySubNavBar";
+import { pushCrossPromotionClick } from "@/lib/gtm";
 
 export default function AcademyLandingPage() {
   return (
@@ -418,6 +419,13 @@ export default function AcademyLandingPage() {
               </p>
               <Link
                 href="/studio"
+                onClick={() => {
+                  pushCrossPromotionClick({
+                    to_section: "studio",
+                    promotion_type: "banner",
+                    clicked_item: "Hire Studio Experts",
+                  });
+                }}
                 className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all inline-flex items-center gap-3"
               >
                 Hire Studio Experts <ArrowRight size={20} />

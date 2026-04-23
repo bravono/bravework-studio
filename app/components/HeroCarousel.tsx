@@ -6,6 +6,7 @@ import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules";
 import { motion, AnimatePresence } from "framer-motion";
 import { Outfit, Inter } from "next/font/google";
 import ArrowButton from "./ArrowButton";
+import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
 
 // Import Swiper styles
 import "swiper/css";
@@ -157,12 +158,10 @@ export default function HeroCarousel() {
                     label={slide.cta} 
                     link={slide.link} 
                     onClick={() => {
-                      window.dataLayer = window.dataLayer || [];
-                      window.dataLayer.push({
-                        event: "carousel_click",
-                        carousel_arm: slide.carousel_arm,
-                        carousel_slide_name: slide.title,
-                        page: window.location.pathname,
+                      pushCrossPromotionClick({
+                        to_section: getSectionFromPath(slide.link),
+                        promotion_type: "carousel",
+                        clicked_item: slide.title,
                       });
                     }}
                   />

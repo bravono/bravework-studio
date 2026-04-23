@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import {
@@ -13,6 +15,7 @@ import {
   Square,
   ArrowRight,
 } from "lucide-react";
+import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -74,6 +77,13 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
+                      onClick={() => {
+                        pushCrossPromotionClick({
+                          to_section: getSectionFromPath(link.href),
+                          promotion_type: "footer",
+                          clicked_item: link.label,
+                        });
+                      }}
                       className="hover:text-green-500 transition-colors duration-200 flex items-center gap-2 group"
                     >
                       <ArrowRight
