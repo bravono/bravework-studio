@@ -35,6 +35,7 @@ export async function seedCourses() {
       excerpt: null,
       age_bracket: null,
       updated_at: new Date("2025-11-27T12:41:59.848Z"),
+      is_published: true,
     },
     {
       title: "3D Technology for Medical Professionals",
@@ -61,6 +62,7 @@ export async function seedCourses() {
       excerpt: null,
       age_bracket: null,
       updated_at: new Date("2025-11-27T12:41:59.848Z"),
+      is_published: true,
     },
     {
       title: "3D Animation Training for Kids",
@@ -87,6 +89,7 @@ export async function seedCourses() {
       excerpt: null,
       age_bracket: null,
       updated_at: new Date("2025-11-27T12:41:59.848Z"),
+      is_published: true,
     },
   ];
 
@@ -115,6 +118,7 @@ export async function seedCourses() {
         excerpt: course.excerpt,
         age_bracket: course.age_bracket,
         updated_at: course.updated_at,
+        is_published: course.is_published,
       },
       create: course,
     });
