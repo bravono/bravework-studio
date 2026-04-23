@@ -50,6 +50,7 @@ model course_enrollments {
   enrolment_id         Int       @id @default(autoincrement())
   payment_status       Int?      @default(3)
   enrollment_date      DateTime? @default(now()) @db.Timestamp(6)
+  intro_video_watched  Boolean   @default(false)
   courses              courses   @relation(fields: [course_id], references: [course_id], onDelete: NoAction, map: "fk_course_enrollment_courses1")
   users                users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, map: "fk_course_enrollment_users1")
   sessions             sessions  @relation(fields: [preferred_session_id], references: [session_id], onDelete: Cascade, map: "fk_preferred_session")

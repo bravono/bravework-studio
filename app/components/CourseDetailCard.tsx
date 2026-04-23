@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import VideoModal from "./VideoModal";
 
 interface CourseDetailCardProps {
   course: Course;
@@ -34,6 +35,8 @@ export default function CourseDetailCard({
   const [loading, setLoading] = useState(true);
   const [certificateLoading, setCertificateLoading] = useState(false);
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
+  const [introWatched, setIntroWatched] = useState(course.introVideoWatched || false);
+  const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
   // Fetch progress on mount
   useEffect(() => {
@@ -56,23 +59,37 @@ export default function CourseDetailCard({
     fetchProgress();
   }, [course.id]);
 
-  const toggleSession = async (sessionId: number) => {
-    // Optimistic update
-    const isCompleted = completedSessions.has(sessionId);
+  const toggleSession = async (sessionId: number | string) => {
+    if (sessionId === "intro-video") {
+      if (introWatched) return;
+      setIntroWatched(true);
+      try {
+        const res = await fetch(`/api/user/courses/${course.id}/intro-watched`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watched: true })
+        });
+        if (!res.ok) throw new Error("Failed to update intro video status");
+        toast.success("Intro video marked as watched!");
+      } catch (error) {
+        setIntroWatched(false);
+        toast.error("Failed to mark video as watched");
+      }
+      return;
+    }
+
+    // Optimistic update for regular sessions
+    const numSessionId = sessionId as number;
+    const isCompleted = completedSessions.has(numSessionId);
     const newCompletedSessions = new Set(completedSessions);
     
     if (isCompleted) {
         // If already completed, we don't allow un-completing via this UI for now 
         // or we can allow it if the API supports it. 
-        // Assuming the API is a toggle or we only support "complete".
-        // The user requirement said "mark sessions as complete".
-        // Let's assume we can only mark as complete for now, or check API.
-        // History says: "POST /api/user/sessions/[sessionId]/complete".
-        // Usually "complete" implies one-way, but let's see.
         return; 
     }
 
-    newCompletedSessions.add(sessionId);
+    newCompletedSessions.add(numSessionId);
     setCompletedSessions(newCompletedSessions);
 
     // Calculate new progress locally
@@ -84,7 +101,7 @@ export default function CourseDetailCard({
     }
 
     try {
-      const res = await fetch(`/api/user/sessions/${sessionId}/complete`, {
+      const res = await fetch(`/api/user/sessions/${numSessionId}/complete`, {
         method: "POST",
       });
 
@@ -137,7 +154,17 @@ export default function CourseDetailCard({
     }
   };
 
-  const sessions = course.sessionGroup || [];
+  let sessions: any[] = [...(course.sessionGroup || [])];
+  
+  if (course.category && course.category.includes("3D")) {
+    sessions.unshift({
+      id: "intro-video",
+      label: "Blender Installation & Interface Walkthrough",
+      datetime: course.startDate || new Date().toISOString(),
+      link: "https://www.youtube.com/embed/4U0ONHj3_hw?autoplay=1",
+      duration: 0,
+    });
+  }
 
   return (
     <div id={`item-${course.id}`} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 transition-all hover:shadow-md">
@@ -184,7 +211,8 @@ export default function CourseDetailCard({
         {sessions.length > 0 ? (
           <div className="space-y-3">
             {sessions.map((session, index) => {
-              const isCompleted = session.id ? completedSessions.has(session.id) : false;
+              const isIntro = session.id === "intro-video";
+              const isCompleted = isIntro ? introWatched : (session.id ? completedSessions.has(session.id) : false);
               const isPast = new Date(session.datetime) < new Date();
               
               return (
@@ -242,7 +270,15 @@ export default function CourseDetailCard({
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto pl-10 sm:pl-0">
-                    {session.link && !session.recordingLink && (
+                    {isIntro ? (
+                      <button
+                        onClick={() => setPlayingVideoUrl(session.link)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-md hover:bg-emerald-100 transition-colors"
+                      >
+                        <Video className="w-4 h-4" />
+                        Play Video
+                      </button>
+                    ) : session.link && !session.recordingLink && (
                       <a
                         href={session.link}
                         target="_blank"
@@ -293,6 +329,12 @@ export default function CourseDetailCard({
           {certificateLoading ? "Generating..." : "Download Certificate"}
         </button>
       </div>
+
+      <VideoModal
+        isOpen={!!playingVideoUrl}
+        onClose={() => setPlayingVideoUrl(null)}
+        videoUrl={playingVideoUrl || ""}
+      />
     </div>
   );
 }

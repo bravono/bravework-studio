@@ -34,6 +34,7 @@ import { KOBO_PER_NAIRA } from "@/lib/constants";
 import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
 import Pagination from "../../components/Pagination";
+import VideoModal from "../../components/VideoModal";
 import { Course } from "../../types/app";
 
 const COURSES_PER_PAGE = 6;
@@ -47,6 +48,7 @@ function AcademyCoursesContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBundle, setSelectedBundle] = useState<string[]>([]);
   const [includeHardware, setIncludeHardware] = useState(false);
+  const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
 
@@ -351,11 +353,24 @@ function AcademyCoursesContent() {
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
-                        <PlayCircle size={32} />
+                    {course.category && course.category.includes("3D") && (
+                      <button
+                        onClick={() => setPlayingVideoUrl("https://www.youtube.com/embed/4U0ONHj3_hw?autoplay=1")}
+                        className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-full h-full cursor-pointer"
+                        aria-label="Play intro video"
+                      >
+                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                          <PlayCircle size={32} />
+                        </div>
+                      </button>
+                    )}
+                    {(!course.category || !course.category.includes("3D")) && (
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                          <PlayCircle size={32} />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="p-8 flex flex-col flex-grow">
@@ -627,6 +642,12 @@ function AcademyCoursesContent() {
           </div>
         </motion.div>
       )}
+
+      <VideoModal
+        isOpen={!!playingVideoUrl}
+        onClose={() => setPlayingVideoUrl(null)}
+        videoUrl={playingVideoUrl || ""}
+      />
     </div>
   );
 }

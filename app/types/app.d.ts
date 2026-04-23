@@ -217,6 +217,7 @@ interface Course {
   tools?: Tool[];
   tags?: string[];
   trackingId?: string;
+  introVideoWatched?: boolean;
 }
 
 interface Rental {
