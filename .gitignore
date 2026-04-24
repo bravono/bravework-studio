@@ -30,6 +30,7 @@ out/
 build/
 dist/
 coverage/
+scripts/
 .vercel
 .env*.local
 .tsbuildinfo
