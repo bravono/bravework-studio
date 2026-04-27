@@ -21,8 +21,8 @@ const teamMembers: TeamMember[] = [
   {
     name: "Ahbideen Yusuf",
     role: "Founder & Creative Director",
-    bio: "Visionary leader and Software Engineer with a degree in Mass Communication. With 8 years of experience in 3D design, he is a tech enthusiast and serial learner driving digital innovation in Nigeria.",
-    image: "/assets/Profile_Picture.jpg",
+    bio: "Visionary leader and software engineer with a background in mass communication. Brings 8 years of 3D design expertise and a passion for digital innovation across Africa.",
+    image: "/assets/ahbideen_yusuf.jpg",
     links: {
       linkedin: "https://www.linkedin.com/in/ahbideen-y-74a232179",
       twitter: "https://twitter.com/yahbideen",
@@ -31,8 +31,8 @@ const teamMembers: TeamMember[] = [
   {
     name: "Musa Mbaya Ibrahim Biu",
     role: "Systems Strengthening Specialist",
-    bio: "Systems strengthening and development specialist with over 15 years of expertise in climate change, healthcare delivery, and community resilience. PhD candidate in Project Management with extensive experience working with USAID, FCDO, and the Global Fund.",
-    image: "/assets/musa-mbaya.png",
+    bio: "Systems and development specialist with 15+ years of experience in climate change, healthcare delivery, and community resilience. PhD candidate in project management with extensive work across international development organizations.",
+    image: "/assets/Bravework_Studio-Logo-Color.png",
     links: {
       linkedin: "#",
       twitter: "#",
@@ -41,10 +41,21 @@ const teamMembers: TeamMember[] = [
   {
     name: "Hussain Biodun Abdulmajeed",
     role: "Writer & Researcher",
-    bio: "Emerging researcher, poet, and public relations enthusiast. Author of 'The Necessities for Choosing a Career' and 'A Rough Road', with a profound passion for literary arts and business planning.",
-    image: "/assets/hussain-biodun.png",
+    bio: "Researcher and author with expertise in literary arts and business strategy. Published works include 'The Necessities for Choosing a Career' and 'A Rough Road'.",
+    image: "/assets/Bravework_Studio-Logo-Color.png",
     links: {
       linkedin: "#",
+      twitter: "#",
+    },
+  },
+  {
+    name: "Kudus Yusuf",
+    role: "Software Engineer & UI/UX Designer",
+    bio: "Software engineer and UI/UX designer with a background in mass communication. Specializes in creating intuitive digital products that merge technical excellence with user-centered design.",
+    image: "/assets/Bravework_Studio-Logo-Color.png",
+    links: {
+      linkedin:
+        "https://www.linkedin.com/in/kudus-yusuf-4b3a9233b?utm_source=share_via&utm_content=profile&utm_medium=member_android",
       twitter: "#",
     },
   },

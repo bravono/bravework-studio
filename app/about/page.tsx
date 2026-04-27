@@ -91,20 +91,20 @@ export default function About() {
       bg: "bg-blue-50",
     },
     {
-      title: "Bravework Kids",
-      desc: "Fun, multilingual edutainment for preschoolers (ages 2–6).",
-      icon: Rocket,
-      link: "/kids/about",
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-    },
-    {
       title: "Hardware Rentals",
       desc: "Enabling learning through affordable access to premium tech hardware.",
       icon: Box,
       link: "/academy/rentals/about",
       color: "text-orange-600",
       bg: "bg-orange-50",
+    },
+    {
+      title: "Bravework Kids",
+      desc: "Fun, multilingual edutainment for preschoolers (ages 2–6).",
+      icon: Rocket,
+      link: "/kids/about",
+      color: "text-pink-600",
+      bg: "bg-pink-50",
     },
   ];
 
