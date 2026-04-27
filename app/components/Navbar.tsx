@@ -122,7 +122,7 @@ export default function Navbar() {
       };
 
   const navLinks: NavLinkItem[] = [
-  {
+    {
       label: "Company",
       icon: ChevronDown,
       items: [
@@ -137,9 +137,9 @@ export default function Navbar() {
       label: "Ecosystems",
       icon: ChevronDown,
       items: [
-        { label: "Bravework Academy", href: "/academy", icon: GraduationCap },
-        { label: "Bravework Kids", href: "/kids", icon: Gamepad2 },
-        { label: "Bravework Rentals", href: "/academy/rentals", icon: Key },
+        { label: "Academy", href: "/academy", icon: GraduationCap },
+        { label: "Rentals", href: "/academy/rentals", icon: Key },
+        { label: "Kids", href: "/kids", icon: Gamepad2 },
       ],
     },
     {
@@ -154,8 +154,6 @@ export default function Navbar() {
         { label: "Get a Quote", href: "/studio/contact", icon: Mail },
       ],
     },
-    
-    
   ];
 
   const commonLinkClasses = `flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold transition-all duration-300`;
@@ -192,6 +190,12 @@ export default function Navbar() {
             className="hidden md:flex md:items-center gap-2"
             ref={dropdownRef}
           >
+            <Link
+              href="/"
+              className="text-gray-900 hover:text-green-600 hover:bg-green-50 transition-all duration-300 px-4 py-2 rounded-lg font-semibold"
+            >
+              Home
+            </Link>
             {navLinks.map((link) => (
               <div key={link.label} className="relative group">
                 {link.items ? (
