@@ -93,7 +93,7 @@ function Signup() {
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
   const courseId = searchParams.get("courseId");
-  const bundleParam = searchParams.get("bundle");
+  const bundleParam = searchParams.get("bundle") || "";
   const hardwareParam = searchParams.get("hardware") === "true";
   const { data: session } = useSession();
   const user = session?.user;
