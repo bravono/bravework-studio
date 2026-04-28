@@ -265,7 +265,16 @@ function Signup() {
       },
     );
     if (error) {
-      setMessage(error.details.map((d) => d.message).join(" "));
+      const errorMsg = error.details.map((d) => d.message).join(" ");
+      setMessage(errorMsg);
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "form_validation",
+        error_message: errorMsg,
+        error_location: isEnrollmentPage ? "academy_enroll_form" : "signup_form",
+        page: window.location.pathname,
+      });
       return;
     }
 
@@ -332,9 +341,25 @@ function Signup() {
         }, 1000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "error_occurred",
+          error_type: "api_error",
+          error_message: data.message || "Signup failed",
+          error_location: isEnrollmentPage ? "academy_enroll_api" : "signup_api",
+          page: window.location.pathname,
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       setMessage("Signup failed. Please try again.");
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "network_error",
+        error_message: error?.message || "Unknown error",
+        error_location: isEnrollmentPage ? "academy_enroll_api" : "signup_api",
+        page: window.location.pathname,
+      });
     } finally {
       setLoading(false);
     }
