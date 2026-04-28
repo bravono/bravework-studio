@@ -72,6 +72,8 @@ export async function GET(request: Request) {
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
                 c.max_students AS "maxStudents",
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.level,
                 c.language,
                 c.price_in_kobo AS price,
@@ -183,6 +185,8 @@ export async function POST(request: Request) {
       level,
       language,
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
     } = body;
 
     // ... (Input Validation and Session Structure Validation remains the same) ...
@@ -209,8 +213,8 @@ export async function POST(request: Request) {
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
                     instructor_id, is_active, is_published, max_students, thumbnail_url, 
-                    course_category_id, level, language, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+                    course_category_id, level, language, parent_course_id, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
                 RETURNING course_id, title;
             `;
       const courseParams = [
@@ -227,6 +231,7 @@ export async function POST(request: Request) {
         categoryId,
         level,
         language,
+        parentCourseId || null,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -235,6 +240,14 @@ export async function POST(request: Request) {
       console.log("Course ID", courseId);
       if (!courseId) {
         throw new Error("Failed to create course.");
+      }
+
+      // Update child courses
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2)`,
+          [courseId, childCourseIds]
+        );
       }
 
       // 4. Insert Sessions (Session insertion logic remains the same)

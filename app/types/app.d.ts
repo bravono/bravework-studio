@@ -184,6 +184,8 @@ interface Course {
   maxStudents: string;
   thumbnailUrl: string;
   level: "Beginner" | "Intermediate" | "Advance";
+  parentCourseId?: number;
+  childCourseIds?: number[];
   language: string;
   category: string;
   early_bird_discount?: number; // Early bird discount percentage

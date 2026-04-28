@@ -21,7 +21,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ShowMore } from "@re-dev/react-truncate";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
@@ -49,6 +50,10 @@ function AcademyCoursesContent() {
   const [selectedBundle, setSelectedBundle] = useState<string[]>([]);
   const [includeHardware, setIncludeHardware] = useState(false);
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
+  const [userEnrolledCourseIds, setUserEnrolledCourseIds] = useState<number[]>([]);
+
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const searchParams = useSearchParams();
 
@@ -72,6 +77,23 @@ function AcademyCoursesContent() {
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
+
+  useEffect(() => {
+    const fetchUserEnrolled = async () => {
+      if (session?.user) {
+        try {
+          const res = await fetch("/api/user/courses");
+          if (res.ok) {
+            const data = await res.json();
+            setUserEnrolledCourseIds(data.map((c: any) => Number(c.id)));
+          }
+        } catch (error) {
+          console.error("Error fetching enrolled courses:", error);
+        }
+      }
+    };
+    fetchUserEnrolled();
+  }, [session]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -167,6 +189,43 @@ function AcademyCoursesContent() {
       }
       return [...prev, courseId];
     });
+  };
+
+  const isEnrolled = (courseId: number) => userEnrolledCourseIds.includes(courseId);
+
+  const checkPrerequisites = (course: Course) => {
+    if (!course.parentCourseId) return true;
+    
+    // Check if parent is enrolled
+    if (!isEnrolled(course.parentCourseId)) {
+      // Find parent course title
+      const parentCourse = courses.find(c => Number(c.id) === course.parentCourseId);
+      const parentTitle = parentCourse ? parentCourse.title : "the prerequisite level";
+      
+      const recommendationMessage = `We recommend completing ${parentTitle} first for the best learning experience.`;
+      
+      toast.info(recommendationMessage, {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleEnrollClick = (course: Course) => {
+    if (isEnrolled(Number(course.id))) {
+      toast.info("You are already enrolled in this course.");
+      return;
+    }
+
+    checkPrerequisites(course);
+
+    const targetUrl = course.isActive
+      ? `/auth/signup?enroll=true&courseId=${course.id}`
+      : `/newsletter?courseId=${course.id}`;
+    
+    router.push(targetUrl);
   };
 
   return (
@@ -468,28 +527,43 @@ function AcademyCoursesContent() {
                               )
                             : "---"}
                       </div>
-                      <Link
-                        href={
-                          course.isActive
-                            ? `/auth/signup?enroll=true&courseId=${course.id}`
-                            : `/newsletter?courseId=${course.id}`
-                        }
-                        className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-all text-sm"
+                      <button
+                        onClick={() => handleEnrollClick(course)}
+                        disabled={isEnrolled(Number(course.id))}
+                        className={`px-6 py-2.5 font-bold rounded-xl transition-all text-sm ${
+                          isEnrolled(Number(course.id))
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-gray-900 text-white hover:bg-blue-600"
+                        }`}
                       >
-                        Enroll Now
-                      </Link>
+                        {isEnrolled(Number(course.id)) ? "Enrolled" : "Enroll Now"}
+                      </button>
                     </div>
 
                     {course.price > 0 && (
                       <button
-                        onClick={() => toggleBundleCourse(String(course.id))}
+                        onClick={() => {
+                          if (isEnrolled(Number(course.id))) {
+                            toast.info("You are already enrolled in this course.");
+                            return;
+                          }
+                          if (!selectedBundle.includes(String(course.id))) {
+                             checkPrerequisites(course);
+                          }
+                          toggleBundleCourse(String(course.id));
+                        }}
+                        disabled={isEnrolled(Number(course.id))}
                         className={`mt-4 flex w-full items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 border ${
-                          selectedBundle.includes(String(course.id))
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
+                          isEnrolled(Number(course.id))
+                            ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                            : selectedBundle.includes(String(course.id))
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
                         }`}
                       >
-                        {selectedBundle.includes(String(course.id)) ? (
+                        {isEnrolled(Number(course.id)) ? (
+                          "Already Enrolled"
+                        ) : selectedBundle.includes(String(course.id)) ? (
                           <>
                             <Minus size={16} /> Remove from Bundle
                           </>

@@ -74,6 +74,8 @@ export async function GET(
                 c.price_in_kobo AS price,
                 cc.category_name AS category,
                 c.thumbnail_url AS "thumbnailUrl",
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.content,
                 c.excerpt,
                 c.slug
@@ -156,6 +158,8 @@ export async function PATCH(
       age_bracket: ageBracket,
       tools, // Array of tool IDs
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
     } = body;
 
     console.log("Course ID", courseId);
@@ -217,8 +221,8 @@ export async function PATCH(
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, is_published = $8, max_students = $9, thumbnail_url = $10, 
-                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, age_bracket = $17
-                WHERE course_id = $18;
+                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, age_bracket = $17, parent_course_id = $18
+                WHERE course_id = $19;
             `;
       const courseParams = [
         title,
@@ -238,6 +242,7 @@ export async function PATCH(
         content,
         excerpt,
         ageBracket,
+        parentCourseId || null,
         courseId,
       ];
 
@@ -260,6 +265,26 @@ export async function PATCH(
             [courseId, toolId],
           );
         }
+      }
+
+      // 3.5 Update child courses
+      // First, remove parent_course_id from courses that were previously children but are not anymore
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1 AND course_id != ALL($2::int[])`,
+          [courseId, childCourseIds]
+        );
+        // Next, set parent_course_id for the newly selected children
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2::int[])`,
+          [courseId, childCourseIds]
+        );
+      } else {
+        // If no child courses are selected, remove parent_course_id from all current children
+        await client.query(
+          `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1`,
+          [courseId]
+        );
       }
 
       // 4. Clear Existing Sessions (Crucial step for transactional update)

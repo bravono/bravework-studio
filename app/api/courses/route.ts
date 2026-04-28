@@ -15,6 +15,7 @@ export async function GET(request: Request) {
         i.first_name AS "firstName",
         i.last_name AS "lastName",
         level,
+        parent_course_id AS "parentCourseId",
         language,
         price_in_kobo AS price,
         early_bird_discount AS "discount",

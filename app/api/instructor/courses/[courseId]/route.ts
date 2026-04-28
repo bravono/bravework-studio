@@ -69,6 +69,8 @@ export async function GET(
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
                 c.max_students AS "maxStudents",
                 c.level,
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.language,
                 c.price_in_kobo AS price,
                 cc.category_name AS category,
@@ -163,6 +165,8 @@ export async function PATCH(
       level,
       language,
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
     } = body;
 
     // Input Validation (Same as POST but checks for required fields only for updates)
@@ -229,8 +233,8 @@ export async function PATCH(
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, max_students = $8, thumbnail_url = $9, 
-                    course_category_id = $10, level = $11, language = $12, updated_at = NOW()
-                WHERE course_id = $13 AND instructor_id = $6; -- << CRUCIAL OWNERSHIP CLAUSE
+                    course_category_id = $10, level = $11, language = $12, parent_course_id = $13, updated_at = NOW()
+                WHERE course_id = $14 AND instructor_id = $6; -- << CRUCIAL OWNERSHIP CLAUSE
             `;
       const courseParams = [
         title,
@@ -245,6 +249,7 @@ export async function PATCH(
         categoryId,
         level,
         language,
+        parentCourseId || null,
         courseId,
       ];
 
@@ -253,6 +258,26 @@ export async function PATCH(
         // Should not happen if ownership check passed, but acts as a final safeguard
         throw new Error(
           `Course with ID ${courseId} not found or failed to update (ownership issue).`,
+        );
+      }
+
+      // 1.5 Update child courses
+      // First, remove parent_course_id from courses that were previously children but are not anymore
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1 AND course_id != ALL($2::int[])`,
+          [courseId, childCourseIds]
+        );
+        // Next, set parent_course_id for the newly selected children
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2::int[])`,
+          [courseId, childCourseIds]
+        );
+      } else {
+        // If no child courses are selected, remove parent_course_id from all current children
+        await client.query(
+          `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1`,
+          [courseId]
         );
       }
 
