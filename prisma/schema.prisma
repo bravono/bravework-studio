@@ -98,6 +98,9 @@ model courses {
   early_bird_discount Int?
   discount_start_date DateTime?            @db.Date
   discount_end_date   DateTime?            @db.Date
+  parent_course_id    Int?
+  parent_course       courses?             @relation("CourseProgression", fields: [parent_course_id], references: [course_id])
+  child_courses       courses[]            @relation("CourseProgression")
   slug                String?              @unique @db.VarChar(255)
   content             String?
   excerpt             String?

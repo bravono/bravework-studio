@@ -30,6 +30,7 @@ export async function GET(request: Request) {
     SELECT
       c.course_id AS id,
       c.title,
+      c.parent_course_id AS "parentCourseId",
       c.description,
       c.created_at AS date,
       c.price_in_kobo AS price,

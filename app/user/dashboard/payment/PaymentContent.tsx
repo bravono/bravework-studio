@@ -329,10 +329,26 @@ export default function PaymentContent() {
               }
             } else {
               toast.error("Payment verification failed: " + verifyData.message);
+              window.dataLayer = window.dataLayer || [];
+              window.dataLayer.push({
+                event: "error_occurred",
+                error_type: "payment_failed",
+                error_message: verifyData.message || "Payment verification failed",
+                error_location: "paystack_checkout",
+                page: window.location.pathname,
+              });
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Verification error:", err);
             toast.error("Error verifying payment.");
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "error_occurred",
+              error_type: "payment_failed",
+              error_message: err?.message || "Error verifying payment",
+              error_location: "paystack_checkout",
+              page: window.location.pathname,
+            });
           }
         },
         onCancel: () => {
@@ -344,6 +360,14 @@ export default function PaymentContent() {
       console.error("Payment initialization error:", err);
       toast.error(err.message || "Failed to initialize payment.");
       setProcessingPayment(false);
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "payment_failed",
+        error_message: err?.message || "Unknown payment error",
+        error_location: "paystack_checkout",
+        page: window.location.pathname,
+      });
     }
   };
 

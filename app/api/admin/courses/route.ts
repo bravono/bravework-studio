@@ -57,6 +57,8 @@ export async function GET(request: Request) {
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
                 c.max_students AS "maxStudents",
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.level,
                 c.language,
                 c.price_in_kobo AS price,
@@ -163,6 +165,8 @@ export async function POST(request: Request) {
       age_bracket: ageBracket,
       tools, // Array of tool IDs
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
     } = body;
 
     // Input Validation (Simplified for brevity, assuming external schema validation)
@@ -237,8 +241,8 @@ export async function POST(request: Request) {
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
                     instructor_id, is_active, max_students, thumbnail_url, 
-                    course_category_id, level, language, slug, content, excerpt, age_bracket, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+                    course_category_id, level, language, slug, content, excerpt, age_bracket, parent_course_id, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
                 RETURNING course_id;
             `;
       const courseParams = [
@@ -258,6 +262,7 @@ export async function POST(request: Request) {
         content,
         excerpt,
         ageBracket,
+        parentCourseId || null,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -275,6 +280,14 @@ export async function POST(request: Request) {
             [courseId, toolId],
           );
         }
+      }
+
+      // Update child courses
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2)`,
+          [courseId, childCourseIds]
+        );
       }
 
       // 4. Insert Sessions (two flat records per session group)

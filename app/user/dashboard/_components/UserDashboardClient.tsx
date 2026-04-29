@@ -109,6 +109,7 @@ function Page() {
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Effect for deep linking and scrolling to items
@@ -218,6 +219,13 @@ function Page() {
       if (bookingsRes.ok) {
         const bookingsData = await bookingsRes.json();
         setBookings(bookingsData);
+      }
+
+      // 6. Fetch All Available Courses (for recommendations)
+      const allCoursesRes = await fetch("/api/courses");
+      if (allCoursesRes.ok) {
+        const allCoursesData = await allCoursesRes.json();
+        setAllCourses(allCoursesData);
       }
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
@@ -769,6 +777,8 @@ function Page() {
                 <CourseDetailCard
                   key={course.id}
                   course={course}
+                  allCourses={allCourses}
+                  userCourses={courses}
                   selectedCurrency={selectedCurrency}
                   exchangeRates={exchangeRates}
                 />

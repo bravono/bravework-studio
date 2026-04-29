@@ -22,6 +22,7 @@ import {
   CourseModalProps,
   SessionFormProps,
   Tool,
+  Course
 } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
@@ -384,6 +385,15 @@ export default function CourseModal({
     Array<{ name: string }>
   >([]);
   const [availableTools, setAvailableTools] = useState<Tool[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+
+  // NEW: State for Hierarchy
+  const [parentCourseId, setParentCourseId] = useState<number | "">(
+    existingCourse?.parentCourseId || "",
+  );
+  const [childCourseIds, setChildCourseIds] = useState<number[]>(
+    existingCourse?.childCourseIds || [],
+  );
 
   // NEW: State for Sessions
   const [sessions, setSessions] = useState<CourseSession[]>(
@@ -521,6 +531,17 @@ export default function CourseModal({
         const toolsRes = await fetch("/api/tools");
         const toolsData = await toolsRes.json();
         setAvailableTools(toolsData);
+
+        // Fetch courses for hierarchy, we can use the same route or /api/courses
+        // For admin/instructor it's better to fetch from their specific API, but /api/courses returns all active
+        // To be safe, we will fetch from /api/courses
+        const coursesRes = await fetch("/api/courses");
+        const coursesData = await coursesRes.json();
+        // Exclude current course from available courses to prevent circular dependency
+        const filteredCourses = existingCourse
+          ? coursesData.filter((c: Course) => c.id !== existingCourse.id)
+          : coursesData;
+        setAvailableCourses(filteredCourses);
       } catch (e) {
         console.error("Failed to fetch backend options:", e);
       }
@@ -548,6 +569,8 @@ export default function CourseModal({
       setDescription(existingCourse.description);
       setStartDate(existingCourse.startDate);
       setEndDate(existingCourse.endDate);
+      setParentCourseId(existingCourse.parentCourseId || "");
+      setChildCourseIds(existingCourse.childCourseIds || []);
 
       if (existingCourse.sessions && existingCourse.sessions.length > 0) {
         setSessions(
@@ -613,6 +636,8 @@ export default function CourseModal({
           age_bracket: ageBracket,
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
+          parentCourseId: parentCourseId === "" ? null : parentCourseId,
+          childCourseIds: childCourseIds,
         }).map(([key, value]) => [
           key,
           typeof value === "string" ? value.trim() : value,
@@ -850,6 +875,64 @@ export default function CourseModal({
               <option value="Intermediate">Intermediate</option>
               <option value="Advance">Advance</option>
             </select>
+
+            <div>
+              <label htmlFor="parentCourse" className={labelStyle}>
+                Parent Course (Prerequisite)
+              </label>
+              <select
+                id="parentCourse"
+                value={parentCourseId}
+                onChange={(e) =>
+                  setParentCourseId(
+                    e.target.value ? parseInt(e.target.value) : "",
+                  )
+                }
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="">None (Top Level)</option>
+                {availableCourses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title} ({course.level})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelStyle}>Child Courses (Next Levels)</label>
+              <div className="mt-1 grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableCourses
+                  .filter((c) => c.id !== parentCourseId.toString()) // Cannot be both parent and child
+                  .map((course) => (
+                    <div key={course.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`child-course-${course.id}`}
+                        value={course.id}
+                        checked={childCourseIds.includes(parseInt(course.id))}
+                        onChange={(e) => {
+                          const id = parseInt(e.target.value);
+                          if (e.target.checked) {
+                            setChildCourseIds([...childCourseIds, id]);
+                          } else {
+                            setChildCourseIds(
+                              childCourseIds.filter((cId) => cId !== id),
+                            );
+                          }
+                        }}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor={`child-course-${course.id}`}
+                        className="ml-2 block text-sm text-gray-900"
+                      >
+                        {course.title} ({course.level})
+                      </label>
+                    </div>
+                  ))}
+              </div>
+            </div>
 
             <div>
               <label htmlFor="ageBracket" className={labelStyle}>
