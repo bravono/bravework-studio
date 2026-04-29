@@ -192,7 +192,7 @@ export default function Navbar() {
           >
             <Link
               href="/"
-              className="text-gray-900 hover:text-green-600 hover:bg-green-50 transition-all duration-300 px-4 py-2 rounded-lg font-semibold"
+              className="text-gray-700 hover:text-green-700 hover:bg-green-50 transition-all duration-300 px-4 py-2 rounded-lg font-semibold"
             >
               Home
             </Link>
