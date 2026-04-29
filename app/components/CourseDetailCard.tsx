@@ -19,8 +19,8 @@ import VideoModal from "./VideoModal";
 
 interface CourseDetailCardProps {
   course: Course;
-  allCourses: Course[];
-  userCourses: Course[];
+  allCourses?: Course[];
+  userCourses?: Course[];
   selectedCurrency: string;
   exchangeRates: ExchangeRates | null;
 }

@@ -22,6 +22,7 @@ import {
   CourseModalProps,
   SessionFormProps,
   Tool,
+  Course
 } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
