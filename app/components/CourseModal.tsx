@@ -636,8 +636,8 @@ export default function CourseModal({
           age_bracket: ageBracket,
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
-          parentCourseId: parentCourseId === "" ? null : parentCourseId,
-          childCourseIds: childCourseIds,
+          parent_course_id: parentCourseId === "" ? null : parentCourseId,
+          child_course_ids: childCourseIds,
         }).map(([key, value]) => [
           key,
           typeof value === "string" ? value.trim() : value,
