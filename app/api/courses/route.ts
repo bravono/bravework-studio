@@ -23,7 +23,8 @@ export async function GET(request: Request) {
         discount_end_date AS "discountEndDate",
         i.bio,
         cc.category_name AS category,
-        COALESCE(t_agg.tags, '[]') AS tags
+        COALESCE(t_agg.tags, '[]') AS tags,
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds"
         FROM courses c
         LEFT JOIN (
         SELECT

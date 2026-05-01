@@ -53,8 +53,26 @@ const useLocalTimezone = (dateTimeString) => {
 export default function CoursePage() {
   const { courseId } = useParams();
   const [course, setCourse] = useState<Course>();
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
 
   const isActive = course?.isActive;
+
+  const getDescendants = useCallback((c: Course, list: Course[]): Course[] => {
+    let descendants: Course[] = [];
+    if (c.childCourseIds && c.childCourseIds.length > 0) {
+      const directChildren = list.filter(item => c.childCourseIds?.includes(Number(item.id)));
+      descendants = [...directChildren];
+      directChildren.forEach(child => {
+        descendants = [...descendants, ...getDescendants(child, list)];
+      });
+    }
+    return Array.from(new Map(descendants.map(item => [item.id, item])).values());
+  }, []);
+
+  const bundleCourses = useMemo(() => {
+    if (!course || allCourses.length === 0) return [];
+    return [course, ...getDescendants(course, allCourses)];
+  }, [course, allCourses, getDescendants]);
 
   // Timezone conversion for start date
   const startTime = course?.startDate
@@ -77,7 +95,17 @@ export default function CoursePage() {
 
       const data = await res.json();
       console.log("Data", data);
-      setCourse(data[0]);
+      const courseData = data[0];
+      setCourse(courseData);
+
+      // If it's a bundle, fetch all courses to find descendants
+      if (courseData?.childCourseIds && courseData.childCourseIds.length > 0) {
+        const allRes = await fetch("/api/courses");
+        if (allRes.ok) {
+          const allCourses = await allRes.json();
+          setAllCourses(allCourses);
+        }
+      }
     } catch (error) {
       console.error("Error fetching course:", error);
     }
@@ -442,8 +470,67 @@ export default function CoursePage() {
               dangerouslySetInnerHTML={{ __html: course?.content || "" }}
             />
           </div>
-
         </div>
+
+        {/* Bundle Section */}
+        {bundleCourses.length > 1 && (
+          <div className="mb-20">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+               
+               <div className="relative z-10">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                    <div>
+                      <h2 className="text-4xl md:text-5xl font-black mb-4">Included in this Bundle</h2>
+                      <p className="text-blue-100 text-lg max-w-xl">
+                        Enroll in this bundle and gain access to the complete learning path with {bundleCourses.length} professional courses.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                       <div className="px-6 py-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-center">
+                          <div className="text-3xl font-black">{bundleCourses.length}</div>
+                          <div className="text-xs font-bold uppercase tracking-widest opacity-80">Courses</div>
+                       </div>
+                       <div className="px-6 py-3 bg-emerald-500 rounded-2xl shadow-lg text-center">
+                          <div className="text-3xl font-black">20%</div>
+                          <div className="text-xs font-bold uppercase tracking-widest">Savings</div>
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {bundleCourses.map((bc, idx) => (
+                      <div key={bc.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-[2rem] p-6 hover:bg-white/20 transition-all flex items-center gap-6 group">
+                        <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-blue-600 font-black text-2xl shadow-lg shrink-0">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-grow">
+                          <h4 className="text-xl font-bold mb-1">{bc.title}</h4>
+                          <p className="text-blue-100 text-sm line-clamp-2 opacity-80">{bc.description}</p>
+                        </div>
+                        <Link href={`/academy/courses/${bc.id}`} className="p-3 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ExternalLink size={20} />
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/20 pt-12">
+                     <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-full border border-white/20">
+                        <Shield className="w-5 h-5 text-emerald-400" />
+                        <span className="text-sm font-bold tracking-wide">Full Curriculum Access & Certification Included</span>
+                     </div>
+                     <Link
+                        href={`/auth/signup?enroll=true&bundle=${bundleCourses.map(c => c.id).join(",")}`}
+                        className="inline-flex items-center justify-center px-12 py-5 bg-white text-blue-600 font-black text-xl rounded-full shadow-2xl hover:bg-blue-50 transition-all transform hover:scale-105"
+                      >
+                        Enroll in Bundle Now <ArrowRight className="ml-3 w-6 h-6" />
+                      </Link>
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
 
         {/* Why Choose Us & Policies */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
