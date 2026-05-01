@@ -35,7 +35,8 @@ export async function GET(
           ELSE 'Unknown'
         END AS "sessionLabel",
         s.sessions,
-        ct_agg.tools AS software
+        ct_agg.tools AS software,
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds"
       FROM courses c
       JOIN (
         SELECT

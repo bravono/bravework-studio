@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
 import { toast } from "react-toastify";
 import AcademySubNavBar from "../../components/AcademySubNavBar";
 import { motion } from "framer-motion";
@@ -50,7 +56,9 @@ function AcademyCoursesContent() {
   const [selectedBundle, setSelectedBundle] = useState<string[]>([]);
   const [includeHardware, setIncludeHardware] = useState(false);
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
-  const [userEnrolledCourseIds, setUserEnrolledCourseIds] = useState<number[]>([]);
+  const [userEnrolledCourseIds, setUserEnrolledCourseIds] = useState<number[]>(
+    [],
+  );
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -149,11 +157,58 @@ function AcademyCoursesContent() {
     });
   }, [courses, activeFilter, searchQuery, selectedTags]);
 
-  const totalPages = Math.ceil(filteredCourses.length / COURSES_PER_PAGE);
-  const paginatedCourses = useMemo(() => {
+  const getDescendants = useCallback(
+    (course: Course, allCourses: Course[]): Course[] => {
+      let descendants: Course[] = [];
+      if (course.childCourseIds && course.childCourseIds.length > 0) {
+        const directChildren = allCourses.filter((c) =>
+          course.childCourseIds?.includes(Number(c.id)),
+        );
+        descendants = [...directChildren];
+        directChildren.forEach((child) => {
+          descendants = [...descendants, ...getDescendants(child, allCourses)];
+        });
+      }
+      // Return unique descendants
+      return Array.from(
+        new Map(descendants.map((item) => [item.id, item])).values(),
+      );
+    },
+    [],
+  );
+
+  const displayItems = useMemo(() => {
+    let items: (Course & { isBundle?: boolean; bundleCourses?: Course[] })[] =
+      [];
+
+    // 1. Add individual courses
+    items = [...filteredCourses];
+
+    // 2. Add Preset Bundles: For each course that has children, create a bundle
+    filteredCourses.forEach((course) => {
+      console.log("Course", course);
+      if (course.childCourseIds && course.childCourseIds.length > 0) {
+        const descendants = getDescendants(course, courses);
+        if (descendants.length > 0) {
+          items.push({
+            ...course,
+            id: `bundle-${course.id}`, // Unique ID for bundle item
+            isBundle: true,
+            bundleCourses: [course, ...descendants],
+            title: `${course.title} Power Bundle`,
+          });
+        }
+      }
+    });
+
+    return items;
+  }, [filteredCourses, courses, getDescendants, activeFilter]);
+
+  const totalPages = Math.ceil(displayItems.length / COURSES_PER_PAGE);
+  const paginatedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * COURSES_PER_PAGE;
-    return filteredCourses.slice(startIndex, startIndex + COURSES_PER_PAGE);
-  }, [filteredCourses, currentPage]);
+    return displayItems.slice(startIndex, startIndex + COURSES_PER_PAGE);
+  }, [displayItems, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -191,19 +246,24 @@ function AcademyCoursesContent() {
     });
   };
 
-  const isEnrolled = (courseId: number) => userEnrolledCourseIds.includes(courseId);
+  const isEnrolled = (courseId: number) =>
+    userEnrolledCourseIds.includes(courseId);
 
   const checkPrerequisites = (course: Course) => {
     if (!course.parentCourseId) return true;
-    
+
     // Check if parent is enrolled
     if (!isEnrolled(course.parentCourseId)) {
       // Find parent course title
-      const parentCourse = courses.find(c => Number(c.id) === course.parentCourseId);
-      const parentTitle = parentCourse ? parentCourse.title : "the prerequisite level";
-      
+      const parentCourse = courses.find(
+        (c) => Number(c.id) === course.parentCourseId,
+      );
+      const parentTitle = parentCourse
+        ? parentCourse.title
+        : "the prerequisite level";
+
       const recommendationMessage = `We recommend completing ${parentTitle} first for the best learning experience.`;
-      
+
       toast.info(recommendationMessage, {
         position: "top-center",
         autoClose: 5000,
@@ -224,7 +284,7 @@ function AcademyCoursesContent() {
     const targetUrl = course.isActive
       ? `/auth/signup?enroll=true&courseId=${course.id}`
       : `/newsletter?courseId=${course.id}`;
-    
+
     router.push(targetUrl);
   };
 
@@ -377,213 +437,373 @@ function AcademyCoursesContent() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {paginatedCourses.map((course) => (
-                <motion.div
-                  key={course.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all group flex flex-col h-full"
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-                    <img
-                      src={
-                        course.thumbnailUrl ||
-                        "/assets/Bravework_Studio-Logo-Color.png"
-                      }
-                      alt={course.title}
-                      className="group-hover:scale-105 transition-transform duration-500"
-                    />
+              {paginatedItems.map((item) => {
+                const isBundle = item.isBundle;
+                const bundleCourses = item.bundleCourses || [];
+                const course = item;
 
-                    <div className="absolute top-4 left-4 px-4 py-1.5 bg-black/20 backdrop-blur-md text-white text-xs font-black rounded-full shadow-lg border border-white/30">
-                      <span
-                        className={
-                          course.isActive ? "text-green-400" : "text-yellow-400"
+                if (isBundle) {
+                  const bundlePrice = bundleCourses.reduce(
+                    (sum, c) => sum + c.price,
+                    0,
+                  );
+                  const discount =
+                    bundleCourses.length === 2
+                      ? 0.1
+                      : bundleCourses.length >= 3
+                        ? 0.2
+                        : 0;
+                  const discountedPrice = bundlePrice * (1 - discount);
+
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-white rounded-[2.5rem] border-2 border-blue-100 overflow-hidden hover:shadow-2xl hover:shadow-blue-200/50 transition-all group flex flex-col h-full relative"
+                    >
+                      <div className="absolute top-4 right-4 z-20">
+                        <div className="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-full shadow-lg uppercase tracking-widest">
+                          {Math.round(discount * 100)}% Bundle Save
+                        </div>
+                      </div>
+
+                      <div className="relative aspect-[16/10] overflow-hidden bg-blue-50">
+                        {/* Stacked cards effect */}
+                        <div className="absolute inset-0 flex items-center justify-center p-8">
+                          <div className="relative w-full h-full">
+                            <div className="absolute inset-0 bg-blue-200 rounded-2xl rotate-3 scale-95 opacity-50"></div>
+                            <div className="absolute inset-0 bg-blue-400 rounded-2xl -rotate-3 scale-95 opacity-30"></div>
+                            <div className="absolute inset-0 bg-white rounded-2xl shadow-xl border border-blue-100 flex items-center justify-center overflow-hidden">
+                              <img
+                                src={
+                                  course.thumbnailUrl ||
+                                  "/assets/Bravework_Studio-Logo-Color.png"
+                                }
+                                alt={course.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent"></div>
+                              <div className="absolute bottom-6 left-6 text-white">
+                                <div className="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">
+                                  Preset Bundle
+                                </div>
+                                <div className="text-lg font-black leading-tight">
+                                  Complete {course.title} Path
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-8 flex flex-col flex-grow bg-gradient-to-b from-blue-50/50 to-white">
+                        <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-blue-600">
+                          <Tag size={14} />
+                          Academy Bundle • {bundleCourses.length} Courses
+                        </div>
+                        <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                          {item.title}
+                        </h3>
+
+                        <div className="space-y-3 mb-6">
+                          {bundleCourses.map((bc, idx) => (
+                            <div
+                              key={bc.id}
+                              className="flex items-center gap-3 text-sm"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">
+                                {idx + 1}
+                              </div>
+                              <span className="font-bold text-gray-700">
+                                {bc.title}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="p-4 bg-white rounded-2xl border border-blue-50 mb-8 shadow-sm">
+                          <label className="flex items-center gap-3 cursor-pointer group/rental">
+                            <input
+                              type="checkbox"
+                              checked={includeHardware}
+                              onChange={(e) =>
+                                setIncludeHardware(e.target.checked)
+                              }
+                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2 font-black text-gray-900 text-sm leading-none">
+                                <Monitor size={14} /> Add Hardware Rental
+                              </div>
+                              <div className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mt-1">
+                                +Extra 10% Off Rental Gear
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="mt-auto pt-6 border-t border-blue-50 flex items-center justify-between">
+                          <div>
+                            <div className="text-xs text-gray-400 line-through font-bold mb-1">
+                              {exchangeRates && exchangeRates[selectedCurrency]
+                                ? convertCurrency(
+                                    bundlePrice / KOBO_PER_NAIRA,
+                                    exchangeRates[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency),
+                                  )
+                                : "---"}
+                            </div>
+                            <div className="text-2xl font-black text-blue-600">
+                              {exchangeRates && exchangeRates[selectedCurrency]
+                                ? convertCurrency(
+                                    discountedPrice / KOBO_PER_NAIRA,
+                                    exchangeRates[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency),
+                                  )
+                                : "---"}
+                            </div>
+                          </div>
+                          <Link
+                            href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
+                            className="px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 text-sm flex items-center gap-2"
+                          >
+                            Enroll All <ChevronRight size={18} />
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                }
+
+                return (
+                  <motion.div
+                    key={course.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all group flex flex-col h-full"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                      <img
+                        src={
+                          course.thumbnailUrl ||
+                          "/assets/Bravework_Studio-Logo-Color.png"
+                        }
+                        alt={course.title}
+                        className="group-hover:scale-105 transition-transform duration-500"
+                      />
+
+                      <div className="absolute top-4 left-4 px-4 py-1.5 bg-black/20 backdrop-blur-md text-white text-xs font-black rounded-full shadow-lg border border-white/30">
+                        <span
+                          className={
+                            course.isActive
+                              ? "text-green-400"
+                              : "text-yellow-400"
+                          }
+                        >
+                          ●
+                        </span>{" "}
+                        {course.isActive ? "ACTIVE" : "UPCOMING"}
+                      </div>
+
+                      {course.price === 0 && (
+                        <div className="absolute top-4 right-4 px-4 py-1.5 bg-emerald-500 text-white text-xs font-black rounded-full shadow-lg">
+                          FREE INTRO
+                        </div>
+                      )}
+
+                      {course.category && course.category.includes("3D") && (
+                        <button
+                          onClick={() =>
+                            setPlayingVideoUrl(
+                              "https://www.youtube.com/embed/4U0ONHj3_hw?autoplay=1",
+                            )
+                          }
+                          className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-full h-full cursor-pointer"
+                          aria-label="Play intro video"
+                        >
+                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                            <PlayCircle size={32} />
+                          </div>
+                        </button>
+                      )}
+                      {(!course.category ||
+                        !course.category.includes("3D")) && (
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                            <PlayCircle size={32} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-8 flex flex-col flex-grow">
+                      <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-blue-600">
+                        <BookOpen size={14} />
+                        {course.category}
+                      </div>
+                      <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                        {course.title}
+                      </h3>
+
+                      <ShowMore
+                        className="text-gray-500 text-sm leading-relaxed mb-6"
+                        lines={3}
+                        more={
+                          <span className="text-blue-600 font-bold cursor-pointer hover:underline ml-1">
+                            Read more
+                          </span>
                         }
                       >
-                        ●
-                      </span>{" "}
-                      {course.isActive ? "ACTIVE" : "UPCOMING"}
-                    </div>
+                        <div>{course.description}</div>
+                      </ShowMore>
 
-                    {course.price === 0 && (
-                      <div className="absolute top-4 right-4 px-4 py-1.5 bg-emerald-500 text-white text-xs font-black rounded-full shadow-lg">
-                        FREE INTRO
-                      </div>
-                    )}
-
-                    {course.category && course.category.includes("3D") && (
-                      <button
-                        onClick={() => setPlayingVideoUrl("https://www.youtube.com/embed/4U0ONHj3_hw?autoplay=1")}
-                        className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-full h-full cursor-pointer"
-                        aria-label="Play intro video"
-                      >
-                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
-                          <PlayCircle size={32} />
+                      {course.tags && course.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-8">
+                          {course.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2.5 py-1 bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-gray-100"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {course.tags.length > 3 && (
+                            <span className="text-[10px] font-black text-gray-400 mt-1">
+                              +{course.tags.length - 3} MORE
+                            </span>
+                          )}
                         </div>
-                      </button>
-                    )}
-                    {(!course.category || !course.category.includes("3D")) && (
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
-                          <PlayCircle size={32} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
 
-                  <div className="p-8 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-blue-600">
-                      <BookOpen size={14} />
-                      {course.category}
-                    </div>
-                    <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
-                      {course.title}
-                    </h3>
-
-                    <ShowMore
-                      className="text-gray-500 text-sm leading-relaxed mb-6"
-                      lines={3}
-                      more={
-                        <span className="text-blue-600 font-bold cursor-pointer hover:underline ml-1">
-                          Read more
-                        </span>
-                      }
-                    >
-                      <div>{course.description}</div>
-                    </ShowMore>
-
-                    {course.tags && course.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-8">
-                        {course.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-2.5 py-1 bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-gray-100"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {course.tags.length > 3 && (
-                          <span className="text-[10px] font-black text-gray-400 mt-1">
-                            +{course.tags.length - 3} MORE
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-3 mb-8">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                          <Calendar size={16} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                            Start Date
-                          </p>
-                          <p className="font-bold">
-                            {course.isActive && !(new Date() > new Date(course.startDate) && new Date() > new Date(course.endDate))
-                              ? new Date(course.startDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  },
-                                )
-                              : "Start Shortly"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                          <Hourglass size={16} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                            Duration
-                          </p>
-                          <p className="font-bold">
-                            {course.isActive && !(new Date() > new Date(course.startDate) && new Date() > new Date(course.endDate))
-                              ? getWeeksBtwDates(
-                                  course.startDate,
-                                  course.endDate,
-                                )
-                              : "Start Shortly"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                      <div className="text-xl font-black text-gray-900">
-                        {course.price === 0
-                          ? "Free"
-                          : exchangeRates && exchangeRates[selectedCurrency]
-                            ? convertCurrency(
-                                course.price / KOBO_PER_NAIRA,
-                                exchangeRates[selectedCurrency],
-                                getCurrencySymbol(selectedCurrency),
+                      <div className="space-y-3 mb-8">
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <Calendar size={16} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                              Start Date
+                            </p>
+                            <p className="font-bold">
+                              {course.isActive &&
+                              !(
+                                new Date() > new Date(course.startDate) &&
+                                new Date() > new Date(course.endDate)
                               )
-                            : "---"}
+                                ? new Date(course.startDate).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    },
+                                  )
+                                : "Start Shortly"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <Hourglass size={16} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                              Duration
+                            </p>
+                            <p className="font-bold">
+                              {course.isActive &&
+                              !(
+                                new Date() > new Date(course.startDate) &&
+                                new Date() > new Date(course.endDate)
+                              )
+                                ? getWeeksBtwDates(
+                                    course.startDate,
+                                    course.endDate,
+                                  )
+                                : "Start Shortly"}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleEnrollClick(course)}
-                        disabled={isEnrolled(Number(course.id))}
-                        className={`px-6 py-2.5 font-bold rounded-xl transition-all text-sm ${
-                          isEnrolled(Number(course.id))
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-gray-900 text-white hover:bg-blue-600"
-                        }`}
+
+                      <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
+                        <div className="text-xl font-black text-gray-900">
+                          {course.price === 0
+                            ? "Free"
+                            : exchangeRates && exchangeRates[selectedCurrency]
+                              ? convertCurrency(
+                                  course.price / KOBO_PER_NAIRA,
+                                  exchangeRates[selectedCurrency],
+                                  getCurrencySymbol(selectedCurrency),
+                                )
+                              : "---"}
+                        </div>
+                        <button
+                          onClick={() => handleEnrollClick(course)}
+                          disabled={isEnrolled(Number(course.id))}
+                          className={`px-6 py-2.5 font-bold rounded-xl transition-all text-sm ${
+                            isEnrolled(Number(course.id))
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-gray-900 text-white hover:bg-blue-600"
+                          }`}
+                        >
+                          {isEnrolled(Number(course.id))
+                            ? "Enrolled"
+                            : "Enroll Now"}
+                        </button>
+                      </div>
+
+                      {course.price > 0 && (
+                        <button
+                          onClick={() => {
+                            if (isEnrolled(Number(course.id))) {
+                              toast.info(
+                                "You are already enrolled in this course.",
+                              );
+                              return;
+                            }
+                            if (!selectedBundle.includes(String(course.id))) {
+                              checkPrerequisites(course);
+                            }
+                            toggleBundleCourse(String(course.id));
+                          }}
+                          disabled={isEnrolled(Number(course.id))}
+                          className={`mt-4 flex w-full items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 border ${
+                            isEnrolled(Number(course.id))
+                              ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                              : selectedBundle.includes(String(course.id))
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
+                          }`}
+                        >
+                          {isEnrolled(Number(course.id)) ? (
+                            "Already Enrolled"
+                          ) : selectedBundle.includes(String(course.id)) ? (
+                            <>
+                              <Minus size={16} /> Remove from Bundle
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={16} /> Add to Bundle
+                            </>
+                          )}
+                        </button>
+                      )}
+
+                      <Link
+                        href={`/academy/courses/${course.id}`}
+                        className="mt-4 flex w-full items-center justify-center px-6 py-2.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 border border-gray-100"
                       >
-                        {isEnrolled(Number(course.id)) ? "Enrolled" : "Enroll Now"}
-                      </button>
+                        View Details
+                      </Link>
                     </div>
-
-                    {course.price > 0 && (
-                      <button
-                        onClick={() => {
-                          if (isEnrolled(Number(course.id))) {
-                            toast.info("You are already enrolled in this course.");
-                            return;
-                          }
-                          if (!selectedBundle.includes(String(course.id))) {
-                             checkPrerequisites(course);
-                          }
-                          toggleBundleCourse(String(course.id));
-                        }}
-                        disabled={isEnrolled(Number(course.id))}
-                        className={`mt-4 flex w-full items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 border ${
-                          isEnrolled(Number(course.id))
-                            ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
-                            : selectedBundle.includes(String(course.id))
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
-                        }`}
-                      >
-                        {isEnrolled(Number(course.id)) ? (
-                          "Already Enrolled"
-                        ) : selectedBundle.includes(String(course.id)) ? (
-                          <>
-                            <Minus size={16} /> Remove from Bundle
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={16} /> Add to Bundle
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    <Link
-                      href={`/academy/courses/${course.id}`}
-                      className="mt-4 flex w-full items-center justify-center px-6 py-2.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 border border-gray-100"
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
 
