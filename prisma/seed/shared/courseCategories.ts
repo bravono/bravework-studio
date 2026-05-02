@@ -26,6 +26,14 @@ export async function seedCourseCategories() {
       category_name: "Video Editing",
       description: "Professional video editing skills",
     },
+    {
+      category_name: "Game Development",
+      description: "Master game design and development",
+    },
+    {
+      category_name: "Computer Fundamentals",
+      description: "Learn how to use a computer, its accessories and software",
+    },
   ];
 
   for (const category of courseCategories) {
