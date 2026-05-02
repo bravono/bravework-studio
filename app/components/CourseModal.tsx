@@ -364,8 +364,9 @@ export default function CourseModal({
   const [slug, setSlug] = useState<string>(existingCourse?.slug || "");
   const [content, setContent] = useState<string>(existingCourse?.content || "");
   const [excerpt, setExcerpt] = useState<string>(existingCourse?.excerpt || "");
-  const [ageBracket, setAgeBracket] = useState<string>(
-    existingCourse?.ageBracket || "",
+  const [isForKids, setIsForKids] = useState<boolean>(
+    existingCourse?.isForKids || false,
+  );
   );
   const [selectedTools, setSelectedTools] = useState<number[]>(
     existingCourse?.tools?.map((t) => t.id) || [],
@@ -564,7 +565,8 @@ export default function CourseModal({
       setSlug(existingCourse.slug || "");
       setContent(existingCourse.content || "");
       setExcerpt(existingCourse.excerpt || "");
-      setAgeBracket(existingCourse.ageBracket || "");
+      setIsForKids(existingCourse.isForKids || false);
+      setTags(existingCourse.tags?.join(", ") || "");
       setSelectedTools(existingCourse.software?.map((t) => t.id) || []);
       setDescription(existingCourse.description);
       setStartDate(existingCourse.startDate);
@@ -633,7 +635,7 @@ export default function CourseModal({
           slug,
           content,
           excerpt,
-          age_bracket: ageBracket,
+          is_for_kids: isForKids,
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
           parent_course_id: parentCourseId === "" ? null : parentCourseId,
@@ -934,16 +936,23 @@ export default function CourseModal({
               </div>
             </div>
 
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isForKids"
+                checked={isForKids}
+                onChange={(e) => setIsForKids(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="isForKids" className="text-sm font-medium text-gray-700">
+                For Kids
+              </label>
+            </div>
+
             <div>
-              <label htmlFor="ageBracket" className={labelStyle}>
-                Age Bracket
               </label>
               <input
                 type="text"
-                id="ageBracket"
-                value={ageBracket}
-                onChange={(e) => setAgeBracket(e.target.value)}
-                placeholder="e.g. 18-25"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
