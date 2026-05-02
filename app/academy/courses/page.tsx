@@ -118,6 +118,7 @@ function AcademyCoursesContent() {
     return [
       "All",
       "Free",
+      "Bundles",
       ...Array.from(new Set(courses.map((c) => c.category).filter(Boolean))),
     ];
   }, [courses]);
@@ -142,6 +143,7 @@ function AcademyCoursesContent() {
     return courses.filter((course) => {
       const matchesFilter =
         activeFilter === "All" ||
+        activeFilter === "Bundles" ||
         course.category === activeFilter ||
         (activeFilter === "Free" && course.price === 0);
 
@@ -200,6 +202,10 @@ function AcademyCoursesContent() {
         }
       }
     });
+
+    if (activeFilter === "Bundles") {
+      return items.filter((item) => item.isBundle);
+    }
 
     return items;
   }, [filteredCourses, courses, getDescendants, activeFilter]);

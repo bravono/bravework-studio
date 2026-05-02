@@ -57,10 +57,10 @@ export default function AcademyLandingPage() {
                   Explore Courses
                 </Link>
                 <Link
-                  href="/academy/about"
+                  href="/academy/bundles"
                   className="px-8 py-4 bg-white border-2 border-gray-100 hover:border-blue-600 text-gray-700 font-bold rounded-2xl transition-all flex items-center gap-3"
                 >
-                  Learn Strategy
+                  Explore Bundles
                   <ChevronRight size={20} />
                 </Link>
               </div>
