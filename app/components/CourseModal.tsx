@@ -367,6 +367,8 @@ export default function CourseModal({
   const [isForKids, setIsForKids] = useState<boolean>(
     existingCourse?.isForKids || false,
   );
+  const [tags, setTags] = useState<string>(
+    existingCourse?.tags?.join(", ") || "",
   );
   const [selectedTools, setSelectedTools] = useState<number[]>(
     existingCourse?.tools?.map((t) => t.id) || [],
@@ -636,6 +638,7 @@ export default function CourseModal({
           content,
           excerpt,
           is_for_kids: isForKids,
+          tags: tags.split(",").map((t) => t.trim()).filter((t) => t !== ""),
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
           parent_course_id: parentCourseId === "" ? null : parentCourseId,
@@ -950,9 +953,15 @@ export default function CourseModal({
             </div>
 
             <div>
+              <label htmlFor="tags" className={labelStyle}>
+                Tags (comma separated)
               </label>
               <input
                 type="text"
+                id="tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="e.g. 3D, Animation, Beginner"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>

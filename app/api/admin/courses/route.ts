@@ -69,6 +69,7 @@ export async function GET(request: Request) {
                 c.age_bracket AS "ageBracket",
                 c.is_for_kids AS "isForKids",
                 ct_agg.tools AS software,
+                (SELECT json_agg(t.tag_name) FROM course_tags ct JOIN tags t ON ct.tag_id = t.tag_id WHERE ct.course_id = c.course_id) AS tags,
                 c.slug
             FROM courses c
             LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
@@ -165,6 +166,7 @@ export async function POST(request: Request) {
       excerpt,
       age_bracket: ageBracket,
       is_for_kids: isForKids,
+      tags, // Array of tag names
       tools, // Array of tool IDs
       sessions, // Array of session groups
       parent_course_id: parentCourseId,
@@ -281,6 +283,22 @@ export async function POST(request: Request) {
           await client.query(
             `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
             [courseId, toolId],
+          );
+        }
+      }
+
+      // 3.1 Insert Tags (if any)
+      if (tags && tags.length > 0) {
+        for (const tagName of tags) {
+          // Upsert tag
+          const tagResult = await client.query(
+            `INSERT INTO tags (tag_name) VALUES ($1) ON CONFLICT (tag_name) DO UPDATE SET tag_name = EXCLUDED.tag_name RETURNING tag_id`,
+            [tagName]
+          );
+          const tagId = tagResult.rows[0].tag_id;
+          await client.query(
+            `INSERT INTO course_tags (course_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [courseId, tagId]
           );
         }
       }
