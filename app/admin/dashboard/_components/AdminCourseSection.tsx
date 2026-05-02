@@ -167,6 +167,12 @@ export default function AdminCourseSection({
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Date Range
                 </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Level
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Hierarchy
+                </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
                   Actions
                 </th>
@@ -177,7 +183,7 @@ export default function AdminCourseSection({
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td
-                      colSpan={5}
+                      colSpan={7}
                       className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"
                     ></td>
                   </tr>
@@ -242,6 +248,27 @@ export default function AdminCourseSection({
                         End: {format(new Date(course.endDate), "dd MMM yyyy")}
                       </p>
                     </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                        {course.level}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-gray-500">
+                      {course.parentCourseId ? (
+                        <p className="flex items-center gap-1">
+                          <span className="font-bold text-gray-400">P:</span>{" "}
+                          {courses.find((c) => Number(c.id) === course.parentCourseId)?.title || "Unknown"}
+                        </p>
+                      ) : (
+                        <p className="italic opacity-50">Root</p>
+                      )}
+                      {course.childCourseIds && course.childCourseIds.length > 0 && (
+                        <p className="flex items-center gap-1 mt-1">
+                          <span className="font-bold text-gray-400">C:</span>{" "}
+                          {course.childCourseIds.length} Paths
+                        </p>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end space-x-2">
                         <button
@@ -265,7 +292,7 @@ export default function AdminCourseSection({
               ) : (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={7}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     No courses found matching the criteria.
