@@ -33,6 +33,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -103,15 +104,22 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  type NavSubItem = {
+    label: string;
+    icon: any;
+    href?: string;
+    items?: {
+      label: string;
+      href: string;
+      icon: any;
+    }[];
+  };
+
   type NavLinkItem =
     | {
         label: string;
         icon: any;
-        items: {
-          label: string;
-          href: string;
-          icon: any;
-        }[];
+        items: NavSubItem[];
         href?: never;
       }
     | {
@@ -134,10 +142,17 @@ export default function Navbar() {
       ],
     },
     {
-      label: "Ecosystems",
+      label: "Ecosystem",
       icon: ChevronDown,
       items: [
-        { label: "Academy", href: "/academy", icon: GraduationCap },
+        {
+          label: "Academy",
+          icon: GraduationCap,
+          items: [
+            { label: "Courses", href: "/academy/courses", icon: GraduationCap },
+            { label: "Bundles", href: "/academy/bundles", icon: FileText },
+          ],
+        },
         { label: "Rentals", href: "/academy/rentals", icon: Key },
         { label: "Kids", href: "/kids", icon: Gamepad2 },
       ],
@@ -222,26 +237,91 @@ export default function Navbar() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          onMouseLeave={() => setActiveDropdown(null)}
+                          onMouseLeave={() => {
+                            setActiveDropdown(null);
+                            setActiveSubMenu(null);
+                          }}
                           className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
                         >
                           {link.items.map((item) => (
-                            <Link
-                              key={item.label}
-                              href={item.href}
-                              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                pushCrossPromotionClick({
-                                  to_section: getSectionFromPath(item.href),
-                                  promotion_type: "navbar",
-                                  clicked_item: item.label,
-                                });
-                              }}
-                            >
-                              <item.icon className="w-5 h-5 text-gray-400 group-hover:text-green-500" />
-                              {item.label}
-                            </Link>
+                            <div key={item.label} className="relative">
+                              {item.items ? (
+                                <>
+                                  <button
+                                    onMouseEnter={() =>
+                                      setActiveSubMenu(item.label)
+                                    }
+                                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors group/sub"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <item.icon className="w-5 h-5 text-gray-400 group-hover/sub:text-green-500" />
+                                      {item.label}
+                                    </div>
+                                    <ChevronDown
+                                      className={`w-4 h-4 transition-transform duration-300 ${
+                                        activeSubMenu === item.label
+                                          ? "-rotate-90"
+                                          : ""
+                                      }`}
+                                    />
+                                  </button>
+                                  <AnimatePresence>
+                                    {activeSubMenu === item.label && (
+                                      <motion.div
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 10 }}
+                                        transition={{ duration: 0.2 }}
+                                        onMouseLeave={() =>
+                                          setActiveSubMenu(null)
+                                        }
+                                        className="absolute left-full top-0 ml-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50"
+                                      >
+                                        {item.items.map((subItem) => (
+                                          <Link
+                                            key={subItem.label}
+                                            href={subItem.href}
+                                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors"
+                                            onClick={() => {
+                                              setActiveDropdown(null);
+                                              setActiveSubMenu(null);
+                                              pushCrossPromotionClick({
+                                                to_section: getSectionFromPath(
+                                                  subItem.href
+                                                ),
+                                                promotion_type: "navbar",
+                                                clicked_item: subItem.label,
+                                              });
+                                            }}
+                                          >
+                                            <subItem.icon className="w-4 h-4 text-gray-400" />
+                                            {subItem.label}
+                                          </Link>
+                                        ))}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </>
+                              ) : (
+                                <Link
+                                  href={item.href!}
+                                  className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors group/sub"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    pushCrossPromotionClick({
+                                      to_section: getSectionFromPath(
+                                        item.href!
+                                      ),
+                                      promotion_type: "navbar",
+                                      clicked_item: item.label,
+                                    });
+                                  }}
+                                >
+                                  <item.icon className="w-5 h-5 text-gray-400 group-hover/sub:text-green-500" />
+                                  {item.label}
+                                </Link>
+                              )}
+                            </div>
                           ))}
                         </motion.div>
                       )}
@@ -523,24 +603,88 @@ export default function Navbar() {
                         </p>
                         <div className="grid grid-cols-1 gap-1">
                           {link.items.map((item) => (
-                            <Link
-                              key={item.label}
-                              href={item.href}
-                              onClick={() => {
-                                setIsMenuOpen(false);
-                                pushCrossPromotionClick({
-                                  to_section: getSectionFromPath(item.href),
-                                  promotion_type: "navbar",
-                                  clicked_item: item.label,
-                                });
-                              }}
-                              className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
-                            >
-                              <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-green-100 transition-colors">
-                                <item.icon className="w-5 h-5 text-gray-500" />
-                              </div>
-                              {item.label}
-                            </Link>
+                            <div key={item.label}>
+                              {item.items ? (
+                                <div className="space-y-1">
+                                  <button
+                                    onClick={() =>
+                                      setActiveSubMenu(
+                                        activeSubMenu === item.label
+                                          ? null
+                                          : item.label
+                                      )
+                                    }
+                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
+                                  >
+                                    <div className="flex items-center gap-4">
+                                      <div className="p-2 bg-gray-100 rounded-lg">
+                                        <item.icon className="w-5 h-5 text-gray-500" />
+                                      </div>
+                                      {item.label}
+                                    </div>
+                                    <ChevronDown
+                                      className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                                        activeSubMenu === item.label
+                                          ? "rotate-180"
+                                          : ""
+                                      }`}
+                                    />
+                                  </button>
+                                  <AnimatePresence>
+                                    {activeSubMenu === item.label && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden pl-12 space-y-1"
+                                      >
+                                        {item.items.map((subItem) => (
+                                          <Link
+                                            key={subItem.label}
+                                            href={subItem.href}
+                                            onClick={() => {
+                                              setIsMenuOpen(false);
+                                              pushCrossPromotionClick({
+                                                to_section: getSectionFromPath(
+                                                  subItem.href
+                                                ),
+                                                promotion_type: "navbar",
+                                                clicked_item: subItem.label,
+                                              });
+                                            }}
+                                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-green-600 font-medium transition-colors"
+                                          >
+                                            <subItem.icon className="w-4 h-4" />
+                                            {subItem.label}
+                                          </Link>
+                                        ))}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              ) : (
+                                <Link
+                                  key={item.label}
+                                  href={item.href!}
+                                  onClick={() => {
+                                    setIsMenuOpen(false);
+                                    pushCrossPromotionClick({
+                                      to_section: getSectionFromPath(
+                                        item.href!
+                                      ),
+                                      promotion_type: "navbar",
+                                      clicked_item: item.label,
+                                    });
+                                  }}
+                                  className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
+                                >
+                                  <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-green-100 transition-colors">
+                                    <item.icon className="w-5 h-5 text-gray-500" />
+                                  </div>
+                                  {item.label}
+                                </Link>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
