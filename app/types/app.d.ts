@@ -215,7 +215,6 @@ interface Course {
   slug?: string;
   content?: string;
   excerpt?: string;
-  ageBracket?: string;
   isForKids: boolean;
   tools?: Tool[];
   tags?: string[];

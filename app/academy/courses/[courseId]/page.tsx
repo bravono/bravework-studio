@@ -272,20 +272,6 @@ export default function CoursePage() {
 
                     <div className="flex items-start">
                       <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
-                        <Users className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">
-                          Age Group
-                        </p>
-                        <p className="font-bold text-gray-900">
-                          {course?.ageBracket}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
                         <Github className="w-5 h-5" />
                       </div>
                       <div>
