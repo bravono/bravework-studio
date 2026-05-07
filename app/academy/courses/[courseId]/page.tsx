@@ -270,6 +270,7 @@ export default function CoursePage() {
                       </div>
                     </div>
 
+
                     <div className="flex items-start">
                       <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
                         <Github className="w-5 h-5" />

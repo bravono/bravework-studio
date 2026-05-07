@@ -243,9 +243,9 @@ export async function POST(request: Request) {
       const insertCourseQuery = `
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
-                    instructor_id, is_active, is_published, max_students, thumbnail_url, 
+                    instructor_id, is_active, max_students, thumbnail_url, 
                     course_category_id, level, language, slug, content, excerpt, is_for_kids, parent_course_id, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
                 RETURNING course_id;
             `;
       const courseParams = [
