@@ -256,7 +256,6 @@ export async function POST(request: Request) {
         endDate,
         instructorId,
         isActive,
-        isPublished || false,
         maxStudents,
         thumbnailUrl,
         categoryId,
