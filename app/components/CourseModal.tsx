@@ -338,7 +338,8 @@ export default function CourseModal({
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
   const initialInstructorName =
-    existingCourse?.instructor || currentInstructorName; // Use the logged-in instructor's name for instructor role
+    existingCourse?.instructor ||
+    (userRole === "admin" ? "none" : currentInstructorName); // Use "none" for admin to allow selection, instructor defaults to self
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false,
@@ -626,7 +627,8 @@ export default function CourseModal({
           description,
           start_date: startDate || null,
           end_date: endDate || null,
-          instructor,
+          instructor:
+            instructor === "none" ? currentInstructorName : instructor,
           is_active: isActive,
           is_published: isPublished,
           max_students: maxStudents,
@@ -778,6 +780,7 @@ export default function CourseModal({
                   <option value="" disabled>
                     Select an instructor
                   </option>
+                  <option value="none">None (Assign to me)</option>
                   {availableInstructors.map((inst, ind) => (
                     <option key={ind + 1} value={inst.fullName}>
                       {inst.fullName}

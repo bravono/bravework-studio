@@ -157,7 +157,6 @@ export async function PATCH(
       slug,
       content,
       excerpt,
-      age_bracket: ageBracket,
       is_for_kids: isForKids,
       tags, // Array of tag names
       tools, // Array of tool IDs
@@ -225,8 +224,8 @@ export async function PATCH(
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, is_published = $8, max_students = $9, thumbnail_url = $10, 
-                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, age_bracket = $17, is_for_kids = $18, parent_course_id = $19
-                WHERE course_id = $20;
+                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, is_for_kids = $17, parent_course_id = $18
+                WHERE course_id = $19;
             `;
       const courseParams = [
         title,
@@ -245,7 +244,6 @@ export async function PATCH(
         slug,
         content,
         excerpt,
-        ageBracket,
         isForKids || false,
         parentCourseId || null,
         courseId,

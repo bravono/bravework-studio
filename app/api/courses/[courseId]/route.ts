@@ -26,7 +26,6 @@ export async function GET(
         c.early_bird_discount AS "discount",
         c.discount_start_date AS "discountStartDate",
         c.discount_end_date AS "discountEndDate",
-        c.age_bracket AS "ageBracket",
         c.content,
         s.session_number AS "sessionOption",
         CASE s.session_number
