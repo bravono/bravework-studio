@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { ShowMore } from "@re-dev/react-truncate";
+import ExpandableText from "../components/ExpandableText";
 import { Calendar, Award, Hourglass, DollarSign, Filter } from "lucide-react";
 
 import Link from "next/link";
@@ -245,17 +245,11 @@ export default function coursesPage({ page }) {
                         </div>
                       </div>
 
-                      <ShowMore
+                      <ExpandableText
+                        text={course.description || ""}
+                        maxChars={150}
                         className="text-gray-600 text-sm leading-relaxed mb-6"
-                        lines={3}
-                        more={
-                          <span className="text-primary font-medium cursor-pointer hover:underline ml-1">
-                            Read more
-                          </span>
-                        }
-                      >
-                        <div>{course.description}</div>
-                      </ShowMore>
+                      />
 
                       <div className="flex-grow space-y-3 mb-6">
                         <div className="flex items-center gap-3 text-sm text-gray-600">

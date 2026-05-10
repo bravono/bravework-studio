@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import VideoModal from "./VideoModal";
+import ExpandableText from "./ExpandableText";
 
 interface CourseDetailCardProps {
   course: Course;
@@ -203,9 +204,11 @@ export default function CourseDetailCard({
                 {course.level}
               </span>
             </div>
-            <p className="text-gray-500 text-sm line-clamp-2">
-              {course.description}
-            </p>
+            <ExpandableText
+              text={course.description || ""}
+              maxChars={120}
+              className="text-gray-500 text-sm"
+            />
           </div>
           
           {/* Progress Section */}

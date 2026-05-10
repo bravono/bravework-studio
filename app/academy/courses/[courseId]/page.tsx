@@ -19,6 +19,7 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import ExpandableText from "@/app/components/ExpandableText";
 
 // --- New Hook for Timezone Conversion ---
 const useLocalTimezone = (dateTimeString) => {
@@ -349,8 +350,12 @@ export default function CoursePage() {
               <h3 className="text-3xl font-bold text-secondary-dark mb-6">
                 About the Course
               </h3>
-              <div className="prose prose-lg text-gray-600 mb-10">
-                <p className="leading-relaxed">{course?.description}</p>
+              <div className="text-gray-600 mb-10">
+                <ExpandableText 
+                  text={course?.description || ""} 
+                  maxChars={300} 
+                  className="text-lg leading-relaxed"
+                />
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-4">

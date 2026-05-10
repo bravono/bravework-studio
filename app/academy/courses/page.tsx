@@ -29,7 +29,7 @@ import {
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ShowMore } from "@re-dev/react-truncate";
+import ExpandableText from "../../components/ExpandableText";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
@@ -654,17 +654,11 @@ function AcademyCoursesContent() {
                         {course.title}
                       </h3>
 
-                      <ShowMore
+                      <ExpandableText
+                        text={course.description || ""}
+                        maxChars={150}
                         className="text-gray-500 text-sm leading-relaxed mb-6"
-                        lines={3}
-                        more={
-                          <span className="text-blue-600 font-bold cursor-pointer hover:underline ml-1">
-                            Read more
-                          </span>
-                        }
-                      >
-                        <div>{course.description}</div>
-                      </ShowMore>
+                      />
 
                       {course.tags && course.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-8">
