@@ -56,7 +56,6 @@ const teamMembers: TeamMember[] = [
     links: {
       linkedin:
         "https://www.linkedin.com/in/kudus-yusuf-4b3a9233b?utm_source=share_via&utm_content=profile&utm_medium=member_android",
-      twitter: "#",
     },
   },
   {
@@ -67,6 +66,16 @@ const teamMembers: TeamMember[] = [
     links: {
       linkedin: "#",
       twitter: "#",
+    },
+  },
+  {
+    name: "Salaudeen Jaleel Baba",
+    role: "Instructional Designer & Curriculum Specialist",
+    bio: `Experienced Instructional Designer and Curriculum Specialist with a PhD in Curriculum & Instruction. Passionate about creating engaging learning experiences using empathy, feedback, and personalization. Expertise in educational consulting, curriculum development, and bridging theory with real-world needs. Open to collaborations in instructional design and research.`,
+    image: "/assets/team/salaudeen_jaleel_baba.jpeg",
+    links: {
+      linkedin:
+        "https://www.linkedin.com/in/salaudeen-jaleel-baba-m-ed-2a4493192?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
     },
   },
 ];
