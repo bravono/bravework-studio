@@ -80,7 +80,8 @@ export async function GET(
                 c.excerpt,
                 c.is_for_kids AS "isForKids",
                 (SELECT json_agg(t.tag_name) FROM course_tags ct JOIN tags t ON ct.tag_id = t.tag_id WHERE ct.course_id = c.course_id) AS tags,
-                c.slug
+                c.slug,
+                c.duration
             FROM courses c
             JOIN instructors i ON c.instructor_id = i.instructor_id
             JOIN course_categories cc ON c.course_category_id = cc.category_id
@@ -164,6 +165,7 @@ export async function PATCH(
       sessions, // Array of session groups
       parent_course_id: parentCourseId,
       child_course_ids: childCourseIds,
+      duration,
     } = body;
 
     console.log("Course ID", courseId);
@@ -220,13 +222,12 @@ export async function PATCH(
       const categoryId = categoryResult.rows[0]?.category_id;
       if (!categoryId) throw new Error("Category not found.");
 
-      // 2. Update Base Course
       const updateCourseQuery = `
                 UPDATE courses SET
                     title = $1, price_in_kobo = $2, description = $3, start_date = $4, end_date = $5, 
                     instructor_id = $6, is_active = $7, is_published = $8, max_students = $9, thumbnail_url = $10, 
-                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, is_for_kids = $17, parent_course_id = $18
-                WHERE course_id = $19;
+                    course_category_id = $11, level = $12, language = $13, slug = $14, content = $15, excerpt = $16, is_for_kids = $17, parent_course_id = $18, duration = $19
+                WHERE course_id = $20;
             `;
       const courseParams = [
         title,
@@ -247,6 +248,7 @@ export async function PATCH(
         excerpt,
         isForKids || false,
         parentCourseId || null,
+        duration || null,
         courseId,
       ];
 
@@ -281,12 +283,12 @@ export async function PATCH(
           // Upsert tag
           const tagResult = await client.query(
             `INSERT INTO tags (tag_name) VALUES ($1) ON CONFLICT (tag_name) DO UPDATE SET tag_name = EXCLUDED.tag_name RETURNING tag_id`,
-            [tagName]
+            [tagName],
           );
           const tagId = tagResult.rows[0].tag_id;
           await client.query(
             `INSERT INTO course_tags (course_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [courseId, tagId]
+            [courseId, tagId],
           );
         }
       }
@@ -296,18 +298,18 @@ export async function PATCH(
       if (childCourseIds && childCourseIds.length > 0) {
         await client.query(
           `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1 AND course_id != ALL($2::int[])`,
-          [courseId, childCourseIds]
+          [courseId, childCourseIds],
         );
         // Next, set parent_course_id for the newly selected children
         await client.query(
           `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2::int[])`,
-          [courseId, childCourseIds]
+          [courseId, childCourseIds],
         );
       } else {
         // If no child courses are selected, remove parent_course_id from all current children
         await client.query(
           `UPDATE courses SET parent_course_id = NULL WHERE parent_course_id = $1`,
-          [courseId]
+          [courseId],
         );
       }
 

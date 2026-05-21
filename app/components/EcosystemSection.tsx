@@ -65,7 +65,7 @@ const ecosystems = [
     description:
       "Cutting-edge software, mobile apps, and 3D assets for businesses. We bring your most ambitious visions to life.",
     icon: Sparkles,
-    link: "/studio",
+    link: "/academy/contact",
     color: "from-green-500 to-emerald-500",
     btnColor: "bg-green-600 hover:bg-green-700",
     badge: "B2B Solutions",

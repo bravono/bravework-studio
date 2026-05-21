@@ -69,7 +69,8 @@ export async function GET(request: Request) {
                 c.is_for_kids AS "isForKids",
                 ct_agg.tools AS software,
                 (SELECT json_agg(t.tag_name) FROM course_tags ct JOIN tags t ON ct.tag_id = t.tag_id WHERE ct.course_id = c.course_id) AS tags,
-                c.slug
+                c.slug,
+                c.duration
             FROM courses c
             LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
             LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
@@ -170,6 +171,7 @@ export async function POST(request: Request) {
       sessions, // Array of session groups
       parent_course_id: parentCourseId,
       child_course_ids: childCourseIds,
+      duration,
     } = body;
 
     // Input Validation (Simplified for brevity, assuming external schema validation)
@@ -244,8 +246,8 @@ export async function POST(request: Request) {
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
                     instructor_id, is_active, max_students, thumbnail_url, 
-                    course_category_id, level, language, slug, content, excerpt, is_for_kids, parent_course_id, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+                    course_category_id, level, language, slug, content, excerpt, is_for_kids, parent_course_id, duration, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
                 RETURNING course_id;
             `;
       const courseParams = [
@@ -266,6 +268,7 @@ export async function POST(request: Request) {
         excerpt,
         isForKids || false,
         parentCourseId || null,
+        duration || null,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -291,12 +294,12 @@ export async function POST(request: Request) {
           // Upsert tag
           const tagResult = await client.query(
             `INSERT INTO tags (tag_name) VALUES ($1) ON CONFLICT (tag_name) DO UPDATE SET tag_name = EXCLUDED.tag_name RETURNING tag_id`,
-            [tagName]
+            [tagName],
           );
           const tagId = tagResult.rows[0].tag_id;
           await client.query(
             `INSERT INTO course_tags (course_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [courseId, tagId]
+            [courseId, tagId],
           );
         }
       }
@@ -305,7 +308,7 @@ export async function POST(request: Request) {
       if (childCourseIds && childCourseIds.length > 0) {
         await client.query(
           `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2)`,
-          [courseId, childCourseIds]
+          [courseId, childCourseIds],
         );
       }
 

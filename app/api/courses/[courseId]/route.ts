@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: { courseId: string } },
 ) {
   console.log("Received GET request for courseId:", params.courseId);
   try {
@@ -35,7 +35,8 @@ export async function GET(
         END AS "sessionLabel",
         s.sessions,
         ct_agg.tools AS software,
-        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds"
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds",
+        c.duration
       FROM courses c
       JOIN (
         SELECT
@@ -77,7 +78,7 @@ export async function GET(
     console.error("Error fetching course:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

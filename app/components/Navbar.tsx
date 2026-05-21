@@ -148,6 +148,7 @@ export default function Navbar() {
         {
           label: "Academy",
           icon: GraduationCap,
+          href: "/academy",
           items: [
             { label: "Courses", href: "/academy/courses", icon: GraduationCap },
             { label: "Bundles", href: "/academy/bundles", icon: FileText },
@@ -247,24 +248,46 @@ export default function Navbar() {
                             <div key={item.label} className="relative">
                               {item.items ? (
                                 <>
-                                  <button
-                                    onMouseEnter={() =>
-                                      setActiveSubMenu(item.label)
-                                    }
-                                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors group/sub"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <item.icon className="w-5 h-5 text-gray-400 group-hover/sub:text-green-500" />
-                                      {item.label}
-                                    </div>
-                                    <ChevronDown
-                                      className={`w-4 h-4 transition-transform duration-300 ${
-                                        activeSubMenu === item.label
-                                          ? "-rotate-90"
-                                          : ""
-                                      }`}
-                                    />
-                                  </button>
+                                  {item.href ? (
+                                    <Link
+                                      href={item.href}
+                                      onMouseEnter={() =>
+                                        setActiveSubMenu(item.label)
+                                      }
+                                      className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors group/sub"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <item.icon className="w-5 h-5 text-gray-400 group-hover/sub:text-green-500" />
+                                        {item.label}
+                                      </div>
+                                      <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-300 ${
+                                          activeSubMenu === item.label
+                                            ? "-rotate-90"
+                                            : ""
+                                        }`}
+                                      />
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      onMouseEnter={() =>
+                                        setActiveSubMenu(item.label)
+                                      }
+                                      className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors group/sub"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <item.icon className="w-5 h-5 text-gray-400 group-hover/sub:text-green-500" />
+                                        {item.label}
+                                      </div>
+                                      <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-300 ${
+                                          activeSubMenu === item.label
+                                            ? "-rotate-90"
+                                            : ""
+                                        }`}
+                                      />
+                                    </button>
+                                  )}
                                   <AnimatePresence>
                                     {activeSubMenu === item.label && (
                                       <motion.div
@@ -287,7 +310,7 @@ export default function Navbar() {
                                               setActiveSubMenu(null);
                                               pushCrossPromotionClick({
                                                 to_section: getSectionFromPath(
-                                                  subItem.href
+                                                  subItem.href,
                                                 ),
                                                 promotion_type: "navbar",
                                                 clicked_item: subItem.label,
@@ -310,7 +333,7 @@ export default function Navbar() {
                                     setActiveDropdown(null);
                                     pushCrossPromotionClick({
                                       to_section: getSectionFromPath(
-                                        item.href!
+                                        item.href!,
                                       ),
                                       promotion_type: "navbar",
                                       clicked_item: item.label,
@@ -606,30 +629,63 @@ export default function Navbar() {
                             <div key={item.label}>
                               {item.items ? (
                                 <div className="space-y-1">
-                                  <button
-                                    onClick={() =>
-                                      setActiveSubMenu(
-                                        activeSubMenu === item.label
-                                          ? null
-                                          : item.label
-                                      )
-                                    }
-                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
-                                  >
-                                    <div className="flex items-center gap-4">
-                                      <div className="p-2 bg-gray-100 rounded-lg">
-                                        <item.icon className="w-5 h-5 text-gray-500" />
-                                      </div>
-                                      {item.label}
+                                  {item.href ? (
+                                    <div className="flex items-center w-full">
+                                      <Link
+                                        href={item.href}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="flex-1 flex items-center gap-4 px-4 py-3 rounded-l-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
+                                      >
+                                        <div className="p-2 bg-gray-100 rounded-lg">
+                                          <item.icon className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        {item.label}
+                                      </Link>
+                                      <button
+                                        onClick={() =>
+                                          setActiveSubMenu(
+                                            activeSubMenu === item.label
+                                              ? null
+                                              : item.label,
+                                          )
+                                        }
+                                        className="p-4 rounded-r-xl hover:bg-gray-50 border-l border-gray-100 transition-colors"
+                                      >
+                                        <ChevronDown
+                                          className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                                            activeSubMenu === item.label
+                                              ? "rotate-180"
+                                              : ""
+                                          }`}
+                                        />
+                                      </button>
                                     </div>
-                                    <ChevronDown
-                                      className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                                        activeSubMenu === item.label
-                                          ? "rotate-180"
-                                          : ""
-                                      }`}
-                                    />
-                                  </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setActiveSubMenu(
+                                          activeSubMenu === item.label
+                                            ? null
+                                            : item.label,
+                                        )
+                                      }
+                                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-semibold transition-colors"
+                                    >
+                                      <div className="flex items-center gap-4">
+                                        <div className="p-2 bg-gray-100 rounded-lg">
+                                          <item.icon className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        {item.label}
+                                      </div>
+                                      <ChevronDown
+                                        className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                                          activeSubMenu === item.label
+                                            ? "rotate-180"
+                                            : ""
+                                        }`}
+                                      />
+                                    </button>
+                                  )}
                                   <AnimatePresence>
                                     {activeSubMenu === item.label && (
                                       <motion.div
@@ -646,7 +702,7 @@ export default function Navbar() {
                                               setIsMenuOpen(false);
                                               pushCrossPromotionClick({
                                                 to_section: getSectionFromPath(
-                                                  subItem.href
+                                                  subItem.href,
                                                 ),
                                                 promotion_type: "navbar",
                                                 clicked_item: subItem.label,
@@ -670,7 +726,7 @@ export default function Navbar() {
                                     setIsMenuOpen(false);
                                     pushCrossPromotionClick({
                                       to_section: getSectionFromPath(
-                                        item.href!
+                                        item.href!,
                                       ),
                                       promotion_type: "navbar",
                                       clicked_item: item.label,

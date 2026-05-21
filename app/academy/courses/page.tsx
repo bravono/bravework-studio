@@ -117,6 +117,8 @@ function AcademyCoursesContent() {
   const categories = useMemo(() => {
     return [
       "All",
+      "Latest",
+      "Popular",
       "Free",
       "Bundles",
       ...Array.from(new Set(courses.map((c) => c.category).filter(Boolean))),
@@ -140,9 +142,11 @@ function AcademyCoursesContent() {
   };
 
   const filteredCourses = useMemo(() => {
-    return courses.filter((course) => {
+    let result = courses.filter((course) => {
       const matchesFilter =
         activeFilter === "All" ||
+        activeFilter === "Latest" ||
+        activeFilter === "Popular" ||
         activeFilter === "Bundles" ||
         course.category === activeFilter ||
         (activeFilter === "Free" && course.price === 0);
@@ -157,6 +161,19 @@ function AcademyCoursesContent() {
 
       return matchesFilter && matchesSearch && matchesTags;
     });
+
+    if (activeFilter === "Popular") {
+      result = [...result].sort(
+        (a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0),
+      );
+    } else if (activeFilter === "Latest" || activeFilter === "All") {
+      result = [...result].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    }
+
+    return result;
   }, [courses, activeFilter, searchQuery, selectedTags]);
 
   const getDescendants = useCallback(
@@ -312,8 +329,8 @@ function AcademyCoursesContent() {
                   onClick={() => setActiveFilter(filter)}
                   className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
                     activeFilter === filter
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                      : "bg-white text-gray-600 border border-gray-200 hover:border-blue-500"
+                      ? "bg-green-600 text-white shadow-lg shadow-green-500/30"
+                      : "bg-white text-gray-600 border border-gray-200 hover:border-green-500"
                   }`}
                 >
                   {filter}
@@ -331,7 +348,7 @@ function AcademyCoursesContent() {
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all"
               />
             </div>
           </div>
@@ -345,7 +362,7 @@ function AcademyCoursesContent() {
                 {selectedTags.length > 0 && (
                   <button
                     onClick={() => setSelectedTags([])}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
                   >
                     Clear all tags
                   </button>
@@ -360,13 +377,13 @@ function AcademyCoursesContent() {
                       onClick={() => toggleTag(tag)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                         isActive
-                          ? "bg-blue-50 text-blue-600 border-2 border-blue-600 ring-4 ring-blue-50/50"
-                          : "bg-white text-gray-500 border border-gray-200 hover:border-blue-300 hover:bg-gray-50/50"
+                          ? "bg-green-50 text-green-600 border-2 border-green-600 ring-4 ring-green-50/50"
+                          : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:bg-gray-50/50"
                       }`}
                     >
                       {tag}
                       {isActive && (
-                        <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white text-[10px]">
+                        <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 text-white text-[10px]">
                           ✓
                         </span>
                       )}
@@ -391,7 +408,7 @@ function AcademyCoursesContent() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-12 p-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-500/20"
+            className="mt-12 p-8 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-green-500/20"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -403,7 +420,7 @@ function AcademyCoursesContent() {
                 <h2 className="text-2xl md:text-3xl font-black mb-2 text-center md:text-left">
                   Build Your Power Bundle
                 </h2>
-                <p className="text-blue-100 max-w-xl text-sm md:text-base text-center md:text-left">
+                <p className="text-green-100 max-w-xl text-sm md:text-base text-center md:text-left">
                   Select up to 3 courses and get up to{" "}
                   <span className="text-white font-black text-lg md:text-xl">
                     20% OFF
@@ -467,21 +484,21 @@ function AcademyCoursesContent() {
                       layout
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white rounded-[2.5rem] border-2 border-blue-100 overflow-hidden hover:shadow-2xl hover:shadow-blue-200/50 transition-all group flex flex-col h-full relative"
+                      className="bg-white rounded-[2.5rem] border-2 border-green-100 overflow-hidden hover:shadow-2xl hover:shadow-green-200/50 transition-all group flex flex-col h-full relative"
                     >
                       <div className="absolute top-4 right-4 z-20">
-                        <div className="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-full shadow-lg uppercase tracking-widest">
+                        <div className="px-4 py-1.5 bg-green-600 text-white text-[10px] font-black rounded-full shadow-lg uppercase tracking-widest">
                           {Math.round(discount * 100)}% Bundle Save
                         </div>
                       </div>
 
-                      <div className="relative aspect-[16/10] overflow-hidden bg-blue-50">
+                      <div className="relative aspect-[16/10] overflow-hidden bg-green-50">
                         {/* Stacked cards effect */}
                         <div className="absolute inset-0 flex items-center justify-center p-8">
                           <div className="relative w-full h-full">
-                            <div className="absolute inset-0 bg-blue-200 rounded-2xl rotate-3 scale-95 opacity-50"></div>
-                            <div className="absolute inset-0 bg-blue-400 rounded-2xl -rotate-3 scale-95 opacity-30"></div>
-                            <div className="absolute inset-0 bg-white rounded-2xl shadow-xl border border-blue-100 flex items-center justify-center overflow-hidden">
+                            <div className="absolute inset-0 bg-green-200 rounded-2xl rotate-3 scale-95 opacity-50"></div>
+                            <div className="absolute inset-0 bg-green-400 rounded-2xl -rotate-3 scale-95 opacity-30"></div>
+                            <div className="absolute inset-0 bg-white rounded-2xl shadow-xl border border-green-100 flex items-center justify-center overflow-hidden">
                               <img
                                 src={
                                   course.thumbnailUrl ||
@@ -490,7 +507,7 @@ function AcademyCoursesContent() {
                                 alt={course.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent"></div>
+                              <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 to-transparent"></div>
                               <div className="absolute bottom-6 left-6 text-white">
                                 <div className="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">
                                   Preset Bundle
@@ -504,12 +521,12 @@ function AcademyCoursesContent() {
                         </div>
                       </div>
 
-                      <div className="p-8 flex flex-col flex-grow bg-gradient-to-b from-blue-50/50 to-white">
-                        <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-blue-600">
+                      <div className="p-8 flex flex-col flex-grow bg-gradient-to-b from-green-50/50 to-white">
+                        <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-green-600">
                           <Tag size={14} />
                           Academy Bundle • {bundleCourses.length} Courses
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
                           {item.title}
                         </h3>
 
@@ -519,7 +536,7 @@ function AcademyCoursesContent() {
                               key={bc.id}
                               className="flex items-center gap-3 text-sm"
                             >
-                              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">
+                              <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[10px] font-black">
                                 {idx + 1}
                               </div>
                               <span className="font-bold text-gray-700">
@@ -529,7 +546,7 @@ function AcademyCoursesContent() {
                           ))}
                         </div>
 
-                        <div className="p-4 bg-white rounded-2xl border border-blue-50 mb-8 shadow-sm">
+                        <div className="p-4 bg-white rounded-2xl border border-green-50 mb-8 shadow-sm">
                           <label className="flex items-center gap-3 cursor-pointer group/rental">
                             <input
                               type="checkbox"
@@ -537,20 +554,20 @@ function AcademyCoursesContent() {
                               onChange={(e) =>
                                 setIncludeHardware(e.target.checked)
                               }
-                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
                             />
                             <div>
                               <div className="flex items-center gap-2 font-black text-gray-900 text-sm leading-none">
                                 <Monitor size={14} /> Add Hardware Rental
                               </div>
-                              <div className="text-[10px] text-blue-500 font-bold uppercase tracking-wider mt-1">
+                              <div className="text-[10px] text-green-500 font-bold uppercase tracking-wider mt-1">
                                 +Extra 10% Off Rental Gear
                               </div>
                             </div>
                           </label>
                         </div>
 
-                        <div className="mt-auto pt-6 border-t border-blue-50 flex items-center justify-between">
+                        <div className="mt-auto pt-6 border-t border-green-50 flex items-center justify-between">
                           <div>
                             <div className="text-xs text-gray-400 line-through font-bold mb-1">
                               {exchangeRates && exchangeRates[selectedCurrency]
@@ -561,7 +578,7 @@ function AcademyCoursesContent() {
                                   )
                                 : "---"}
                             </div>
-                            <div className="text-2xl font-black text-blue-600">
+                            <div className="text-2xl font-black text-green-600">
                               {exchangeRates && exchangeRates[selectedCurrency]
                                 ? convertCurrency(
                                     discountedPrice / KOBO_PER_NAIRA,
@@ -573,7 +590,7 @@ function AcademyCoursesContent() {
                           </div>
                           <Link
                             href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
-                            className="px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 text-sm flex items-center gap-2"
+                            className="px-6 py-3 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/20 text-sm flex items-center gap-2"
                           >
                             Enroll All <ChevronRight size={18} />
                           </Link>
@@ -630,7 +647,7 @@ function AcademyCoursesContent() {
                           className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-full h-full cursor-pointer"
                           aria-label="Play intro video"
                         >
-                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-green-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
                             <PlayCircle size={32} />
                           </div>
                         </button>
@@ -638,7 +655,7 @@ function AcademyCoursesContent() {
                       {(!course.category ||
                         !course.category.includes("3D")) && (
                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
+                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-green-600 shadow-2xl scale-0 group-hover:scale-100 transition-transform">
                             <PlayCircle size={32} />
                           </div>
                         </div>
@@ -646,11 +663,11 @@ function AcademyCoursesContent() {
                     </div>
 
                     <div className="p-8 flex flex-col flex-grow">
-                      <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-blue-600">
+                      <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-wider text-green-600">
                         <BookOpen size={14} />
                         {course.category}
                       </div>
-                      <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
                         {course.title}
                       </h3>
 
@@ -680,34 +697,19 @@ function AcademyCoursesContent() {
 
                       <div className="space-y-3 mb-8">
                         <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                          <div className="p-2 bg-green-50 rounded-lg text-green-600">
                             <Calendar size={16} />
                           </div>
                           <div>
                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                               Start Date
                             </p>
-                            <p className="font-bold">
-                              {course.isActive &&
-                              !(
-                                new Date() > new Date(course.startDate) &&
-                                new Date() > new Date(course.endDate)
-                              )
-                                ? new Date(course.startDate).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    },
-                                  )
-                                : "Start Shortly"}
-                            </p>
+                            <p className="font-bold">Start Shortly</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                          <div className="p-2 bg-green-50 rounded-lg text-green-600">
                             <Hourglass size={16} />
                           </div>
                           <div>
@@ -715,16 +717,7 @@ function AcademyCoursesContent() {
                               Duration
                             </p>
                             <p className="font-bold">
-                              {course.isActive &&
-                              !(
-                                new Date() > new Date(course.startDate) &&
-                                new Date() > new Date(course.endDate)
-                              )
-                                ? getWeeksBtwDates(
-                                    course.startDate,
-                                    course.endDate,
-                                  )
-                                : "Start Shortly"}
+                              {course.duration || "Start Shortly"}
                             </p>
                           </div>
                         </div>
@@ -748,7 +741,7 @@ function AcademyCoursesContent() {
                           className={`px-6 py-2.5 font-bold rounded-xl transition-all text-sm ${
                             isEnrolled(Number(course.id))
                               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-gray-900 text-white hover:bg-blue-600"
+                              : "bg-gray-900 text-white hover:bg-green-600"
                           }`}
                         >
                           {isEnrolled(Number(course.id))
@@ -776,8 +769,8 @@ function AcademyCoursesContent() {
                             isEnrolled(Number(course.id))
                               ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
                               : selectedBundle.includes(String(course.id))
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
+                                ? "bg-green-600 text-white border-green-600"
+                                : "bg-white text-green-600 border-green-100 hover:bg-green-50"
                           }`}
                         >
                           {isEnrolled(Number(course.id)) ? (
@@ -833,6 +826,60 @@ function AcademyCoursesContent() {
         </div>
       </section>
 
+      {/* Enterprise Training Card */}
+      <section className="py-24 bg-gray-900 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="w-16 h-16 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-8 ring-1 ring-green-500/50">
+                <ShieldCheck size={32} />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight">
+                Empower Your Team with Creative Tech
+              </h2>
+              <p className="text-xl text-gray-400 mb-12 leading-relaxed">
+                Custom-tailored training programs for schools, agencies, and
+                production houses. We help your staff master the latest tools in
+                3D, Design, and Development.
+              </p>
+              <div className="space-y-6">
+                {[
+                  "Dedicated Instructor Support",
+                  "Custom Learning Management",
+                  "Bulk Enrollment Discounts",
+                  "Co-branded Certifications",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                      <ShieldCheck size={16} />
+                    </div>
+                    <span className="text-lg font-bold text-gray-200">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-md rounded-[3rem] p-12 border border-white/10 text-center">
+              <h3 className="text-3xl font-black mb-6">
+                Enterprise Training Solutions
+              </h3>
+              <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+                Looking for group training or custom curriculum for your
+                organization? Let&apos;s build a plan tailored to your team.
+              </p>
+              <Link
+                href="/academy/contact"
+                className="w-full py-5 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all shadow-xl shadow-green-600/20 flex items-center justify-center gap-3"
+              >
+                Contact Us <ArrowRight size={20} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Bundle Summary UI */}
       {selectedBundle.length > 0 && (
         <motion.div
@@ -840,7 +887,7 @@ function AcademyCoursesContent() {
           animate={{ y: 0, opacity: 1 }}
           className="fixed bottom-0 md:bottom-0 left-0 md:left-2/2 md:-translate-x-1/2 z-[100] w-full md:max-w-4xl px-0 md:px-4"
         >
-          <div className="bg-white rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.15)] md:shadow-2xl border-t md:border border-blue-100 p-5 md:p-8 flex flex-col md:flex-row items-center gap-4 md:gap-8 relative">
+          <div className="bg-white rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.15)] md:shadow-2xl border-t md:border border-green-100 p-5 md:p-8 flex flex-col md:flex-row items-center gap-4 md:gap-8 relative">
             <button
               onClick={() => setSelectedBundle([])}
               className="absolute -top-3 -right-3 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-red-500 transition-colors shadow-lg"
@@ -850,7 +897,7 @@ function AcademyCoursesContent() {
 
             <div className="flex-grow w-full md:w-auto">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                <div className="p-2 bg-green-100 text-green-600 rounded-xl">
                   <ShoppingCart size={24} />
                 </div>
                 <div>
@@ -867,7 +914,7 @@ function AcademyCoursesContent() {
                 {bundleCourses.map((c) => (
                   <div
                     key={c.id}
-                    className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg flex items-center gap-2"
+                    className="px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-lg flex items-center gap-2"
                   >
                     <BookOpen size={12} />
                     {c.title}
@@ -877,12 +924,12 @@ function AcademyCoursesContent() {
             </div>
 
             <div className="w-full md:w-auto flex flex-col gap-4">
-              <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl cursor-pointer group hover:bg-blue-50 transition-colors border border-gray-100 hover:border-blue-100">
+              <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl cursor-pointer group hover:bg-green-50 transition-colors border border-gray-100 hover:border-green-100">
                 <input
                   type="checkbox"
                   checked={includeHardware}
                   onChange={(e) => setIncludeHardware(e.target.checked)}
-                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
                 />
                 <div>
                   <div className="flex items-center gap-2 font-black text-gray-900 leading-none">
@@ -927,7 +974,7 @@ function AcademyCoursesContent() {
 
                 <Link
                   href={`/auth/signup?enroll=true&bundle=${selectedBundle.join(",")}${includeHardware ? "&hardware=true" : ""}`}
-                  className="px-6 md:px-8 py-3.5 md:py-4 bg-blue-600 text-white font-black rounded-xl md:rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 whitespace-nowrap text-sm md:text-base"
+                  className="px-6 md:px-8 py-3.5 md:py-4 bg-green-600 text-white font-black rounded-xl md:rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-green-600/20 whitespace-nowrap text-sm md:text-base"
                 >
                   Check Out <ArrowRight size={20} />
                 </Link>

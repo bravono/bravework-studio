@@ -22,7 +22,7 @@ import {
   CourseModalProps,
   SessionFormProps,
   Tool,
-  Course
+  Course,
 } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
@@ -368,8 +368,9 @@ export default function CourseModal({
   const [isForKids, setIsForKids] = useState<boolean>(
     existingCourse?.isForKids || false,
   );
-  const [tags, setTags] = useState<string>(
-    existingCourse?.tags?.join(", ") || "",
+  const [tags, setTags] = useState<string[]>(existingCourse?.tags || []);
+  const [duration, setDuration] = useState<string>(
+    existingCourse?.duration || "",
   );
   const [selectedTools, setSelectedTools] = useState<number[]>(
     existingCourse?.tools?.map((t) => t.id) || [],
@@ -389,6 +390,9 @@ export default function CourseModal({
     Array<{ name: string }>
   >([]);
   const [availableTools, setAvailableTools] = useState<Tool[]>([]);
+  const [availableTags, setAvailableTags] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
 
   // NEW: State for Hierarchy
@@ -536,6 +540,10 @@ export default function CourseModal({
         const toolsData = await toolsRes.json();
         setAvailableTools(toolsData);
 
+        const tagsRes = await fetch("/api/tags");
+        const tagsData = await tagsRes.json();
+        setAvailableTags(tagsData);
+
         // Fetch courses for hierarchy, we can use the same route or /api/courses
         // For admin/instructor it's better to fetch from their specific API, but /api/courses returns all active
         // To be safe, we will fetch from /api/courses
@@ -569,7 +577,8 @@ export default function CourseModal({
       setContent(existingCourse.content || "");
       setExcerpt(existingCourse.excerpt || "");
       setIsForKids(existingCourse.isForKids || false);
-      setTags(existingCourse.tags?.join(", ") || "");
+      setTags(existingCourse.tags || []);
+      setDuration(existingCourse.duration || "");
       setSelectedTools(existingCourse.software?.map((t) => t.id) || []);
       setDescription(existingCourse.description);
       setStartDate(existingCourse.startDate);
@@ -640,7 +649,8 @@ export default function CourseModal({
           content,
           excerpt,
           is_for_kids: isForKids,
-          tags: tags.split(",").map((t) => t.trim()).filter((t) => t !== ""),
+          tags: tags,
+          duration: duration,
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
           parent_course_id: parentCourseId === "" ? null : parentCourseId,
@@ -759,6 +769,20 @@ export default function CourseModal({
                 id="endDate"
                 value={formatDateTimeLocal(endDate)}
                 onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="duration" className={labelStyle}>
+                Duration (e.g., 4 Weeks, 3 Months)
+              </label>
+              <input
+                type="text"
+                id="duration"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="e.g. 8 Weeks"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
@@ -950,23 +974,43 @@ export default function CourseModal({
                 onChange={(e) => setIsForKids(e.target.checked)}
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-              <label htmlFor="isForKids" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="isForKids"
+                className="text-sm font-medium text-gray-700"
+              >
                 For Kids
               </label>
             </div>
 
             <div>
-              <label htmlFor="tags" className={labelStyle}>
-                Tags (comma separated)
-              </label>
-              <input
-                type="text"
-                id="tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="e.g. 3D, Animation, Beginner"
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
+              <label className={labelStyle}>Tags</label>
+              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableTags.map((tag) => (
+                  <div key={tag.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`tag-${tag.id}`}
+                      value={tag.name}
+                      checked={tags.includes(tag.name)}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        if (e.target.checked) {
+                          setTags([...tags, name]);
+                        } else {
+                          setTags(tags.filter((t) => t !== name));
+                        }
+                      }}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor={`tag-${tag.id}`}
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      {tag.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>

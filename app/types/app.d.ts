@@ -172,6 +172,7 @@ interface UserProfile {
 interface Course {
   id: string;
   title: string;
+  createdAt: string;
   progress: number; // Percentage
   lastAccessed: string; // Date string
   paymentStatus: number; // e.g., 1 = pending, 2 = completed, etc.
@@ -183,6 +184,8 @@ interface Course {
   endDate: string;
   maxStudents: string;
   thumbnailUrl: string;
+  duration?: string;
+  enrollmentCount?: number;
   level: "Beginner" | "Intermediate" | "Advance";
   parentCourseId?: number;
   childCourseIds?: number[];

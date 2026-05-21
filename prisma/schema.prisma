@@ -107,6 +107,7 @@ model courses {
   is_for_kids         Boolean              @default(false)
   updated_at          DateTime?            @default(now()) @db.Timestamp(6)
   is_published        Boolean?             @default(false)
+  duration            String?
   course_enrollments  course_enrollments[]
   course_tags         course_tags[]
   course_tools        course_tools[]

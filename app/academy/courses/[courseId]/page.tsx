@@ -61,13 +61,17 @@ export default function CoursePage() {
   const getDescendants = useCallback((c: Course, list: Course[]): Course[] => {
     let descendants: Course[] = [];
     if (c.childCourseIds && c.childCourseIds.length > 0) {
-      const directChildren = list.filter(item => c.childCourseIds?.includes(Number(item.id)));
+      const directChildren = list.filter((item) =>
+        c.childCourseIds?.includes(Number(item.id)),
+      );
       descendants = [...directChildren];
-      directChildren.forEach(child => {
+      directChildren.forEach((child) => {
         descendants = [...descendants, ...getDescendants(child, list)];
       });
     }
-    return Array.from(new Map(descendants.map(item => [item.id, item])).values());
+    return Array.from(
+      new Map(descendants.map((item) => [item.id, item])).values(),
+    );
   }, []);
 
   const bundleCourses = useMemo(() => {
@@ -129,7 +133,7 @@ export default function CoursePage() {
       price: course.price,
       currency: "NGN",
       course_id: course.id,
-      page: ""
+      page: "",
     });
   }, [course]);
 
@@ -165,11 +169,7 @@ export default function CoursePage() {
     },
   ];
 
-  const studentRenders = [
-    `https://live.staticflickr.com/65535/54877391770_bdca4c1889_b.jpg" width="1024" height="1019" alt="Shaka_render-1`,
-    `https://live.staticflickr.com/65535/54883334764_d3a826c9ce_b.jpg" width="1024" height="1024" alt="Shaka_render-2`,
-    `https://live.staticflickr.com/65535/54883334754_dc0fd5961e_b.jpg" width="1024" height="1024" alt="Shaka_render-3`,
-  ];
+  const studentRenders = [];
 
   // Custom friendly feedback structure
   const friendlyFeedbackBullets = [
@@ -237,15 +237,13 @@ export default function CoursePage() {
                         <p className="text-sm text-gray-500 font-medium">
                           Duration
                         </p>
-                        {isActive ? (
-                          <p className="font-bold text-gray-900">
-                            {course?.sessions !== null &&
-                              course?.sessions[0].duration}{" "}
-                            {course.price === 0 ? "2hrs" : "hrs/week"}
-                          </p>
-                        ) : (
-                          "Open Shortly"
-                        )}
+                        <p className="font-bold text-gray-900">
+                          {course?.duration ||
+                            (isActive
+                              ? course?.sessions !== null &&
+                                course?.sessions[0].duration
+                              : "Open Shortly")}
+                        </p>
                         <p className="text-xs text-gray-500">Live on Zoom</p>
                       </div>
                     </div>
@@ -258,19 +256,9 @@ export default function CoursePage() {
                         <p className="text-sm text-gray-500 font-medium">
                           Start Date
                         </p>
-                        <p className="font-bold text-gray-900">
-                          {isActive
-                            ? new Date(course?.startDate).toLocaleDateString()
-                            : "Open Shortly"}
-                        </p>
-                        {isActive && (
-                          <p className="text-xs text-gray-500">
-                            at {localStartTime || startTime}
-                          </p>
-                        )}
+                        <p className="font-bold text-gray-900">Start Shortly</p>
                       </div>
                     </div>
-
 
                     <div className="flex items-start">
                       <div className="bg-white p-2 rounded-lg shadow-sm mr-4 text-primary">
@@ -351,9 +339,9 @@ export default function CoursePage() {
                 About the Course
               </h3>
               <div className="text-gray-600 mb-10">
-                <ExpandableText 
-                  text={course?.description || ""} 
-                  maxChars={300} 
+                <ExpandableText
+                  text={course?.description || ""}
+                  maxChars={300}
                   className="text-lg leading-relaxed"
                 />
               </div>
@@ -413,6 +401,20 @@ export default function CoursePage() {
           </div>
         )}
 
+        {/* Program Levels */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark mb-10 text-center">
+            Curriculum
+          </h2>
+
+          <div className="ql-snow">
+            <div
+              className="ql-editor !p-0 prose prose-lg max-w-none prose-headings:text-secondary-dark prose-a:text-primary hover:prose-a:text-primary-dark"
+              dangerouslySetInnerHTML={{ __html: course?.content || "" }}
+            />
+          </div>
+        </div>
+
         {/* Testimonials Section */}
         <div className="mb-20">
           <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark text-center mb-12">
@@ -450,76 +452,82 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* Program Levels */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-secondary-dark mb-10 text-center">
-            Curriculum
-          </h2>
-
-          <div className="ql-snow">
-            <div
-              className="ql-editor !p-0 prose prose-lg max-w-none prose-headings:text-secondary-dark prose-a:text-primary hover:prose-a:text-primary-dark"
-              dangerouslySetInnerHTML={{ __html: course?.content || "" }}
-            />
-          </div>
-        </div>
-
         {/* Bundle Section */}
         {bundleCourses.length > 1 && (
           <div className="mb-20">
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
-               
-               <div className="relative z-10">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-                    <div>
-                      <h2 className="text-4xl md:text-5xl font-black mb-4">Included in this Bundle</h2>
-                      <p className="text-blue-100 text-lg max-w-xl">
-                        Enroll in this bundle and gain access to the complete learning path with {bundleCourses.length} professional courses.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                       <div className="px-6 py-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-center">
-                          <div className="text-3xl font-black">{bundleCourses.length}</div>
-                          <div className="text-xs font-bold uppercase tracking-widest opacity-80">Courses</div>
-                       </div>
-                       <div className="px-6 py-3 bg-emerald-500 rounded-2xl shadow-lg text-center">
-                          <div className="text-3xl font-black">20%</div>
-                          <div className="text-xs font-bold uppercase tracking-widest">Savings</div>
-                       </div>
-                    </div>
-                  </div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {bundleCourses.map((bc, idx) => (
-                      <div key={bc.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-[2rem] p-6 hover:bg-white/20 transition-all flex items-center gap-6 group">
-                        <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-blue-600 font-black text-2xl shadow-lg shrink-0">
-                          {idx + 1}
-                        </div>
-                        <div className="flex-grow">
-                          <h4 className="text-xl font-bold mb-1">{bc.title}</h4>
-                          <p className="text-blue-100 text-sm line-clamp-2 opacity-80">{bc.description}</p>
-                        </div>
-                        <Link href={`/academy/courses/${bc.id}`} className="p-3 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ExternalLink size={20} />
-                        </Link>
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                  <div>
+                    <h2 className="text-4xl md:text-5xl font-black mb-4">
+                      Included in this Bundle
+                    </h2>
+                    <p className="text-blue-100 text-lg max-w-xl">
+                      Enroll in this bundle and gain access to the complete
+                      learning path with {bundleCourses.length} professional
+                      courses.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="px-6 py-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-center">
+                      <div className="text-3xl font-black">
+                        {bundleCourses.length}
                       </div>
-                    ))}
+                      <div className="text-xs font-bold uppercase tracking-widest opacity-80">
+                        Courses
+                      </div>
+                    </div>
+                    <div className="px-6 py-3 bg-emerald-500 rounded-2xl shadow-lg text-center">
+                      <div className="text-3xl font-black">20%</div>
+                      <div className="text-xs font-bold uppercase tracking-widest">
+                        Savings
+                      </div>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/20 pt-12">
-                     <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-full border border-white/20">
-                        <Shield className="w-5 h-5 text-emerald-400" />
-                        <span className="text-sm font-bold tracking-wide">Full Curriculum Access & Certification Included</span>
-                     </div>
-                     <Link
-                        href={`/auth/signup?enroll=true&bundle=${bundleCourses.map(c => c.id).join(",")}`}
-                        className="inline-flex items-center justify-center px-12 py-5 bg-white text-blue-600 font-black text-xl rounded-full shadow-2xl hover:bg-blue-50 transition-all transform hover:scale-105"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {bundleCourses.map((bc, idx) => (
+                    <div
+                      key={bc.id}
+                      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-[2rem] p-6 hover:bg-white/20 transition-all flex items-center gap-6 group"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-blue-600 font-black text-2xl shadow-lg shrink-0">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-grow">
+                        <h4 className="text-xl font-bold mb-1">{bc.title}</h4>
+                        <p className="text-blue-100 text-sm line-clamp-2 opacity-80">
+                          {bc.description}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/academy/courses/${bc.id}`}
+                        className="p-3 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        Enroll in Bundle Now <ArrowRight className="ml-3 w-6 h-6" />
+                        <ExternalLink size={20} />
                       </Link>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/20 pt-12">
+                  <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-full border border-white/20">
+                    <Shield className="w-5 h-5 text-emerald-400" />
+                    <span className="text-sm font-bold tracking-wide">
+                      Full Curriculum Access & Certification Included
+                    </span>
                   </div>
-               </div>
+                  <Link
+                    href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}`}
+                    className="inline-flex items-center justify-center px-12 py-5 bg-white text-blue-600 font-black text-xl rounded-full shadow-2xl hover:bg-blue-50 transition-all transform hover:scale-105"
+                  >
+                    Enroll in Bundle Now <ArrowRight className="ml-3 w-6 h-6" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         )}

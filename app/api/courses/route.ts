@@ -7,6 +7,7 @@ export async function GET(request: Request) {
         c.course_id AS id,
         title,
         c.description,
+        c.created_at AS "createdAt",
         is_active AS "isActive",
         start_Date AS "startDate",
         end_date AS "endDate",
@@ -24,7 +25,9 @@ export async function GET(request: Request) {
         i.bio,
         cc.category_name AS category,
         COALESCE(t_agg.tags, '[]') AS tags,
-        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds"
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds",
+        c.duration,
+        (SELECT COUNT(*) FROM course_enrollments WHERE course_id = c.course_id) AS "enrollmentCount"
         FROM courses c
         LEFT JOIN (
         SELECT
@@ -47,7 +50,8 @@ export async function GET(request: Request) {
           JOIN tags t ON ct.tag_id = t.tag_id
           GROUP BY ct.course_id
         ) t_agg ON c.course_id = t_agg.course_id
-        WHERE c.is_published = true`);
+        WHERE c.is_published = true
+        ORDER BY c.created_at DESC`);
 
     const result = courseResults.map((course: any) => ({
       ...course,
