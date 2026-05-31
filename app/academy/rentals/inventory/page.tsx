@@ -10,6 +10,9 @@ import {
   Filter,
   ArrowLeft,
   ChevronRight,
+  Cpu,
+  HardDrive,
+  Layers,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Link from "next/link";
@@ -230,6 +233,43 @@ export default function AcademyInventoryPage() {
                       <MapPin className="h-4 w-4 mr-2 text-green-500" />
                       {rental.locationCity}
                     </div>
+
+                    {(rental.processor || rental.ram || rental.storage) && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {rental.processor && (
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                            <Cpu size={14} className="text-blue-500" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.processor}
+                            </span>
+                          </div>
+                        )}
+                        {rental.ram && (
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                            <Layers size={14} className="text-purple-500" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.ram} RAM
+                            </span>
+                          </div>
+                        )}
+                        {rental.storage && (
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                            <HardDrive size={14} className="text-amber-500" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.storage}
+                            </span>
+                          </div>
+                        )}
+                        {rental.systemType && rental.systemType !== "N/A" && (
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                            <Monitor size={14} className="text-green-500" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.systemType}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-2">
                       {rental.hasInternet && (

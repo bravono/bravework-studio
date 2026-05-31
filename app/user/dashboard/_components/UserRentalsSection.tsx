@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Monitor } from "lucide-react";
+import { Plus, Monitor, Cpu, HardDrive, Layers } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { useSession } from "next-auth/react";
@@ -60,13 +60,17 @@ export default function UserRentalsSection({
           <button
             onClick={() => {
               if (!isVerified) {
-                toast.warning("Verification Required: Please verify your identity in the Overview tab before listing a device.");
+                toast.warning(
+                  "Verification Required: Please verify your identity in the Overview tab before listing a device.",
+                );
                 return;
               }
               setIsCreateRentalModalOpen(true);
             }}
             className={`flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold transition duration-150 shadow-md ${
-              isVerified ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"
+              isVerified
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-gray-400 cursor-not-allowed"
             }`}
           >
             <Plus size={20} />
@@ -113,15 +117,65 @@ export default function UserRentalsSection({
                   </div>
                   <div className="flex gap-2 mb-4">
                     <span className="inline-block px-2 py-1 text-[10px] font-bold bg-gray-100 text-gray-600 rounded-md uppercase">
-                      {rental.rentalType === "hub" ? "Hub Location" : "P2P Device"}
+                      {rental.rentalType === "hub"
+                        ? "Hub Location"
+                        : "P2P Device"}
                     </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                     {rental.description}
                   </p>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                    <Monitor size={16} />
-                    <span>{rental.specs}</span>
+                  <div className="space-y-2 mb-4">
+                    {rental.processor || rental.ram || rental.storage ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {rental.processor && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Cpu size={12} className="text-blue-500 shrink-0" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.processor}
+                            </span>
+                          </div>
+                        )}
+                        {rental.ram && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Layers
+                              size={12}
+                              className="text-purple-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.ram}
+                            </span>
+                          </div>
+                        )}
+                        {rental.storage && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <HardDrive
+                              size={12}
+                              className="text-amber-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.storage}
+                            </span>
+                          </div>
+                        )}
+                        {rental.systemType && rental.systemType !== "N/A" && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Monitor
+                              size={12}
+                              className="text-green-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.systemType}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Monitor size={14} />
+                        <span className="truncate">{rental.specs}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                     <span
@@ -155,7 +209,9 @@ export default function UserRentalsSection({
                               fetchRentals();
                             } else {
                               const err = await res.json().catch(() => ({}));
-                              toast.error(err.error || err.message || "Failed to delete");
+                              toast.error(
+                                err.error || err.message || "Failed to delete",
+                              );
                             }
                           }}
                           className="text-red-600 hover:underline text-sm font-medium"

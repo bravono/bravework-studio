@@ -232,6 +232,10 @@ interface Rental {
   deviceName: string;
   description: string;
   specs: string;
+  ram?: string;
+  storage?: string;
+  processor?: string;
+  systemType?: string;
   hourlyRate: number;
   locationCity: string;
   locationAddress: string;
