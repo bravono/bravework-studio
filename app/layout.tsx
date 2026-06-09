@@ -14,6 +14,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400"] });
 
@@ -146,6 +147,7 @@ export default async function RootLayout({
           <main className="min-h-screen pt-24 transition-all duration-300">
             {children}
           </main>
+          <WhatsAppButton />
         </NextAuthSessionProvider>
         <Footer />
         <Suspense fallback={null}>
