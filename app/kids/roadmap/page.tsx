@@ -20,16 +20,17 @@ export default function KidsRoadmapPage() {
       title: "Foundation & Branding",
       desc: "Establishing visual style, recruiting core contributors, and finalising branding.",
       icon: Palette,
-      status: "completed",
-      color: "border-green-500 bg-green-50",
+      status: "in-progress",
+      color: "border-blue-500 bg-blue-50",
+      // color: "border-green-500 bg-green-50",
     },
     {
       month: "Month 2",
       title: "Episode 1 Pilot Development",
       desc: "Scripting, storyboarding, and initial 3D modeling for 'Quest for A, B, C'.",
       icon: Flag,
-      status: "in-progress",
-      color: "border-blue-500 bg-blue-50",
+      status: "upcoming",
+      color: "border-grey-500 bg-white",
     },
     {
       month: "Month 3",
@@ -101,8 +102,8 @@ export default function KidsRoadmapPage() {
                     ms.status === "completed"
                       ? "bg-green-500 text-white"
                       : ms.status === "in-progress"
-                      ? "bg-blue-500 text-white animate-pulse"
-                      : "bg-gray-100 text-gray-400"
+                        ? "bg-blue-500 text-white animate-pulse"
+                        : "bg-gray-100 text-gray-400"
                   }`}
                 >
                   <ms.icon size={28} />
@@ -118,8 +119,8 @@ export default function KidsRoadmapPage() {
                         ms.status === "completed"
                           ? "bg-green-100 text-green-600"
                           : ms.status === "in-progress"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-500"
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-gray-100 text-gray-500"
                       }`}
                     >
                       {ms.month}
@@ -155,12 +156,12 @@ export default function KidsRoadmapPage() {
         {/* Progress Tracker Teaser */}
         <div className="mt-24 p-12 rounded-[3rem] bg-gradient-to-r from-blue-600 to-blue-400 text-white text-center shadow-2xl">
           <h2 className="text-3xl font-black mb-6">
-            Current Progress: <span className="text-yellow-300">20%</span>
+            Current Progress: <span className="text-yellow-300">10%</span>
           </h2>
           <div className="w-full bg-blue-900/30 h-4 rounded-full overflow-hidden mb-6">
             <motion.div
               initial={{ width: 0 }}
-              whileInView={{ width: "20%" }}
+              whileInView={{ width: "10%" }}
               transition={{ duration: 1.5, ease: "easeOut" }}
               className="bg-yellow-400 h-full rounded-full shadow-[0_0_20px_rgba(250,204,21,0.5)]"
             ></motion.div>

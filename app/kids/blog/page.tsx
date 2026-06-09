@@ -44,8 +44,8 @@ export default function KidsBlog() {
                 Kids <span className="text-yellow-300">Adventure</span>!
               </h1>
               <p className="text-xl font-medium text-pink-50 max-w-2xl">
-                Fun activities, digital safety tips, and cool tech secrets for
-                explorers ages 7 and up. Let's create something amazing
+                Fun activities, digital safety tips, and cool tech secrets for children
+                explorers. Let's create something amazing
                 together!
               </p>
             </div>

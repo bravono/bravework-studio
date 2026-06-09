@@ -40,9 +40,9 @@ export default function KidsLandingPage() {
                 <span className="text-blue-500">Teach!</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-xl">
-                Welcome to Bravework Kids! Our 3D animated series for ages 2-6
-                mixes education with entertainment, available in English, Hausa,
-                Igbo, and Yoruba.
+                Welcome to Bravework Kids! Our 3D animated series for children
+                of all ages. Mixes education with entertainment, available in
+                English, Hausa, Igbo, and Yoruba.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link

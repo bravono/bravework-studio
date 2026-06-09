@@ -74,7 +74,7 @@ export default function KidsAboutPage() {
           </motion.h1>
           <p className="text-xl text-gray-600 leading-relaxed font-medium mb-8">
             Bravework Kids is an initiative specifically designed for
-            preschoolers (ages 2–6). We believe that the best way to teach is
+            African children. We believe that the best way to teach is
             through high-quality visual storytelling that captures the
             imagination while delivering foundational knowledge.
           </p>

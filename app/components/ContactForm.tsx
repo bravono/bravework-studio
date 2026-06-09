@@ -153,7 +153,7 @@ export default function ContactForm({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Address</h3>
-              <p className="text-gray-600">Katsina, Nigeria</p>
+              <p className="text-gray-600">Katsina & Lagos, Nigeria</p>
             </div>
           </div>
         </div>
