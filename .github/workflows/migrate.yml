@@ -3,7 +3,8 @@ name: Database Migration
 on:
   push:
     branches:
-      - main
+      - master
+      - staging
   workflow_dispatch:
     inputs:
       environment:
@@ -19,7 +20,7 @@ jobs:
   migrate:
     name: Apply Database Migrations
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'Production' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.ref_name == 'staging' && 'Staging' || 'Production') }}
     
     steps:
       - name: Checkout code
