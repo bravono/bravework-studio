@@ -29,7 +29,6 @@ export async function POST(request: Request) {
     const genAI = new GoogleGenerativeAI(
       process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
     );
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const specsList = [
       deviceName && `Device Name: ${deviceName}`,
@@ -51,8 +50,39 @@ Be concise, punchy, and professional. Do NOT use markdown or bullet points. Outp
 Specs:
 ${specsList}`;
 
-    const result = await model.generateContent(prompt);
-    const description = result.response.text().trim();
+    const modelsToTry = [
+      "gemini-2.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-2.0-flash-lite",
+      "gemini-2.5-pro",
+    ];
+
+    let lastError: any = null;
+    let description = "";
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`[generateDescription] Trying model: ${modelName}`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        if (text) {
+          description = text.trim();
+          console.log(`[generateDescription] Success with model: ${modelName}`);
+          break;
+        }
+      } catch (error: any) {
+        lastError = error;
+        console.warn(`[generateDescription] Failed with model ${modelName}:`, error.message);
+      }
+    }
+
+    if (!description) {
+      throw new Error(
+        `Failed to generate description across all models. Last error: ${lastError?.message || "Unknown error"}`
+      );
+    }
 
     return NextResponse.json({ description });
   } catch (error: any) {

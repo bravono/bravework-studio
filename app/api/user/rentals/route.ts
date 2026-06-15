@@ -41,10 +41,38 @@ export async function GET(request: Request) {
         u.first_name AS "firstName",
         u.last_name AS "lastName",
         u.email,
-        u.phone
+        u.phone,
+        ARRAY_REMOVE(ARRAY_AGG(ri.image_url), NULL) AS "imagesArray"
        FROM rentals r
+       LEFT JOIN rental_images ri ON r.rental_id = ri.rental_id
        JOIN users u ON r.user_id = u.user_id
-       WHERE r.user_id = $1 AND r.deleted_at IS NULL`,
+       WHERE r.user_id = $1 AND r.deleted_at IS NULL
+       GROUP BY
+        r.rental_id,
+        r.user_id,
+        r.device_type,
+        r.device_name,
+        r.description,
+        r.specs,
+        r.ram,
+        r.storage,
+        r.processor,
+        r.system_type,
+        r.hourly_rate_kobo,
+        r.location_city,
+        r.location_address,
+        r.location_lat,
+        r.location_lng,
+        r.has_internet,
+        r.has_backup_power,
+        r.rental_type,
+        r.is_partner,
+        r.is_office,
+        r.created_at,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone`,
       [userId],
     );
 
@@ -110,6 +138,8 @@ export async function POST(request: Request) {
       hourlyRate,
       locationCity,
       locationAddress,
+      locationLat,
+      locationLng,
       hasInternet,
       hasBackupPower,
       rentalType,
@@ -139,7 +169,7 @@ export async function POST(request: Request) {
 
     return await withTransaction(async (client) => {
       const rentalResult = await client.query(
-        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, ram, storage, processor, system_type, hourly_rate_kobo, location_city, location_address, has_internet, has_backup_power, rental_type, is_partner, is_office, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW()) RETURNING rental_id",
+        "INSERT INTO rentals (user_id, device_type, device_name, description, specs, ram, storage, processor, system_type, hourly_rate_kobo, location_city, location_address, location_lat, location_lng, has_internet, has_backup_power, rental_type, is_partner, is_office, approval_status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW()) RETURNING rental_id",
         [
           userId,
           deviceType,
@@ -153,6 +183,8 @@ export async function POST(request: Request) {
           hourlyRateKobo,
           locationCity,
           locationAddress,
+          locationLat || null,
+          locationLng || null,
           hasInternet,
           hasBackupPower,
           rentalType || "p2p",
@@ -165,7 +197,9 @@ export async function POST(request: Request) {
 
       if (Array.isArray(files) && files.length > 0) {
         for (const file of files) {
-          const { fileName, fileSize, fileUrl } = file;
+          const fileUrl = typeof file === "string" ? file : file?.fileUrl || file?.url;
+          const fileName = typeof file === "string" ? null : file?.fileName || file?.name || null;
+          const fileSize = typeof file === "string" ? null : file?.fileSize || file?.size || null;
           await client.query(
             "INSERT INTO rental_images (rental_id, image_name, image_size, image_url) VALUES ($1, $2, $3, $4)",
             [newRentalId, fileName, fileSize, fileUrl],
@@ -184,119 +218,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
-  try {
-    const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as any).id;
-
-    if (!userId) {
-      console.error("Session user ID is missing when fetching orders.");
-      return NextResponse.json(
-        { error: "User ID not found in session" },
-        { status: 400 },
-      );
-    }
-
-    const id = params.id;
-    const body = await request.json();
-    const KOBO_PER_NAIRA = 100;
-
-    // Check ownership
-    const rentalCheck = await queryDatabase(
-      "SELECT user_id FROM rentals WHERE rental_id = $1",
-      [id],
-    );
-
-    if (rentalCheck.length === 0) {
-      return NextResponse.json({ error: "Rental not found" }, { status: 404 });
-    }
-
-    if (rentalCheck[0].user_id !== userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const {
-      deviceType,
-      deviceName,
-      description,
-      specs,
-      ram,
-      storage,
-      processor,
-      systemType,
-      hourlyRate,
-      locationCity,
-      locationAddress,
-      hasInternet,
-      hasBackupPower,
-      rentalType,
-      isPartner,
-      isOffice,
-      status,
-    } = body;
-
-    await withTransaction(async (client) => {
-      await client.query(
-        `UPDATE rentals SET
-          device_type = COALESCE($1, device_type),
-          device_name = COALESCE($2, device_name),
-          description = COALESCE($3, description),
-          specs = COALESCE($4, specs),
-          ram = COALESCE($5, ram),
-          storage = COALESCE($6, storage),
-          processor = COALESCE($7, processor),
-          system_type = COALESCE($8, system_type),
-          hourly_rate_kobo = COALESCE($9, hourly_rate_kobo),
-          location_city = COALESCE($10, location_city),
-          location_address = COALESCE($11, location_address),
-          has_internet = COALESCE($12, has_internet),
-          has_backup_power = COALESCE($13, has_backup_power),
-          rental_type = COALESCE($16, rental_type),
-          is_partner = COALESCE($17, is_partner),
-          is_office = COALESCE($18, is_office),
-          status = COALESCE($14, status),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE rental_id = $15`,
-        [
-          deviceType,
-          deviceName,
-          description,
-          specs,
-          ram || null,
-          storage || null,
-          processor || null,
-          systemType || null,
-          hourlyRate * KOBO_PER_NAIRA,
-          locationCity,
-          locationAddress,
-          hasInternet,
-          hasBackupPower,
-          status,
-          id,
-          rentalType,
-          isPartner,
-          isOffice,
-        ],
-      );
-    });
-
-    return NextResponse.json({ message: "Rental updated successfully" });
-  } catch (error) {
-    console.error("Error updating rental:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
-  }
-}
 
 export async function DELETE(request: Request) {
   try {

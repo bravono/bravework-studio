@@ -306,7 +306,7 @@ export default function AdminRentalsSection({
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                           {rental.images && rental.images.length > 0 ? (
                             <Image
-                              src={rental.images[0].file_url}
+                              src={rental.images[0].file_url || "/assets/Bravework_Studio-Logo-White.png"}
                               alt={rental.deviceName}
                               fill
                               className="object-cover"

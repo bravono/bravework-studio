@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Modal from "@/app/components/Modal";
 import { toast } from "react-toastify";
 import { Loader2, Info, Upload, X, MapPin } from "lucide-react";
-import { put } from "@vercel/blob";
 import LocationPicker from "@/app/components/LocationPicker";
 import { uploadFile } from "@/lib/utils/upload";
 
@@ -43,6 +42,38 @@ export default function CreateRentalModal({
     locationLng: 3.3792,
   });
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [hasPickedLocation, setHasPickedLocation] = useState(false);
+  const [storageSelectValue, setStorageSelectValue] = useState("");
+  const [customStorageValue, setCustomStorageValue] = useState("");
+
+  useEffect(() => {
+    if (isOpen && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData((prev) => ({
+            ...prev,
+            locationLat: position.coords.latitude,
+            locationLng: position.coords.longitude,
+          }));
+          setHasPickedLocation(true);
+        },
+        (error) => {
+          console.log("Geolocation error or permission denied:", error);
+          // Do not set a default location!
+        }
+      );
+    }
+  }, [isOpen]);
+
+  const handleStorageSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setStorageSelectValue(val);
+    if (val !== "Other") {
+      setFormData((prev) => ({ ...prev, storage: val }));
+    } else {
+      setFormData((prev) => ({ ...prev, storage: customStorageValue }));
+    }
+  };
 
   const generateAIDescription = async () => {
     if (!formData.ram && !formData.processor && !formData.deviceName) {
@@ -139,6 +170,11 @@ export default function CreateRentalModal({
     e.preventDefault();
 
     // Validation
+    if (!hasPickedLocation) {
+      toast.error("Please pick your location on the map before proceeding.");
+      return;
+    }
+
     if (formData.images.length === 0) {
       toast.error("Please upload at least one image");
       return;
@@ -195,6 +231,9 @@ export default function CreateRentalModal({
         locationLat: 6.5244,
         locationLng: 3.3792,
       });
+      setHasPickedLocation(false);
+      setStorageSelectValue("");
+      setCustomStorageValue("");
     } catch (error: any) {
       console.error("Error creating rental:", error);
       toast.error(error.message || "Something went wrong");
@@ -387,18 +426,41 @@ export default function CreateRentalModal({
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
               />
             </div>
-            <div>
+             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
                 Storage (SSD/HDD)
               </label>
-              <input
-                type="text"
-                name="storage"
-                value={formData.storage}
-                onChange={handleChange}
-                placeholder="e.g. 512GB NVMe SSD"
+              <select
+                name="storageSelect"
+                value={storageSelectValue}
+                onChange={handleStorageSelectChange}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
-              />
+              >
+                <option value="">Select Storage Type</option>
+                <option value="128GB SSD">128GB SSD</option>
+                <option value="256GB SSD">256GB SSD</option>
+                <option value="512GB SSD">512GB SSD</option>
+                <option value="1TB SSD">1TB SSD</option>
+                <option value="2TB SSD">2TB SSD</option>
+                <option value="500GB HDD">500GB HDD</option>
+                <option value="1TB HDD">1TB HDD</option>
+                <option value="2TB HDD">2TB HDD</option>
+                <option value="Other">Other (Specify)</option>
+              </select>
+              {storageSelectValue === "Other" && (
+                <input
+                  type="text"
+                  name="customStorage"
+                  value={customStorageValue}
+                  onChange={(e) => {
+                    setCustomStorageValue(e.target.value);
+                    setFormData((prev) => ({ ...prev, storage: e.target.value }));
+                  }}
+                  placeholder="Specify custom storage e.g. 4TB NVMe SSD"
+                  className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
+                  required
+                />
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
@@ -555,8 +617,9 @@ export default function CreateRentalModal({
             </div>
             <div className="flex-grow">
               <p className="text-sm font-medium text-gray-900">
-                {formData.locationLat.toFixed(4)},{" "}
-                {formData.locationLng.toFixed(4)}
+                {hasPickedLocation && formData.locationLat && formData.locationLng
+                  ? `${formData.locationLat.toFixed(4)}, ${formData.locationLng.toFixed(4)}`
+                  : "Location not selected"}
               </p>
               <p className="text-xs text-gray-500">
                 Click to pick precise location on map
@@ -568,14 +631,15 @@ export default function CreateRentalModal({
         <LocationPicker
           isOpen={isLocationPickerOpen}
           onClose={() => setIsLocationPickerOpen(false)}
-          initialLat={formData.locationLat}
-          initialLng={formData.locationLng}
+          initialLat={formData.locationLat || 6.5244}
+          initialLng={formData.locationLng || 3.3792}
           onConfirm={(lat, lng) => {
             setFormData((prev) => ({
               ...prev,
               locationLat: lat,
               locationLng: lng,
             }));
+            setHasPickedLocation(true);
           }}
         />
 

@@ -35,8 +35,10 @@ export async function GET(request: Request) {
         r.rental_type AS "rentalType",
         r.is_partner AS "isPartner",
         r.is_office AS "isOffice",
-        u.is_verified AS "ownerVerified"
+        u.is_verified AS "ownerVerified",
+        ARRAY_REMOVE(ARRAY_AGG(ri.image_url), NULL) AS "imagesArray"
       FROM rentals r
+      LEFT JOIN rental_images ri ON r.rental_id = ri.rental_id
       JOIN users u ON r.user_id = u.user_id
       WHERE r.approval_status = 'approved' AND r.is_active = true AND r.deleted_at IS NULL
       `;
@@ -44,24 +46,25 @@ export async function GET(request: Request) {
 
     if (city) {
       params.push(`%${city}%`);
-      queryText += ` AND location_city ILIKE $${params.length}`;
+      queryText += ` AND r.location_city ILIKE $${params.length}`;
     }
 
     if (deviceType) {
       params.push(deviceType);
-      queryText += ` AND device_type = $${params.length}`;
+      queryText += ` AND r.device_type = $${params.length}`;
     }
 
     if (rentalType) {
       params.push(rentalType);
-      queryText += ` AND rental_type = $${params.length}`;
+      queryText += ` AND r.rental_type = $${params.length}`;
     }
 
     if (isPartner !== null) {
       params.push(isPartner === "true");
-      queryText += ` AND is_partner = $${params.length}`;
+      queryText += ` AND r.is_partner = $${params.length}`;
     }
 
+    queryText += ` GROUP BY r.rental_id, u.user_id`;
     queryText += ` ORDER BY r.created_at DESC`;
 
     const rentals = await queryDatabase(queryText, params);

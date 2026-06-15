@@ -59,19 +59,9 @@ export default function UserRentalsSection({
           <h1 className="text-3xl font-bold text-gray-800">My Listing</h1>
           <button
             onClick={() => {
-              if (!isVerified) {
-                toast.warning(
-                  "Verification Required: Please verify your identity in the Overview tab before listing a device.",
-                );
-                return;
-              }
               setIsCreateRentalModalOpen(true);
             }}
-            className={`flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold transition duration-150 shadow-md ${
-              isVerified
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
+            className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold transition duration-150 shadow-md bg-green-600 hover:bg-green-700"
           >
             <Plus size={20} />
             List New Device

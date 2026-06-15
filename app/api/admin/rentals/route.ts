@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         (
           SELECT json_agg(ri)
           FROM (
-            SELECT image_name, image_size, image_url
+            SELECT image_name AS "file_name", image_size AS "file_size", image_url AS "file_url"
             FROM rental_images
             WHERE rental_id = r.rental_id
           ) ri

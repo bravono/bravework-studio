@@ -192,6 +192,18 @@ export default function AcademyInventoryPage() {
                 viewport={{ once: true }}
                 className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group"
               >
+                {/* Card Image */}
+                <div className="h-48 w-full bg-gray-100 relative overflow-hidden">
+                  <img
+                    src={
+                      rental.imagesArray && rental.imagesArray.length > 0
+                        ? rental.imagesArray[0]
+                        : "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&q=80&w=600"
+                    }
+                    alt={rental.deviceName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
                 <div className="p-8 flex-grow">
                   <div className="flex justify-between items-start mb-6">
                     <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black bg-green-50 text-green-700 uppercase tracking-widest border border-green-100">

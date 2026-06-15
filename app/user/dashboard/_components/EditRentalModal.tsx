@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { toast } from "react-toastify";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, MapPin } from "lucide-react";
 
 import Modal from "@/app/components/Modal";
+import LocationPicker from "@/app/components/LocationPicker";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
+import { uploadFile } from "@/lib/utils/upload";
 
 interface EditRentalModalProps {
   isOpen: boolean;
@@ -35,14 +37,83 @@ export default function EditRentalModal({
       : "",
     locationCity: rental?.locationCity || "",
     locationAddress: rental?.locationAddress || "",
+    locationLat: rental?.locationLat ? parseFloat(rental.locationLat) : null,
+    locationLng: rental?.locationLng ? parseFloat(rental.locationLng) : null,
     hasInternet: rental?.hasInternet || false,
     hasBackupPower: rental?.hasBackupPower || false,
     rentalType: rental?.rentalType || "p2p",
     isPartner: rental?.isPartner || false,
     isOffice: rental?.isOffice || false,
+    images: rental?.imagesArray || rental?.images || [] as string[],
   });
 
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+  const [hasPickedLocation, setHasPickedLocation] = useState(
+    rental?.locationLat !== null && rental?.locationLng !== null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const standardStorageOptions = [
+    "128GB SSD", "256GB SSD", "512GB SSD", "1TB SSD", "2TB SSD",
+    "500GB HDD", "1TB HDD", "2TB HDD"
+  ];
+
+  const initialStorage = rental?.storage || "";
+  const isStandardStorage = standardStorageOptions.includes(initialStorage);
+
+  const [storageSelectValue, setStorageSelectValue] = useState(
+    initialStorage ? (isStandardStorage ? initialStorage : "Other") : ""
+  );
+  const [customStorageValue, setCustomStorageValue] = useState(
+    initialStorage && !isStandardStorage ? initialStorage : ""
+  );
+
+  const handleStorageSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setStorageSelectValue(val);
+    if (val !== "Other") {
+      setFormData((prev) => ({ ...prev, storage: val }));
+    } else {
+      setFormData((prev) => ({ ...prev, storage: customStorageValue }));
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    if (formData.images.length >= 3) {
+      toast.error("You can only upload up to 3 images");
+      return;
+    }
+
+    setIsUploading(true);
+    const file = e.target.files[0];
+
+    try {
+      const result = await uploadFile(file, "rental-images");
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, result.fileUrl],
+      }));
+      toast.success("Image uploaded!");
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast.error(error.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
 
   const generateAIDescription = async () => {
     if (!formData.ram && !formData.processor && !formData.deviceName) {
@@ -221,18 +292,41 @@ export default function EditRentalModal({
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
               />
             </div>
-            <div>
+             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
                 Storage (SSD/HDD)
               </label>
-              <input
-                type="text"
-                name="storage"
-                value={formData.storage}
-                onChange={handleChange}
-                placeholder="e.g. 512GB NVMe SSD"
+              <select
+                name="storageSelect"
+                value={storageSelectValue}
+                onChange={handleStorageSelectChange}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
-              />
+              >
+                <option value="">Select Storage Type</option>
+                <option value="128GB SSD">128GB SSD</option>
+                <option value="256GB SSD">256GB SSD</option>
+                <option value="512GB SSD">512GB SSD</option>
+                <option value="1TB SSD">1TB SSD</option>
+                <option value="2TB SSD">2TB SSD</option>
+                <option value="500GB HDD">500GB HDD</option>
+                <option value="1TB HDD">1TB HDD</option>
+                <option value="2TB HDD">2TB HDD</option>
+                <option value="Other">Other (Specify)</option>
+              </select>
+              {storageSelectValue === "Other" && (
+                <input
+                  type="text"
+                  name="customStorage"
+                  value={customStorageValue}
+                  onChange={(e) => {
+                    setCustomStorageValue(e.target.value);
+                    setFormData((prev) => ({ ...prev, storage: e.target.value }));
+                  }}
+                  placeholder="Specify custom storage e.g. 4TB NVMe SSD"
+                  className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm p-2 border"
+                  required
+                />
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
@@ -278,6 +372,51 @@ export default function EditRentalModal({
             />
           </div>
         </div>
+
+        {/* Image Upload/Edit */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Images (Max 3)
+          </label>
+          <div className="flex flex-wrap gap-4">
+            {formData.images.map((img, index) => (
+              <div key={index} className="relative w-24 h-24">
+                <img
+                  src={img}
+                  alt={`Upload ${index + 1}`}
+                  className="w-full h-full object-cover rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+            {formData.images.length < 3 && (
+              <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center hover:border-green-500 transition-colors">
+                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                  {isUploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+                  ) : (
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -325,6 +464,44 @@ export default function EditRentalModal({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2 border"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Map Location
+          </label>
+          <div
+            onClick={() => setIsLocationPickerOpen(true)}
+            className="flex items-center gap-3 p-3 border border-gray-300 rounded-md cursor-pointer hover:border-green-500 transition-colors bg-gray-50"
+          >
+            <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MapPin className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="flex-grow">
+              <p className="text-sm font-medium text-gray-900">
+                {hasPickedLocation && formData.locationLat && formData.locationLng
+                  ? `${Number(formData.locationLat).toFixed(4)}, ${Number(formData.locationLng).toFixed(4)}`
+                  : "Location not selected"}
+              </p>
+              <p className="text-xs text-gray-500">
+                Click to pick precise location on map
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <LocationPicker
+          isOpen={isLocationPickerOpen}
+          onClose={() => setIsLocationPickerOpen(false)}
+          initialLat={formData.locationLat || 6.5244}
+          initialLng={formData.locationLng || 3.3792}
+          onConfirm={(lat, lng) => {
+            setFormData((prev) => ({
+              ...prev,
+              locationLat: lat,
+              locationLng: lng,
+            }));
+            setHasPickedLocation(true);
+          }}
+        />
         <div className="flex gap-4">
           <div className="flex items-center">
             <input

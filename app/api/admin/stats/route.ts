@@ -72,6 +72,12 @@ export async function GET(request: Request) {
       10
     );
 
+    // Pending Rentals
+    const pendingRentalsResult = await queryDatabase(
+      "SELECT COUNT(*) FROM rentals WHERE approval_status = 'pending' AND deleted_at IS NULL"
+    );
+    stats.pendingRentalsCount = parseInt(pendingRentalsResult[0].count || "0", 10);
+
     // 5. Return the aggregated statistics
     return NextResponse.json(stats);
   } catch (error) {

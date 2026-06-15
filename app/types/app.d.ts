@@ -119,6 +119,8 @@ interface AdminStats {
   activeCoupons: number;
   totalUsers: number;
   pendingJobApplications: number;
+  totalUnreadNotifications: number;
+  pendingRentalsCount?: number;
 }
 
 interface Notification {
@@ -326,6 +328,7 @@ interface AdminStats {
   totalUsers: number;
   pendingJobApplications: number;
   totalUnreadNotifications: number;
+  pendingRentalsCount?: number;
 }
 
 interface CourseModalProps {
