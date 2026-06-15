@@ -25,6 +25,7 @@ import {
   Key,
   FileText,
   Sparkles as SparklesIcon,
+  Monitor,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
@@ -154,7 +155,15 @@ export default function Navbar() {
             { label: "Bundles", href: "/academy/bundles", icon: FileText },
           ],
         },
-        { label: "Rentals", href: "/academy/rentals", icon: Key },
+        {
+          label: "Rentals",
+          href: "/academy/rentals",
+          icon: Key,
+          items: [
+            { label: "P2P Inventory", href: "/academy/rentals/inventory", icon: Monitor },
+            { label: "Partner Hubs", href: "/academy/rentals/booking", icon: Users },
+          ],
+        },
         { label: "Kids", href: "/kids", icon: Gamepad2 },
       ],
     },
