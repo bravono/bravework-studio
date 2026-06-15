@@ -146,8 +146,15 @@ export default function Footer() {
                 support@braveworkstudio.com
               </p>
               <p className="flex items-center gap-2">
-                <MessageCircle size={16} className="text-green-500" /> +234
-                902-322-4596
+                <MessageCircle size={16} className="text-green-500" />{" "}
+                <a
+                  href="https://wa.me/2349023224596"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-green-500 transition-colors"
+                >
+                  +234 902-322-4596
+                </a>
               </p>
             </div>
             <div className="space-y-3">
