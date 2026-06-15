@@ -18,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Session } from "next-auth";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -109,6 +109,7 @@ export default function AdminDashboardClient({
 
   const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [loadingData, setLoadingData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats>({
@@ -663,6 +664,28 @@ export default function AdminDashboardClient({
       {/* Sidebar Navigation */}
       <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 pt-10 mt-8 shadow-xl flex flex-col">
         <div className="flex items-center justify-center md:justify-start"></div>
+        {/* Role Switching Panel */}
+        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-750 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              Viewing Mode
+            </span>
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-250">
+              Admin Mode
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const newPath = pathname.replace("/admin", "/user");
+              const searchStr = searchParams.toString();
+              router.push(newPath + (searchStr ? `?${searchStr}` : ""));
+            }}
+            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 bg-indigo-600"
+          >
+            <span className="sr-only">Toggle Admin Mode</span>
+            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 translate-x-6" />
+          </button>
+        </div>
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => (
             <button

@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -71,6 +71,7 @@ import Loader from "@/app/components/Loader";
 function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const { data: session, status } = useSession();
 
@@ -818,6 +819,31 @@ function Page() {
             />
           </Link>
         </div>
+
+        {/* Role Switching Panel */}
+        {normalizedRoles.includes("admin") && (
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                Viewing Mode
+              </span>
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-250">
+                User Mode
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                const newPath = pathname.replace("/user", "/admin");
+                const searchStr = searchParams.toString();
+                router.push(newPath + (searchStr ? `?${searchStr}` : ""));
+              }}
+              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 bg-gray-200 dark:bg-gray-700"
+            >
+              <span className="sr-only">Toggle Admin Mode</span>
+              <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 translate-x-1" />
+            </button>
+          </div>
+        )}
 
         <nav className="space-y-1 flex-1">
           {filteredNavItems.map((item) => (
