@@ -86,6 +86,40 @@ export default function PaymentContent() {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [useWallet, setUseWallet] = useState(false);
 
+  // Coupon State
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    setCouponSuccess(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to validate coupon");
+      }
+      setCouponDiscount(data.discountPercentage);
+      setCouponSuccess(`Coupon applied! ${data.discountPercentage}% discount.`);
+      toast.success("Coupon applied successfully!");
+    } catch (err: any) {
+      setCouponDiscount(0);
+      setCouponError(err.message || "Invalid coupon.");
+      toast.error(err.message || "Invalid coupon.");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (sessionStatus !== "authenticated") return;
@@ -203,6 +237,11 @@ export default function PaymentContent() {
       }
     }
 
+    // Apply Coupon Discount
+    if (couponDiscount > 0) {
+      amountToPay = Math.round(amountToPay * (1 - couponDiscount / 100));
+    }
+
     // Wallet Logic
     let walletDeduction = 0;
     let finalPaystackAmount = amountToPay;
@@ -215,12 +254,13 @@ export default function PaymentContent() {
     return {
       baseAmount,
       amountToPay, // Total expected for this transaction
-      discount,
+      discount: discount + couponDiscount,
+      couponDiscountApplied: couponDiscount,
       label,
       walletDeduction,
       finalPaystackAmount,
     };
-  }, [orderData, paymentOption, useWallet, walletBalance]);
+  }, [orderData, paymentOption, useWallet, walletBalance, couponDiscount]);
 
   const handlePayment = async () => {
     if (!orderData || !paymentDetails || !session?.user?.email) return;
@@ -259,6 +299,7 @@ export default function PaymentContent() {
                 ? (orderData.data as CustomOffer).projectDurationDays
                 : null,
             totalExpectedAmount: paymentDetails.amountToPay,
+            couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
           }),
         });
 
@@ -303,6 +344,7 @@ export default function PaymentContent() {
           discount_applied: paymentDetails.discount.toString(),
           original_amount_kobo: paymentDetails.baseAmount.toString(),
           wallet_usage_kobo: paymentDetails.walletDeduction.toString(),
+          coupon_code: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
         },
         onSuccess: async (transaction: any) => {
           try {
@@ -503,6 +545,50 @@ export default function PaymentContent() {
                 </div>
               </div>
             )}
+
+             {/* Coupon Code Section */}
+             <div className="mb-8">
+               <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                 Promo Code / Coupon
+               </h2>
+               <div className="flex gap-3">
+                 <input
+                   type="text"
+                   placeholder="Enter coupon code"
+                   value={couponCode}
+                   onChange={(e) => setCouponCode(e.target.value)}
+                   disabled={couponDiscount > 0 || validatingCoupon}
+                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 font-bold uppercase tracking-wider text-gray-700"
+                 />
+                 {couponDiscount > 0 ? (
+                   <button
+                     onClick={() => {
+                       setCouponCode("");
+                       setCouponDiscount(0);
+                       setCouponSuccess(null);
+                       setCouponError(null);
+                     }}
+                     className="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-all"
+                   >
+                     Remove
+                   </button>
+                 ) : (
+                   <button
+                     onClick={handleApplyCoupon}
+                     disabled={validatingCoupon || !couponCode.trim()}
+                     className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all disabled:opacity-50"
+                   >
+                     {validatingCoupon ? "Applying..." : "Apply"}
+                   </button>
+                 )}
+               </div>
+               {couponError && (
+                 <p className="text-sm text-red-600 font-medium mt-2">{couponError}</p>
+               )}
+               {couponSuccess && (
+                 <p className="text-sm text-green-600 font-medium mt-2">{couponSuccess}</p>
+               )}
+             </div>
 
             {/* Wallet Option */}
             {walletBalance > 0 && (

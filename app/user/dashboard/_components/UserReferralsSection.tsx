@@ -31,6 +31,17 @@ export default function UserReferralsSection() {
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Coupon States
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [newCouponCode, setNewCouponCode] = useState("");
+  const [newCouponExpiry, setNewCouponExpiry] = useState("");
+  const [creatingCoupon, setCreatingCoupon] = useState(false);
+
+  const roles = (session?.user as any)?.roles || [];
+  const isAdminOrInstructor = roles.some(
+    (role: string) => role.toLowerCase() === "admin" || role.toLowerCase() === "instructor"
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,6 +54,15 @@ export default function UserReferralsSection() {
         const referralsRes = await fetch("/api/user/referrals");
         const referralsData = await referralsRes.json();
         if (Array.isArray(referralsData)) setReferrals(referralsData);
+
+        // Fetch Coupons if Admin/Instructor
+        if (isAdminOrInstructor) {
+          const couponsRes = await fetch("/api/user/coupons");
+          if (couponsRes.ok) {
+            const couponsData = await couponsRes.json();
+            if (Array.isArray(couponsData)) setCoupons(couponsData);
+          }
+        }
       } catch (error) {
         console.error("Error fetching referral data:", error);
         toast.error("Failed to load referral data.");
@@ -52,7 +72,7 @@ export default function UserReferralsSection() {
     };
 
     if (session) fetchData();
-  }, [session]);
+  }, [session, isAdminOrInstructor]);
 
   const generateCode = async () => {
     setGenerating(true);
@@ -69,6 +89,37 @@ export default function UserReferralsSection() {
       toast.error("Error generating code.");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const generateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCouponCode.trim() || !newCouponExpiry) {
+      toast.error("Please enter a code and expiry date.");
+      return;
+    }
+    setCreatingCoupon(true);
+    try {
+      const res = await fetch("/api/user/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          couponCode: newCouponCode.trim(),
+          expirationDate: newCouponExpiry,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate coupon.");
+      }
+      setCoupons((prev) => [data, ...prev]);
+      setNewCouponCode("");
+      setNewCouponExpiry("");
+      toast.success("Coupon generated successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate coupon.");
+    } finally {
+      setCreatingCoupon(false);
     }
   };
 
@@ -169,6 +220,104 @@ export default function UserReferralsSection() {
               </div>
             )}
           </div>
+
+          {/* Coupon Generator Section (Only for Admins/Instructors) */}
+          {isAdminOrInstructor && (
+            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100 space-y-8">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
+                  Generate Promo Coupons
+                </h2>
+                <p className="text-sm text-gray-500 font-medium mt-1">
+                  Create custom coupon codes (10% discount) to share alongside your referrals.
+                </p>
+              </div>
+
+              <form onSubmit={generateCoupon} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                    Coupon Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. SUMMER10"
+                    value={newCouponCode}
+                    onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
+                    className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-purple-200 font-bold uppercase tracking-wider text-gray-700"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                    Expiration Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newCouponExpiry}
+                    onChange={(e) => setNewCouponExpiry(e.target.value)}
+                    className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-purple-200 font-bold text-gray-700"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={creatingCoupon}
+                  className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black transition-all shadow-lg shadow-purple-600/30 disabled:opacity-50"
+                >
+                  {creatingCoupon ? "Generating..." : "Generate Coupon"}
+                </button>
+              </form>
+
+              {/* Coupons List */}
+              {coupons.length > 0 && (
+                <div className="border border-gray-50 rounded-2xl overflow-hidden mt-6">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                      <tr>
+                        <th className="px-6 py-4">Code</th>
+                        <th className="px-6 py-4">Discount</th>
+                        <th className="px-6 py-4">Expires</th>
+                        <th className="px-6 py-4">Usage</th>
+                        <th className="px-6 py-4 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {coupons.map((coupon) => {
+                        const isExpired = new Date(coupon.expiration_date) < new Date();
+                        return (
+                          <tr key={coupon.id} className="hover:bg-purple-50/20 transition-colors">
+                            <td className="px-6 py-4 font-black text-gray-900 uppercase tracking-wider">
+                              {coupon.coupon_code}
+                            </td>
+                            <td className="px-6 py-4 font-bold text-purple-600">
+                              {parseFloat(coupon.discount_amount)}% OFF
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 font-medium">
+                              {new Date(coupon.expiration_date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 font-bold">
+                              {coupon.usage_count || 0} uses
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span
+                                className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${
+                                  isExpired
+                                    ? "bg-red-50 text-red-700 border border-red-100"
+                                    : "bg-green-50 text-green-700 border border-green-100"
+                                }`}
+                              >
+                                {isExpired ? "Expired" : "Active"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Network Table */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

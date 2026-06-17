@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
     const bundleGroupId = metadata?.bundleGroupId;
     const walletUsageKobo = parseFloat(metadata?.wallet_usage_kobo || "0");
     productId = metadata?.productId;
+    const couponCode = metadata?.coupon_code;
 
     if ((!orderId && !bundleGroupId) || !serviceType) {
       return NextResponse.json(
@@ -323,6 +324,32 @@ export async function POST(req: NextRequest) {
           }, amount_kobo) VALUES ($1, $2, $3)`,
           [userId, walletOrderId, walletUsageKobo]
         );
+      }
+
+      // 6. Handle Coupon Usage
+      if (couponCode) {
+        const couponRes = await client.query(
+          "SELECT coupon_id, creator_id FROM coupons WHERE UPPER(coupon_code) = $1",
+          [couponCode.trim().toUpperCase()]
+        );
+        if (couponRes.rows.length > 0) {
+          const couponId = couponRes.rows[0].coupon_id;
+          const creatorId = couponRes.rows[0].creator_id;
+
+          // Record coupon usage by the user
+          await client.query(
+            "INSERT INTO user_coupons (user_id, coupon_id) VALUES ($1, $2)",
+            [userId, couponId]
+          );
+
+          // If creator exists and user doesn't have a referrer, link them
+          if (creatorId && creatorId !== userId) {
+            await client.query(
+              "UPDATE users SET referred_by_id = $1 WHERE user_id = $2 AND referred_by_id IS NULL",
+              [creatorId, userId]
+            );
+          }
+        }
       }
 
       // 7. Referral Commission Logic

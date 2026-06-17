@@ -33,6 +33,8 @@ model coupons {
   created_date    DateTime        @db.Timestamp(6)
   expiration_date DateTime        @db.Timestamp(6)
   usage_limit     Int
+  creator_id      Int?
+  creator         users?          @relation("CouponCreator", fields: [creator_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_coupon_creator")
   order_coupons   order_coupons[]
   user_coupons    user_coupons[]
 }
@@ -575,6 +577,7 @@ model users {
   student_sessions                                            student_sessions[]
   testimonials                                                testimonials[]
   user_coupons                                                user_coupons[]
+  created_coupons                                             coupons[]             @relation("CouponCreator")
   user_roles                                                  user_roles[]
   users                                                       users?                @relation("usersTousers", fields: [referred_by_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
   other_users                                                 users[]               @relation("usersTousers")
