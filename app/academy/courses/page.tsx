@@ -36,7 +36,7 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
 import getWeeksBtwDates from "@/lib/utils/getWeeksBtwDays";
-import { KOBO_PER_NAIRA } from "@/lib/constants";
+import { KOBO_PER_NAIRA, WHATSAPP_GROUP_URL } from "@/lib/constants";
 
 import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
@@ -404,51 +404,89 @@ function AcademyCoursesContent() {
             />
           </div>
 
-          {/* Bundle Advertisement */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-12 p-8 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-green-500/20"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
-                  <Tag size={14} />
-                  <span>Limited Time Offer</span>
+          {/* Advertisements Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+            {/* Bundle Advertisement */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-8 bg-gradient-to-br from-secondary-light to-secondary-dark rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-secondary/20 flex flex-col justify-between"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
+                    <Tag size={14} />
+                    <span>Limited Time Offer</span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-black mb-2 text-center md:text-left">
+                    Build Your Power Bundle
+                  </h2>
+                  <p className="text-blue-100 max-w-xl text-sm md:text-base text-center md:text-left">
+                    Select up to 3 courses and get up to{" "}
+                    <span className="text-white font-black text-lg md:text-xl">
+                      20% OFF
+                    </span>
+                    . Add hardware rental for an additional{" "}
+                    <span className="text-white font-black text-lg md:text-xl">
+                      10% discount
+                    </span>{" "}
+                    on gear.
+                  </p>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-black mb-2 text-center md:text-left">
-                  Build Your Power Bundle
-                </h2>
-                <p className="text-green-100 max-w-xl text-sm md:text-base text-center md:text-left">
-                  Select up to 3 courses and get up to{" "}
-                  <span className="text-white font-black text-lg md:text-xl">
-                    20% OFF
-                  </span>
-                  . Add hardware rental for an additional{" "}
-                  <span className="text-white font-black text-lg md:text-xl">
-                    10% discount
-                  </span>{" "}
-                  on gear.
-                </p>
-              </div>
-              <div className="flex items-center gap-4 md:gap-6 pb-2 md:pb-0">
-                <div className="text-center">
-                  <div className="text-2xl font-black">10% OFF</div>
-                  <div className="text-xs text-blue-200 uppercase font-bold">
-                    2 Courses
+                <div className="flex items-center justify-between md:justify-start gap-4 md:gap-6 pb-2 md:pb-0">
+                  <div className="text-center">
+                    <div className="text-2xl font-black">10% OFF</div>
+                    <div className="text-xs text-blue-200 uppercase font-bold">
+                      2 Courses
+                    </div>
+                  </div>
+                  <div className="w-px h-12 bg-white/20"></div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black">20% OFF</div>
+                    <div className="text-xs text-blue-200 uppercase font-bold">
+                      3 Courses
+                    </div>
                   </div>
                 </div>
-                <div className="w-px h-12 bg-white/20"></div>
-                <div className="text-center">
-                  <div className="text-2xl font-black">20% OFF</div>
-                  <div className="text-xs text-blue-200 uppercase font-bold">
-                    3 Courses
+              </div>
+            </motion.div>
+
+            {/* WhatsApp Community Advertisement */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="p-8 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-green-500/20 flex flex-col justify-between"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
+                    <i className="fa-brands fa-whatsapp text-sm"></i>
+                    <span>Academy Community</span>
                   </div>
+                  <h2 className="text-2xl md:text-3xl font-black mb-2">
+                    Join Our Student Community
+                  </h2>
+                  <p className="text-green-100 text-sm md:text-base leading-relaxed">
+                    Connect with fellow students, ask questions about courses, share your design or engineering projects, and collaborate in real-time on WhatsApp.
+                  </p>
+                </div>
+                <div className="flex justify-center w-full">
+                  <a
+                    href={WHATSAPP_GROUP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-6 py-3 bg-white text-green-700 font-black rounded-xl hover:bg-white/90 transition-all shadow-lg text-sm gap-2"
+                  >
+                    <i className="fa-brands fa-whatsapp text-lg"></i>
+                    Join the Community
+                  </a>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
