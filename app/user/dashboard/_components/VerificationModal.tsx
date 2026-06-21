@@ -12,7 +12,6 @@ import {
   AlertCircle 
 } from "lucide-react";
 import Modal from "@/app/components/Modal";
-import { uploadFile } from "@/lib/utils/upload";
 
 interface VerificationModalProps {
   isOpen: boolean;
@@ -57,29 +56,18 @@ export default function VerificationModal({
 
     setIsLoading(true);
     try {
-      // 1. Upload files
-      const frontData = await uploadFile(formData.idFront, "verifications");
-      const selfieData = await uploadFile(formData.selfie, "verifications");
-      
-      let backUrl = null;
+      const submitData = new FormData();
+      submitData.append("idType", formData.idType);
+      submitData.append("idCardFront", formData.idFront);
+      submitData.append("selfieWithId", formData.selfie);
       if (formData.idBack) {
-        const backData = await uploadFile(formData.idBack, "verifications");
-        backUrl = backData.fileUrl;
+        submitData.append("idCardBack", formData.idBack);
       }
 
-      const frontUrl = frontData.fileUrl;
-      const selfieUrl = selfieData.fileUrl;
-
-      // 2. Submit to verification API
+      // Submit to verification API
       const res = await fetch("/api/user/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idType: formData.idType,
-          idCardFrontUrl: frontUrl,
-          idCardBackUrl: backUrl,
-          selfieWithIdUrl: selfieUrl,
-        }),
+        body: submitData,
       });
 
       if (!res.ok) {
@@ -167,11 +155,42 @@ export default function VerificationModal({
             </div>
           </div>
 
+          {/* ID Back Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <Upload size={16} className="text-gray-400" />
+              3. Upload ID Back (Optional)
+            </label>
+            <div className={`relative isolate rounded-2xl border-2 border-dashed transition-all p-6 text-center ${
+              formData.idBack ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-blue-300"
+            }`}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, "idBack")}
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+              />
+              {formData.idBack ? (
+                <div className="flex flex-col items-center gap-1 text-green-700">
+                  <CheckCircle2 size={32} />
+                  <span className="text-xs font-bold truncate max-w-[200px]">{formData.idBack.name}</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
+                    <Camera size={24} />
+                  </div>
+                  <span className="text-xs font-medium">Click to upload ID Back (if applicable)</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Selfie Upload */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
               <Camera size={16} className="text-gray-400" />
-              3. Selfie holding ID
+              4. Selfie holding ID
             </label>
             <div className={`relative isolate rounded-2xl border-2 border-dashed transition-all p-6 text-center ${
               formData.selfie ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-blue-300"
