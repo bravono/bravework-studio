@@ -26,8 +26,8 @@ export async function POST(
 
       // Optionally create a notification for the user
       await queryDatabase(
-        `INSERT INTO notifications (user_id, title, message, type) 
-         VALUES ($1, 'Verification Approved', 'Your identity has been verified successfully. You can now list and rent items.', 'verification')`,
+        `INSERT INTO notifications (user_id, title, message, link) 
+         VALUES ($1, 'Verification Approved', 'Your identity has been verified successfully. You can now list and rent items.', '/user/dashboard')`,
         [userId],
       );
     } else {
@@ -42,8 +42,8 @@ export async function POST(
       );
 
       await queryDatabase(
-        `INSERT INTO notifications (user_id, title, message, type) 
-         VALUES ($1, 'Verification Rejected', 'Your identity verification was rejected. Please ensure your documents are clear and try again.', 'verification')`,
+        `INSERT INTO notifications (user_id, title, message, link) 
+         VALUES ($1, 'Verification Rejected', 'Your identity verification was rejected. Please ensure your documents are clear and try again.', '/user/dashboard')`,
         [userId],
       );
     }

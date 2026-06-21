@@ -65,6 +65,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Notify Admin of verification request
+    try {
+      await queryDatabase(
+        `INSERT INTO notifications (user_id, title, message, link)
+         VALUES ($1, 'Verification Request', 'User with ID ' || $1 || ' has submitted their verification documents.', $2)`,
+        [userId, `/admin/dashboard/notifications/verify?verificationId=${userId}`]
+      );
+    } catch (notifError) {
+      console.error("Error creating verification notification for admin:", notifError);
+    }
+
     return NextResponse.json({ message: "Verification submitted successfully" });
   } catch (error) {
     console.error("Error submitting verification:", error);
