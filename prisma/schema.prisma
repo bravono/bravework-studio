@@ -427,6 +427,10 @@ model rentals {
   device_name      String            @db.VarChar(255)
   description      String?
   specs            String?
+  ram              String?           @db.VarChar(50)
+  storage          String?           @db.VarChar(100)
+  processor        String?           @db.VarChar(150)
+  system_type      String?           @db.VarChar(10)
   location_city    String            @db.VarChar(100)
   location_address String?           @db.VarChar(255)
   location_lat     Decimal?          @db.Decimal(10, 8)
