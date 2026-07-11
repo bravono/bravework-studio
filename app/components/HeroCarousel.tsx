@@ -34,7 +34,7 @@ const slides = [
     link: "/studio",
     carousel_arm: "studio",
     textColor: "text-white",
-    gradient: "from-black via-gray-900 to-black",
+    gradient: "from-black/75 via-transparent to-black/75",
   },
   {
     id: 2,
@@ -46,7 +46,7 @@ const slides = [
     link: "/academy",
     carousel_arm: "academy",
     textColor: "text-blue-50",
-    gradient: "from-blue-950 via-black to-blue-950",
+    gradient: "from-blue-950/50 via-transparent to-blue-950/50",
   },
   {
     id: 3,
@@ -58,7 +58,7 @@ const slides = [
     link: "/kids",
     carousel_arm: "kids",
     textColor: "text-purple-50",
-    gradient: "from-purple-950 via-black to-purple-950",
+    gradient: "from-purple-950/50 via-transparent to-purple-950/50",
   },
   {
     id: 4,
@@ -70,17 +70,20 @@ const slides = [
     link: "/academy/rentals",
     carousel_arm: "rentals",
     textColor: "text-green-50",
-    gradient: "from-green-950 via-black to-green-950",
+    gradient: "from-green-950/50 via-transparent to-green-950/50",
   },
 ];
 
 export default function HeroCarousel() {
   return (
-    <div className="w-full h-full relative group hero-carousel">
+    <div className="w-full h-full relative group hero-carousel pointer-events-none">
       <Swiper
         spaceBetween={0}
         centeredSlides={true}
         effect={"fade"}
+        fadeEffect={{
+          crossFade: true
+        }}
         loop={true}
         autoplay={{
           delay: 6000,
@@ -109,7 +112,7 @@ export default function HeroCarousel() {
         {slides.map((slide) => (
           <SwiperSlide key={slide.id}>
             <div
-              className={`relative w-full h-full flex items-center justify-center text-center bg-gradient-to-tr ${slide.gradient}`}
+              className={`relative w-full h-full flex items-center justify-center text-center bg-gradient-to-tr ${slide.gradient} pointer-events-none`}
             >
               {/* Decorative elements */}
               <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none">
@@ -117,7 +120,7 @@ export default function HeroCarousel() {
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
               </div>
 
-              <div className="relative z-10 p-6 max-w-5xl mx-auto">
+              <div className="relative z-10 p-6 max-w-5xl mx-auto pointer-events-auto">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -173,6 +176,11 @@ export default function HeroCarousel() {
       </Swiper>
 
       <style jsx global>{`
+        .hero-carousel .swiper-pagination,
+        .hero-carousel .swiper-button-next,
+        .hero-carousel .swiper-button-prev {
+          pointer-events: auto;
+        }
         .hero-carousel .swiper-pagination-bullet {
           background: rgba(255, 255, 255, 0.5);
           width: 12px;

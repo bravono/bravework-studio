@@ -11,6 +11,7 @@ import TestimonialCarousel from "./components/TestimonialCarousel";
 import { services } from "./services/localDataService";
 import { ArrowRight } from "lucide-react";
 import HeroCarousel from "./components/HeroCarousel";
+import VirtualOfficeHero from "../components/VirtualOfficeHero";
 import EcosystemSection from "./components/EcosystemSection";
 import FloatingCTAs from "./components/FloatingCTAs";
 import Link from "next/link";
@@ -70,6 +71,7 @@ export default function Home() {
     <main>
       {/* Hero Section */}
       <section className="relative w-full h-screen overflow-hidden bg-black">
+        <VirtualOfficeHero />
         <HeroCarousel />
       </section>
 

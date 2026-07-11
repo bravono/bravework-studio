@@ -593,9 +593,9 @@ function Page() {
     },
     {
       id: "orders",
-      label: "Studio",
+      label: "Orders",
       icon: <Briefcase size={20} />,
-      roles: ["client"],
+      roles: ["any"],
     },
     {
       id: "custom-offers",
