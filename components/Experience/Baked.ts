@@ -43,17 +43,25 @@ export default class Baked
         this.model.bakedDayTexture = this.resources.items.bakedDayTexture
         this.model.bakedDayTexture.encoding = THREE.sRGBEncoding
         this.model.bakedDayTexture.flipY = false
+        this.model.bakedDayTexture.generateMipmaps = false
+        this.model.bakedDayTexture.minFilter = THREE.LinearFilter
 
         this.model.bakedNightTexture = this.resources.items.bakedNightTexture
         this.model.bakedNightTexture.encoding = THREE.sRGBEncoding
         this.model.bakedNightTexture.flipY = false
+        this.model.bakedNightTexture.generateMipmaps = false
+        this.model.bakedNightTexture.minFilter = THREE.LinearFilter
 
         this.model.bakedNeutralTexture = this.resources.items.bakedNeutralTexture
         this.model.bakedNeutralTexture.encoding = THREE.sRGBEncoding
         this.model.bakedNeutralTexture.flipY = false
+        this.model.bakedNeutralTexture.generateMipmaps = false
+        this.model.bakedNeutralTexture.minFilter = THREE.LinearFilter
 
         this.model.lightMapTexture = this.resources.items.lightMapTexture
         this.model.lightMapTexture.flipY = false
+        this.model.lightMapTexture.generateMipmaps = false
+        this.model.lightMapTexture.minFilter = THREE.LinearFilter
 
         this.colors = {}
         this.colors.tv = '#ff115e'

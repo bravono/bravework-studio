@@ -4,6 +4,7 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = {
   // Your existing next.config.js content (if any)
   reactStrictMode: true,
+  optimizeFonts: false,
   // Add other Next.js config options here
 };
 

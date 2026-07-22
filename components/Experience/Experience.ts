@@ -49,6 +49,7 @@ export default class Experience
         this.setResources()
         this.setWorld()
         this.setNavigation()
+        this.setViewportObserver()
         
         this.sizes.on('resize', () =>
         {
@@ -62,18 +63,39 @@ export default class Experience
     {
         this.config = {}
     
-        // Pixel ratio
-        this.config.pixelRatio = Math.min(Math.max(window.devicePixelRatio, 1), 2)
-
         // Width and height
         const boundings = this.targetElement.getBoundingClientRect()
         this.config.width = boundings.width
         this.config.height = boundings.height || window.innerHeight
         this.config.smallestSide = Math.min(this.config.width, this.config.height)
         this.config.largestSide = Math.max(this.config.width, this.config.height)
+
+        // Pixel ratio capping: 1.5 max on mobile (<768px), 1.5 max on desktop for smooth performance
+        const maxPR = this.config.width < 768 ? 1.5 : 1.5
+        this.config.pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1), maxPR)
         
         // Debug
         this.config.debug = this.config.width > 420
+    }
+
+    setViewportObserver()
+    {
+        this.isPaused = false
+        if (typeof window !== 'undefined' && 'IntersectionObserver' in window)
+        {
+            this.observer = new IntersectionObserver((entries) =>
+            {
+                entries.forEach((entry) =>
+                {
+                    this.isPaused = !entry.isIntersecting
+                })
+            }, { threshold: 0.05 })
+
+            if (this.targetElement)
+            {
+                this.observer.observe(this.targetElement)
+            }
+        }
     }
 
     setStats()
@@ -132,19 +154,22 @@ export default class Experience
 
     update()
     {
-        if(this.stats)
-            this.stats.update()
-        
-        this.camera.update()
-        
-        if(this.renderer)
-            this.renderer.update()
+        if(!this.isPaused)
+        {
+            if(this.stats)
+                this.stats.update()
+            
+            this.camera.update()
+            
+            if(this.renderer)
+                this.renderer.update()
 
-        if(this.world)
-            this.world.update()
+            if(this.world)
+                this.world.update()
 
-        if(this.navigation)
-            this.navigation.update()
+            if(this.navigation)
+                this.navigation.update()
+        }
 
         this.updateFrame = window.requestAnimationFrame(() =>
         {
@@ -161,7 +186,8 @@ export default class Experience
         this.config.smallestSide = Math.min(this.config.width, this.config.height)
         this.config.largestSide = Math.max(this.config.width, this.config.height)
 
-        this.config.pixelRatio = Math.min(Math.max(window.devicePixelRatio, 1), 2)
+        const maxPR = this.config.width < 768 ? 1.5 : 1.5
+        this.config.pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1), maxPR)
 
         if(this.camera)
             this.camera.resize()
@@ -175,6 +201,11 @@ export default class Experience
 
     destroy()
     {
+        if (this.observer)
+        {
+            this.observer.disconnect()
+        }
+
         // Stop tick loop
         if (this.updateFrame)
         {
