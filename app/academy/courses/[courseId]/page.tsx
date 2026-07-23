@@ -20,6 +20,7 @@ import {
   Sparkles,
   ArrowRight,
   PlayCircle,
+  ArrowLeft,
 } from "lucide-react";
 import ExpandableText from "@/app/components/ExpandableText";
 import VideoModal from "@/app/components/VideoModal";
@@ -204,6 +205,17 @@ export default function CoursePage() {
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary-light/10 rounded-full blur-3xl opacity-60"></div>
 
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+          {/* Back Button */}
+          <div className="mb-8">
+            <Link
+              href="/academy/courses"
+              className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-primary transition-colors duration-200 group"
+            >
+              <ArrowLeft className="w-4.5 h-4.5 transition-transform group-hover:-translate-x-1" />
+              Back to Courses
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left: Text & Badges */}
             <div className="lg:col-span-7 text-left space-y-6">

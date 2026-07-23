@@ -15,9 +15,12 @@ import {
   ShieldCheck,
   Zap,
   Monitor,
+  Package,
+  Users,
 } from "lucide-react";
 import AcademySubNavBar from "../components/AcademySubNavBar";
 import { pushCrossPromotionClick } from "@/lib/gtm";
+import { WHATSAPP_GROUP_URL } from "@/lib/constants";
 
 export default function AcademyLandingPage() {
   return (
@@ -54,15 +57,25 @@ export default function AcademyLandingPage() {
                   className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/20 transition-all flex items-center gap-3"
                 >
                   <BookOpen size={20} />
-                  Explore Courses
+                  Browse Courses
                 </Link>
                 <Link
                   href="/academy/bundles"
                   className="px-8 py-4 bg-white border-2 border-gray-100 hover:border-blue-600 text-gray-700 font-bold rounded-2xl transition-all flex items-center gap-3"
                 >
-                  Explore Bundles
+                  <Package size={20} />
+                  Browse Course Bundles
                   <ChevronRight size={20} />
                 </Link>
+                <a
+                  href={WHATSAPP_GROUP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl shadow-xl shadow-green-500/20 transition-all flex items-center gap-3"
+                >
+                  <Users size={20} />
+                  Join Our Community
+                </a>
               </div>
 
               <div className="mt-10 flex items-center gap-6 text-sm text-gray-500 font-medium">
