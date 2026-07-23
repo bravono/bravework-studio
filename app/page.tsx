@@ -9,13 +9,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import TestimonialCarousel from "./components/TestimonialCarousel";
 import { services } from "./services/localDataService";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Gamepad2, GraduationCap } from "lucide-react";
 import HeroCarousel from "./components/HeroCarousel";
 import VirtualOfficeHero from "../components/VirtualOfficeHero";
 import EcosystemSection from "./components/EcosystemSection";
 import FloatingCTAs from "./components/FloatingCTAs";
 import Link from "next/link";
-import { Gamepad2 } from "lucide-react";
 import ArrowButton from "./components/ArrowButton";
 
 const outfit = Outfit({
@@ -42,17 +41,15 @@ export default function Home() {
   const { data: session } = useSession();
   const router = useRouter();
   const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
+  const [showRedirectPrompt, setShowRedirectPrompt] = useState(false);
+  const [carouselVisible, setCarouselVisible] = useState(true);
 
-  // Redirect logged-in users to dashboard after 2 seconds
+  // Prompt logged-in student users to redirect to dashboard
   useEffect(() => {
     if (session?.user.roles.includes("student")) {
       const hasVisited = sessionStorage.getItem("visit");
       if (!hasVisited) {
-        const timeout = setTimeout(() => {
-          sessionStorage.setItem("visit", "true");
-          router.push("/user/dashboard");
-        }, 2000);
-        return () => clearTimeout(timeout);
+        setShowRedirectPrompt(true);
       }
     }
   }, [session]);
@@ -164,6 +161,59 @@ export default function Home() {
 
       {/* Floating CTAs */}
       <FloatingCTAs />
+
+      {/* Redirection Modal */}
+      <AnimatePresence>
+        {showRedirectPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 text-center space-y-6"
+            >
+              <div className="mx-auto w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <GraduationCap size={36} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-gray-900 leading-tight">
+                  Welcome Back!
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed font-medium">
+                  Would you like to head over to your student dashboard to continue your learning journey?
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem("visit", "true");
+                    setShowRedirectPrompt(false);
+                    router.push("/user/dashboard");
+                  }}
+                  className="flex-1 py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/20 text-sm flex items-center justify-center gap-2"
+                >
+                  Go to Dashboard <ArrowRight size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem("visit", "true");
+                    setShowRedirectPrompt(false);
+                  }}
+                  className="flex-1 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl transition-all border border-gray-200 text-sm"
+                >
+                  Stay on Home Page
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
