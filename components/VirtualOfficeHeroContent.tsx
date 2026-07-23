@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { gsap } from "gsap";
-import { Sun, Moon, Lightbulb, Compass, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sun, Moon, Lightbulb, Compass, Loader2, GripHorizontal } from "lucide-react";
 import Experience from "./Experience/Experience";
 
 export default function VirtualOfficeHeroContent() {
@@ -106,19 +107,29 @@ export default function VirtualOfficeHeroContent() {
         </div>
       )}
 
-      {/* Interactive Light Mode Switcher Controls */}
+      {/* Draggable Glassmorphic Light Mode Switcher Controls */}
       {isReady && (
-        <div className="absolute top-24 right-6 z-40 flex flex-col gap-2 bg-black/50 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-2xl">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-green-400 text-center mb-1">
-            Office Lighting
-          </span>
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          dragElastic={0.1}
+          dragMomentum={false}
+          whileDrag={{ scale: 1.05 }}
+          className="absolute top-20 right-4 sm:top-24 sm:right-6 z-40 flex flex-col gap-2 bg-black/25 backdrop-blur-xl border border-white/10 p-2.5 rounded-2xl shadow-2xl hover:bg-black/35 hover:border-white/20 transition-colors cursor-grab active:cursor-grabbing touch-none select-none"
+        >
+          <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing pb-1 border-b border-white/10">
+            <GripHorizontal size={14} className="text-gray-400/80 hover:text-green-400 transition-colors" />
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-green-400 text-center">
+              Lighting
+            </span>
+          </div>
           <div className="flex flex-col gap-1.5">
             <button
               onClick={() => handleModeChange("day")}
               className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 hover:scale-[1.05] ${
                 activeMode === "day"
-                  ? "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
-                  : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-green-500/25 border-green-400/60 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.25)]"
+                  : "bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
               }`}
               title="Day Mode"
             >
@@ -128,8 +139,8 @@ export default function VirtualOfficeHeroContent() {
               onClick={() => handleModeChange("night")}
               className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 hover:scale-[1.05] ${
                 activeMode === "night"
-                  ? "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
-                  : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-green-500/25 border-green-400/60 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.25)]"
+                  : "bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
               }`}
               title="Night Mode"
             >
@@ -139,15 +150,15 @@ export default function VirtualOfficeHeroContent() {
               onClick={() => handleModeChange("neutral")}
               className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 hover:scale-[1.05] ${
                 activeMode === "neutral"
-                  ? "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
-                  : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-green-500/25 border-green-400/60 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.25)]"
+                  : "bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
               }`}
               title="Neutral Mode"
             >
               <Lightbulb size={16} />
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
