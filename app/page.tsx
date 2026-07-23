@@ -71,8 +71,11 @@ export default function Home() {
     <main>
       {/* Hero Section */}
       <section className="relative w-full h-screen overflow-hidden bg-black">
-        <VirtualOfficeHero />
-        <HeroCarousel />
+        <VirtualOfficeHero
+          carouselVisible={carouselVisible}
+          onCarouselToggle={() => setCarouselVisible((v) => !v)}
+        />
+        <HeroCarousel visible={carouselVisible} />
       </section>
 
       {/* Ecosystem Section */}
