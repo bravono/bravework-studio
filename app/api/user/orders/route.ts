@@ -223,6 +223,18 @@ export async function POST(request: Request) {
         console.error("Failed to create Zoho Lead:", zohoError);
       }
 
+      // Automatically trigger AI Agent Fleet proposal generation in background
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      fetch(`${baseUrl}/api/admin/orders/${newOrderId}/ai-proposal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-system-trigger": "internal-auto-trigger",
+        },
+      }).catch((aiErr) => {
+        console.error(`Background AI Agent Fleet trigger failed for order ${newOrderId}:`, aiErr);
+      });
+
       return NextResponse.json(newOrderId, { status: 201 });
     });
   } catch (error) {

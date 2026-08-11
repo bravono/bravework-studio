@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Plus, Pencil, Trash2, Tag, CheckSquare, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, CheckSquare, Search, Sparkles } from "lucide-react";
 
 // Import the new Pagination component
 import Pagination from "../../../components/Pagination";
@@ -13,6 +13,7 @@ import Pagination from "../../../components/Pagination";
 // These modal components are assumed to exist and are kept as is.
 import CustomOfferModal from "./CustomOfferModal";
 import OrderFormModal from "./OrderFormModal";
+import AIProposalModal from "./AIProposalModal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { Order } from "../../../types/app";
 
@@ -33,6 +34,7 @@ export default function AdminOrdersSection({
   const [searchQuery, setSearchQuery] = useState("");
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isOrderFormModalOpen, setIsOrderFormModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // State for pagination
@@ -397,13 +399,26 @@ export default function AdminOrdersSection({
                           </button>
                         )}
                         {order.status === "pending" && (
-                          <button
-                            onClick={() => handleCreateCustomOffer(order)}
-                            className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
-                            title="Create Custom Offer"
-                          >
-                            <Tag size={16} />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setIsAIModalOpen(true);
+                              }}
+                              className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1 font-medium text-xs"
+                              title="Generate AI Agent Fleet Proposal"
+                            >
+                              <Sparkles size={15} className="text-indigo-500 animate-pulse" />
+                              <span>AI Proposal</span>
+                            </button>
+                            <button
+                              onClick={() => handleCreateCustomOffer(order)}
+                              className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                              title="Create Custom Offer"
+                            >
+                              <Tag size={16} />
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => handleDeleteOrder(order.id.toString())}
@@ -436,6 +451,21 @@ export default function AdminOrdersSection({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+        />
+      )}
+
+      {isAIModalOpen && selectedOrder && (
+        <AIProposalModal
+          isOpen={isAIModalOpen}
+          orderId={selectedOrder.id}
+          orderTitle={selectedOrder.title || selectedOrder.serviceName}
+          onClose={() => {
+            setIsAIModalOpen(false);
+            setSelectedOrder(null);
+          }}
+          onSuccess={() => {
+            fetchOrders();
+          }}
         />
       )}
 
