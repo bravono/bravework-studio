@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
     );
     const bundleGroupId = metadata?.bundleGroupId;
     const walletUsageKobo = parseFloat(metadata?.wallet_usage_kobo || "0");
+    const tipAmountKobo = parseFloat(metadata?.tip_amount_kobo || "0");
     productId = metadata?.productId;
     const couponCode = metadata?.coupon_code;
 
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
 
         totalExpectedOrderAmountKobo = discountApplied
           ? (courseDetails.price_in_kobo / 100) * paymentPercentage
-          : actualAmountKobo + walletUsageKobo; // Total needed is what was paid + wallet
+          : actualAmountKobo + walletUsageKobo - tipAmountKobo; // Total needed for course is what was paid + wallet minus tip
 
         // Double check against DB price if no discount
         if (!discountApplied && paymentPercentage === 100) {
@@ -292,17 +293,22 @@ export async function POST(req: NextRequest) {
           ]
         );
 
+        const orderAmountPaidKobo = Math.max(
+          0,
+          actualAmountKobo + walletUsageKobo - tipAmountKobo
+        );
+
         if (serviceType === "rental") {
           await processSuccessfulRentalBooking(
             client,
             parseInt(orderId as string),
-            actualAmountKobo + walletUsageKobo
+            orderAmountPaidKobo
           );
         } else {
           await processSuccessfulOrder(
             client,
             parseInt(orderId as string),
-            actualAmountKobo + walletUsageKobo,
+            orderAmountPaidKobo,
             totalExpectedOrderAmountKobo,
             orderTitle,
             project_duration_days,

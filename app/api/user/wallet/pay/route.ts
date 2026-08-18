@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   const {
     orderId,
     amountKobo,
+    tipAmountKobo,
     serviceType,
     productId,
     orderTitle,
@@ -82,10 +83,13 @@ export async function POST(req: Request) {
     }
 
     // 3. Process Order
+    const tipKobo = Number(tipAmountKobo || 0);
+    const orderPaidKobo = Math.max(0, amountKobo - tipKobo);
+
     await processSuccessfulOrder(
       client,
       orderId,
-      amountKobo,
+      orderPaidKobo,
       totalExpectedAmount,
       orderTitle,
       projectDurationDays,
@@ -108,7 +112,7 @@ export async function POST(req: Request) {
         );
 
         if (existingEarnings.rows.length === 0) {
-          const commissionAmount = (10 / 100) * amountKobo;
+          const commissionAmount = (10 / 100) * orderPaidKobo;
           await client.query(
             "INSERT INTO referral_earnings (referrer_id, referred_user_id, order_id, amount_kobo) VALUES ($1, $2, $3, $4)",
             [referredById, userId, orderId, Math.round(commissionAmount)]
