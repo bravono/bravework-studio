@@ -81,6 +81,16 @@ export async function processSuccessfulOrder(
        WHERE offer_id = $1`,
       [productId],
     );
+
+    // Populate initial project AI todos asynchronously
+    try {
+      const { populateInitialProjectTodos } = await import("./todoService");
+      populateInitialProjectTodos(orderId).catch((err) => {
+        console.error(`[AI Todo Trigger] Failed to auto-generate todos for order #${orderId}:`, err);
+      });
+    } catch (importErr) {
+      console.error("[AI Todo Trigger] Import error:", importErr);
+    }
   }
 
   // 5. Update Course Enrollment if applicable (Full payment usually required for access, but logic depends on business rule)
