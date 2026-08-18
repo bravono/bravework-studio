@@ -627,6 +627,7 @@ model users {
   id_card_back_url                                            String?               @db.VarChar(255)
   selfie_with_id_url                                          String?               @db.VarChar(255)
   hardware_discount_expiry     DateTime?             @db.Timestamptz(6)
+  hear_about_us                String?               @db.VarChar(100)
 }
 
 model verification_tokens {

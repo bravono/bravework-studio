@@ -15,6 +15,7 @@ import {
   Clock,
   Building,
   Handshake,
+  Megaphone,
 } from "lucide-react";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -47,6 +48,7 @@ const baseSignupSchema = Joi.object({
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
   companyName: Joi.string().max(100).allow("").optional().label("Company Name"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
 });
 
 const enrollmentSchema = Joi.object({
@@ -74,6 +76,7 @@ const enrollmentSchema = Joi.object({
   courseId: Joi.number().optional().label("Course Id"),
   bundle: Joi.string().allow(null, "").optional().label("Bundle"),
   includeHardware: Joi.boolean().optional().label("Include Hardware"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
 }).or("courseId", "bundle");
 
 const enrollExistingUserSchema = Joi.object({
@@ -86,6 +89,7 @@ const enrollExistingUserSchema = Joi.object({
   bundle: Joi.string().allow(null, "").optional().label("Bundle"),
   includeHardware: Joi.boolean().optional().label("Include Hardware"),
   referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
 }).or("courseId", "bundle");
 
 function Signup() {
@@ -113,6 +117,7 @@ function Signup() {
     confirmPassword: "",
     companyName: "",
     preferredSessionTime: "",
+    hearAboutUs: "",
   });
   const [course, setCourse] = useState<Course>();
   const [bundleCourses, setBundleCourses] = useState<Course[]>([]);
@@ -204,6 +209,7 @@ function Signup() {
         courseId: courseId ? Number(courseId) : undefined,
         bundle: bundleParam,
         includeHardware: hardwareParam,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForValidation = {
@@ -218,6 +224,7 @@ function Signup() {
         bundle: bundleParam,
         includeHardware: hardwareParam,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForApi = {
@@ -229,6 +236,8 @@ function Signup() {
         courseId: courseId ? Number(courseId) : undefined,
         bundle: bundleParam,
         includeHardware: hardwareParam,
+        referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       if (!user) {
@@ -244,6 +253,7 @@ function Signup() {
         confirmPassword: form.confirmPassword, // Included for frontend validation
         companyName: form.companyName,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForApi = {
@@ -254,6 +264,7 @@ function Signup() {
         password: form.password, // Only send the password to the backend
         companyName: form.companyName,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
     }
 
@@ -332,6 +343,7 @@ function Signup() {
           phone: "",
           referralCode: "",
           preferredSessionTime: "",
+          hearAboutUs: "",
         });
         // Redirect to verification page after a short delay
         setTimeout(() => {
@@ -649,6 +661,51 @@ function Signup() {
                 onChange={handleChange}
                 maxLength={100}
               />
+            </div>
+          )}
+
+          {/* How did you hear about us */}
+          {!user && (
+            <div className="relative">
+              <label htmlFor="hearAboutUs" className="sr-only">
+                How did you hear about us?
+              </label>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Megaphone className="w-5 h-5 text-gray-400" />
+              </div>
+              <select
+                id="hearAboutUs"
+                name="hearAboutUs"
+                className="w-full py-3 pl-10 pr-10 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 appearance-none bg-white text-gray-700"
+                value={form.hearAboutUs}
+                onChange={handleChange}
+              >
+                <option value="">How did you hear about us? (Optional)</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="YouTube">YouTube</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Twitter / X">Twitter / X</option>
+                <option value="Google Search">Google Search</option>
+                <option value="Friends and family">Friends and family</option>
+                <option value="Other">Other</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
           )}
 

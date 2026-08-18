@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       u.id_card_front_url,
       u.id_card_back_url,
       u.selfie_with_id_url,
+      u.hear_about_us AS "hearAboutUs",
       COALESCE(
         json_agg(
         json_build_object(
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       LEFT JOIN user_roles ur ON u.user_id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.role_id
       ${pendingOnly ? "WHERE u.verification_submitted_at IS NOT NULL AND u.is_verified = FALSE" : ""}
-      GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.email_verified, u.created_at, u.is_verified, u.verification_submitted_at, u.id_type, u.id_card_front_url, u.id_card_back_url, u.selfie_with_id_url
+      GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.email_verified, u.created_at, u.is_verified, u.verification_submitted_at, u.id_type, u.id_card_front_url, u.id_card_back_url, u.selfie_with_id_url, u.hear_about_us
       `,
     );
     return NextResponse.json(allUsers);

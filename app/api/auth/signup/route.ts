@@ -26,6 +26,7 @@ const baseSignupSchema = Joi.object({
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
 });
 
 const enrollmentSchema = Joi.object({
@@ -46,6 +47,7 @@ const enrollmentSchema = Joi.object({
   bundle: Joi.string().allow("").optional(),
   includeHardware: Joi.boolean().optional(),
   referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
 });
 
 const enrollExistingUserSchema = Joi.object({
@@ -98,6 +100,7 @@ export async function POST(req: Request) {
       bundle,
       includeHardware,
       referralCode,
+      hearAboutUs,
     } = body;
 
     // Use a database transaction to ensure data integrity
@@ -137,8 +140,8 @@ export async function POST(req: Request) {
         // Insert new user
         const insertUserResult = await client.query(
           `INSERT INTO users
-          (first_name, last_name, email, password, company_name, phone)
-          VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`,
+          (first_name, last_name, email, password, company_name, phone, hear_about_us)
+          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
           [
             firstName,
             lastName,
@@ -146,6 +149,7 @@ export async function POST(req: Request) {
             hashedPassword,
             companyName || null,
             phone || null,
+            hearAboutUs || null,
           ],
         );
 
