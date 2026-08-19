@@ -628,6 +628,9 @@ model users {
   selfie_with_id_url                                          String?               @db.VarChar(255)
   hardware_discount_expiry     DateTime?             @db.Timestamptz(6)
   hear_about_us                String?               @db.VarChar(100)
+  hub_lead_profile             hub_lead_profiles?
+  wifi_vouchers                wifi_vouchers[]
+  hub_orders                   hub_orders[]
 }
 
 model verification_tokens {
@@ -712,3 +715,113 @@ model student_sessions {
   @@index([session_id], map: "idx_student_sessions_session_id")
   @@index([user_id], map: "idx_student_sessions_user_id")
 }
+
+model wifi_vouchers {
+  voucher_id       Int             @id @default(autoincrement())
+  code             String          @unique @db.VarChar(50)
+  duration_minutes Int             @default(30)
+  source_type      String          @db.VarChar(50) // "APP_DOWNLOAD", "CONTACT_ACCESS", "WEB_SIGNUP", "SNACK_ORDER", "MANUAL"
+  user_id          Int?
+  email            String?         @db.VarChar(255)
+  phone_number     String?         @db.VarChar(50)
+  mac_address      String?         @db.VarChar(50)
+  status           String          @default("AVAILABLE") @db.VarChar(20) // "AVAILABLE", "ACTIVE", "EXPIRED"
+  activated_at     DateTime?       @db.Timestamptz(6)
+  expires_at       DateTime?       @db.Timestamptz(6)
+  order_id         Int?
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  users            users?          @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  hub_orders       hub_orders?     @relation(fields: [order_id], references: [hub_order_id], onDelete: SetNull)
+  wifi_sessions    wifi_sessions[]
+
+  @@index([code])
+  @@index([mac_address])
+  @@index([email])
+  @@index([user_id])
+  @@index([status])
+}
+
+model wifi_sessions {
+  session_id       Int           @id @default(autoincrement())
+  voucher_id       Int
+  mac_address      String        @db.VarChar(50)
+  ip_address       String?       @db.VarChar(50)
+  device_info      String?       @db.VarChar(255)
+  duration_minutes Int
+  started_at       DateTime      @default(now()) @db.Timestamptz(6)
+  expires_at       DateTime      @db.Timestamptz(6)
+  status           String        @default("ACTIVE") @db.VarChar(20) // "ACTIVE", "COMPLETED", "TERMINATED"
+  bytes_in         BigInt?       @default(0)
+  bytes_out        BigInt?       @default(0)
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  wifi_vouchers    wifi_vouchers @relation(fields: [voucher_id], references: [voucher_id], onDelete: Cascade)
+
+  @@index([mac_address])
+  @@index([status])
+}
+
+model hub_lead_profiles {
+  lead_id               Int       @id @default(autoincrement())
+  user_id               Int?      @unique
+  full_name             String    @db.VarChar(100)
+  email                 String?   @unique @db.VarChar(255)
+  phone_number          String?   @unique @db.VarChar(50)
+  interest_segment      String    @default("ACADEMY_STUDENT") @db.VarChar(50) // "ACADEMY_STUDENT", "SNACK_DISTRIBUTOR", "INVESTOR_CLIENT", "GENERAL"
+  contact_verified      Boolean   @default(false)
+  marketing_consent     Boolean   @default(true)
+  consent_timestamp     DateTime  @default(now()) @db.Timestamptz(6)
+  app_downloaded        Boolean   @default(false)
+  web_lead_claimed      Boolean   @default(false)
+  welcome_claimed       Boolean   @default(false)
+  contact_bonus_claimed Boolean   @default(false)
+  total_spend_kobo      BigInt    @default(0)
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  users                 users?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([phone_number])
+  @@index([interest_segment])
+}
+
+model hub_snack_items {
+  item_id             Int               @id @default(autoincrement())
+  name                String            @db.VarChar(100)
+  description         String?           @db.Text
+  category            String            @db.VarChar(50) // "SNACKS", "BEVERAGES", "MEALS"
+  price_kobo          Int
+  image_url           String?           @db.VarChar(255)
+  wifi_minutes_reward Int               @default(30)
+  is_available        Boolean           @default(true)
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  hub_order_items     hub_order_items[]
+}
+
+model hub_orders {
+  hub_order_id         Int               @id @default(autoincrement())
+  user_id              Int?
+  guest_name           String?           @db.VarChar(100)
+  guest_phone          String?           @db.VarChar(50)
+  total_amount_kobo    Int
+  payment_status       String            @default("PAID") @db.VarChar(20) // "PENDING", "PAID", "FAILED"
+  payment_reference    String?           @db.VarChar(100)
+  wifi_minutes_awarded Int               @default(0)
+  created_at           DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  users                users?            @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  hub_order_items      hub_order_items[]
+  wifi_vouchers        wifi_vouchers[]
+}
+
+model hub_order_items {
+  order_item_id   Int             @id @default(autoincrement())
+  hub_order_id    Int
+  item_id         Int
+  quantity        Int             @default(1)
+  unit_price_kobo Int
+  hub_orders      hub_orders      @relation(fields: [hub_order_id], references: [hub_order_id], onDelete: Cascade)
+  hub_snack_items hub_snack_items @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+}
+
