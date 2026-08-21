@@ -87,7 +87,7 @@ export default function CustomOfferPreviewModal({
             Offer Amount
           </span>
           <p className="text-2xl font-black text-indigo-750 dark:text-indigo-400">
-            ₦{(offer.offerAmount / kobo).toLocaleString()}
+            ${(offer.offerAmount / kobo).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
 

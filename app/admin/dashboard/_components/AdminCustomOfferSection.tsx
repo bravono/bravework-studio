@@ -299,7 +299,7 @@ export default function AdminCustomOffersSection({
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-bold text-gray-900 dark:text-white">
-                        ₦{(offer.offerAmount / 100).toLocaleString()}
+                        ${(offer.offerAmount / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </td>
                     <td className="px-6 py-4 text-xs text-gray-500">
