@@ -179,14 +179,38 @@ export default function AdminOrdersSection({
   };
 
   const handleCreateCustomOffer = (order: Order) => {
-    if (order.amount !== 0 || order.amountPaid !== 0) {
-      toast.error(
-        "Custom offers can only be created for orders with 0 total expected amount and 0 amount paid.",
-      );
-      return;
-    }
     setSelectedOrder(order);
     setIsOfferModalOpen(true);
+  };
+
+  const handleSaveCustomOffer = async (formData: any) => {
+    try {
+      const apiData = {
+        orderId: formData.order_id,
+        userId: formData.user_id || orders.find((o) => String(o.id) === String(formData.order_id))?.clientId,
+        offerAmount: Number(formData.offer_amount_in_kobo),
+        description: formData.description,
+        expiresAt: formData.expires_at,
+      };
+
+      const res = await fetch("/api/admin/custom-offers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save custom offer");
+      }
+
+      toast.success("Custom offer created successfully!");
+      setIsOfferModalOpen(false);
+      setSelectedOrder(null);
+      fetchOrders();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const filteredOrders = useMemo(() => {
@@ -428,27 +452,25 @@ export default function AdminOrdersSection({
                             <CheckSquare size={16} />
                           </button>
                         )}
+                        <button
+                          onClick={() => handleCreateCustomOffer(order)}
+                          className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                          title="Create Custom Offer"
+                        >
+                          <Tag size={16} />
+                        </button>
                         {order.status === "pending" && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setSelectedOrder(order);
-                                setIsAIModalOpen(true);
-                              }}
-                              className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1 font-medium text-xs"
-                              title="Generate AI Agent Fleet Proposal"
-                            >
-                              <Sparkles size={15} className="text-indigo-500 animate-pulse" />
-                              <span>AI Proposal</span>
-                            </button>
-                            <button
-                              onClick={() => handleCreateCustomOffer(order)}
-                              className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
-                              title="Create Custom Offer"
-                            >
-                              <Tag size={16} />
-                            </button>
-                          </>
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsAIModalOpen(true);
+                            }}
+                            className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1 font-medium text-xs"
+                            title="Generate AI Agent Fleet Proposal"
+                          >
+                            <Sparkles size={15} className="text-indigo-500 animate-pulse" />
+                            <span>AI Proposal</span>
+                          </button>
                         )}
                         <button
                           onClick={() => handleDeleteOrder(order.id.toString())}
@@ -502,17 +524,14 @@ export default function AdminOrdersSection({
       {isOfferModalOpen && selectedOrder && (
         <CustomOfferModal
           offer={null}
+          initialOrderId={selectedOrder.id}
           orders={orders}
           isOpen={isOfferModalOpen}
           onClose={() => {
             setIsOfferModalOpen(false);
             setSelectedOrder(null);
           }}
-          onSave={() => {
-            fetchOrders();
-            setIsOfferModalOpen(false);
-            setSelectedOrder(null);
-          }}
+          onSave={handleSaveCustomOffer}
         />
       )}
 

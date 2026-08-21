@@ -21,7 +21,8 @@ export async function GET(request: Request) {
         o.created_at AS date,
         o.start_date AS "dateStarted",
         o.end_date AS "dateCompleted",
-        o.payment_status_id AS status,
+        COALESCE(os.name, 'pending') AS status,
+        o.payment_status_id AS "paymentStatusId",
         o.total_expected_amount_kobo AS amount,
         o.amount_paid_to_date_kobo AS "amountPaid",
         o.user_id AS "clientId",
@@ -31,11 +32,11 @@ export async function GET(request: Request) {
         o.timeline, 
         o.tracking_id AS "trackingId",
         pc.category_name AS "serviceName",
-        os.name AS "statusName"
+        COALESCE(os.name, 'pending') AS "statusName"
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
-      JOIN product_categories pc ON o.category_id = pc.category_id
-      JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
+      LEFT JOIN product_categories pc ON o.category_id = pc.category_id
+      LEFT JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
       ORDER BY o.created_at DESC;
     `;
 
@@ -70,7 +71,7 @@ export async function PATCH(request: Request) {
     const {
       clientId, // user_id
       service, // category_id
-      status, // payment_status_id
+      status, // payment_status_id or status name
       budget, // budget_range
       amountPaid, // amount_paid_to_date_kobo
       projectDescription, // project_description
@@ -91,12 +92,35 @@ export async function PATCH(request: Request) {
       updateParams.push(clientId);
     }
     if (service !== undefined) {
+      let serviceId = Number(service);
+      if (isNaN(serviceId)) {
+        const catRes = await queryDatabase(
+          "SELECT category_id FROM product_categories WHERE category_name = $1 LIMIT 1",
+          [service]
+        );
+        serviceId = catRes.length > 0 ? catRes[0].category_id : 1;
+      }
       updateFields.push(`category_id = $${paramIndex++}`);
-      updateParams.push(service);
+      updateParams.push(serviceId);
     }
     if (status !== undefined) {
+      let resolvedStatusId = Number(status);
+      if (isNaN(resolvedStatusId)) {
+        const statusRes = await queryDatabase(
+          "SELECT payment_status_id FROM payment_statuses WHERE name = $1 LIMIT 1",
+          [status]
+        );
+        if (statusRes.length > 0) {
+          resolvedStatusId = statusRes[0].payment_status_id;
+        } else {
+          if (status === "paid") resolvedStatusId = 2;
+          else if (status === "partially_paid" || status === "in-progress") resolvedStatusId = 3;
+          else if (status === "expired" || status === "cancelled") resolvedStatusId = 4;
+          else resolvedStatusId = 1;
+        }
+      }
       updateFields.push(`payment_status_id = $${paramIndex++}`);
-      updateParams.push(status);
+      updateParams.push(resolvedStatusId);
     }
     if (budget !== undefined) {
       updateFields.push(`budget_range = $${paramIndex++}`);
