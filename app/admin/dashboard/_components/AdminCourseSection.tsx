@@ -4,10 +4,11 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
-import { PlusCircle, Edit, Trash2, Search } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Search, Eye } from "lucide-react";
 
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CourseModal from "@/app/components/CourseModal";
+import CoursePreviewModal from "@/app/components/CoursePreviewModal";
 import { Course } from "@/app/types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import Pagination from "@/app/components/Pagination";
@@ -24,6 +25,10 @@ export default function AdminCourseSection({
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  
+  // State for preview modal
+  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,12 +49,27 @@ export default function AdminCourseSection({
       }
       const data = await res.json();
       setCourses(data);
+      return data;
     } catch (error: any) {
       toast.error(error.message);
+      return [];
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const handleSaveCourse = async (savedCourseId?: string) => {
+    const updatedCourses = await fetchCourses();
+    if (savedCourseId && updatedCourses) {
+      const course = updatedCourses.find(
+        (c: Course) => String(c.id) === String(savedCourseId),
+      );
+      if (course) {
+        setPreviewCourse(course);
+        setIsPreviewModalOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -272,6 +292,16 @@ export default function AdminCourseSection({
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end space-x-2">
                         <button
+                          onClick={() => {
+                            setPreviewCourse(course);
+                            setIsPreviewModalOpen(true);
+                          }}
+                          className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
+                          title="Preview Course"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
                           onClick={() => handleEditCourse(course)}
                           className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
                           title="Edit Course"
@@ -317,7 +347,7 @@ export default function AdminCourseSection({
         <CourseModal
           existingCourse={selectedCourse}
           onClose={() => setIsModalOpen(false)}
-          onSave={fetchCourses}
+          onSave={handleSaveCourse}
           userRole="admin"
           currentInstructorName={session?.user?.name || ""}
           currentInstructorId={(session?.user as any)?.id}
@@ -329,6 +359,20 @@ export default function AdminCourseSection({
         onConfirm={handleDeleteCourseConfirm}
         message={`Are you sure you want to delete course: ${selectedCourse?.title || courseToDelete}? This action cannot be undone.`}
       />
+      {isPreviewModalOpen && (
+        <CoursePreviewModal
+          course={previewCourse}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewCourse) {
+              setSelectedCourse(previewCourse);
+              setIsModalOpen(true);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

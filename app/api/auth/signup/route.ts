@@ -27,6 +27,8 @@ const baseSignupSchema = Joi.object({
   phone: Joi.string().allow("").optional(),
   referralCode: Joi.string().allow("").optional(),
   hearAboutUs: Joi.string().max(100).allow("").optional(),
+  role: Joi.string().allow("").optional(),
+  isMobile: Joi.boolean().optional(),
 });
 
 const enrollmentSchema = Joi.object({
@@ -184,14 +186,23 @@ export async function POST(req: Request) {
           [userId, roleId],
         );
 
-        // Send verification email
+        // Send verification email & generate 6-digit OTP for instant mobile/web verification
         const verificationToken = uuidv4();
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expires = new Date();
         expires.setHours(expires.getHours() + 24);
+
         await client.query(
           'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
           [userId, verificationToken, expires, "email_verification"],
         );
+
+        await client.query(
+          'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+          [userId, otpCode, expires, "mobile_otp"],
+        );
+
+        logger.info({ email, otpCode }, "Generated mobile OTP verification code");
 
         try {
           await sendVerificationEmail(email, verificationToken, name, course);
@@ -397,9 +408,12 @@ export async function POST(req: Request) {
     if (result.isNewUser) {
       return NextResponse.json(
         {
+          success: true,
           message:
-            "User created successfully! Please check your email to verify your account.",
+            "User created successfully! Please enter your 6-digit OTP verification code to activate your account.",
           userId: result.userId,
+          email: email,
+          otpRequired: true,
         },
         { status: 201 },
       );

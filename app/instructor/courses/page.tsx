@@ -8,6 +8,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 
 import { format } from "date-fns";
@@ -16,6 +17,7 @@ import { useSession } from "next-auth/react";
 import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CourseModal from "@/app/components/CourseModal";
+import CoursePreviewModal from "@/app/components/CoursePreviewModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
@@ -26,6 +28,10 @@ export default function InstructorCoursePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  // State for preview modal
+  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const { data: session } = useSession();
   const [instructorProfile, setInstructorProfile] = useState<any>(null);
@@ -64,12 +70,27 @@ export default function InstructorCoursePage() {
       }
       const data = await res.json();
       setCourses(data);
+      return data;
     } catch (error: any) {
       toast.error(error.message);
+      return [];
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const handleSaveCourse = async (savedCourseId?: string) => {
+    const updatedCourses = await fetchCourses();
+    if (savedCourseId && updatedCourses) {
+      const course = updatedCourses.find(
+        (c: Course) => String(c.id) === String(savedCourseId),
+      );
+      if (course) {
+        setPreviewCourse(course);
+        setIsPreviewModalOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -228,6 +249,16 @@ export default function InstructorCoursePage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => {
+                        setPreviewCourse(course);
+                        setIsPreviewModalOpen(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900 transition-colors mr-3"
+                      title="Preview Course"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
                       onClick={() => handleEditCourse(course)}
                       className="text-blue-600 hover:text-blue-900 transition-colors mr-3"
                       title="Edit Course"
@@ -300,7 +331,7 @@ export default function InstructorCoursePage() {
         <CourseModal
           onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
-          onSave={fetchCourses}
+          onSave={handleSaveCourse}
           userRole="instructor" // Changed from "admin" for instructor access
           currentInstructorName={instructorProfile?.fullName}
           currentInstructorId={session?.user?.id as any}
@@ -312,6 +343,20 @@ export default function InstructorCoursePage() {
         onConfirm={handleDeleteCourseConfirm}
         message={`Are you sure you want to delete course ID: ${courseToDelete}? This action cannot be undone.`}
       />
+      {isPreviewModalOpen && (
+        <CoursePreviewModal
+          course={previewCourse}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewCourse) {
+              setSelectedCourse(previewCourse);
+              setIsModalOpen(true);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

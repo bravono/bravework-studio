@@ -334,7 +334,7 @@ interface AdminStats {
 interface CourseModalProps {
   onClose: () => void;
   existingCourse?: Course;
-  onSave: () => void;
+  onSave: (courseId?: string) => void;
   userRole: "admin" | "instructor";
   currentInstructorName?: string;
   currentInstructorId?: number;

@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Plus, Pencil, Trash2, Tag, CheckSquare, Search, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, CheckSquare, Search, Sparkles, Eye } from "lucide-react";
 
 // Import the new Pagination component
 import Pagination from "../../../components/Pagination";
@@ -14,6 +14,7 @@ import Pagination from "../../../components/Pagination";
 import CustomOfferModal from "./CustomOfferModal";
 import OrderFormModal from "./OrderFormModal";
 import AIProposalModal from "./AIProposalModal";
+import OrderPreviewModal from "@/app/components/OrderPreviewModal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { Order } from "../../../types/app";
 
@@ -37,6 +38,10 @@ export default function AdminOrdersSection({
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  // State for preview modal
+  const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -57,14 +62,29 @@ export default function AdminOrdersSection({
       const data: Order[] = await res.json();
       setOrders(data);
       setCurrentPage(1); // Reset to the first page when new data is fetched
+      return data;
     } catch (err: any) {
       console.error("Error fetching orders:", err);
       setError(err.message || "Failed to load orders.");
       toast.error(err.message || "Failed to load orders.");
+      return [];
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleSaveOrder = async (savedOrderId?: string) => {
+    const updatedOrders = await fetchOrders();
+    if (savedOrderId && updatedOrders) {
+      const order = updatedOrders.find(
+        (o: Order) => String(o.id) === String(savedOrderId),
+      );
+      if (order) {
+        setPreviewOrder(order);
+        setIsPreviewModalOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -372,8 +392,18 @@ export default function AdminOrdersSection({
                     <td className="px-6 py-4">
                       {getStatusBadge(order.status)}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setPreviewOrder(order);
+                            setIsPreviewModalOpen(true);
+                          }}
+                          className="p-2 text-indigo-650 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
+                          title="Preview Order"
+                        >
+                          <Eye size={16} />
+                        </button>
                         <Link
                           href={`/admin/orders/${order.id}`}
                           className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
@@ -493,11 +523,7 @@ export default function AdminOrdersSection({
             setIsOrderFormModalOpen(false);
             setSelectedOrder(null);
           }}
-          onSave={() => {
-            fetchOrders();
-            setIsOrderFormModalOpen(false);
-            setSelectedOrder(null);
-          }}
+          onSave={handleSaveOrder}
         />
       )}
 
@@ -520,6 +546,20 @@ export default function AdminOrdersSection({
             setIsConfirmModalOpen(false);
             setOrderToDeleteId(null);
             setOrderToTogglePortfolio(null);
+          }}
+        />
+      )}
+      {isPreviewModalOpen && (
+        <OrderPreviewModal
+          order={previewOrder}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewOrder) {
+              setSelectedOrder(previewOrder);
+              setIsOrderFormModalOpen(true);
+            }
           }}
         />
       )}

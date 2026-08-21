@@ -12,8 +12,10 @@ import {
   Sparkles,
   RotateCw,
   Wand2,
+  Eye,
 } from "lucide-react";
 import BlogGeneratorUI from "@/app/components/blog/BlogGeneratorUI";
+import BlogPreviewModal from "@/app/components/blog/BlogPreviewModal";
 import { toast } from "react-toastify";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
@@ -30,6 +32,10 @@ export default function AdminBlogManager() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [refineInstructions, setRefineInstructions] = useState("");
   const [isRefining, setIsRefining] = useState(false);
+
+  // State for preview modal
+  const [previewPost, setPreviewPost] = useState<any | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     slug: "",
@@ -76,6 +82,10 @@ export default function AdminBlogManager() {
         toast.success("Post saved!");
         setIsModalOpen(false);
         fetchPosts();
+        setPreviewPost({
+          ...formData,
+        });
+        setIsPreviewModalOpen(true);
       } else {
         toast.error("Save failed");
       }
@@ -233,14 +243,34 @@ export default function AdminBlogManager() {
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/admin/blog/${post.slug}`);
+                        const data = await res.json();
+                        if (res.ok) {
+                          setPreviewPost(data);
+                          setIsPreviewModalOpen(true);
+                        } else {
+                          toast.error("Failed to load post for preview");
+                        }
+                      } catch (err) {
+                        toast.error("Error loading preview content");
+                      }
+                    }}
+                    className="p-3 text-indigo-400 hover:text-indigo-650 hover:bg-indigo-50 rounded-xl transition-all"
+                    title="Preview Post"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button
                     onClick={() => handleEdit(post.slug)}
-                    className="p-3 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                    className="p-3 text-indigo-400 hover:text-indigo-650 hover:bg-indigo-50 rounded-xl transition-all"
                   >
                     <Edit className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(post.slug)}
-                    className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                    className="p-3 text-red-400 hover:text-red-650 hover:bg-red-50 rounded-xl transition-all"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -463,6 +493,30 @@ export default function AdminBlogManager() {
             });
             setIsAIModalOpen(false);
             setIsModalOpen(true);
+          }}
+        />
+      )}
+      {isPreviewModalOpen && (
+        <BlogPreviewModal
+          post={previewPost}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewPost) {
+              setFormData({
+                slug: previewPost.slug,
+                title: previewPost.title,
+                date: previewPost.date || new Date().toISOString().split("T")[0],
+                excerpt: previewPost.excerpt || "",
+                category: previewPost.category || "Academy",
+                author: previewPost.author || "Bravework Team",
+                tags: Array.isArray(previewPost.tags) ? previewPost.tags.join(", ") : previewPost.tags || "",
+                content: previewPost.content || "",
+                coverImage: previewPost.coverImage || "/assets/DOF0160.png",
+              });
+              setIsModalOpen(true);
+            }
           }}
         />
       )}

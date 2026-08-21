@@ -230,3 +230,76 @@ export async function DELETE(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse;
+
+    const body = await request.json();
+    const {
+      clientId, // user_id
+      service, // category_id
+      status, // payment_status_id
+      amount, // total_expected_amount_kobo (was already converted to kobo in form)
+      amountPaid, // amount_paid_to_date_kobo (was already converted to kobo in form)
+      description, // project_description
+      dateStarted, // start_date
+      dateCompleted, // end_date
+      isPortfolio, // is_portfolio
+      trackingId, // tracking_id
+    } = body;
+
+    // Convert string status (e.g. 'pending') to payment_status_id integer
+    let statusId = 1; // Default to pending (id = 1)
+    if (status === "paid") statusId = 2;
+    else if (status === "partially_paid") statusId = 3;
+    else if (status === "expired") statusId = 4;
+
+    // Resolve category_id if service is passed as a string (slug/name), but here we assume it's category_id as string
+    // Let's resolve category_id from name if needed, or query category_id. Let's do a select fallback.
+    let resolvedCategoryId = Number(service);
+    if (isNaN(resolvedCategoryId)) {
+      const catRes = await queryDatabase(
+        "SELECT category_id FROM product_categories WHERE category_name = $1 LIMIT 1",
+        [service]
+      );
+      if (catRes.length > 0) {
+        resolvedCategoryId = catRes[0].category_id;
+      } else {
+        // Fallback to a default category ID (e.g. 1)
+        resolvedCategoryId = 1;
+      }
+    }
+
+    const queryText = `
+      INSERT INTO orders (
+        user_id, category_id, payment_status_id, total_expected_amount_kobo,
+        amount_paid_to_date_kobo, project_description, start_date, end_date,
+        is_portfolio, tracking_id, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      RETURNING order_id AS id;
+    `;
+
+    const result = await queryDatabase(queryText, [
+      clientId,
+      resolvedCategoryId,
+      statusId,
+      amount,
+      amountPaid,
+      description,
+      dateStarted || null,
+      dateCompleted || null,
+      isPortfolio || false,
+      trackingId || null,
+    ]);
+
+    return NextResponse.json({ id: result[0].id, message: "Order created successfully" }, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating order:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

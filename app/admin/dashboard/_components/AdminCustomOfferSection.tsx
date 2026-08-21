@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import { PlusCircle, Edit, Trash2, Search } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Search, Eye } from "lucide-react";
 
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CustomOfferModal from "./CustomOfferModal";
+import CustomOfferPreviewModal from "@/app/components/CustomOfferPreviewModal";
 import { CustomOffer, Order } from "@/app/types/app";
 import Pagination from "@/app/components/Pagination";
 
@@ -23,6 +24,10 @@ export default function AdminCustomOffersSection({
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<CustomOffer | null>(null);
+  
+  // State for preview modal
+  const [previewOffer, setPreviewOffer] = useState<CustomOffer | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // State for pagination
@@ -42,8 +47,10 @@ export default function AdminCustomOffersSection({
       }
       const data = await res.json();
       setOffers(data);
+      return data;
     } catch (error: any) {
       toast.error(error.message);
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -117,16 +124,23 @@ export default function AdminCustomOffersSection({
 
   const handleSaveOffer = async (formData: any) => {
     try {
-      const method = selectedOffer ? "PUT" : "POST";
+      const method = selectedOffer ? "PATCH" : "POST";
       const url = selectedOffer
-        ? `/api/admin/custom-offers/${selectedOffer.id}`
+        ? `/api/admin/custom-offers?id=${selectedOffer.id}`
         : "/api/admin/custom-offers";
-      const body = JSON.stringify(formData);
+      
+      const apiData = {
+        orderId: formData.order_id,
+        userId: formData.user_id || orders.find(o => String(o.id) === String(formData.order_id))?.clientId,
+        offerAmount: Number(formData.offer_amount_in_kobo),
+        description: formData.description,
+        expiresAt: formData.expires_at,
+      };
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body,
+        body: JSON.stringify(apiData),
       });
 
       if (!res.ok) {
@@ -134,11 +148,22 @@ export default function AdminCustomOffersSection({
         throw new Error(errorData.error || "Failed to save custom offer");
       }
 
+      const savedOffer = await res.json();
+      const savedOfferId = savedOffer.id || selectedOffer?.id;
+
       toast.success(
         `Custom offer ${selectedOffer ? "updated" : "created"} successfully!`,
       );
       setIsModalOpen(false);
-      fetchOffers();
+      const updatedOffers = await fetchOffers();
+
+      if (savedOfferId && updatedOffers) {
+        const offerObj = updatedOffers.find((o: CustomOffer) => String(o.id) === String(savedOfferId));
+        if (offerObj) {
+          setPreviewOffer(offerObj);
+          setIsPreviewModalOpen(true);
+        }
+      }
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -295,6 +320,16 @@ export default function AdminCustomOffersSection({
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => {
+                            setPreviewOffer(offer);
+                            setIsPreviewModalOpen(true);
+                          }}
+                          className="p-2 text-indigo-650 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
+                          title="Preview Offer"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
                           onClick={() => handleEditOffer(offer)}
                           className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
                           title="Edit Offer"
@@ -352,6 +387,20 @@ export default function AdminCustomOffersSection({
           onCancel={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteOfferConfirm}
           message={`Are you sure you want to delete offer ID: ${offerToDelete}? This action cannot be undone.`}
+        />
+      )}
+      {isPreviewModalOpen && (
+        <CustomOfferPreviewModal
+          offer={previewOffer}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewOffer) {
+              setSelectedOffer(previewOffer);
+              setIsModalOpen(true);
+            }
+          }}
         />
       )}
     </div>

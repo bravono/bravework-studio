@@ -19,7 +19,7 @@ import Modal from "@/app/components/Modal";
 interface OrderFormModalProps {
   order?: Order | null; // Null for create, Order object for edit
   onClose: () => void;
-  onSave: () => void;
+  onSave: (orderId?: string) => void;
 }
 
 export default function OrderFormModal({
@@ -103,8 +103,11 @@ export default function OrderFormModal({
       if (!res.ok)
         throw new Error(`Failed to ${order ? "update" : "create"} order.`);
 
+      const data = await res.json().catch(() => ({}));
+      const savedOrderId = data.id || order?.id;
+
       toast.success(`Order ${order ? "updated" : "created"} successfully!`);
-      onSave();
+      onSave(savedOrderId ? String(savedOrderId) : undefined);
       onClose();
     } catch (err: any) {
       console.error("Error saving order:", err);
