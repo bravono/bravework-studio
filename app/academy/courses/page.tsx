@@ -26,6 +26,7 @@ import {
   ArrowRight,
   X,
   Users,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -43,6 +44,7 @@ import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
 import Pagination from "../../components/Pagination";
 import VideoModal from "../../components/VideoModal";
+import CourseModal from "../../components/CourseModal";
 import { Course } from "../../types/app";
 
 const COURSES_PER_PAGE = 6;
@@ -60,9 +62,23 @@ function AcademyCoursesContent() {
   const [userEnrolledCourseIds, setUserEnrolledCourseIds] = useState<number[]>(
     [],
   );
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
 
   const { data: session } = useSession();
   const router = useRouter();
+
+  const isAdmin = useMemo(() => {
+    if (!session?.user) return false;
+    const u = session.user as any;
+    if (u.role === "admin") return true;
+    if (Array.isArray(u.roles)) {
+      return u.roles.some((r: any) =>
+        typeof r === "string" ? r.toLowerCase() === "admin" : r.roleName?.toLowerCase() === "admin"
+      );
+    }
+    return false;
+  }, [session]);
 
   const searchParams = useSearchParams();
 
@@ -761,6 +777,18 @@ function AcademyCoursesContent() {
                       >
                         View Details
                       </Link>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            setEditingCourse(course);
+                            setIsCourseModalOpen(true);
+                          }}
+                          className="mt-3 flex w-full items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 transition-all border border-indigo-200"
+                        >
+                          <Pencil size={15} /> Edit Course (Admin)
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -1043,6 +1071,23 @@ function AcademyCoursesContent() {
         onClose={() => setPlayingVideoUrl(null)}
         videoUrl={playingVideoUrl || ""}
       />
+
+      {isCourseModalOpen && editingCourse && (
+        <CourseModal
+          existingCourse={editingCourse}
+          userRole="admin"
+          onClose={() => {
+            setIsCourseModalOpen(false);
+            setEditingCourse(null);
+          }}
+          onSave={() => {
+            setIsCourseModalOpen(false);
+            setEditingCourse(null);
+            fetchCourses();
+            toast.success("Course updated successfully!");
+          }}
+        />
+      )}
     </div>
   );
 }

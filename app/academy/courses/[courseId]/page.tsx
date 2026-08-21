@@ -21,9 +21,13 @@ import {
   ArrowRight,
   PlayCircle,
   ArrowLeft,
+  Pencil,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 import ExpandableText from "@/app/components/ExpandableText";
 import VideoModal from "@/app/components/VideoModal";
+import CourseModal from "@/app/components/CourseModal";
 
 // --- New Hook for Timezone Conversion ---
 const useLocalTimezone = (dateTimeString) => {
@@ -60,6 +64,21 @@ export default function CoursePage() {
   const [course, setCourse] = useState<Course>();
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const { data: session } = useSession();
+
+  const isAdmin = useMemo(() => {
+    if (!session?.user) return false;
+    const u = session.user as any;
+    if (u.role === "admin") return true;
+    if (Array.isArray(u.roles)) {
+      return u.roles.some((r: any) =>
+        typeof r === "string" ? r.toLowerCase() === "admin" : r.roleName?.toLowerCase() === "admin"
+      );
+    }
+    return false;
+  }, [session]);
 
   const isActive = course?.isActive;
 
@@ -205,8 +224,8 @@ export default function CoursePage() {
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary-light/10 rounded-full blur-3xl opacity-60"></div>
 
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
-          {/* Back Button */}
-          <div className="mb-8">
+          {/* Back Button and Admin Edit Button */}
+          <div className="mb-8 flex items-center justify-between">
             <Link
               href="/academy/courses"
               className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-primary transition-colors duration-200 group"
@@ -214,6 +233,14 @@ export default function CoursePage() {
               <ArrowLeft className="w-4.5 h-4.5 transition-transform group-hover:-translate-x-1" />
               Back to Courses
             </Link>
+            {isAdmin && course && (
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-sm rounded-xl border border-indigo-200 transition-colors shadow-sm"
+              >
+                <Pencil size={15} /> Edit Course (Admin)
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -677,6 +704,19 @@ export default function CoursePage() {
         onClose={() => setPlayingVideoUrl(null)}
         videoUrl={playingVideoUrl || ""}
       />
+
+      {isEditModalOpen && course && (
+        <CourseModal
+          existingCourse={course}
+          userRole="admin"
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={() => {
+            setIsEditModalOpen(false);
+            fetchCourse();
+            toast.success("Course updated successfully!");
+          }}
+        />
+      )}
     </div>
   );
 }
