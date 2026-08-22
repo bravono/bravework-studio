@@ -135,31 +135,42 @@ export default function SecuritySettings() {
             </div>
           </div>
 
-          <div>
-            {mfaEnabled ? (
-              <button
-                onClick={disableMfa}
-                disabled={loading}
-                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors"
-              >
-                {loading ? "Processing..." : "Disable MFA"}
-              </button>
-            ) : step === "initial" ? (
-              <button
-                onClick={startSetup}
-                disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-              >
-                {loading ? "Processing..." : "Enable MFA"}
-              </button>
-            ) : (
-              <button
-                onClick={() => setStep("initial")}
-                className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium"
-              >
-                Cancel
-              </button>
-            )}
+          {/* MFA Toggle Switch */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:inline">
+              {mfaEnabled ? "Enabled" : step === "setup" ? "Configuring" : "Disabled"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={mfaEnabled || step === "setup"}
+              disabled={loading}
+              onClick={() => {
+                if (mfaEnabled) {
+                  disableMfa();
+                } else if (step === "setup") {
+                  setStep("initial");
+                } else {
+                  startSetup();
+                }
+              }}
+              title={mfaEnabled ? "Click to disable MFA" : "Click to enable MFA"}
+              className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                mfaEnabled
+                  ? "bg-green-600"
+                  : step === "setup"
+                  ? "bg-blue-500"
+                  : "bg-gray-200 dark:bg-gray-700"
+              } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              <span className="sr-only">Toggle Multi-Factor Authentication</span>
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  mfaEnabled || step === "setup" ? "translate-x-7" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         </div>
 
