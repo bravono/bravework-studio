@@ -44,13 +44,25 @@ interface Order {
 
 // New: User interface for User Management
 interface User {
-  id: string;
+  id: string | number;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  roles: string; // e.g., 'user', 'admin', 'client', 'student'
+  phone?: string;
+  companyName?: string;
+  bio?: string;
+  profilePictureUrl?: string;
+  roles: any;
   emailVerified: boolean;
-  createdAt: string; // When they joined
-  // Add other relevant user details for admin view
+  isVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  referralCode?: string;
+  hearAboutUs?: string;
+  createdAt: string;
+  updatedAt?: string;
+  verificationSubmittedAt?: string | null;
+  idType?: string;
 }
 
 // New: Job Application interface
@@ -343,9 +355,10 @@ interface CourseModalProps {
 interface CustomOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
-  offer: CustomOffer | null;
+  offer?: CustomOffer | null;
   onSave: (data: any) => void;
   orders: Order[];
+  initialOrderId?: string | number;
 }
 
 interface PaginationProps {
