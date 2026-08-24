@@ -49,16 +49,19 @@ export async function GET(request: Request) {
 
     const data = await resp.json();
 
-    // 👉 At this point you have:
-    // data.access_token, data.refresh_token, data.expires_in, data.api_domain, …
-    // Store `data.refresh_token` somewhere safe (e.g. .env.local for a quick demo).
+    if (data.error) {
+      return NextResponse.json({
+        error: "Zoho OAuth error payload",
+        details: data
+      }, { status: 400 });
+    }
 
-    // For a demo we just return it (never do this in production!)
     return NextResponse.json({
       message: "Zoho OAuth successful – store the refresh token securely",
       refresh_token: data.refresh_token,
       access_token: data.access_token,
       expires_in: data.expires_in,
+      full_response: data
     });
   } catch (e) {
     console.error("Zoho callback error:", e);
