@@ -36,11 +36,11 @@ export const subscriptionSchema = Joi.object({
 
 // Admin Custom Offer Schema
 export const customOfferSchema = Joi.object({
-  orderId: Joi.string().uuid().required(),
-  userId: Joi.string().uuid().required(),
+  orderId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+  userId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
   offerAmount: Joi.number().min(0).required(),
-  description: Joi.string().min(10).required(),
-  expiresAt: Joi.string().isoDate().allow(null).optional(),
+  description: Joi.string().min(1).required(),
+  expiresAt: Joi.string().isoDate().allow(null, "").optional(),
   projectDuration: Joi.number().min(0).optional(),
 });
 

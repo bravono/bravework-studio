@@ -26,6 +26,9 @@ const baseSignupSchema = Joi.object({
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
+  role: Joi.string().allow("").optional(),
+  isMobile: Joi.boolean().optional(),
 });
 
 const enrollmentSchema = Joi.object({
@@ -46,6 +49,7 @@ const enrollmentSchema = Joi.object({
   bundle: Joi.string().allow("").optional(),
   includeHardware: Joi.boolean().optional(),
   referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
 });
 
 const enrollExistingUserSchema = Joi.object({
@@ -98,6 +102,7 @@ export async function POST(req: Request) {
       bundle,
       includeHardware,
       referralCode,
+      hearAboutUs,
     } = body;
 
     // Use a database transaction to ensure data integrity
@@ -137,8 +142,8 @@ export async function POST(req: Request) {
         // Insert new user
         const insertUserResult = await client.query(
           `INSERT INTO users
-          (first_name, last_name, email, password, company_name, phone)
-          VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`,
+          (first_name, last_name, email, password, company_name, phone, hear_about_us)
+          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
           [
             firstName,
             lastName,
@@ -146,6 +151,7 @@ export async function POST(req: Request) {
             hashedPassword,
             companyName || null,
             phone || null,
+            hearAboutUs || null,
           ],
         );
 
@@ -180,14 +186,23 @@ export async function POST(req: Request) {
           [userId, roleId],
         );
 
-        // Send verification email
+        // Send verification email & generate 6-digit OTP for instant mobile/web verification
         const verificationToken = uuidv4();
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expires = new Date();
         expires.setHours(expires.getHours() + 24);
+
         await client.query(
           'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
           [userId, verificationToken, expires, "email_verification"],
         );
+
+        await client.query(
+          'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+          [userId, otpCode, expires, "mobile_otp"],
+        );
+
+        logger.info({ email, otpCode }, "Generated mobile OTP verification code");
 
         try {
           await sendVerificationEmail(email, verificationToken, name, course);
@@ -393,9 +408,12 @@ export async function POST(req: Request) {
     if (result.isNewUser) {
       return NextResponse.json(
         {
+          success: true,
           message:
-            "User created successfully! Please check your email to verify your account.",
+            "User created successfully! Please enter your 6-digit OTP verification code to activate your account.",
           userId: result.userId,
+          email: email,
+          otpRequired: true,
         },
         { status: 201 },
       );

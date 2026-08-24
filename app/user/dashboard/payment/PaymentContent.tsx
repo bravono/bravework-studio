@@ -9,6 +9,7 @@ import {
   Loader2,
   CheckCircle,
   Wallet,
+  Heart,
 } from "lucide-react";
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -85,6 +86,10 @@ export default function PaymentContent() {
   // Wallet State
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [useWallet, setUseWallet] = useState(false);
+
+  // Tip State
+  const [tipOption, setTipOption] = useState<"none" | "5" | "10" | "15" | "custom">("none");
+  const [customTipAmount, setCustomTipAmount] = useState<string>("");
 
   // Coupon State
   const [couponCode, setCouponCode] = useState("");
@@ -242,25 +247,44 @@ export default function PaymentContent() {
       amountToPay = Math.round(amountToPay * (1 - couponDiscount / 100));
     }
 
+    // Tip Calculation
+    let tipAmount = 0;
+    if (tipOption === "5") {
+      tipAmount = Math.round(amountToPay * 0.05);
+    } else if (tipOption === "10") {
+      tipAmount = Math.round(amountToPay * 0.10);
+    } else if (tipOption === "15") {
+      tipAmount = Math.round(amountToPay * 0.15);
+    } else if (tipOption === "custom") {
+      const parsedCustom = parseFloat(customTipAmount);
+      if (!isNaN(parsedCustom) && parsedCustom > 0) {
+        tipAmount = Math.round(parsedCustom * KOBO_PER_NAIRA);
+      }
+    }
+
+    const totalWithTip = amountToPay + tipAmount;
+
     // Wallet Logic
     let walletDeduction = 0;
-    let finalPaystackAmount = amountToPay;
+    let finalPaystackAmount = totalWithTip;
 
     if (useWallet) {
-      walletDeduction = Math.min(walletBalance, amountToPay);
-      finalPaystackAmount = amountToPay - walletDeduction;
+      walletDeduction = Math.min(walletBalance, totalWithTip);
+      finalPaystackAmount = totalWithTip - walletDeduction;
     }
 
     return {
       baseAmount,
-      amountToPay, // Total expected for this transaction
+      amountToPay, // Total item price after discounts for this transaction
+      tipAmount,
+      totalWithTip,
       discount: discount + couponDiscount,
       couponDiscountApplied: couponDiscount,
       label,
       walletDeduction,
       finalPaystackAmount,
     };
-  }, [orderData, paymentOption, useWallet, walletBalance, couponDiscount]);
+  }, [orderData, paymentOption, useWallet, walletBalance, couponDiscount, tipOption, customTipAmount]);
 
   const handlePayment = async () => {
     if (!orderData || !paymentDetails || !session?.user?.email) return;
@@ -279,6 +303,7 @@ export default function PaymentContent() {
                 ? (orderData as any).orders[0].orderId
                 : orderData.orderId,
             amountKobo: paymentDetails.walletDeduction,
+            tipAmountKobo: paymentDetails.tipAmount,
             serviceType: orderData.type,
             productId:
               orderData.type === "bundle"
@@ -344,6 +369,7 @@ export default function PaymentContent() {
           discount_applied: paymentDetails.discount.toString(),
           original_amount_kobo: paymentDetails.baseAmount.toString(),
           wallet_usage_kobo: paymentDetails.walletDeduction.toString(),
+          tip_amount_kobo: paymentDetails.tipAmount.toString(),
           coupon_code: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
         },
         onSuccess: async (transaction: any) => {
@@ -590,6 +616,83 @@ export default function PaymentContent() {
                )}
              </div>
 
+             {/* Tip the Team Section */}
+             <div className="mb-8">
+               <div className="flex items-center gap-2 mb-2">
+                 <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                 <h2 className="text-lg font-semibold text-gray-800">
+                   Add a Tip for the Team
+                 </h2>
+               </div>
+               <p className="text-sm text-gray-500 mb-4">
+                 Show support for the instructors and creators building Bravework Studio.
+               </p>
+
+               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                 {[
+                   { id: "none", label: "No Tip", desc: "₦0" },
+                   {
+                     id: "5",
+                     label: "5%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.05) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   {
+                     id: "10",
+                     label: "10%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.1) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   {
+                     id: "15",
+                     label: "15%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.15) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   { id: "custom", label: "Custom", desc: "Any amount" },
+                 ].map((opt) => (
+                   <button
+                     key={opt.id}
+                     type="button"
+                     onClick={() => setTipOption(opt.id as any)}
+                     className={`p-3 rounded-xl border-2 text-center transition-all ${
+                       tipOption === opt.id
+                         ? "border-green-600 bg-green-50 text-green-700 font-bold"
+                         : "border-gray-200 text-gray-700 hover:border-green-200"
+                     }`}
+                   >
+                     <div className="font-bold text-sm">{opt.label}</div>
+                     <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
+                   </button>
+                 ))}
+               </div>
+
+               {tipOption === "custom" && (
+                 <div className="mt-3">
+                   <div className="relative">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                       ₦
+                     </span>
+                     <input
+                       type="number"
+                       min="0"
+                       step="100"
+                       placeholder="Enter custom tip amount in Naira"
+                       value={customTipAmount}
+                       onChange={(e) => setCustomTipAmount(e.target.value)}
+                       className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium"
+                     />
+                   </div>
+                 </div>
+               )}
+             </div>
+
             {/* Wallet Option */}
             {walletBalance > 0 && (
               <div className="mb-8">
@@ -636,8 +739,39 @@ export default function PaymentContent() {
 
             {/* Total & Pay Button */}
             <div className="border-t border-gray-100 pt-8">
+              {/* Order Calculation Breakdown */}
+              <div className="space-y-2 mb-6 text-sm text-gray-600 border-b border-gray-100 pb-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>
+                    {convertAmount(
+                      (paymentDetails?.amountToPay || 0) / KOBO_PER_NAIRA,
+                    )}
+                  </span>
+                </div>
+                {paymentDetails && paymentDetails.tipAmount > 0 && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                      Team Tip
+                    </span>
+                    <span>
+                      +{convertAmount(paymentDetails.tipAmount / KOBO_PER_NAIRA)}
+                    </span>
+                  </div>
+                )}
+                {paymentDetails && paymentDetails.walletDeduction > 0 && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span>Wallet Balance Applied</span>
+                    <span>
+                      -{convertAmount(paymentDetails.walletDeduction / KOBO_PER_NAIRA)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-between items-center mb-6">
-                <span className="text-gray-600">Total to Pay</span>
+                <span className="text-gray-600 font-medium">Total to Pay</span>
                 <div className="text-right">
                   <span className="text-3xl font-bold text-gray-900">
                     {paymentDetails?.finalPaystackAmount === 0

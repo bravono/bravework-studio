@@ -74,9 +74,19 @@ const slides = [
   },
 ];
 
-export default function HeroCarousel() {
+export default function HeroCarousel({ visible = true }: { visible?: boolean }) {
   return (
-    <div className="w-full h-full relative group hero-carousel pointer-events-none">
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="hero-carousel"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="absolute inset-0 w-full h-full"
+        >
+        <div className="w-full h-full relative group hero-carousel pointer-events-none">
       <Swiper
         spaceBetween={0}
         centeredSlides={true}
@@ -213,6 +223,9 @@ export default function HeroCarousel() {
           font-weight: bold;
         }
       `}</style>
-    </div>
+        </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

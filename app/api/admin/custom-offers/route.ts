@@ -183,9 +183,8 @@ export async function POST(request: Request) {
         const notificationMessage = `You have received a new custom offer for Order ID ${
           newOffer.orderId
         }. Amount: $${(
-          (newOffer.offerAmount / kobo) *
-          DOLLAR_PER_NAIRA
-        ).toLocaleString()}. ${
+          newOffer.offerAmount / kobo
+        ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. ${
           newOffer.expiresAt
             ? `Expires: ${new Date(newOffer.expiresAt).toLocaleString()}`
             : ""

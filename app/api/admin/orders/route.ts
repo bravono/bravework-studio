@@ -21,7 +21,8 @@ export async function GET(request: Request) {
         o.created_at AS date,
         o.start_date AS "dateStarted",
         o.end_date AS "dateCompleted",
-        o.payment_status_id AS status,
+        COALESCE(os.name, 'pending') AS status,
+        o.payment_status_id AS "paymentStatusId",
         o.total_expected_amount_kobo AS amount,
         o.amount_paid_to_date_kobo AS "amountPaid",
         o.user_id AS "clientId",
@@ -31,11 +32,11 @@ export async function GET(request: Request) {
         o.timeline, 
         o.tracking_id AS "trackingId",
         pc.category_name AS "serviceName",
-        os.name AS "statusName"
+        COALESCE(os.name, 'pending') AS "statusName"
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
-      JOIN product_categories pc ON o.category_id = pc.category_id
-      JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
+      LEFT JOIN product_categories pc ON o.category_id = pc.category_id
+      LEFT JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
       ORDER BY o.created_at DESC;
     `;
 
@@ -70,7 +71,7 @@ export async function PATCH(request: Request) {
     const {
       clientId, // user_id
       service, // category_id
-      status, // payment_status_id
+      status, // payment_status_id or status name
       budget, // budget_range
       amountPaid, // amount_paid_to_date_kobo
       projectDescription, // project_description
@@ -91,12 +92,35 @@ export async function PATCH(request: Request) {
       updateParams.push(clientId);
     }
     if (service !== undefined) {
+      let serviceId = Number(service);
+      if (isNaN(serviceId)) {
+        const catRes = await queryDatabase(
+          "SELECT category_id FROM product_categories WHERE category_name = $1 LIMIT 1",
+          [service]
+        );
+        serviceId = catRes.length > 0 ? catRes[0].category_id : 1;
+      }
       updateFields.push(`category_id = $${paramIndex++}`);
-      updateParams.push(service);
+      updateParams.push(serviceId);
     }
     if (status !== undefined) {
+      let resolvedStatusId = Number(status);
+      if (isNaN(resolvedStatusId)) {
+        const statusRes = await queryDatabase(
+          "SELECT payment_status_id FROM payment_statuses WHERE name = $1 LIMIT 1",
+          [status]
+        );
+        if (statusRes.length > 0) {
+          resolvedStatusId = statusRes[0].payment_status_id;
+        } else {
+          if (status === "paid") resolvedStatusId = 2;
+          else if (status === "partially_paid" || status === "in-progress") resolvedStatusId = 3;
+          else if (status === "expired" || status === "cancelled") resolvedStatusId = 4;
+          else resolvedStatusId = 1;
+        }
+      }
       updateFields.push(`payment_status_id = $${paramIndex++}`);
-      updateParams.push(status);
+      updateParams.push(resolvedStatusId);
     }
     if (budget !== undefined) {
       updateFields.push(`budget_range = $${paramIndex++}`);
@@ -226,6 +250,79 @@ export async function DELETE(request: Request) {
     console.error("Error deleting order:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const guardResponse = await verifyAdmin(request);
+    if (guardResponse) return guardResponse;
+
+    const body = await request.json();
+    const {
+      clientId, // user_id
+      service, // category_id
+      status, // payment_status_id
+      amount, // total_expected_amount_kobo (was already converted to kobo in form)
+      amountPaid, // amount_paid_to_date_kobo (was already converted to kobo in form)
+      description, // project_description
+      dateStarted, // start_date
+      dateCompleted, // end_date
+      isPortfolio, // is_portfolio
+      trackingId, // tracking_id
+    } = body;
+
+    // Convert string status (e.g. 'pending') to payment_status_id integer
+    let statusId = 1; // Default to pending (id = 1)
+    if (status === "paid") statusId = 2;
+    else if (status === "partially_paid") statusId = 3;
+    else if (status === "expired") statusId = 4;
+
+    // Resolve category_id if service is passed as a string (slug/name), but here we assume it's category_id as string
+    // Let's resolve category_id from name if needed, or query category_id. Let's do a select fallback.
+    let resolvedCategoryId = Number(service);
+    if (isNaN(resolvedCategoryId)) {
+      const catRes = await queryDatabase(
+        "SELECT category_id FROM product_categories WHERE category_name = $1 LIMIT 1",
+        [service]
+      );
+      if (catRes.length > 0) {
+        resolvedCategoryId = catRes[0].category_id;
+      } else {
+        // Fallback to a default category ID (e.g. 1)
+        resolvedCategoryId = 1;
+      }
+    }
+
+    const queryText = `
+      INSERT INTO orders (
+        user_id, category_id, payment_status_id, total_expected_amount_kobo,
+        amount_paid_to_date_kobo, project_description, start_date, end_date,
+        is_portfolio, tracking_id, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      RETURNING order_id AS id;
+    `;
+
+    const result = await queryDatabase(queryText, [
+      clientId,
+      resolvedCategoryId,
+      statusId,
+      amount,
+      amountPaid,
+      description,
+      dateStarted || null,
+      dateCompleted || null,
+      isPortfolio || false,
+      trackingId || null,
+    ]);
+
+    return NextResponse.json({ id: result[0].id, message: "Order created successfully" }, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating order:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }

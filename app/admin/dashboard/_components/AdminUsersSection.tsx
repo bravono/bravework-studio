@@ -166,32 +166,59 @@ export default function AdminUsersSection({
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+          <table className="w-full min-w-[1600px] text-left divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   User Info
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Bio / Intro
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Roles
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  Status
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Email
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  KYC Verified
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  2FA Status
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Referral Code
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Lead Source
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Joined
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Updated
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right sticky right-0 bg-gray-50 dark:bg-gray-900/90 shadow-sm">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td
-                      colSpan={5}
+                      colSpan={14}
                       className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"
                     ></td>
                   </tr>
@@ -202,15 +229,40 @@ export default function AdminUsersSection({
                     key={user.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {user.fullName}
-                        </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                    <td className="px-5 py-4 text-xs font-mono font-bold text-gray-500">
+                      #{user.id}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        {user.profilePictureUrl ? (
+                          <img
+                            src={user.profilePictureUrl}
+                            alt={user.fullName}
+                            className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-xs">
+                            {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">
+                            {user.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.phone || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.companyName || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-600 dark:text-gray-400 max-w-[200px] truncate" title={user.bio || ""}>
+                      {user.bio || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-1">
                         {(Array.isArray(user.roles)
                           ? user.roles
@@ -221,7 +273,7 @@ export default function AdminUsersSection({
                           return (
                             <span
                               key={idx}
-                              className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded-full text-xs font-medium"
+                              className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
                             >
                               {roleName}
                             </span>
@@ -229,44 +281,79 @@ export default function AdminUsersSection({
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                           user.emailVerified
                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                         }`}
                       >
-                        {user.emailVerified ? "Verified" : "Pending"}
+                        {user.emailVerified ? "Verified" : "Unverified"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          user.isVerified
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            : user.verificationSubmittedAt
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {user.isVerified ? "Approved" : user.verificationSubmittedAt ? "Pending" : "None"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          user.twoFactorEnabled
+                            ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {user.twoFactorEnabled ? "2FA Enabled" : "2FA Off"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.referralCode || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.hearAboutUs || <span className="text-gray-400 italic">N/A</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
                       {user.createdAt
                         ? format(new Date(user.createdAt), "MMM dd, yyyy")
                         : "N/A"}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end space-x-2">
+                    <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                      {user.updatedAt
+                        ? format(new Date(user.updatedAt), "MMM dd, yyyy")
+                        : "N/A"}
+                    </td>
+                    <td className="px-5 py-4 text-right sticky right-0 bg-white dark:bg-gray-800 shadow-sm">
+                      <div className="flex justify-end space-x-1.5">
                         <button
                           onClick={() => handleAssignRole(user)}
-                          className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
                           title="Assign Role"
                         >
-                          <UserPlus size={16} />
+                          <UserPlus size={15} />
                         </button>
                         <button
                           onClick={() => handleApplyDiscount(user)}
-                          className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                          className="p-1.5 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
                           title="Apply Discount"
                         >
-                          <Tag size={16} />
+                          <Tag size={15} />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="p-2 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                          className="p-1.5 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"
                           title="Delete User"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
@@ -275,7 +362,7 @@ export default function AdminUsersSection({
               ) : (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={14}
                     className="px-6 py-12 text-center text-gray-500"
                   >
                     No users found matching the criteria.

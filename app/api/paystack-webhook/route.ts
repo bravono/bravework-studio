@@ -154,6 +154,7 @@ export async function POST(req: NextRequest) {
       const paystackmetaDataOriginalAmountKobo = parseFloat(
         metadata?.original_amount_kobo,
       );
+      const tipAmountKobo = parseFloat(metadata?.tip_amount_kobo || "0");
       const courseId = metadata?.courseId;
       const offerId = metadata?.offerId;
 
@@ -288,9 +289,9 @@ export async function POST(req: NextRequest) {
                 )
               : null;
 
-            if (paystackAmountKobo !== totalExpectedOrderAmountKobo) {
+            if (paystackAmountKobo !== totalExpectedOrderAmountKobo + tipAmountKobo) {
               throw new Error(
-                `Amount mismatch for course. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`,
+                `Amount mismatch for course. Expected: ${totalExpectedOrderAmountKobo + tipAmountKobo}, Actual: ${paystackAmountKobo}`,
               );
             }
             newOrderStatusId = orderStatusMap["paid"];
@@ -346,9 +347,9 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            if (paystackAmountKobo !== totalExpectedOrderAmountKobo) {
+            if (paystackAmountKobo !== totalExpectedOrderAmountKobo + tipAmountKobo) {
               throw new Error(
-                `Amount mismatch for custom offer. Expected: ${totalExpectedOrderAmountKobo}, Actual: ${paystackAmountKobo}`,
+                `Amount mismatch for custom offer. Expected: ${totalExpectedOrderAmountKobo + tipAmountKobo}, Actual: ${paystackAmountKobo}`,
               );
             }
 
@@ -403,8 +404,9 @@ export async function POST(req: NextRequest) {
           );
 
           // --- Update 'orders' table's running total and status ---
+          const orderAmountPaidKobo = Math.max(0, paystackAmountKobo - tipAmountKobo);
           const newAmountPaidToDateKobo =
-            amountPaidToDateKobo + paystackAmountKobo;
+            amountPaidToDateKobo + orderAmountPaidKobo;
           let calculatedOrderStatusId: number;
 
           if (

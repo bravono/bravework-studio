@@ -448,6 +448,55 @@ export async function sendCustomOfferNotificationEmail(
   }
 }
 
+// NEW: Function to send notification email to Admin when AI Agent Fleet creates a custom offer
+export async function sendAdminCustomOfferCreatedEmail(
+  adminEmail: string,
+  orderId: string | number,
+  offerAmountKobo: number,
+  description: string,
+  offerId: string | number
+) {
+  const subject = `[AI Agent Fleet] Custom Offer Created for Order #${orderId}`;
+  const dashboardLink = `${process.env.NEXTAUTH_URL}/admin/dashboard?tab=custom-offers&offerId=${offerId}`;
+  const amountFormatted = (offerAmountKobo / 100).toLocaleString();
+
+  const htmlContent = `
+    <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px;">
+      <h2 style="color: #4f46e5; margin-top: 0;">🤖 AI Agent Fleet Proposal Ready!</h2>
+      <p>Hello Admin,</p>
+      <p>The AI Agent Fleet has finished analyzing <strong>Order #${orderId}</strong> and generated a complete custom offer with milestones & timeline.</p>
+      
+      <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 16px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0 0 8px 0; font-weight: bold;">Offer Details:</p>
+        <p style="margin: 0 0 4px 0;"><strong>Estimated Amount:</strong> ₦${amountFormatted} (${offerAmountKobo} kobo)</p>
+        <p style="margin: 0;"><strong>Summary:</strong></p>
+        <pre style="white-space: pre-wrap; font-family: inherit; margin-top: 4px; font-size: 0.95em; color: #475569;">${description}</pre>
+      </div>
+
+      <p>You can review, manually edit, or request AI prompt modifications directly in your admin portal:</p>
+      <p>
+        <a href="${dashboardLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Review Custom Offer in Admin Dashboard
+        </a>
+      </p>
+      <p>Thanks,<br/>Bravework Studio AI Fleet System</p>
+    </div>
+  `;
+
+  const textContent = `Hello Admin,\n\nThe AI Agent Fleet has finished analyzing Order #${orderId} and generated a custom offer.\n\nAmount: ₦${amountFormatted}\n\nDescription:\n${description}\n\nReview in Dashboard: ${dashboardLink}`;
+
+  try {
+    await sendEmail({
+      toEmail: adminEmail,
+      subject,
+      htmlContent,
+      textContent,
+    });
+  } catch (error: any) {
+    console.error("Failed to send admin custom offer email notification:", error?.message || error);
+  }
+}
+
 // NEW: Function to send booking request email to owner
 export async function sendBookingRequestEmail(
   toEmail: string,

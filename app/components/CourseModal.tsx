@@ -679,10 +679,13 @@ export default function CourseModal({
         );
       }
 
+      const data = await res.json().catch(() => ({}));
+      const savedCourseId = data.courseId || existingCourse?.id;
+
       toast.success(
         `Course ${existingCourse ? "updated" : "created"} successfully!`,
       );
-      onSave?.();
+      onSave?.(savedCourseId ? String(savedCourseId) : undefined);
       onClose(); // Close the modal
     } catch (err: any) {
       console.error("Error saving course:", err.message);

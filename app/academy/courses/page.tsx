@@ -25,6 +25,8 @@ import {
   ChevronRight,
   ArrowRight,
   X,
+  Users,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -42,6 +44,7 @@ import CurrencySelector from "../../components/CurrencySelector";
 import Loader from "../../components/Loader";
 import Pagination from "../../components/Pagination";
 import VideoModal from "../../components/VideoModal";
+import CourseModal from "../../components/CourseModal";
 import { Course } from "../../types/app";
 
 const COURSES_PER_PAGE = 6;
@@ -59,9 +62,23 @@ function AcademyCoursesContent() {
   const [userEnrolledCourseIds, setUserEnrolledCourseIds] = useState<number[]>(
     [],
   );
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
 
   const { data: session } = useSession();
   const router = useRouter();
+
+  const isAdmin = useMemo(() => {
+    if (!session?.user) return false;
+    const u = session.user as any;
+    if (u.role === "admin") return true;
+    if (Array.isArray(u.roles)) {
+      return u.roles.some((r: any) =>
+        typeof r === "string" ? r.toLowerCase() === "admin" : r.roleName?.toLowerCase() === "admin"
+      );
+    }
+    return false;
+  }, [session]);
 
   const searchParams = useSearchParams();
 
@@ -317,9 +334,20 @@ function AcademyCoursesContent() {
 
       <section className="py-16 bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-black text-gray-900 mb-8">
-            Professional Courses
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <h1 className="text-4xl font-black text-gray-900">
+              Professional Courses
+            </h1>
+            <a
+              href={WHATSAPP_GROUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/20 transition-all text-sm shrink-0"
+            >
+              <Users size={18} />
+              Join Our Community
+            </a>
+          </div>
 
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             <div className="flex flex-wrap gap-2">
@@ -404,89 +432,7 @@ function AcademyCoursesContent() {
             />
           </div>
 
-          {/* Advertisements Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
-            {/* Bundle Advertisement */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-8 bg-gradient-to-br from-secondary-light to-secondary-dark rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-secondary/20 flex flex-col justify-between"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-              <div className="relative z-10 flex flex-col h-full justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
-                    <Tag size={14} />
-                    <span>Limited Time Offer</span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black mb-2 text-center md:text-left">
-                    Build Your Power Bundle
-                  </h2>
-                  <p className="text-blue-100 max-w-xl text-sm md:text-base text-center md:text-left">
-                    Select up to 3 courses and get up to{" "}
-                    <span className="text-white font-black text-lg md:text-xl">
-                      20% OFF
-                    </span>
-                    . Add hardware rental for an additional{" "}
-                    <span className="text-white font-black text-lg md:text-xl">
-                      10% discount
-                    </span>{" "}
-                    on gear.
-                  </p>
-                </div>
-                <div className="flex items-center justify-between md:justify-start gap-4 md:gap-6 pb-2 md:pb-0">
-                  <div className="text-center">
-                    <div className="text-2xl font-black">10% OFF</div>
-                    <div className="text-xs text-blue-200 uppercase font-bold">
-                      2 Courses
-                    </div>
-                  </div>
-                  <div className="w-px h-12 bg-white/20"></div>
-                  <div className="text-center">
-                    <div className="text-2xl font-black">20% OFF</div>
-                    <div className="text-xs text-blue-200 uppercase font-bold">
-                      3 Courses
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
 
-            {/* WhatsApp Community Advertisement */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="p-8 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-green-500/20 flex flex-col justify-between"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-              <div className="relative z-10 flex flex-col h-full justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
-                    <i className="fa-brands fa-whatsapp text-sm"></i>
-                    <span>Academy Community</span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black mb-2">
-                    Join Our Student Community
-                  </h2>
-                  <p className="text-green-100 text-sm md:text-base leading-relaxed">
-                    Connect with fellow students, ask questions about courses, share your design or engineering projects, and collaborate in real-time on WhatsApp.
-                  </p>
-                </div>
-                <div className="flex justify-center w-full">
-                  <a
-                    href={WHATSAPP_GROUP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-6 py-3 bg-white text-green-700 font-black rounded-xl hover:bg-white/90 transition-all shadow-lg text-sm gap-2"
-                  >
-                    <i className="fa-brands fa-whatsapp text-lg"></i>
-                    Join the Community
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -831,6 +777,18 @@ function AcademyCoursesContent() {
                       >
                         View Details
                       </Link>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            setEditingCourse(course);
+                            setIsCourseModalOpen(true);
+                          }}
+                          className="mt-3 flex w-full items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 transition-all border border-indigo-200"
+                        >
+                          <Pencil size={15} /> Edit Course (Admin)
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -845,6 +803,92 @@ function AcademyCoursesContent() {
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
               />
+            </div>
+          )}
+
+          {/* Advertisements Grid */}
+          {!isLoading && filteredCourses.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-16">
+              {/* Bundle Advertisement */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-8 bg-gradient-to-br from-secondary-light to-secondary-dark rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-secondary/20 flex flex-col justify-between"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
+                      <Tag size={14} />
+                      <span>Limited Time Offer</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black mb-2 text-center md:text-left">
+                      Build Your Power Bundle
+                    </h2>
+                    <p className="text-blue-100 max-w-xl text-sm md:text-base text-center md:text-left">
+                      Select up to 3 courses and get up to{" "}
+                      <span className="text-white font-black text-lg md:text-xl">
+                        20% OFF
+                      </span>
+                      . Add hardware rental for an additional{" "}
+                      <span className="text-white font-black text-lg md:text-xl">
+                        10% discount
+                      </span>{" "}
+                      on gear.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between md:justify-start gap-4 md:gap-6 pb-2 md:pb-0">
+                    <div className="text-center">
+                      <div className="text-2xl font-black">10% OFF</div>
+                      <div className="text-xs text-blue-200 uppercase font-bold">
+                        2 Courses
+                      </div>
+                    </div>
+                    <div className="w-px h-12 bg-white/20"></div>
+                    <div className="text-center">
+                      <div className="text-2xl font-black">20% OFF</div>
+                      <div className="text-xs text-blue-200 uppercase font-bold">
+                        3 Courses
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* WhatsApp Community Advertisement */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="p-8 bg-gradient-to-br from-green-600 to-emerald-700 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-green-500/20 flex flex-col justify-between"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-widest mb-4">
+                      <i className="fa-brands fa-whatsapp text-sm"></i>
+                      <span>Academy Community</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black mb-2">
+                      Join Our Student Community
+                    </h2>
+                    <p className="text-green-100 text-sm md:text-base leading-relaxed">
+                      Connect with fellow students, ask questions about courses, share your design or engineering projects, and collaborate in real-time on WhatsApp.
+                    </p>
+                  </div>
+                  <div className="flex justify-center w-full">
+                    <a
+                      href={WHATSAPP_GROUP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-6 py-3 bg-white text-green-700 font-black rounded-xl hover:bg-white/90 transition-all shadow-lg text-sm gap-2"
+                    >
+                      <i className="fa-brands fa-whatsapp text-lg"></i>
+                      Join the Community
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           )}
 
@@ -1027,6 +1071,23 @@ function AcademyCoursesContent() {
         onClose={() => setPlayingVideoUrl(null)}
         videoUrl={playingVideoUrl || ""}
       />
+
+      {isCourseModalOpen && editingCourse && (
+        <CourseModal
+          existingCourse={editingCourse}
+          userRole="admin"
+          onClose={() => {
+            setIsCourseModalOpen(false);
+            setEditingCourse(null);
+          }}
+          onSave={() => {
+            setIsCourseModalOpen(false);
+            setEditingCourse(null);
+            fetchCourses();
+            toast.success("Course updated successfully!");
+          }}
+        />
+      )}
     </div>
   );
 }

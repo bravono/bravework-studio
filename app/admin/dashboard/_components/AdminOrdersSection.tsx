@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Plus, Pencil, Trash2, Tag, CheckSquare, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, CheckSquare, Search, Sparkles, Eye } from "lucide-react";
 
 // Import the new Pagination component
 import Pagination from "../../../components/Pagination";
@@ -13,6 +13,8 @@ import Pagination from "../../../components/Pagination";
 // These modal components are assumed to exist and are kept as is.
 import CustomOfferModal from "./CustomOfferModal";
 import OrderFormModal from "./OrderFormModal";
+import AIProposalModal from "./AIProposalModal";
+import OrderPreviewModal from "@/app/components/OrderPreviewModal";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { Order } from "../../../types/app";
 
@@ -33,7 +35,12 @@ export default function AdminOrdersSection({
   const [searchQuery, setSearchQuery] = useState("");
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isOrderFormModalOpen, setIsOrderFormModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // State for preview modal
+  const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,14 +62,29 @@ export default function AdminOrdersSection({
       const data: Order[] = await res.json();
       setOrders(data);
       setCurrentPage(1); // Reset to the first page when new data is fetched
+      return data;
     } catch (err: any) {
       console.error("Error fetching orders:", err);
       setError(err.message || "Failed to load orders.");
       toast.error(err.message || "Failed to load orders.");
+      return [];
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleSaveOrder = async (savedOrderId?: string) => {
+    const updatedOrders = await fetchOrders();
+    if (savedOrderId && updatedOrders) {
+      const order = updatedOrders.find(
+        (o: Order) => String(o.id) === String(savedOrderId),
+      );
+      if (order) {
+        setPreviewOrder(order);
+        setIsPreviewModalOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -157,14 +179,38 @@ export default function AdminOrdersSection({
   };
 
   const handleCreateCustomOffer = (order: Order) => {
-    if (order.amount !== 0 || order.amountPaid !== 0) {
-      toast.error(
-        "Custom offers can only be created for orders with 0 total expected amount and 0 amount paid.",
-      );
-      return;
-    }
     setSelectedOrder(order);
     setIsOfferModalOpen(true);
+  };
+
+  const handleSaveCustomOffer = async (formData: any) => {
+    try {
+      const apiData = {
+        orderId: formData.order_id,
+        userId: formData.user_id || orders.find((o) => String(o.id) === String(formData.order_id))?.clientId,
+        offerAmount: Number(formData.offer_amount_in_kobo),
+        description: formData.description,
+        expiresAt: formData.expires_at,
+      };
+
+      const res = await fetch("/api/admin/custom-offers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save custom offer");
+      }
+
+      toast.success("Custom offer created successfully!");
+      setIsOfferModalOpen(false);
+      setSelectedOrder(null);
+      fetchOrders();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const filteredOrders = useMemo(() => {
@@ -370,8 +416,18 @@ export default function AdminOrdersSection({
                     <td className="px-6 py-4">
                       {getStatusBadge(order.status)}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setPreviewOrder(order);
+                            setIsPreviewModalOpen(true);
+                          }}
+                          className="p-2 text-indigo-650 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors"
+                          title="Preview Order"
+                        >
+                          <Eye size={16} />
+                        </button>
                         <Link
                           href={`/admin/orders/${order.id}`}
                           className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
@@ -396,13 +452,24 @@ export default function AdminOrdersSection({
                             <CheckSquare size={16} />
                           </button>
                         )}
+                        <button
+                          onClick={() => handleCreateCustomOffer(order)}
+                          className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                          title="Create Custom Offer"
+                        >
+                          <Tag size={16} />
+                        </button>
                         {order.status === "pending" && (
                           <button
-                            onClick={() => handleCreateCustomOffer(order)}
-                            className="p-2 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
-                            title="Create Custom Offer"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsAIModalOpen(true);
+                            }}
+                            className="p-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1 font-medium text-xs"
+                            title="Generate AI Agent Fleet Proposal"
                           >
-                            <Tag size={16} />
+                            <Sparkles size={15} className="text-indigo-500 animate-pulse" />
+                            <span>AI Proposal</span>
                           </button>
                         )}
                         <button
@@ -439,20 +506,32 @@ export default function AdminOrdersSection({
         />
       )}
 
+      {isAIModalOpen && selectedOrder && (
+        <AIProposalModal
+          isOpen={isAIModalOpen}
+          orderId={selectedOrder.id}
+          orderTitle={selectedOrder.title || selectedOrder.serviceName}
+          onClose={() => {
+            setIsAIModalOpen(false);
+            setSelectedOrder(null);
+          }}
+          onSuccess={() => {
+            fetchOrders();
+          }}
+        />
+      )}
+
       {isOfferModalOpen && selectedOrder && (
         <CustomOfferModal
           offer={null}
+          initialOrderId={selectedOrder.id}
           orders={orders}
           isOpen={isOfferModalOpen}
           onClose={() => {
             setIsOfferModalOpen(false);
             setSelectedOrder(null);
           }}
-          onSave={() => {
-            fetchOrders();
-            setIsOfferModalOpen(false);
-            setSelectedOrder(null);
-          }}
+          onSave={handleSaveCustomOffer}
         />
       )}
 
@@ -463,11 +542,7 @@ export default function AdminOrdersSection({
             setIsOrderFormModalOpen(false);
             setSelectedOrder(null);
           }}
-          onSave={() => {
-            fetchOrders();
-            setIsOrderFormModalOpen(false);
-            setSelectedOrder(null);
-          }}
+          onSave={handleSaveOrder}
         />
       )}
 
@@ -490,6 +565,20 @@ export default function AdminOrdersSection({
             setIsConfirmModalOpen(false);
             setOrderToDeleteId(null);
             setOrderToTogglePortfolio(null);
+          }}
+        />
+      )}
+      {isPreviewModalOpen && (
+        <OrderPreviewModal
+          order={previewOrder}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewOrder) {
+              setSelectedOrder(previewOrder);
+              setIsOrderFormModalOpen(true);
+            }
           }}
         />
       )}
