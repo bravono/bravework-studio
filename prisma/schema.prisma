@@ -153,12 +153,15 @@ model instructors {
 
 model invoices {
   invoice_id        Int               @id @default(autoincrement())
+  invoice_number    String?           @db.VarChar(50)
   order_id          Int
-  total_amount      Decimal           @db.Decimal(5, 2)
+  total_amount      Decimal           @db.Decimal(12, 2)
   date              DateTime          @db.Timestamp(6)
   due_date          DateTime?         @db.Date
   payment_status_id Int?              @db.SmallInt
   user_id           Int?
+  zoho_invoice_id   String?           @db.VarChar(100)
+  invoice_pdf_url   String?           @db.VarChar(255)
   payment_statuses  payment_statuses? @relation(fields: [payment_status_id], references: [payment_status_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_payment_status")
   users             users?            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user")
 

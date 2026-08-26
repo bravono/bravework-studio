@@ -7,6 +7,7 @@ import { toast } from 'react-toastify'; // Using toast for notifications
 // Re-import types (or import from a shared types file)
 interface Invoice {
   id: string;
+  invoice_number?: string;
   orderId?: string;
   userId: string;
   clientName?: string;
@@ -145,13 +146,13 @@ export default function UserInvoicesSection({
               <tbody>
                 {invoices.map(invoice => (
                   <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.id}</td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.invoice_number || invoice.id}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.orderId || 'N/A'}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{invoice.clientName || 'N/A'}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{format(new Date(invoice.issueDate), 'MMM dd, yyyy')}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">${invoice.amount.toLocaleString()}</td>
-                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">${invoice.amountPaid.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">₦{invoice.amount.toLocaleString()}</td>
+                    <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">₦{invoice.amountPaid.toLocaleString()}</td>
                     <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColors[invoice.status]}`}>
                         {invoice.status}

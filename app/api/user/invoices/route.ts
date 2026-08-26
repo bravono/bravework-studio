@@ -29,10 +29,22 @@ export async function GET(request: Request) {
 
     const queryText = `
       SELECT
-       *
-      FROM invoices    
-      WHERE user_id = $1
-      ORDER BY date DESC;
+        i.invoice_id::text as id,
+        i.invoice_number,
+        i.order_id::text as "orderId",
+        i.user_id::text as "userId",
+        CONCAT(u.first_name, ' ', u.last_name) as "clientName",
+        i.date as "issueDate",
+        i.due_date as "dueDate",
+        i.total_amount as amount,
+        CASE WHEN ps.name = 'paid' THEN i.total_amount ELSE 0 END as "amountPaid",
+        INITCAP(ps.name) as status,
+        i.invoice_pdf_url as "paymentLink"
+      FROM invoices i
+      LEFT JOIN users u ON i.user_id = u.user_id
+      LEFT JOIN payment_statuses ps ON i.payment_status_id = ps.payment_status_id
+      WHERE i.user_id = $1
+      ORDER BY i.date DESC;
     `;
 
     const params = [userId];
@@ -42,7 +54,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result, {
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=59", // Cache for 60 seconds, allow stale for another 59s
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=59",
       },
     });
   } catch (error) {

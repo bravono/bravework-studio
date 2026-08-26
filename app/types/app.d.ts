@@ -99,6 +99,7 @@ interface CustomOffer {
 // New: Invoice interface (expanded)
 interface Invoice {
   id: string;
+  invoice_number?: string;
   orderId?: string; // Link to associated order
   userId: string;
   clientName?: string; // For admin view

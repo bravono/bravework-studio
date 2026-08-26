@@ -195,7 +195,7 @@ export default function AdminInvoicesSection({
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">
-                          #{invoice.id}
+                          {invoice.invoice_number || `#${invoice.id}`}
                         </p>
                       </div>
                     </td>

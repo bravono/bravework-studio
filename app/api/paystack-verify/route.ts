@@ -386,27 +386,109 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Integrate Zoho CRM
-      try {
-        const zohoOrderId = serviceType === "bundle" && bundleGroupId ? `BUNDLE-${bundleGroupId}` : orderId;
-        const contactData = {
-          Last_Name: customerName || "Unknown",
-          Email: customerEmail,
-          Description: `Order ID: ${zohoOrderId}\nTitle: ${orderTitle || "Bundle Order"}\nAmount: ${
-            actualAmountKobo / 100
-          } ${actualCurrency}`,
-          Lead_Source: "Course Enrollment/Order",
-        };
-        await createZohoContact(contactData);
-      } catch (zohoError) {
-        console.error("Failed to create Zoho Contact:", zohoError);
-      }
+      // Create local invoice record
+      const orderStatusMap = await getOrderStatusMap(client);
+      const paidStatusId = orderStatusMap["paid"] || 3;
+      const totalAmountDecimal = (actualAmountKobo + walletUsageKobo) / 100;
+      
+      const invoiceOrderTarget = serviceType === "bundle" && bundleGroupId
+        ? (await client.query("SELECT order_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2 LIMIT 1", [userId, `BUNDLE-${bundleGroupId}-%`])).rows[0]?.order_id
+        : orderId;
 
-      return NextResponse.json({
+      const invoiceInsertRes = await client.query(
+        `INSERT INTO invoices (
+          order_id, total_amount, date, payment_status_id, user_id
+        ) VALUES ($1, $2, NOW(), $3, $4) RETURNING invoice_id`,
+        [invoiceOrderTarget, totalAmountDecimal, paidStatusId, userId]
+      );
+      const localInvoiceId = invoiceInsertRes.rows[0]?.invoice_id;
+
+      return {
         success: true,
-        message: "Payment verified and order updated.",
-        data: transactionData,
-      });
+        localInvoiceId,
+        userId,
+        orderTitle,
+        totalAmountDecimal,
+        customerEmail,
+        customerName,
+        serviceType,
+        bundleGroupId,
+        orderId,
+        actualAmountKobo,
+        actualCurrency,
+        reference
+      };
+    });
+
+    if (result && result.success) {
+      // 1. Run Zoho CRM Contact Sync asynchronously
+      (async () => {
+        try {
+          const zohoOrderId = result.serviceType === "bundle" && result.bundleGroupId ? `BUNDLE-${result.bundleGroupId}` : result.orderId;
+          const contactData = {
+            Last_Name: result.customerName || "Unknown",
+            Email: result.customerEmail,
+            Description: `Order ID: ${zohoOrderId}\nTitle: ${result.orderTitle || "Bundle Order"}\nAmount: ${
+              result.actualAmountKobo / 100
+            } ${result.actualCurrency}`,
+            Lead_Source: "Course Enrollment/Order",
+          };
+          await createZohoContact(contactData);
+        } catch (zohoError) {
+          console.error("Failed to create Zoho Contact:", zohoError);
+        }
+      })();
+
+      // 2. Run Zoho Dedicated Invoice Sync asynchronously
+      (async () => {
+        try {
+          const { getOrCreateZohoInvoiceContact, createZohoInvoice, recordZohoInvoicePayment } = await import("@/lib/zoho");
+          const { queryDatabase } = await import("@/lib/db");
+
+          // 2a. Get or create Zoho Invoice Contact
+          const zohoContactId = await getOrCreateZohoInvoiceContact(result.customerEmail, result.customerName);
+
+          // 2b. Create Zoho Invoice
+          const zohoInvoice = await createZohoInvoice(
+            zohoContactId,
+            result.orderTitle,
+            result.totalAmountDecimal,
+            result.orderId
+          );
+
+          // 2c. Record Zoho Payment
+          await recordZohoInvoicePayment(
+            zohoContactId,
+            zohoInvoice.invoice_id,
+            result.totalAmountDecimal,
+            result.reference
+          );
+
+          // 2d. Update local invoice with Zoho details
+          await queryDatabase(
+            `UPDATE invoices 
+             SET zoho_invoice_id = $1, 
+                 invoice_number = $2, 
+                 invoice_pdf_url = $3 
+             WHERE invoice_id = $4`,
+            [
+              zohoInvoice.invoice_id,
+              zohoInvoice.invoice_number,
+              zohoInvoice.client_view_url,
+              result.localInvoiceId
+            ]
+          );
+          console.log(`✅ Zoho Dedicated Invoice synced for local invoice #${result.localInvoiceId}`);
+        } catch (zohoInvError) {
+          console.error("❌ Failed to sync Zoho Dedicated Invoice:", zohoInvError);
+        }
+      })();
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Payment verified and order updated.",
+      data: transactionData,
     });
   } catch (error: any) {
     console.error("Error during verification:", error);

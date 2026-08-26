@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
 
       // Wrap all database operations in a transaction
       try {
-        await withTransaction(async (client) => {
+        const result = await withTransaction(async (client) => {
           // --- Idempotency Check for Payments Table ---
           const { rows: existingPaymentRows } = await client.query(
             "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND paystack_status = $2",
@@ -468,28 +468,100 @@ export async function POST(req: NextRequest) {
             (course = null),
           );
 
-          // Integrate Zoho CRM
-          try {
-            const contactData = {
-              Last_Name: clientName || "Unknown",
-              Email: customerEmail,
-              Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${
-                paystackAmountKobo / 100
-              } ${paystackCurrency}`,
-              Lead_Source: "Course Enrollment/Order",
-            };
-            await createZohoContact(contactData);
-            logger.info({ customerEmail }, "Zoho Contact created");
-          } catch (zohoError) {
-            logger.error({ err: zohoError }, "Failed to create Zoho Contact");
-            // Don't fail the webhook if Zoho fails
-          }
-
-          return NextResponse.json(
-            { message: "Webhook received successfully." },
-            { status: 200 },
+          // Create local invoice record
+          const totalAmountDecimal = paystackAmountKobo / 100;
+          const invoiceInsertRes = await client.query(
+            `INSERT INTO invoices (
+              order_id, total_amount, date, payment_status_id, user_id
+            ) VALUES ($1, $2, NOW(), $3, $4) RETURNING invoice_id`,
+            [order.order_id, totalAmountDecimal, newOrderStatusId, order.user_id]
           );
+          const localInvoiceId = invoiceInsertRes.rows[0]?.invoice_id;
+
+          return {
+            success: true,
+            localInvoiceId,
+            userId: order.user_id,
+            orderTitle,
+            totalAmountDecimal,
+            customerEmail,
+            customerName: clientName,
+            orderId: order.order_id,
+            paystackAmountKobo,
+            paystackCurrency,
+            reference: paystackReference
+          };
         });
+
+        if (result && result.success) {
+          // 1. Run Zoho CRM Contact Sync asynchronously
+          (async () => {
+            try {
+              const contactData = {
+                Last_Name: result.customerName || "Unknown",
+                Email: result.customerEmail,
+                Description: `Order ID: ${result.orderId}\nTitle: ${result.orderTitle}\nAmount: ${
+                  result.paystackAmountKobo / 100
+                } ${result.paystackCurrency}`,
+                Lead_Source: "Course Enrollment/Order",
+              };
+              await createZohoContact(contactData);
+              logger.info({ customerEmail: result.customerEmail }, "Zoho Contact created");
+            } catch (zohoError) {
+              logger.error({ err: zohoError }, "Failed to create Zoho Contact");
+            }
+          })();
+
+          // 2. Run Zoho Dedicated Invoice Sync asynchronously
+          (async () => {
+            try {
+              const { getOrCreateZohoInvoiceContact, createZohoInvoice, recordZohoInvoicePayment } = await import("@/lib/zoho");
+              const { queryDatabase } = await import("@/lib/db");
+
+              // 2a. Get or create Zoho Invoice Contact
+              const zohoContactId = await getOrCreateZohoInvoiceContact(result.customerEmail, result.customerName);
+
+              // 2b. Create Zoho Invoice
+              const zohoInvoice = await createZohoInvoice(
+                zohoContactId,
+                result.orderTitle,
+                result.totalAmountDecimal,
+                result.orderId
+              );
+
+              // 2c. Record Zoho Payment
+              await recordZohoInvoicePayment(
+                zohoContactId,
+                zohoInvoice.invoice_id,
+                result.totalAmountDecimal,
+                result.reference
+              );
+
+              // 2d. Update local invoice with Zoho details
+              await queryDatabase(
+                `UPDATE invoices 
+                 SET zoho_invoice_id = $1, 
+                     invoice_number = $2, 
+                     invoice_pdf_url = $3 
+                 WHERE invoice_id = $4`,
+                [
+                  zohoInvoice.invoice_id,
+                  zohoInvoice.invoice_number,
+                  zohoInvoice.client_view_url,
+                  result.localInvoiceId
+                ]
+              );
+              logger.info(`✅ Zoho Dedicated Invoice synced for local invoice #${result.localInvoiceId}`);
+            } catch (zohoInvError) {
+              logger.error({ err: zohoInvError }, "Failed to sync Zoho Dedicated Invoice");
+            }
+          })();
+        }
+
+        return NextResponse.json(
+          { message: "Webhook received successfully." },
+          { status: 200 },
+        );
       } catch (error) {
         logger.error(
           {
