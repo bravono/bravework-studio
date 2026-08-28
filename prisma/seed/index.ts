@@ -12,6 +12,7 @@ import { seedTools } from "./shared/tools";
 import { seedCourseTools } from "./shared/courseTools";
 import { seedJobApplications } from "./shared/jobApplications";
 import { seedJobAppStatuses } from "./shared/jobAppStatuses";
+import { seedRentals } from "./dev/rentals";
 import { prisma } from "./client";
 
 async function main() {
@@ -48,6 +49,7 @@ async function main() {
     await seedCourseTools(); // Must exist after courses and tools
     await seedJobAppStatuses();
     await seedJobApplications();
+    await seedRentals();
   }
 }
 
