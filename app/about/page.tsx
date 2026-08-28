@@ -16,57 +16,7 @@ import Link from "next/link";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "700", "900"] });
 
-const useCountUp = (end: number, duration: number) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  useEffect(() => {
-    let startTimestamp: number | null = null;
-    let frameId: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = timestamp - startTimestamp;
-      const progressRatio = Math.min(progress / duration, 1);
-      const newCount = Math.floor(progressRatio * end);
-
-      setCount(newCount);
-
-      if (progressRatio < 1) {
-        frameId = requestAnimationFrame(animate);
-      }
-    };
-
-    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          frameId = requestAnimationFrame(animate);
-          if (observerRef.current) {
-            observerRef.current.disconnect();
-          }
-        }
-      });
-    };
-
-    observerRef.current = new IntersectionObserver(handleIntersect, {
-      threshold: 0.5,
-    });
-
-    if (ref.current) {
-      observerRef.current.observe(ref.current);
-    }
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [end, duration]);
-
-  return { count, ref };
-};
+import { useCountUp } from "@/hooks/useCountUp";
 
 export default function About() {
   const { count: yearsCount, ref: yearsRef } = useCountUp(8, 2000);

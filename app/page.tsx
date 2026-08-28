@@ -13,6 +13,7 @@ import { ArrowRight, Gamepad2, GraduationCap } from "lucide-react";
 import HeroCarousel from "./components/HeroCarousel";
 import VirtualOfficeHero from "../components/VirtualOfficeHero";
 import EcosystemSection from "./components/EcosystemSection";
+import StatsSection from "./components/StatsSection";
 import FloatingCTAs from "./components/FloatingCTAs";
 import Link from "next/link";
 import ArrowButton from "./components/ArrowButton";
@@ -74,6 +75,9 @@ export default function Home() {
         />
         <HeroCarousel visible={carouselVisible} />
       </section>
+
+      {/* Stats Section */}
+      <StatsSection />
 
       {/* Ecosystem Section */}
       <EcosystemSection />
