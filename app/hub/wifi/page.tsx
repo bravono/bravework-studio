@@ -39,6 +39,32 @@ export default function HubWifiPortalPage() {
     rateLimit: string;
   } | null>(null);
 
+  const [snackItems, setSnackItems] = useState<any[]>([]);
+  const [menuFilter, setMenuFilter] = useState<"ALL" | "SNACKS" | "BEVERAGES" | "MEALS" | "BOOSTERS">("ALL");
+
+  useEffect(() => {
+    fetch("/api/hub/snacks")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.items)) {
+          setSnackItems(data.items);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Live session countdown timer (decrements every 60s)
+  useEffect(() => {
+    if (!activeSession || activeSession.remainingMinutes <= 0) return;
+    const interval = setInterval(() => {
+      setActiveSession((prev) => {
+        if (!prev || prev.remainingMinutes <= 1) return null;
+        return { ...prev, remainingMinutes: prev.remainingMinutes - 1 };
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [activeSession]);
+
   // Auto-generate or read pseudo MAC for browser
   useEffect(() => {
     let storedMac = localStorage.getItem("bws_hub_mac");
@@ -168,6 +194,57 @@ export default function HubWifiPortalPage() {
       setLoading(false);
     }
   };
+
+  const handleOrderSnack = async (item: any) => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/hub/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: [{ itemId: item.item_id || item.id, quantity: 1 }],
+          guestName: fullName || "Web Lounge Guest",
+          guestPhone: phone || undefined,
+          macAddress,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({
+          type: "success",
+          text: `${item.name} ordered! ${data.message} Voucher: ${data.voucherCode}`,
+        });
+        checkSessionStatus(macAddress);
+      } else {
+        setMessage({ type: "error", text: data.message });
+      }
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Failed to process snack order." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const defaultSnacks = [
+    { item_id: 1, name: "Gourmet Roasted Peanuts", category: "SNACKS", price_kobo: 50000, wifi_minutes_reward: 30, description: "Crunchy salted snack" },
+    { item_id: 2, name: "Pure Natural Bottled Water", category: "BEVERAGES", price_kobo: 30000, wifi_minutes_reward: 30, description: "75cl pure spring water" },
+    { item_id: 3, name: "Crispy Small Chops Platter", category: "SNACKS", price_kobo: 200000, wifi_minutes_reward: 60, description: "Samosas & puff puff" },
+    { item_id: 4, name: "Chilled Soft Drinks & Malt", category: "BEVERAGES", price_kobo: 80000, wifi_minutes_reward: 30, description: "Assorted cold drinks" },
+    { item_id: 5, name: "Spicy Pepper Soup", category: "MEALS", price_kobo: 350000, wifi_minutes_reward: 120, description: "Hot catfish or goat soup" },
+    { item_id: 6, name: "Special Jollof Rice Combo", category: "MEALS", price_kobo: 500000, wifi_minutes_reward: 180, description: "Party jollof & grilled chicken" },
+  ];
+
+  const availableMenu = snackItems.length > 0 ? snackItems : defaultSnacks;
+  const filteredMenu = menuFilter === "ALL" || menuFilter === "BOOSTERS"
+    ? availableMenu
+    : availableMenu.filter((i) => (i.category || "").toUpperCase() === menuFilter);
+
+  const boosterPasses = [
+    { id: "wifi-1hr", name: "1 Hour Starlink Pass", desc: "150+ Mbps high-speed connection", price: "₦500", wifi: "1 Hour", mins: 60 },
+    { id: "wifi-3hr", name: "3 Hours Creative Session", desc: "Extended rendering & design work", price: "₦1,200", wifi: "3 Hours", mins: 180 },
+    { id: "wifi-day", name: "Full Day Unlimited Pass", desc: "All-day high-priority connection", price: "₦2,500", wifi: "8 Hours", mins: 480 },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-950 text-white selection:bg-emerald-500 selection:text-white">
@@ -565,46 +642,121 @@ export default function HubWifiPortalPage() {
           </div>
         )}
 
-        {/* TAB 4: LOUNGE FOOD & BEVERAGE MENU */}
+        {/* TAB 4: LOUNGE FOOD & BEVERAGE MENU + WI-FI BOOSTERS */}
         {activeTab === "menu" && (
           <div className="space-y-6">
             <div className="text-center max-w-lg mx-auto space-y-2">
               <span className="text-xs font-semibold px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                Physical Lounge Menu
+                Physical Lounge & Wi-Fi Bar
               </span>
-              <h2 className="text-2xl font-bold text-white">Refreshments & Bonus Wi-Fi</h2>
+              <h2 className="text-2xl font-bold text-white">Refreshments & Starlink Tokens</h2>
               <p className="text-xs text-slate-400">
-                Every snack and drink purchase grants instant high-speed Starlink Wi-Fi session tokens!
+                Order lounge refreshments or buy high-speed Starlink session passes directly with instant token activation!
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Category Filter Tabs */}
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               {[
-                { name: "Gourmet Salted Peanuts", price: "₦500", wifi: "+30 Mins", desc: "Crunchy roasted peanuts in pouch" },
-                { name: "Chilled Natural Water", price: "₦300", wifi: "+30 Mins", desc: "75cl pure bottled spring water" },
-                { name: "Crisp Small Chops Platter", price: "₦2,000", wifi: "+1 Hour", desc: "Samosas, spring rolls, puff puff" },
-                { name: "Chilled Soda / Malt", price: "₦800", wifi: "+30 Mins", desc: "Assorted cold beverages" },
-                { name: "Spicy Pepper Soup", price: "₦3,500", wifi: "+2 Hours", desc: "Hot catfish or goat meat soup" },
-                { name: "Special Jollof Rice Combo", price: "₦5,000", wifi: "+3 Hours", desc: "Party jollof with grilled chicken" },
-              ].map((item, idx) => (
-                <div key={idx} className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300">
-                        {item.wifi}
-                      </span>
-                      <span className="font-bold text-white text-base">{item.price}</span>
-                    </div>
-                    <h3 className="font-bold text-base text-white mt-3">{item.name}</h3>
-                    <p className="text-xs text-slate-400 mt-1">{item.desc}</p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                    <span>Order at counter</span>
-                    <ChevronRight className="w-4 h-4 text-emerald-400" />
-                  </div>
-                </div>
+                { id: "ALL", label: "All Items" },
+                { id: "SNACKS", label: "Snacks" },
+                { id: "BEVERAGES", label: "Beverages" },
+                { id: "MEALS", label: "Meals" },
+                { id: "BOOSTERS", label: "Wi-Fi Passes" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setMenuFilter(tab.id as any)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    menuFilter === tab.id
+                      ? "bg-emerald-600 text-white shadow-lg"
+                      : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  }`}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
+
+            {/* Standalone Booster Passes */}
+            {(menuFilter === "ALL" || menuFilter === "BOOSTERS") && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+                  Standalone Starlink Wi-Fi Passes
+                </h3>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {boosterPasses.map((pass) => (
+                    <div
+                      key={pass.id}
+                      className="p-5 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col justify-between space-y-4"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300">
+                            {pass.wifi}
+                          </span>
+                          <span className="font-bold text-white text-base">{pass.price}</span>
+                        </div>
+                        <h4 className="font-bold text-base text-white mt-3">{pass.name}</h4>
+                        <p className="text-xs text-slate-400 mt-1">{pass.desc}</p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          handleOrderSnack({
+                            item_id: pass.mins,
+                            name: pass.name,
+                            price_kobo: pass.mins * 1000,
+                          })
+                        }
+                        disabled={loading}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>{loading ? "Activating..." : "Buy Pass"}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Refreshment Snacks & Meals */}
+            {menuFilter !== "BOOSTERS" && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                  Lounge Refreshments & Meals
+                </h3>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {filteredMenu.map((item: any, idx: number) => (
+                    <div
+                      key={item.item_id || idx}
+                      className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between space-y-4"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300">
+                            +{item.wifi_minutes_reward || 30} Mins Wi-Fi
+                          </span>
+                          <span className="font-bold text-white text-base">
+                            ₦{((item.price_kobo || 50000) / 100).toLocaleString()}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-base text-white mt-3">{item.name}</h4>
+                        <p className="text-xs text-slate-400 mt-1">{item.description}</p>
+                      </div>
+                      <button
+                        onClick={() => handleOrderSnack(item)}
+                        disabled={loading}
+                        className="w-full py-2.5 bg-slate-800 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2"
+                      >
+                        <Coffee className="w-3.5 h-3.5" />
+                        <span>{loading ? "Ordering..." : "Order at Lounge"}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
