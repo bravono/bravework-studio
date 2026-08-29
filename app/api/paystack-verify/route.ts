@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return await withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       // 2. Idempotency Check
       const existingPaymentRows = await client.query(
         `SELECT payment_id FROM payments 
@@ -419,6 +419,10 @@ export async function POST(req: NextRequest) {
         reference
       };
     });
+
+    if (result instanceof Response) {
+      return result;
+    }
 
     if (result && result.success) {
       // 1. Run Zoho CRM Contact Sync asynchronously
