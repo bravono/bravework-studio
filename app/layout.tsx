@@ -15,6 +15,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GtmEventHandler from "./components/GtmEventHandler";
 import WhatsAppButton from "./components/WhatsAppButton";
+import AICustomerServiceWidget from "./components/chat/AICustomerServiceWidget";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400"] });
 
@@ -148,6 +149,7 @@ export default async function RootLayout({
             {children}
           </main>
           <WhatsAppButton />
+          <AICustomerServiceWidget />
         </NextAuthSessionProvider>
         <Footer />
         <Suspense fallback={null}>

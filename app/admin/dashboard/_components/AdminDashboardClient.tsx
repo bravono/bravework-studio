@@ -39,7 +39,8 @@ import AdminCourseSection from "./AdminCourseSection";
 import AdminBookingsSection from "./AdminBookingsSection";
 import AdminVerificationReview from "./AdminVerificationReview";
 import AdminRentalsSection from "./AdminRentalsSection";
-import { Monitor } from "lucide-react";
+import AdminAiCustomerServiceSection from "./AdminAiCustomerServiceSection";
+import { Monitor, BrainCircuit } from "lucide-react";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
@@ -96,6 +97,11 @@ const navItems = [
     id: "hardware",
     label: "Hardware Management",
     icon: <Monitor size={20} />,
+  },
+  {
+    id: "ai-service",
+    label: "AI Customer Service",
+    icon: <BrainCircuit size={20} />,
   },
   { id: "notifications", label: "All Notifications", icon: <Bell size={20} /> },
   { id: "settings", label: "Profile Settings", icon: <Settings size={20} /> },
@@ -557,6 +563,8 @@ export default function AdminDashboardClient({
             rentalIdToOpen={searchParams.get("rentalId") || undefined}
           />
         );
+      case "ai-service":
+        return <AdminAiCustomerServiceSection />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">

@@ -143,7 +143,57 @@ The application requires several environment variables for full functionality. S
 
 ---
 
-## 🤖 AI Agent Guidelines
+## AI Customer Service and Offering Gap Intelligence
+
+Bravework Studio includes an intelligent, trainable AI customer service and business intelligence engine.
+
+### Key Capabilities
+
+1. **Interactive Client Support**:
+   - Floating widget mounted globally via the root layout.
+   - Answers inquiries regarding 3D animation, software engineering, UI/UX design, Academy courses, kids hub, and hardware rentals.
+   - Session continuity stored in local client state.
+
+2. **Context-Aware Service Recommendations**:
+   - Interprets visitor requirements and recommends matching services with direct action links (`/order`, `/services`, `/academy`, `/hub`, `/kids`).
+
+3. **Trainable Knowledge Base and Escalation Pipeline**:
+   - When the AI encounters unknown topics or ambiguous pricing requests, it flags an escalation marker (`[ESCALATE: ...]`) and records a pending ticket in `ai_escalations`.
+   - Administrators review pending escalations in the Admin Dashboard.
+   - Providing an answer marks the escalation resolved and automatically writes the question and verified answer into `ai_knowledge_base`.
+   - The AI immediately references this memory for all future visitor interactions.
+
+4. **Direct Admin Training**:
+   - Administrators can add, edit, search, and toggle knowledge base records directly in the Admin Dashboard under the AI Customer Service tab.
+
+5. **Business Offering Gap Detection and Portal**:
+   - Analyzes customer demand for unprovided services or courses.
+   - Flags business gaps (`[BUSINESS_GAP: ...]`) and logs structured opportunities in `ai_offering_gaps`.
+   - Admin Portal enables tracking of status (`new`, `under_review`, `planned`, `adopted`, `dismissed`), potential impact, occurrences, and action notes.
+   - Includes on-demand conversation synthesis to identify macro trends.
+
+### API Reference
+
+| Method | Route | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/chat` | Process customer chat messages, recommend services, and detect escalations/gaps | Public |
+| `GET` | `/api/chat/history` | Retrieve message history for a session | Public |
+| `GET` | `/api/admin/ai-service/knowledge` | List knowledge entries with category and search filter | Admin |
+| `POST` | `/api/admin/ai-service/knowledge` | Add direct knowledge entry to AI memory | Admin |
+| `PUT` | `/api/admin/ai-service/knowledge/:id` | Update knowledge entry | Admin |
+| `DELETE` | `/api/admin/ai-service/knowledge/:id` | Remove knowledge entry | Admin |
+| `GET` | `/api/admin/ai-service/escalations` | List unanswered customer escalations | Admin |
+| `POST` | `/api/admin/ai-service/escalations/:id/resolve` | Answer escalation and update AI memory | Admin |
+| `GET` | `/api/admin/ai-service/gaps` | List detected offering gaps and statistics | Admin |
+| `POST` | `/api/admin/ai-service/gaps` | Manually record an offering opportunity | Admin |
+| `PUT` | `/api/admin/ai-service/gaps/:id` | Update gap status and action plan notes | Admin |
+| `DELETE` | `/api/admin/ai-service/gaps/:id` | Remove gap record | Admin |
+| `POST` | `/api/admin/ai-service/gaps/synthesize` | Run AI analysis over chat history to uncover new gaps | Admin |
+| `GET` | `/api/admin/ai-service/conversations` | View recent visitor chat transcripts | Admin |
+
+---
+
+## AI Agent Guidelines
 
 If you are an AI agent working on this project:
 
@@ -153,6 +203,6 @@ If you are an AI agent working on this project:
 
 ---
 
-## 📜 License
+## License
 
 Private and confidential. &copy; 2026 Bravework Studio.
