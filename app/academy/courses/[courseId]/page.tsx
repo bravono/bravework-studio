@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import ExpandableText from "@/app/components/ExpandableText";
 import VideoModal from "@/app/components/VideoModal";
 import CourseModal from "@/app/components/CourseModal";
+import ShareButton from "@/app/components/ShareButton";
 
 // --- New Hook for Timezone Conversion ---
 const useLocalTimezone = (dateTimeString) => {
@@ -233,14 +234,25 @@ export default function CoursePage() {
               <ArrowLeft className="w-4.5 h-4.5 transition-transform group-hover:-translate-x-1" />
               Back to Courses
             </Link>
-            {isAdmin && course && (
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-sm rounded-xl border border-indigo-200 transition-colors shadow-sm"
-              >
-                <Pencil size={15} /> Edit Course (Admin)
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <ShareButton
+                type="course"
+                title={course?.title || "Bravework Studio Course"}
+                text={course?.description}
+                url={`/academy/courses/${courseId}`}
+                label="Share Course"
+                variant="outline"
+                className="px-4 py-2 rounded-xl text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 shadow-sm"
+              />
+              {isAdmin && course && (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-sm rounded-xl border border-indigo-200 transition-colors shadow-sm"
+                >
+                  <Pencil size={15} /> Edit Course (Admin)
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -305,6 +317,15 @@ export default function CoursePage() {
                 >
                   Enroll in Course <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
+                <ShareButton
+                  type="course"
+                  title={course?.title || "Bravework Studio Course"}
+                  text={course?.description}
+                  url={`/academy/courses/${courseId}`}
+                  label="Share Course"
+                  variant="outline"
+                  className="inline-flex items-center justify-center px-6 py-4 border border-gray-200 text-base font-bold rounded-2xl text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                />
                 <a
                   href={WHATSAPP_GROUP_URL}
                   target="_blank"
@@ -597,12 +618,23 @@ export default function CoursePage() {
                       Certificates and all study assets included
                     </span>
                   </div>
-                  <Link
-                    href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}`}
-                    className="inline-flex items-center justify-center px-10 py-4.5 bg-white text-secondary font-black text-lg rounded-full shadow-2xl hover:bg-white/90 transition-all transform hover:scale-[1.02] duration-200"
-                  >
-                    Enroll in Bundle Now <ArrowRight className="ml-3 w-5 h-5" />
-                  </Link>
+                  <div className="flex flex-wrap items-center justify-center gap-4">
+                    <ShareButton
+                      type="bundle"
+                      title={`${course.title} Power Bundle`}
+                      text={`Enroll in the complete ${course.title} learning path with ${bundleCourses.length} courses!`}
+                      url={`/academy/bundles?bundleId=${course.id}`}
+                      label="Share Bundle"
+                      variant="outline"
+                      className="inline-flex items-center justify-center px-8 py-4.5 bg-white/10 hover:bg-white/20 text-white border-white/25 text-base font-bold rounded-full transition-all"
+                    />
+                    <Link
+                      href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}`}
+                      className="inline-flex items-center justify-center px-10 py-4.5 bg-white text-secondary font-black text-lg rounded-full shadow-2xl hover:bg-white/90 transition-all transform hover:scale-[1.02] duration-200"
+                    >
+                      Enroll in Bundle Now <ArrowRight className="ml-3 w-5 h-5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
