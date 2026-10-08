@@ -193,12 +193,45 @@ Bravework Studio includes an intelligent, trainable AI customer service and busi
 
 ---
 
+## Course Architect and Curriculum Builder Agent
+
+A specialized autonomous Curriculum Architect and Instructional Designer agent built for the Bravework Academy ecosystem.
+
+### Purpose and Scope
+The agent designs turnkey course frameworks, modular live-teaching scripts, recorded-course video plans, and commercial pricing models from minimal topic inputs.
+
+### Four-Part Funnel Architecture
+Every generated course adheres to a strict four-part product ladder:
+1. **2-Hour Live Teaser**: Rapid onboarding, core concept demonstration, interactive hands-on exercise, and tier upsell roadmap.
+2. **Tier 1 (Beginner)**: Foundational mechanics, tool setup, and self-contained beginner project viability.
+3. **Tier 2 (Intermediate)**: Complex production workflows, procedural optimization, and portfolio-ready assets.
+4. **Tier 3 (Advanced)**: Industry-grade execution, edge cases, troubleshooting, and specialized technical pipelines.
+
+### Hard Constraints
+- **Tool Requirements**: Recommends strictly free, open-source, or non-commercial freemium tools (e.g., Blender, FreeCAD, Godot, Krita, DaVinci Resolve Free, VS Code, Git). Paid licenses and short-term trials are forbidden.
+- **Example Diversity**: Fashion visualization and apparel mockups are prohibited. Practical exercises are drawn exclusively from technical design, 3D/hard-surface workflows, industrial mechanics, architectural spaces, or digital media pipelines.
+- **Turnkey Lesson Detail**: Every lesson provides chronological, step-by-step teacher instructions, slide notes, exact on-screen actions, student hands-on checkpoints, and time allocations per block.
+
+### Supported Commands
+- `[NEW: <Topic>]`: Generates Title, Summary, Free Tools List, Duration, Market Pricing Tiers, a 2-Hour Teaser script, and Tier 1-3 roadmap with a confirmation gate before full lesson script expansion.
+- `[UPDATE: <Course Name / Component>]`: Modifies modules, swaps exercises, or converts live interactive checkpoints into recorded video lesson plans.
+- `[PRICE/DURATION: <Topic>]`: Produces a standalone pricing matrix and timeline breakdown comparing pre-recorded vs live cohort delivery.
+
+### Code and Skill Reference
+- Agent Definition: `.agent/agents/course-architect.md`
+- Agent Skill: `.agent/skills/course-architect/SKILL.md`
+- TypeScript Validation Engine: `lib/course-architect/`
+- Test Suite: `test/course_architect.test.ts`
+
+---
+
 ## AI Agent Guidelines
 
 If you are an AI agent working on this project:
 
 - Always refer to `AGENTS.md` for house rules.
 - Check the ADK Skill at `.agent/skills/ADK/SKILL.md`.
+- Check the Course Architect Skill at `.agent/skills/course-architect/SKILL.md`.
 - Ensure TypeScript strictness at all times.
 
 ---
