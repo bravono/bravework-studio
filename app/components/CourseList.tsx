@@ -18,6 +18,7 @@ import CurrencySelector from "../components/CurrencySelector";
 import Loader from "../components/Loader";
 import ArrowButton from "./ArrowButton";
 import CourseFilters from "./CourseFilters";
+import ShareButton from "./ShareButton";
 import { Course } from "../types/app";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 
@@ -359,12 +360,22 @@ export default function coursesPage({ page }) {
                             Get Notified
                           </Link>
                         )}
-                        <Link
-                          href={"/academy/courses/" + course.id}
-                          className="flex w-full items-center justify-center px-6 py-3.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200"
-                        >
-                          View Details
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={"/academy/courses/" + course.id}
+                            className="flex-1 flex items-center justify-center px-4 py-3.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200"
+                          >
+                            View Details
+                          </Link>
+                          <ShareButton
+                            type="course"
+                            title={course.title}
+                            text={course.description}
+                            url={`/academy/courses/${course.id}`}
+                            variant="outline"
+                            className="px-3.5 py-3.5"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

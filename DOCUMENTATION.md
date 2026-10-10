@@ -38,7 +38,8 @@ Bravework Studio is a multi-faceted platform designed to empower creatives and b
 
 ### 🎓 2. Bravework Academy (LMS)
 
-- **Course Catalog**: Interactive list of courses with categories and tags.
+- **Course Catalog**: Interactive list of courses with categories and tags, with pagination and direct course sharing.
+- **Curated Bundles**: Curated career paths with multi-course bundle pricing, paginated bundle browsing, course preview limits with expansion toggles, bundle sharing, and dedicated bundle details pages (`/academy/bundles/[bundleId]`) displaying comprehensive pathway syllabi, savings breakdowns, and hardware rental options.
 - **Student Dashboard**: Track progress, access session recordings, and manage enrollments.
 - **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing modal adapts to 90% screen width for configuring curriculum details, rich text content, and session schedules.
 - **Certificates**: Automated certificate generation for course completion.
