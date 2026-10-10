@@ -573,15 +573,21 @@ function AcademyCoursesContent() {
                                 : "---"}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <ShareButton
                               type="bundle"
                               title={item.title}
                               text={`Complete ${course.title} Path with ${bundleCourses.length} courses at Bravework Studio!`}
-                              url={`/academy/bundles?bundleId=${course.id}`}
+                              url={`/academy/bundles/${course.id}`}
                               variant="outline"
                               className="px-3 py-3 border-green-200 text-green-700 hover:bg-green-50"
                             />
+                            <Link
+                              href={`/academy/bundles/${course.id}`}
+                              className="px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-xl transition-all border border-gray-200 text-sm flex items-center gap-1.5"
+                            >
+                              View Bundle
+                            </Link>
                             <Link
                               href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
                               className="px-6 py-3 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/20 text-sm flex items-center gap-2"

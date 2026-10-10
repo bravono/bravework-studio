@@ -321,7 +321,7 @@ function AcademyBundlesContent() {
                           type="bundle"
                           title={bundle.title}
                           text={`Explore the ${bundle.title} Power Bundle with ${bundleCourses.length} courses at Bravework Studio Academy.`}
-                          url={`/academy/bundles?bundleId=${bundle.id}`}
+                          url={`/academy/bundles/${bundle.id}`}
                           variant="icon"
                           showLabel={false}
                           className="bg-white/95 hover:bg-white text-blue-700 shadow-md border-blue-100"
@@ -466,15 +466,21 @@ function AcademyBundlesContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center gap-3">
                             <ShareButton
                               type="bundle"
                               title={bundle.title}
                               text={`Check out the ${bundle.title} Power Bundle with ${bundleCourses.length} courses!`}
-                              url={`/academy/bundles?bundleId=${bundle.id}`}
+                              url={`/academy/bundles/${bundle.id}`}
                               variant="outline"
                               className="px-4 py-4 rounded-2xl border-blue-200 text-blue-700 hover:bg-blue-50"
                             />
+                            <Link
+                              href={`/academy/bundles/${bundle.id}`}
+                              className="px-6 py-4 bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold rounded-2xl transition-all border border-gray-200 text-sm flex items-center justify-center gap-1.5"
+                            >
+                              View Details
+                            </Link>
                             <Link
                               href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
                               className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 flex items-center gap-2 shrink-0"

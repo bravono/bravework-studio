@@ -111,7 +111,7 @@ describe("Course and Bundle Sharing Utilities", () => {
         "Complete pipeline bundle for young 3D artists.",
       );
       expect(payload.url).toBe(
-        "https://braveworkstudio.com/academy/bundles?bundleId=3",
+        "https://braveworkstudio.com/academy/bundles/3",
       );
     });
 
@@ -123,7 +123,7 @@ describe("Course and Bundle Sharing Utilities", () => {
       });
 
       expect(payload.url).toBe(
-        "https://braveworkstudio.com/academy/bundles?bundleId=88",
+        "https://braveworkstudio.com/academy/bundles/88",
       );
     });
 
@@ -254,6 +254,80 @@ describe("Bundle Page Pagination Logic", () => {
         : bundle.bundleCourses.slice(0, COURSES_PER_BUNDLE_PREVIEW);
 
       expect(visibleCourses).toHaveLength(4);
+    });
+  });
+
+  describe("Dedicated Bundle Details Page Logic", () => {
+    interface CourseItem {
+      id: number;
+      title: string;
+      price: number;
+      childCourseIds?: number[];
+    }
+
+    const sampleCourses: CourseItem[] = [
+      { id: 1, title: "Blender Basics", price: 1000000, childCourseIds: [2] },
+      { id: 2, title: "Blender Shading", price: 1500000, childCourseIds: [3] },
+      { id: 3, title: "Blender Animation", price: 2000000, childCourseIds: [] },
+      { id: 4, title: "Unreal Intro", price: 1200000, childCourseIds: [5] },
+      { id: 5, title: "Unreal Advanced", price: 1800000, childCourseIds: [] },
+      { id: 6, title: "Solo Course", price: 800000, childCourseIds: [] },
+    ];
+
+    const getDescendants = (
+      course: CourseItem,
+      all: CourseItem[],
+    ): CourseItem[] => {
+      let descendants: CourseItem[] = [];
+      if (course.childCourseIds && course.childCourseIds.length > 0) {
+        const directChildren = all.filter((c) =>
+          course.childCourseIds?.includes(c.id),
+        );
+        descendants = [...directChildren];
+        directChildren.forEach((child) => {
+          descendants = [...descendants, ...getDescendants(child, all)];
+        });
+      }
+      return Array.from(new Map(descendants.map((c) => [c.id, c])).values());
+    };
+
+    const calculateBundlePricing = (courses: CourseItem[]) => {
+      const subtotal = courses.reduce((sum, c) => sum + c.price, 0);
+      const discount =
+        courses.length === 2 ? 0.1 : courses.length >= 3 ? 0.2 : 0;
+      const total = subtotal * (1 - discount);
+      return { subtotal, discount, total };
+    };
+
+    it("should resolve 3-course hierarchy for Blender path", () => {
+      const root = sampleCourses[0];
+      const bundle = [root, ...getDescendants(root, sampleCourses)];
+      expect(bundle).toHaveLength(3);
+      expect(bundle.map((c) => c.id)).toEqual([1, 2, 3]);
+
+      const pricing = calculateBundlePricing(bundle);
+      expect(pricing.subtotal).toBe(4500000); // 1000000 + 1500000 + 2000000
+      expect(pricing.discount).toBe(0.2); // 20% for 3 courses
+      expect(pricing.total).toBe(3600000); // 4500000 * 0.8
+    });
+
+    it("should resolve 2-course hierarchy with 10% discount for Unreal path", () => {
+      const root = sampleCourses[3];
+      const bundle = [root, ...getDescendants(root, sampleCourses)];
+      expect(bundle).toHaveLength(2);
+      expect(bundle.map((c) => c.id)).toEqual([4, 5]);
+
+      const pricing = calculateBundlePricing(bundle);
+      expect(pricing.subtotal).toBe(3000000); // 1200000 + 1800000
+      expect(pricing.discount).toBe(0.1); // 10% for 2 courses
+      expect(pricing.total).toBe(2700000);
+    });
+
+    it("should handle bundle ID cleaning correctly", () => {
+      const rawParam1 = "bundle-10";
+      const rawParam2 = "42";
+      expect(rawParam1.replace(/^bundle-/, "")).toBe("10");
+      expect(rawParam2.replace(/^bundle-/, "")).toBe("42");
     });
   });
 });

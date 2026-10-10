@@ -623,11 +623,17 @@ export default function CoursePage() {
                       type="bundle"
                       title={`${course.title} Power Bundle`}
                       text={`Enroll in the complete ${course.title} learning path with ${bundleCourses.length} courses!`}
-                      url={`/academy/bundles?bundleId=${course.id}`}
+                      url={`/academy/bundles/${course.id}`}
                       label="Share Bundle"
                       variant="outline"
                       className="inline-flex items-center justify-center px-8 py-4.5 bg-white/10 hover:bg-white/20 text-white border-white/25 text-base font-bold rounded-full transition-all"
                     />
+                    <Link
+                      href={`/academy/bundles/${course.id}`}
+                      className="inline-flex items-center justify-center px-8 py-4.5 bg-white/15 hover:bg-white/25 text-white border border-white/30 text-base font-bold rounded-full transition-all"
+                    >
+                      View Bundle Details
+                    </Link>
                     <Link
                       href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}`}
                       className="inline-flex items-center justify-center px-10 py-4.5 bg-white text-secondary font-black text-lg rounded-full shadow-2xl hover:bg-white/90 transition-all transform hover:scale-[1.02] duration-200"

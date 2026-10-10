@@ -69,7 +69,7 @@ export function createBundleShareData(params: {
   origin?: string;
 }): ShareDataPayload {
   const cleanId = String(params.bundleId).replace(/^bundle-/, "");
-  const url = resolveShareUrl(`/academy/bundles?bundleId=${cleanId}`, params.origin);
+  const url = resolveShareUrl(`/academy/bundles/${cleanId}`, params.origin);
   const countLabel = params.courseCount ? ` (${params.courseCount} Courses)` : "";
 
   return {
