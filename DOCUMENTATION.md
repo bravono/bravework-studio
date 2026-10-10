@@ -40,7 +40,7 @@ Bravework Studio is a multi-faceted platform designed to empower creatives and b
 
 - **Course Catalog**: Interactive list of courses with categories and tags.
 - **Student Dashboard**: Track progress, access session recordings, and manage enrollments.
-- **Instructor Portal**: Manage courses, students, and sessions.
+- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing modal adapts to 90% screen width for configuring curriculum details, rich text content, and session schedules.
 - **Certificates**: Automated certificate generation for course completion.
 
 ### 🧒 3. Bravework Kids
@@ -143,16 +143,99 @@ The application requires several environment variables for full functionality. S
 
 ---
 
-## 🤖 AI Agent Guidelines
+## AI Customer Service and Offering Gap Intelligence
+
+Bravework Studio includes an intelligent, trainable AI customer service and business intelligence engine.
+
+### Key Capabilities
+
+1. **Interactive Client Support**:
+   - Floating widget mounted globally via the root layout.
+   - Answers inquiries regarding 3D animation, software engineering, UI/UX design, Academy courses, kids hub, and hardware rentals.
+   - Session continuity stored in local client state.
+
+2. **Context-Aware Service Recommendations**:
+   - Interprets visitor requirements and recommends matching services with direct action links (`/order`, `/services`, `/academy`, `/hub`, `/kids`).
+
+3. **Trainable Knowledge Base and Escalation Pipeline**:
+   - When the AI encounters unknown topics or ambiguous pricing requests, it flags an escalation marker (`[ESCALATE: ...]`) and records a pending ticket in `ai_escalations`.
+   - Administrators review pending escalations in the Admin Dashboard.
+   - Providing an answer marks the escalation resolved and automatically writes the question and verified answer into `ai_knowledge_base`.
+   - The AI immediately references this memory for all future visitor interactions.
+
+4. **Direct Admin Training**:
+   - Administrators can add, edit, search, and toggle knowledge base records directly in the Admin Dashboard under the AI Customer Service tab.
+
+5. **Business Offering Gap Detection and Portal**:
+   - Analyzes customer demand for unprovided services or courses.
+   - Flags business gaps (`[BUSINESS_GAP: ...]`) and logs structured opportunities in `ai_offering_gaps`.
+   - Admin Portal enables tracking of status (`new`, `under_review`, `planned`, `adopted`, `dismissed`), potential impact, occurrences, and action notes.
+   - Includes on-demand conversation synthesis to identify macro trends.
+
+### API Reference
+
+| Method | Route | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/chat` | Process customer chat messages, recommend services, and detect escalations/gaps | Public |
+| `GET` | `/api/chat/history` | Retrieve message history for a session | Public |
+| `GET` | `/api/admin/ai-service/knowledge` | List knowledge entries with category and search filter | Admin |
+| `POST` | `/api/admin/ai-service/knowledge` | Add direct knowledge entry to AI memory | Admin |
+| `PUT` | `/api/admin/ai-service/knowledge/:id` | Update knowledge entry | Admin |
+| `DELETE` | `/api/admin/ai-service/knowledge/:id` | Remove knowledge entry | Admin |
+| `GET` | `/api/admin/ai-service/escalations` | List unanswered customer escalations | Admin |
+| `POST` | `/api/admin/ai-service/escalations/:id/resolve` | Answer escalation and update AI memory | Admin |
+| `GET` | `/api/admin/ai-service/gaps` | List detected offering gaps and statistics | Admin |
+| `POST` | `/api/admin/ai-service/gaps` | Manually record an offering opportunity | Admin |
+| `PUT` | `/api/admin/ai-service/gaps/:id` | Update gap status and action plan notes | Admin |
+| `DELETE` | `/api/admin/ai-service/gaps/:id` | Remove gap record | Admin |
+| `POST` | `/api/admin/ai-service/gaps/synthesize` | Run AI analysis over chat history to uncover new gaps | Admin |
+| `GET` | `/api/admin/ai-service/conversations` | View recent visitor chat transcripts | Admin |
+
+---
+
+## Course Architect and Curriculum Builder Agent
+
+A specialized autonomous Curriculum Architect and Instructional Designer agent built for the Bravework Academy ecosystem.
+
+### Purpose and Scope
+The agent designs turnkey course frameworks, modular live-teaching scripts, recorded-course video plans, and commercial pricing models from minimal topic inputs.
+
+### Four-Part Funnel Architecture
+Every generated course adheres to a strict four-part product ladder:
+1. **2-Hour Live Teaser**: Rapid onboarding, core concept demonstration, interactive hands-on exercise, and tier upsell roadmap.
+2. **Tier 1 (Beginner)**: Foundational mechanics, tool setup, and self-contained beginner project viability.
+3. **Tier 2 (Intermediate)**: Complex production workflows, procedural optimization, and portfolio-ready assets.
+4. **Tier 3 (Advanced)**: Industry-grade execution, edge cases, troubleshooting, and specialized technical pipelines.
+
+### Hard Constraints
+- **Tool Requirements**: Recommends strictly free, open-source, or non-commercial freemium tools (e.g., Blender, FreeCAD, Godot, Krita, DaVinci Resolve Free, VS Code, Git). Paid licenses and short-term trials are forbidden.
+- **Example Diversity**: Fashion visualization and apparel mockups are prohibited. Practical exercises are drawn exclusively from technical design, 3D/hard-surface workflows, industrial mechanics, architectural spaces, or digital media pipelines.
+- **Turnkey Lesson Detail**: Every lesson provides chronological, step-by-step teacher instructions, slide notes, exact on-screen actions, student hands-on checkpoints, and time allocations per block.
+
+### Supported Commands
+- `[NEW: <Topic>]`: Generates Title, Summary, Free Tools List, Duration, Market Pricing Tiers, a 2-Hour Teaser script, and Tier 1-3 roadmap with a confirmation gate before full lesson script expansion.
+- `[UPDATE: <Course Name / Component>]`: Modifies modules, swaps exercises, or converts live interactive checkpoints into recorded video lesson plans.
+- `[PRICE/DURATION: <Topic>]`: Produces a standalone pricing matrix and timeline breakdown comparing pre-recorded vs live cohort delivery.
+
+### Code and Skill Reference
+- Agent Definition: `.agent/agents/course-architect.md`
+- Agent Skill: `.agent/skills/course-architect/SKILL.md`
+- TypeScript Validation Engine: `lib/course-architect/`
+- Test Suite: `test/course_architect.test.ts`
+
+---
+
+## AI Agent Guidelines
 
 If you are an AI agent working on this project:
 
 - Always refer to `AGENTS.md` for house rules.
 - Check the ADK Skill at `.agent/skills/ADK/SKILL.md`.
+- Check the Course Architect Skill at `.agent/skills/course-architect/SKILL.md`.
 - Ensure TypeScript strictness at all times.
 
 ---
 
-## 📜 License
+## License
 
 Private and confidential. &copy; 2026 Bravework Studio.

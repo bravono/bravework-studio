@@ -3,7 +3,7 @@
 import React from "react";
 import { XCircle } from "lucide-react";
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm?: () => void;
@@ -13,6 +13,8 @@ interface ModalProps {
   title: string;
   message?: string;
   children: React.ReactNode;
+  maxWidth?: string;
+  className?: string;
 }
 
 export default function Modal({
@@ -20,6 +22,8 @@ export default function Modal({
   onClose,
   title,
   children,
+  maxWidth = "max-w-lg",
+  className = "",
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -28,7 +32,7 @@ export default function Modal({
       {/* The modal content is the main container for the modal's body.
           We stop propagation here so clicks inside the modal don't close it. */}
       <div
-        className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transform transition-transform duration-300 ease-out scale-95  animate-scale-up max-h-screen overflow-y-auto"
+        className={`relative w-full ${maxWidth} rounded-2xl bg-white p-6 shadow-2xl transform transition-transform duration-300 ease-out scale-95  animate-scale-up max-h-screen overflow-y-auto ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

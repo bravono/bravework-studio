@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function GET(request: Request) {
   try {
     const courseResults = await queryDatabase(`SELECT 
@@ -59,7 +62,12 @@ export async function GET(request: Request) {
         typeof course.tags === "string" ? JSON.parse(course.tags) : course.tags,
     }));
 
-    return NextResponse.json(result, { status: 200 });
+    return NextResponse.json(result, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(

@@ -832,3 +832,79 @@ model hub_order_items {
   hub_snack_items hub_snack_items @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
 }
 
+model ai_knowledge_base {
+  id         Int      @id @default(autoincrement())
+  category   String   @default("general") @db.VarChar(50)
+  question   String   @db.VarChar(500)
+  answer     String   @db.Text
+  keywords   String?  @db.VarChar(500)
+  is_active  Boolean  @default(true)
+  source     String   @default("admin") @db.VarChar(50)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([category])
+  @@index([is_active])
+}
+
+model ai_escalations {
+  id             Int       @id @default(autoincrement())
+  session_id     String    @db.VarChar(100)
+  user_email     String?   @db.VarChar(255)
+  user_name      String?   @db.VarChar(100)
+  question       String    @db.Text
+  context        String?   @db.Text
+  status         String    @default("pending") @db.VarChar(20)
+  admin_response String?   @db.Text
+  resolved_by    Int?
+  resolved_at    DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([session_id])
+}
+
+model ai_chat_sessions {
+  session_id String             @id @default(uuid()) @db.VarChar(100)
+  user_id    Int?
+  user_email String?            @db.VarChar(255)
+  user_name  String?            @db.VarChar(100)
+  created_at DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
+  messages   ai_chat_messages[]
+
+  @@index([user_email])
+}
+
+model ai_chat_messages {
+  id                 Int              @id @default(autoincrement())
+  session_id         String           @db.VarChar(100)
+  sender             String           @db.VarChar(20)
+  content            String           @db.Text
+  suggested_services Json?
+  is_escalated       Boolean          @default(false)
+  created_at         DateTime         @default(now()) @db.Timestamptz(6)
+  session            ai_chat_sessions @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
+
+  @@index([session_id])
+}
+
+model ai_offering_gaps {
+  id                 Int      @id @default(autoincrement())
+  title              String   @db.VarChar(255)
+  category           String   @default("Services") @db.VarChar(50)
+  description        String   @db.Text
+  customer_context   String?  @db.Text
+  suggested_offering String   @db.Text
+  potential_impact   String   @default("medium") @db.VarChar(50)
+  status             String   @default("new") @db.VarChar(30)
+  admin_notes        String?  @db.Text
+  occurrences_count  Int      @default(1)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([category])
+  @@index([status])
+  @@index([potential_impact])
+}
+
