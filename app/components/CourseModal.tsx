@@ -324,6 +324,7 @@ export default function CourseModal({
   userRole,
   currentInstructorName,
   currentInstructorId,
+  maxWidth = "max-w-[90vw] w-[90vw]",
 }: CourseModalProps) {
   const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
 
@@ -703,6 +704,7 @@ export default function CourseModal({
         isOpen={true}
         onClose={onClose}
         title={existingCourse ? "Edit Course" : "Create Course"}
+        maxWidth={maxWidth}
       >
         {
           <form onSubmit={handleSubmit} className="p-4 space-y-6">

@@ -351,6 +351,7 @@ interface CourseModalProps {
   userRole: "admin" | "instructor";
   currentInstructorName?: string;
   currentInstructorId?: number;
+  maxWidth?: string;
 }
 
 interface CustomOfferModalProps {

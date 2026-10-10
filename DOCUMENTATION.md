@@ -40,7 +40,7 @@ Bravework Studio is a multi-faceted platform designed to empower creatives and b
 
 - **Course Catalog**: Interactive list of courses with categories and tags.
 - **Student Dashboard**: Track progress, access session recordings, and manage enrollments.
-- **Instructor Portal**: Manage courses, students, and sessions.
+- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing modal adapts to 90% screen width for configuring curriculum details, rich text content, and session schedules.
 - **Certificates**: Automated certificate generation for course completion.
 
 ### 🧒 3. Bravework Kids
