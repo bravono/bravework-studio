@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
@@ -11,7 +12,12 @@ export async function GET() {
       ORDER BY tag_name ASC;
     `;
     const tags = await queryDatabase(query);
-    return NextResponse.json(tags);
+    return NextResponse.json(tags, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error: any) {
     console.error("Error fetching tags:", error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
@@ -14,7 +15,12 @@ export async function GET(request: Request) {
 
     console.log("Fetched Courses", categories);
 
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error: any) {
     console.error("Error fetching instructors:", error);
     return NextResponse.json(
