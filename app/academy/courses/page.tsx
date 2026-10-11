@@ -45,6 +45,7 @@ import Loader from "../../components/Loader";
 import Pagination from "../../components/Pagination";
 import VideoModal from "../../components/VideoModal";
 import CourseModal from "../../components/CourseModal";
+import ShareButton from "../../components/ShareButton";
 import { Course } from "../../types/app";
 
 const COURSES_PER_PAGE = 6;
@@ -572,12 +573,28 @@ function AcademyCoursesContent() {
                                 : "---"}
                             </div>
                           </div>
-                          <Link
-                            href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
-                            className="px-6 py-3 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/20 text-sm flex items-center gap-2"
-                          >
-                            Enroll All <ChevronRight size={18} />
-                          </Link>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <ShareButton
+                              type="bundle"
+                              title={item.title}
+                              text={`Complete ${course.title} Path with ${bundleCourses.length} courses at Bravework Studio!`}
+                              url={`/academy/bundles/${course.id}`}
+                              variant="outline"
+                              className="px-3 py-3 border-green-200 text-green-700 hover:bg-green-50"
+                            />
+                            <Link
+                              href={`/academy/bundles/${course.id}`}
+                              className="px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-xl transition-all border border-gray-200 text-sm flex items-center gap-1.5"
+                            >
+                              View Bundle
+                            </Link>
+                            <Link
+                              href={`/auth/signup?enroll=true&bundle=${bundleCourses.map((c) => c.id).join(",")}${includeHardware ? "&hardware=true" : ""}`}
+                              className="px-6 py-3 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/20 text-sm flex items-center gap-2"
+                            >
+                              Enroll All <ChevronRight size={18} />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -771,12 +788,22 @@ function AcademyCoursesContent() {
                         </button>
                       )}
 
-                      <Link
-                        href={`/academy/courses/${course.id}`}
-                        className="mt-4 flex w-full items-center justify-center px-6 py-2.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 border border-gray-100"
-                      >
-                        View Details
-                      </Link>
+                      <div className="mt-4 flex items-center gap-2">
+                        <Link
+                          href={`/academy/courses/${course.id}`}
+                          className="flex-1 flex items-center justify-center px-4 py-2.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 border border-gray-100"
+                        >
+                          View Details
+                        </Link>
+                        <ShareButton
+                          type="course"
+                          title={course.title}
+                          text={course.description}
+                          url={`/academy/courses/${course.id}`}
+                          variant="outline"
+                          className="px-3.5 py-2.5"
+                        />
+                      </div>
 
                       {isAdmin && (
                         <button
