@@ -8,6 +8,9 @@ import {
   Video,
   Calendar,
   Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 
 import dynamic from "next/dynamic";
@@ -120,7 +123,18 @@ const generateGoogleCalendarLink = (
   return url.toString();
 };
 
-const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
+const labelStyle = "flex items-center text-xs sm:text-sm font-medium text-gray-700 mb-1";
+const inputStyle =
+  "mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-xs sm:text-sm";
+const selectStyle =
+  "mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-xs sm:text-sm bg-white";
+
+const STEPS = [
+  { id: 1, title: "Basic Info", description: "General details & pricing" },
+  { id: 2, title: "Schedule", description: "Dates, duration & tags" },
+  { id: 3, title: "Content", description: "Syllabus & thumbnail" },
+  { id: 4, title: "Sessions", description: "Live class options" },
+];
 
 // --- Session UI Component ---
 const SessionForm = ({
@@ -135,183 +149,194 @@ const SessionForm = ({
 }: SessionFormProps) => (
   <div
     key={session.id}
-    className="p-4 border border-indigo-200 rounded-lg space-y-4 bg-indigo-50/50 relative"
+    className="p-3 sm:p-4 border border-indigo-200 rounded-lg space-y-3 sm:space-y-4 bg-indigo-50/50 relative"
   >
-    <h4 className="text-md font-bold text-indigo-700">Session {index + 1}</h4>
+    <div className="flex justify-between items-center pr-8">
+      <h4 className="text-sm sm:text-base font-bold text-indigo-700">
+        Session {index + 1}
+      </h4>
+    </div>
     {sessionsLength > 1 && (
       <button
         type="button"
         onClick={() => removeSession(session.id)}
-        className="absolute top-3 right-3 text-red-500 hover:text-red-700 transition-colors"
+        className="absolute top-3 right-3 text-red-500 hover:text-red-700 transition-colors p-1"
         aria-label={`Remove session ${index + 1}`}
       >
-        <Trash2 className="w-5 h-5" />
+        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
     )}
 
-    {session.options.map((option, optIndex) => (
-      <div key={optIndex} className="p-3 border rounded-md bg-white shadow-sm">
-        <div className="flex justify-between items-center mb-2">
-          <h5 className="text-sm font-semibold text-gray-600">
-            Option {option.optionNumber}
-          </h5>
-          {session.options.length > 1 && (
-            <button
-              type="button"
-              onClick={() => removeOption(session.id, option.optionNumber)}
-              className="text-red-500 hover:text-red-700 text-xs flex items-center"
-            >
-              <Trash2 className="w-4 h-4 mr-1" /> Remove Option
-            </button>
-          )}
-        </div>
-
-        {/* Label Input (FIXED: Moved component definition out) */}
-        <div className="mb-3">
-          <label
-            htmlFor={`session-${session.id}-opt-${option.optionNumber}-label`}
-            className={labelStyle}
-          >
-            Label (e.g., Morning, Night, or Day Name)
-          </label>
-          <input
-            type="text"
-            id={`session-${session.id}-opt-${option.optionNumber}-label`}
-            value={option.label}
-            onChange={(e) =>
-              handleOptionChange(
-                session.id,
-                option.optionNumber,
-                "label",
-                e.target.value,
-              )
-            }
-            required
-            placeholder={
-              optIndex === 0 ? "Morning / Monday" : "Night / Tuesday"
-            }
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
-          />
-        </div>
-
-        {/* Duration Input (UPDATED: type="number" for minutes) */}
-        <div className="mb-3">
-          <label
-            htmlFor={`session-${session.id}-opt-${option.optionNumber}-duration`}
-            className={labelStyle}
-          >
-            Session Length (in minutes)
-          </label>
-          <input
-            type="number" // Changed to number
-            id={`session-${session.id}-opt-${option.optionNumber}-duration`}
-            value={option.duration}
-            onChange={(e) =>
-              // Parse value as an integer (minutes)
-              handleOptionChange(
-                session.id,
-                option.optionNumber,
-                "duration",
-                parseInt(e.target.value || "0", 10),
-              )
-            }
-            required
-            min="1" // Minimum duration of 1 minute
-            placeholder="e.g., 90" // Updated placeholder
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
-          />
-        </div>
-
-        {/* Time Input (UPDATED: type="datetime-local") */}
-        <div className="mb-3">
-          <label
-            htmlFor={`session-${session.id}-opt-${option.optionNumber}-time`}
-            className={labelStyle}
-          >
-            Date and Time
-          </label>
-          <input
-            type="datetime-local" // Changed to datetime-local
-            id={`session-${session.id}-opt-${option.optionNumber}-time`}
-            value={formatDateTimeLocal(option.datetime)}
-            onChange={(e) =>
-              handleOptionChange(
-                session.id,
-                option.optionNumber,
-                "datetime",
-                e.target.value,
-              )
-            }
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
-          />
-          {option.datetime && (
-            <a
-              href={generateGoogleCalendarLink(
-                `${courseTitle}:  ${option.label} Session`,
-                option.datetime,
-                option.duration,
-                `Join the session here: ${option.link}`,
-                option.link,
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+      {session.options.map((option, optIndex) => (
+        <div
+          key={optIndex}
+          className="p-3 border rounded-md bg-white shadow-sm flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h5 className="text-xs sm:text-sm font-semibold text-gray-700">
+                Option {option.optionNumber}
+              </h5>
+              {session.options.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeOption(session.id, option.optionNumber)}
+                  className="text-red-500 hover:text-red-700 text-xs flex items-center"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                </button>
               )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
-            >
-              <Calendar className="w-3 h-3 mr-1" /> Add to Google Calendar
-            </a>
-          )}
-        </div>
+            </div>
 
-        {/* Link Input */}
-        <div className="mb-3">
-          <label
-            htmlFor={`session-${session.id}-opt-${option.optionNumber}-link`}
-            className={labelStyle}
-          >
-            Session Link (URL)
-          </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
-            <input
-              type="url"
-              id={`session-${session.id}-opt-${option.optionNumber}-link`}
-              value={option.link}
-              onChange={(e) =>
-                handleOptionChange(
-                  session.id,
-                  option.optionNumber,
-                  "link",
-                  e.target.value,
-                )
-              }
-              placeholder="https://meet.jit.si/..."
-              className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-            <button
-              type="button"
-              onClick={() =>
-                handleOptionChange(
-                  session.id,
-                  option.optionNumber,
-                  "link",
-                  generateJitsiLink(),
-                )
-              }
-              className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600"
-              title="Generate Jitsi Meeting Link"
-            >
-              <Video className="h-4 w-4" />
-            </button>
+            {/* Label Input */}
+            <div className="mb-2.5">
+              <label
+                htmlFor={`session-${session.id}-opt-${option.optionNumber}-label`}
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Label (e.g. Morning, Evening)
+              </label>
+              <input
+                type="text"
+                id={`session-${session.id}-opt-${option.optionNumber}-label`}
+                value={option.label}
+                onChange={(e) =>
+                  handleOptionChange(
+                    session.id,
+                    option.optionNumber,
+                    "label",
+                    e.target.value,
+                  )
+                }
+                required
+                placeholder={
+                  optIndex === 0 ? "Morning / Monday" : "Night / Tuesday"
+                }
+                className="mt-1 block w-full py-1.5 sm:py-2 px-2.5 sm:px-3 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Duration Input */}
+            <div className="mb-2.5">
+              <label
+                htmlFor={`session-${session.id}-opt-${option.optionNumber}-duration`}
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Length (minutes)
+              </label>
+              <input
+                type="number"
+                id={`session-${session.id}-opt-${option.optionNumber}-duration`}
+                value={option.duration}
+                onChange={(e) =>
+                  handleOptionChange(
+                    session.id,
+                    option.optionNumber,
+                    "duration",
+                    parseInt(e.target.value || "0", 10),
+                  )
+                }
+                required
+                min="1"
+                placeholder="e.g. 90"
+                className="mt-1 block w-full py-1.5 sm:py-2 px-2.5 sm:px-3 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Time Input */}
+            <div className="mb-2.5">
+              <label
+                htmlFor={`session-${session.id}-opt-${option.optionNumber}-time`}
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                id={`session-${session.id}-opt-${option.optionNumber}-time`}
+                value={formatDateTimeLocal(option.datetime)}
+                onChange={(e) =>
+                  handleOptionChange(
+                    session.id,
+                    option.optionNumber,
+                    "datetime",
+                    e.target.value,
+                  )
+                }
+                className="mt-1 block w-full py-1.5 sm:py-2 px-2.5 sm:px-3 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              {option.datetime && (
+                <a
+                  href={generateGoogleCalendarLink(
+                    `${courseTitle}:  ${option.label} Session`,
+                    option.datetime,
+                    option.duration,
+                    `Join the session here: ${option.link}`,
+                    option.link,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 inline-flex items-center text-xs text-blue-600 hover:text-blue-800"
+                >
+                  <Calendar className="w-3 h-3 mr-1" /> Add to Google Calendar
+                </a>
+              )}
+            </div>
+
+            {/* Link Input */}
+            <div className="mb-1">
+              <label
+                htmlFor={`session-${session.id}-opt-${option.optionNumber}-link`}
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Session Link (URL)
+              </label>
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <input
+                  type="url"
+                  id={`session-${session.id}-opt-${option.optionNumber}-link`}
+                  value={option.link}
+                  onChange={(e) =>
+                    handleOptionChange(
+                      session.id,
+                      option.optionNumber,
+                      "link",
+                      e.target.value,
+                    )
+                  }
+                  placeholder="https://meet.jit.si/..."
+                  className="flex-1 block w-full py-1.5 sm:py-2 px-2.5 sm:px-3 border border-gray-300 rounded-l-md text-xs sm:text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleOptionChange(
+                      session.id,
+                      option.optionNumber,
+                      "link",
+                      generateJitsiLink(),
+                    )
+                  }
+                  className="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 transition-colors"
+                  title="Generate Jitsi Meeting Link"
+                >
+                  <Video className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    ))}
+      ))}
+    </div>
+
     {session.options.length < 2 && (
       <button
         type="button"
         onClick={() => addOption(session.id)}
-        className="mt-2 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+        className="mt-2 flex items-center text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
       >
-        <PlusCircle className="w-4 h-4 mr-1" /> Add Option
+        <PlusCircle className="w-4 h-4 mr-1" /> Add Another Option (e.g. Evening)
       </button>
     )}
   </div>
@@ -324,9 +349,9 @@ export default function CourseModal({
   userRole,
   currentInstructorName,
   currentInstructorId,
-  maxWidth = "max-w-[90vw] w-[90vw]",
+  maxWidth = "max-w-4xl w-full",
 }: CourseModalProps) {
-  const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
@@ -604,8 +629,100 @@ export default function CourseModal({
     }
   }, [existingCourse]);
 
+  const validateStep = (stepNumber: number): boolean => {
+    setError(null);
+    if (stepNumber === 1) {
+      if (!title.trim()) {
+        setError("Please enter a course title.");
+        return false;
+      }
+      if (!slug.trim()) {
+        setError("Please enter a URL slug.");
+        return false;
+      }
+      if (price === undefined || isNaN(price) || price < 0) {
+        setError("Please enter a valid price.");
+        return false;
+      }
+      if (!category) {
+        setError("Please select a category.");
+        return false;
+      }
+      if (!level) {
+        setError("Please select a level.");
+        return false;
+      }
+      if (!maxStudents || parseInt(maxStudents, 10) < 1) {
+        setError("Please specify max students (at least 1).");
+        return false;
+      }
+    } else if (stepNumber === 2) {
+      if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+        setError("End date must be after start date.");
+        return false;
+      }
+    } else if (stepNumber === 3) {
+      if (!description.trim()) {
+        setError("Please enter a course description.");
+        return false;
+      }
+    } else if (stepNumber === 4) {
+      if (sessions.length === 0) {
+        setError("At least one session is required.");
+        return false;
+      }
+      for (let i = 0; i < sessions.length; i++) {
+        const s = sessions[i];
+        if (s.options.length === 0) {
+          setError(`Session ${i + 1} must have at least one option.`);
+          return false;
+        }
+        for (const opt of s.options) {
+          if (!opt.label.trim()) {
+            setError(
+              `Please provide a label for Session ${i + 1}, Option ${opt.optionNumber}.`,
+            );
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
+    }
+  };
+
+  const handlePrevStep = () => {
+    setError(null);
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep < currentStep) {
+      setError(null);
+      setCurrentStep(targetStep);
+    } else if (targetStep > currentStep) {
+      if (validateStep(currentStep)) {
+        setCurrentStep(targetStep);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all steps before submitting
+    for (let s = 1; s <= 4; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     setSubmitStatus("idle");
@@ -707,492 +824,688 @@ export default function CourseModal({
         maxWidth={maxWidth}
       >
         {
-          <form onSubmit={handleSubmit} className="p-4 space-y-6">
-            {/* Existing Form Fields (Title, Price, Dates, etc.) */}
-            <div>
-              <label htmlFor="title" className={labelStyle}>
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="slug" className={labelStyle}>
-                Slug
-              </label>
-              <input
-                type="text"
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                required
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="coursePrice" className={labelStyle}>
-                Price(NGN)
-              </label>
-              <input
-                type="number"
-                id="price"
-                value={price}
-                onChange={(e) => setPrice(parseFloat(e.target.value))}
-                required
-                min="0"
-                step="10"
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            {/* Start/End Date Inputs (using the helper for correct datetime-local format) */}
-            <div>
-              <label htmlFor="startDate" className={labelStyle}>
-                Start Date
-              </label>
-              <input
-                type="datetime-local"
-                id="startDate"
-                value={formatDateTimeLocal(startDate)}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="endDate" className={labelStyle}>
-                End Date
-              </label>
-              <input
-                type="datetime-local"
-                id="endDate"
-                value={formatDateTimeLocal(endDate)}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="duration" className={labelStyle}>
-                Duration (e.g., 4 Weeks, 3 Months)
-              </label>
-              <input
-                type="text"
-                id="duration"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="e.g. 8 Weeks"
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            {userRole === "admin" ? (
-              // ADMIN VIEW: Show the Select dropdown for all instructors
-              <div>
-                <label htmlFor="instructor" className={labelStyle}>
-                  Instructor
-                </label>
-                {/* Your existing select dropdown for all instructors */}
-                <select
-                  id="instructor"
-                  value={instructor}
-                  onChange={(e) => setInstructor(e.target.value)}
-                  required
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="" disabled>
-                    Select an instructor
-                  </option>
-                  <option value="none">None (Assign to me)</option>
-                  {availableInstructors.map((inst, ind) => (
-                    <option key={ind + 1} value={inst.fullName}>
-                      {inst.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              // INSTRUCTOR VIEW: Show the name as read-only text
-              <div>
-                <label className={labelStyle}>Instructor</label>
-                <p className="mt-1 block w-full py-2 px-3 bg-gray-100 border border-gray-300 rounded-md text-gray-800 sm:text-sm font-medium">
-                  {currentInstructorName}
-                </p>
-                {/* Optional: Hidden input to ensure the data is still submitted */}
-                <input
-                  type="hidden"
-                  name="instructor"
-                  value={currentInstructorName}
-                />
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="isActive" className={labelStyle}>
-                Is Active (Visible to students)
-              </label>
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-            </div>
-
-            {userRole === "admin" && (
-              <div>
-                <label htmlFor="isPublished" className={labelStyle}>
-                  Is Published (Admin Approval)
-                </label>
-                <input
-                  type="checkbox"
-                  id="isPublished"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-              </div>
-            )}
-            <label htmlFor="maxStudents" className={labelStyle}>
-              Max Students
-            </label>
-            <input
-              type="number"
-              id="maxStudents"
-              min="1"
-              max="100"
-              value={maxStudents}
-              required
-              onChange={(e) => setMaxStudents(e.target.value)}
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-
-            {/* Category Select (Now uses availableCategories) */}
-            <label htmlFor="category" className={labelStyle}>
-              Category
-            </label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="" disabled>
-                Select a category
-              </option>
-              {availableCategories.map((cat, ind) => (
-                <option key={ind + 1} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-
-            <label htmlFor="level" className={labelStyle}>
-              Level
-            </label>
-            <select
-              id="level"
-              value={level}
-              onChange={(e) => setLevel(e.target.value)}
-              required
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="" disabled>
-                Select course level
-              </option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advance">Advance</option>
-            </select>
-
-            <div>
-              <label htmlFor="parentCourse" className={labelStyle}>
-                Parent Course (Prerequisite)
-              </label>
-              <select
-                id="parentCourse"
-                value={parentCourseId}
-                onChange={(e) =>
-                  setParentCourseId(
-                    e.target.value ? parseInt(e.target.value) : "",
-                  )
-                }
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="">None (Top Level)</option>
-                {availableCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title} ({course.level})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelStyle}>Child Courses (Next Levels)</label>
-              <div className="mt-1 grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
-                {availableCourses
-                  .filter((c) => c.id !== parentCourseId.toString()) // Cannot be both parent and child
-                  .map((course) => (
-                    <div key={course.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`child-course-${course.id}`}
-                        value={course.id}
-                        checked={childCourseIds.includes(parseInt(course.id))}
-                        onChange={(e) => {
-                          const id = parseInt(e.target.value);
-                          if (e.target.checked) {
-                            setChildCourseIds([...childCourseIds, id]);
-                          } else {
-                            setChildCourseIds(
-                              childCourseIds.filter((cId) => cId !== id),
-                            );
-                          }
-                        }}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      />
-                      <label
-                        htmlFor={`child-course-${course.id}`}
-                        className="ml-2 block text-sm text-gray-900"
+          <form onSubmit={handleSubmit} className="p-1 sm:p-2">
+            {/* Desktop Stepper */}
+            <div className="hidden sm:flex items-center justify-between mb-5 border-b pb-4 px-1">
+              {STEPS.map((s, index) => {
+                const isCompleted = currentStep > s.id;
+                const isCurrent = currentStep === s.id;
+                return (
+                  <div
+                    key={s.id}
+                    className="flex items-center flex-1 last:flex-none"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleStepClick(s.id)}
+                      className="flex items-center text-left focus:outline-none group"
+                    >
+                      <span
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold mr-2 transition-colors ${
+                          isCurrent
+                            ? "bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-200"
+                            : isCompleted
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-100 text-gray-500 border border-gray-300 group-hover:bg-gray-200"
+                        }`}
                       >
-                        {course.title} ({course.level})
+                        {isCompleted ? <Check className="w-4 h-4" /> : s.id}
+                      </span>
+                      <div>
+                        <div
+                          className={`text-xs font-semibold ${
+                            isCurrent
+                              ? "text-indigo-600"
+                              : isCompleted
+                              ? "text-gray-900"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {s.title}
+                        </div>
+                        <div className="text-[10px] text-gray-400 hidden lg:block">
+                          {s.description}
+                        </div>
+                      </div>
+                    </button>
+                    {index < STEPS.length - 1 && (
+                      <div
+                        className={`flex-1 mx-2 sm:mx-3 h-0.5 transition-colors ${
+                          currentStep > s.id ? "bg-green-500" : "bg-gray-200"
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile Stepper */}
+            <div className="sm:hidden mb-4 border-b pb-3 px-1">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                <span className="font-semibold text-indigo-600">
+                  Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].title}
+                </span>
+                <span className="text-gray-400 text-[11px] font-medium">
+                  {Math.round((currentStep / STEPS.length) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mb-2.5">
+                <div
+                  className="bg-indigo-600 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {STEPS.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleStepClick(s.id)}
+                    className={`py-1 text-[11px] font-medium rounded text-center transition-colors ${
+                      currentStep === s.id
+                        ? "bg-indigo-50 text-indigo-700 font-bold border border-indigo-200"
+                        : currentStep > s.id
+                        ? "bg-gray-100 text-green-700"
+                        : "bg-gray-50 text-gray-400"
+                    }`}
+                  >
+                    {s.id}. {s.title.split(" ")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-xs sm:text-sm">
+                <span className="font-semibold mr-1">Error:</span> {error}
+              </div>
+            )}
+
+            {/* Step 1: Basic Information */}
+            {currentStep === 1 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="title" className={labelStyle}>
+                      Course Title <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      placeholder="e.g. Master 3D Animation with Blender"
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="slug" className={labelStyle}>
+                      URL Slug <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="slug"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      required
+                      placeholder="e.g. master-3d-animation-with-blender"
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="price" className={labelStyle}>
+                      Price (NGN) <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="price"
+                      value={price}
+                      onChange={(e) => setPrice(parseFloat(e.target.value))}
+                      required
+                      min="0"
+                      step="10"
+                      placeholder="e.g. 50000"
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="category" className={labelStyle}>
+                      Category <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      id="category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      required
+                      className={selectStyle}
+                    >
+                      <option value="" disabled>
+                        Select a category
+                      </option>
+                      {availableCategories.map((cat, ind) => (
+                        <option key={ind + 1} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="level" className={labelStyle}>
+                      Level <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      id="level"
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value)}
+                      required
+                      className={selectStyle}
+                    >
+                      <option value="" disabled>
+                        Select course level
+                      </option>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advance">Advance</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="language" className={labelStyle}>
+                      Language <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      id="language"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      required
+                      className={selectStyle}
+                    >
+                      <option value="English">English</option>
+                      <option value="Yoruba">Yoruba</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="maxStudents" className={labelStyle}>
+                      Max Students <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="maxStudents"
+                      min="1"
+                      max="100"
+                      value={maxStudents}
+                      required
+                      onChange={(e) => setMaxStudents(e.target.value)}
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    {userRole === "admin" ? (
+                      <div>
+                        <label htmlFor="instructor" className={labelStyle}>
+                          Instructor
+                        </label>
+                        <select
+                          id="instructor"
+                          value={instructor}
+                          onChange={(e) => setInstructor(e.target.value)}
+                          required
+                          className={selectStyle}
+                        >
+                          <option value="" disabled>
+                            Select an instructor
+                          </option>
+                          <option value="none">None (Assign to me)</option>
+                          {availableInstructors.map((inst, ind) => (
+                            <option key={ind + 1} value={inst.fullName}>
+                              {inst.fullName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className={labelStyle}>Instructor</label>
+                        <p className="mt-1 block w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-md text-gray-800 text-xs sm:text-sm font-medium">
+                          {currentInstructorName}
+                        </p>
+                        <input
+                          type="hidden"
+                          name="instructor"
+                          value={currentInstructorName}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Visibility Settings Card */}
+                  <div className="sm:col-span-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <span className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                      Visibility & Audience
+                    </span>
+                    <div className="flex flex-wrap gap-4 sm:gap-6">
+                      <label className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          id="isActive"
+                          checked={isActive}
+                          onChange={(e) => setIsActive(e.target.checked)}
+                          className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        />
+                        <span>Active (Visible in Catalog)</span>
+                      </label>
+
+                      {userRole === "admin" && (
+                        <label className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            id="isPublished"
+                            checked={isPublished}
+                            onChange={(e) => setIsPublished(e.target.checked)}
+                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                          />
+                          <span>Published (Admin Approval)</span>
+                        </label>
+                      )}
+
+                      <label className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          id="isForKids"
+                          checked={isForKids}
+                          onChange={(e) => setIsForKids(e.target.checked)}
+                          className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                        />
+                        <span>For Kids</span>
                       </label>
                     </div>
-                  ))}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isForKids"
-                checked={isForKids}
-                onChange={(e) => setIsForKids(e.target.checked)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="isForKids"
-                className="text-sm font-medium text-gray-700"
-              >
-                For Kids
-              </label>
-            </div>
-
-            <div>
-              <label className={labelStyle}>Tags</label>
-              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
-                {availableTags.map((tag) => (
-                  <div key={tag.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`tag-${tag.id}`}
-                      value={tag.name}
-                      checked={tags.includes(tag.name)}
-                      onChange={(e) => {
-                        const name = e.target.value;
-                        if (e.target.checked) {
-                          setTags([...tags, name]);
-                        } else {
-                          setTags(tags.filter((t) => t !== name));
-                        }
-                      }}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor={`tag-${tag.id}`}
-                      className="ml-2 block text-sm text-gray-900"
-                    >
-                      {tag.name}
-                    </label>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className={labelStyle}>Tools</label>
-              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
-                {availableTools.map((tool) => (
-                  <div key={tool.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`tool-${tool.id}`}
-                      value={tool.id}
-                      checked={selectedTools.includes(tool.id)}
-                      onChange={(e) => {
-                        const id = parseInt(e.target.value);
-                        if (e.target.checked) {
-                          setSelectedTools([...selectedTools, id]);
-                        } else {
-                          setSelectedTools(
-                            selectedTools.filter((tId) => tId !== id),
-                          );
-                        }
-                      }}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor={`tool-${tool.id}`}
-                      className="ml-2 block text-sm text-gray-900"
-                    >
-                      {tool.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <label htmlFor="language" className={labelStyle}>
-              Language
-            </label>
-            <select
-              id="language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              required
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="English">English</option>
-              <option value="Yoruba">Yoruba</option>
-            </select>
-            <label htmlFor="description" className={labelStyle}>
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              required
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            ></textarea>
-
-            <div>
-              <label htmlFor="content" className={labelStyle}>
-                Content
-              </label>
-              <div className="mt-1 bg-white">
-                <ReactQuill
-                  theme="snow"
-                  value={content}
-                  onChange={setContent}
-                  modules={modules}
-                  formats={formats}
-                  className="h-64 mb-12"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="excerpt" className={labelStyle}>
-                Excerpt
-              </label>
-              <textarea
-                id="excerpt"
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                rows={3}
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              ></textarea>
-            </div>
-            <div>
-              <label htmlFor="thumbnailUrl" className={labelStyle}>
-                Thumbnail URL
-              </label>
-              <div className="mt-1 flex rounded-md shadow-sm">
-                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                  <ImageIcon className="h-4 w-4" />
-                </span>
-                <input
-                  type="url"
-                  id="thumbnailUrl"
-                  value={thumbnailUrl}
-                  onChange={(e) => setThumbnailUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-              {thumbnailUrl && (
-                <div className="mt-2 relative w-full h-40 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
-                  <img
-                    src={thumbnailUrl}
-                    alt="Thumbnail preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://via.placeholder.com/400x225?text=Invalid+Image+URL";
-                    }}
-                  />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* NEW: Sessions Management Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">
-                Course Sessions ({sessions.length})
-              </h3>
-              <p className="text-sm text-gray-500">
-                Define multiple sessions, each with two primary options for
-                students.
-              </p>
+            {/* Step 2: Schedule & Curriculum */}
+            {currentStep === 2 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label htmlFor="startDate" className={labelStyle}>
+                      Start Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="startDate"
+                      value={formatDateTimeLocal(startDate)}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className={inputStyle}
+                    />
+                  </div>
 
-              <div className="space-y-6">
-                {sessions.map((session, index) => (
-                  <SessionForm
-                    key={session.id}
-                    session={session}
-                    index={index}
-                    sessionsLength={sessions.length}
-                    removeSession={removeSession}
-                    handleOptionChange={handleSessionOptionChange}
-                    addOption={addOptionToSession}
-                    removeOption={removeOptionFromSession}
-                    courseTitle={title}
-                  />
-                ))}
+                  <div>
+                    <label htmlFor="endDate" className={labelStyle}>
+                      End Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="endDate"
+                      value={formatDateTimeLocal(endDate)}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="duration" className={labelStyle}>
+                      Duration (e.g. 4 Weeks, 3 Months)
+                    </label>
+                    <input
+                      type="text"
+                      id="duration"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      placeholder="e.g. 8 Weeks"
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="parentCourse" className={labelStyle}>
+                      Parent Course (Prerequisite)
+                    </label>
+                    <select
+                      id="parentCourse"
+                      value={parentCourseId}
+                      onChange={(e) =>
+                        setParentCourseId(
+                          e.target.value ? parseInt(e.target.value) : "",
+                        )
+                      }
+                      className={selectStyle}
+                    >
+                      <option value="">None (Top Level Course)</option>
+                      {availableCourses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.title} ({course.level})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className={labelStyle}>
+                      Child Courses (Next Levels)
+                    </label>
+                    <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-gray-300 rounded-md p-2 bg-gray-50/50">
+                      {availableCourses.filter(
+                        (c) => c.id !== parentCourseId.toString(),
+                      ).length === 0 ? (
+                        <p className="text-xs text-gray-400 p-1 col-span-2">
+                          No other courses available
+                        </p>
+                      ) : (
+                        availableCourses
+                          .filter((c) => c.id !== parentCourseId.toString())
+                          .map((course) => (
+                            <div
+                              key={course.id}
+                              className="flex items-center text-xs"
+                            >
+                              <input
+                                type="checkbox"
+                                id={`child-course-${course.id}`}
+                                value={course.id}
+                                checked={childCourseIds.includes(
+                                  parseInt(course.id),
+                                )}
+                                onChange={(e) => {
+                                  const id = parseInt(e.target.value);
+                                  if (e.target.checked) {
+                                    setChildCourseIds([...childCourseIds, id]);
+                                  } else {
+                                    setChildCourseIds(
+                                      childCourseIds.filter((cId) => cId !== id),
+                                    );
+                                  }
+                                }}
+                                className="h-3.5 w-3.5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                              />
+                              <label
+                                htmlFor={`child-course-${course.id}`}
+                                className="ml-2 truncate text-gray-700 cursor-pointer"
+                              >
+                                {course.title} ({course.level})
+                              </label>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelStyle}>Tags</label>
+                    <div className="mt-1 grid grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-gray-300 rounded-md p-2 bg-gray-50/50">
+                      {availableTags.length === 0 ? (
+                        <p className="text-xs text-gray-400 p-1 col-span-2">
+                          No tags available
+                        </p>
+                      ) : (
+                        availableTags.map((tag) => (
+                          <div key={tag.id} className="flex items-center text-xs">
+                            <input
+                              type="checkbox"
+                              id={`tag-${tag.id}`}
+                              value={tag.name}
+                              checked={tags.includes(tag.name)}
+                              onChange={(e) => {
+                                const name = e.target.value;
+                                if (e.target.checked) {
+                                  setTags([...tags, name]);
+                                } else {
+                                  setTags(tags.filter((t) => t !== name));
+                                }
+                              }}
+                              className="h-3.5 w-3.5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                            />
+                            <label
+                              htmlFor={`tag-${tag.id}`}
+                              className="ml-2 truncate text-gray-700 cursor-pointer"
+                            >
+                              {tag.name}
+                            </label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelStyle}>Tools & Software</label>
+                    <div className="mt-1 grid grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-gray-300 rounded-md p-2 bg-gray-50/50">
+                      {availableTools.length === 0 ? (
+                        <p className="text-xs text-gray-400 p-1 col-span-2">
+                          No tools available
+                        </p>
+                      ) : (
+                        availableTools.map((tool) => (
+                          <div key={tool.id} className="flex items-center text-xs">
+                            <input
+                              type="checkbox"
+                              id={`tool-${tool.id}`}
+                              value={tool.id}
+                              checked={selectedTools.includes(tool.id)}
+                              onChange={(e) => {
+                                const id = parseInt(e.target.value);
+                                if (e.target.checked) {
+                                  setSelectedTools([...selectedTools, id]);
+                                } else {
+                                  setSelectedTools(
+                                    selectedTools.filter((tId) => tId !== id),
+                                  );
+                                }
+                              }}
+                              className="h-3.5 w-3.5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                            />
+                            <label
+                              htmlFor={`tool-${tool.id}`}
+                              className="ml-2 truncate text-gray-700 cursor-pointer"
+                            >
+                              {tool.name}
+                            </label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Content & Media */}
+            {currentStep === 3 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label htmlFor="description" className={labelStyle}>
+                      Course Description <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      required
+                      placeholder="Brief overview of course goals, target audience, and key outcomes..."
+                      className={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="excerpt" className={labelStyle}>
+                      Excerpt (Card Summary)
+                    </label>
+                    <textarea
+                      id="excerpt"
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                      rows={3}
+                      placeholder="Short highlight displayed in search results and cards..."
+                      className={inputStyle}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="thumbnailUrl" className={labelStyle}>
+                    Thumbnail URL
+                  </label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-xs sm:text-sm">
+                      <ImageIcon className="h-4 w-4" />
+                    </span>
+                    <input
+                      type="url"
+                      id="thumbnailUrl"
+                      value={thumbnailUrl}
+                      onChange={(e) => setThumbnailUrl(e.target.value)}
+                      placeholder="https://example.com/course-thumbnail.jpg"
+                      className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-r-md text-xs sm:text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  {thumbnailUrl && (
+                    <div className="mt-2 relative w-full h-32 sm:h-36 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
+                      <img
+                        src={thumbnailUrl}
+                        alt="Thumbnail preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "https://via.placeholder.com/400x225?text=Invalid+Image+URL";
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="content" className={labelStyle}>
+                    Detailed Curriculum / Syllabus
+                  </label>
+                  <div className="mt-1 bg-white border border-gray-200 rounded-md overflow-hidden">
+                    <ReactQuill
+                      theme="snow"
+                      value={content}
+                      onChange={setContent}
+                      modules={modules}
+                      formats={formats}
+                      className="h-44 sm:h-52 mb-12 sm:mb-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Live Sessions */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-gray-100 gap-1">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                      Course Sessions ({sessions.length})
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Configure meeting links and schedules for live interactive classes.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {sessions.map((session, index) => (
+                    <SessionForm
+                      key={session.id}
+                      session={session}
+                      index={index}
+                      sessionsLength={sessions.length}
+                      removeSession={removeSession}
+                      handleOptionChange={handleSessionOptionChange}
+                      addOption={addOptionToSession}
+                      removeOption={removeOptionFromSession}
+                      courseTitle={title}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addSession}
+                  className="flex items-center justify-center w-full py-2 px-4 border border-indigo-300 text-xs sm:text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" /> Add New Session
+                </button>
+              </div>
+            )}
+
+            {/* Footer Navigation Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-gray-200 gap-3 mt-4">
+              <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handlePrevStep}
+                    className="inline-flex items-center px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                  </button>
+                )}
               </div>
 
-              <button
-                type="button"
-                onClick={addSession}
-                className="flex items-center justify-center w-full py-2 px-4 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
-              >
-                <PlusCircle className="w-5 h-5 mr-2" /> Add New Session
-              </button>
-            </div>
-
-            {/* Footer Buttons */}
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <div className="flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-t-2 border-white border-opacity-25 rounded-full animate-spin"></div>
-                ) : existingCourse ? (
-                  "Update Course"
-                ) : (
-                  "Create Course"
+              <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                {existingCourse && currentStep < 4 && (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? "Saving..." : "Save Now"}
+                  </button>
                 )}
-              </button>
+
+                {currentStep < 4 ? (
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="inline-flex items-center justify-center px-4 sm:px-5 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto"
+                  >
+                    Next Step <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="inline-flex items-center justify-center px-4 sm:px-5 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors w-full sm:w-auto"
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-t-2 border-white border-opacity-25 rounded-full animate-spin mr-2" />
+                    ) : null}
+                    {existingCourse ? "Update Course" : "Create Course"}
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         }
