@@ -58,3 +58,13 @@ If you are an AI assistant working on this codebase, please prioritize following
 ## 📜 License
 
 This project is private and confidential property of Bravework Studio.
+
+---
+
+## Brand Assets and Logo Integration
+
+The application uses official high-resolution logo variants located in `public/assets/`:
+- `Bravework_Studio-Logo-Color.png` (`logo-green.png`): Primary brand green logo for light backgrounds and the primary navigation header (`Navbar.tsx`).
+- `Bravework_Studio-Logo-Black.png` (`logo-black.png`): Monochrome black logo.
+- `Bravework_Studio-Logo-White.png` (`logo-white.png`): High-contrast white logo for dark surfaces and fallback avatars.
+- Favicon and SEO JSON-LD schema link directly to the updated brand color asset.

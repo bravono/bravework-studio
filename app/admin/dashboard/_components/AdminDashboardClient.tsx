@@ -575,7 +575,7 @@ export default function AdminDashboardClient({
               <Image
                 src={
                   adminProfile.profileImage ||
-                  "/assets/Braveword_Studio-Logo-Color.png"
+                  "/assets/Bravework_Studio-Logo-Color.png"
                 }
                 alt="Profile"
                 width={100}
