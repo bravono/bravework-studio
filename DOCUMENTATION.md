@@ -39,9 +39,11 @@ Bravework Studio is a multi-faceted platform designed to empower creatives and b
 ### 🎓 2. Bravework Academy (LMS)
 
 - **Course Catalog**: Interactive list of courses with categories and tags, with pagination and direct course sharing.
-- **Curated Bundles**: Curated career paths with multi-course bundle pricing, paginated bundle browsing, course preview limits with expansion toggles, bundle sharing, and dedicated bundle details pages (`/academy/bundles/[bundleId]`) displaying comprehensive pathway syllabi, savings breakdowns, and hardware rental options.
+- **Curated Bundles**: Curated career paths with multi-course bundle pricing, paginated bundle browsing, course preview limits with expansion toggles, bundle sharing, dedicated bundle details pages (`/academy/bundles/[bundleId]`) displaying comprehensive pathway syllabi, savings breakdowns, and hardware rental options.
+- **Bundle Search and Discovery**: The dedicated bundle portal (`/academy/bundles`) features multi-facet filtering by category and standardized specialization/tool tags, keyword search matching both bundle titles and child course titles, live count indicators, and tag badges directly linking back to filtered queries. Utility functions and filtering logic are encapsulated in `lib/utils/bundleFilter.ts`.
+- **Course and Tag Taxonomy**: Standardized 41-tag taxonomy covering industry tools (Blender, Unity, Unreal Engine, Figma, Ollama), technical specializations, and cross-disciplinary domains, with database migrations (`prisma/migrations/20261012193000_update_categories_and_tags`) ensuring synchronized schemas and relations across development and production environments.
 - **Student Dashboard**: Track progress, access session recordings, and manage enrollments.
-- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing modal adapts to 90% screen width for configuring curriculum details, rich text content, and session schedules.
+- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing features a 4-step wizard (Basic Info, Schedule, Content, Sessions) with an optimal max-w-4xl container on desktop and adaptive compact step progress on mobile to eliminate long scrolling.
 - **Certificates**: Automated certificate generation for course completion.
 
 ### 🧒 3. Bravework Kids
