@@ -34,6 +34,7 @@ scripts/
 .vercel
 .env*.local
 .tsbuildinfo
+tsconfig.tsbuildinfo
 
 /generated/prisma
 
