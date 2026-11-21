@@ -10,6 +10,7 @@ import { seedTags } from "./shared/tags";
 import { seedSessions } from "./dev/sessions";
 import { seedTools } from "./shared/tools";
 import { seedCourseTools } from "./shared/courseTools";
+import { seedCourseTags } from "./shared/courseTags";
 import { seedJobApplications } from "./shared/jobApplications";
 import { seedJobAppStatuses } from "./shared/jobAppStatuses";
 import { seedRentals } from "./dev/rentals";
@@ -25,6 +26,7 @@ async function main() {
     await seedTags();
     await seedTools();
     await seedCourseTools();
+    await seedCourseTags();
     // Order: roles must be seeded before config (foreign key dependency)
     await seedRoles();
     await seedConfig();
@@ -47,6 +49,7 @@ async function main() {
     await seedSessions();
 
     await seedCourseTools(); // Must exist after courses and tools
+    await seedCourseTags();
     await seedJobAppStatuses();
     await seedJobApplications();
     await seedRentals();
