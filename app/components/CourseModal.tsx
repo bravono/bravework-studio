@@ -365,7 +365,10 @@ export default function CourseModal({
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
   const initialInstructorName =
     existingCourse?.instructor ||
-    (userRole === "admin" ? "none" : currentInstructorName); // Use "none" for admin to allow selection, instructor defaults to self
+    (existingCourse?.firstName && existingCourse?.lastName
+      ? `${existingCourse.firstName} ${existingCourse.lastName}`
+      : "") ||
+    (userRole === "admin" ? "none" : currentInstructorName || "");
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
     existingCourse?.isActive || false,
@@ -590,10 +593,24 @@ export default function CourseModal({
   // Existing useEffect for initial data (kept for pattern consistency)
   useEffect(() => {
     if (existingCourse) {
-      setTitle(existingCourse.title);
-      setPrice(existingCourse.price / KOBO_PER_NAIRA);
-      setInstructor(existingCourse.instructor);
-      setThumbnailUrl(existingCourse.thumbnailUrl);
+      setTitle(existingCourse.title || "");
+      setPrice(
+        existingCourse.price ? existingCourse.price / KOBO_PER_NAIRA : 0,
+      );
+      const courseInstructor =
+        existingCourse.instructor ||
+        (existingCourse.firstName && existingCourse.lastName
+          ? `${existingCourse.firstName} ${existingCourse.lastName}`
+          : "") ||
+        "";
+      if (courseInstructor) {
+        setInstructor(courseInstructor);
+      } else if (userRole === "instructor" && currentInstructorName) {
+        setInstructor(currentInstructorName);
+      } else if (userRole === "admin") {
+        setInstructor((prev) => (prev && prev !== "none" ? prev : "none"));
+      }
+      setThumbnailUrl(existingCourse.thumbnailUrl || "");
       setIsActive(existingCourse.isActive);
       setIsPublished(existingCourse.isPublished || false);
       setCategory(existingCourse.category);
@@ -755,7 +772,9 @@ export default function CourseModal({
           start_date: startDate || null,
           end_date: endDate || null,
           instructor:
-            instructor === "none" ? currentInstructorName : instructor,
+            instructor && instructor !== "none"
+              ? instructor
+              : currentInstructorName || undefined,
           is_active: isActive,
           is_published: isPublished,
           max_students: maxStudents,
@@ -910,7 +929,7 @@ export default function CourseModal({
                         : "bg-gray-50 text-gray-400"
                     }`}
                   >
-                    {s.id}. {s.title.split(" ")[0]}
+                    {s.id}. {s.title ? s.title.split(" ")[0] : ""}
                   </button>
                 ))}
               </div>

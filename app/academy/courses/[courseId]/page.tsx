@@ -747,6 +747,7 @@ export default function CoursePage() {
         <CourseModal
           existingCourse={course}
           userRole="admin"
+          currentInstructorName={session?.user?.name || ""}
           onClose={() => setIsEditModalOpen(false)}
           onSave={() => {
             setIsEditModalOpen(false);

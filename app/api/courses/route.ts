@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         end_date AS "endDate",
         max_students AS "maxStudents",
         thumbnail_url AS "thumbnailUrl",
+        CONCAT_WS(' ', i.first_name, i.last_name) AS instructor,
         i.first_name AS "firstName",
         i.last_name AS "lastName",
         level,

@@ -1312,6 +1312,7 @@ function AcademyCoursesContent() {
         <CourseModal
           existingCourse={editingCourse}
           userRole="admin"
+          currentInstructorName={session?.user?.name || ""}
           onClose={() => {
             setIsCourseModalOpen(false);
             setEditingCourse(null);
