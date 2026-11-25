@@ -228,6 +228,30 @@ Every generated course adheres to a strict four-part product ladder:
 
 ---
 
+## Course Audience Segregation & Image Sanitization
+
+### Architecture Overview
+Bravework Studio separates course offerings into two distinct audiences:
+1. **Professional / Adult Academy** (`/academy`, `/academy/courses` and `workspace-app`): Career-oriented technical training in 3D animation, development, and digital craft. Kids courses are excluded from this catalog.
+2. **Kids Academy** (`/kids`, `/kids/courses` and `kids-app`): Age-appropriate (ages 7-16) creative curriculum covering foundational animation, robotics, coding, and digital storytelling.
+
+Cross-navigation links and referral banners ensure users looking for kids courses inside the adult catalog are seamlessly directed to the Kids Hub without cluttering professional offerings.
+
+### API Specifications
+- `GET /api/courses?audience=kids`: Returns courses flagged with `is_for_kids = true`.
+- `GET /api/courses?audience=adult`: Returns courses flagged with `is_for_kids = false`.
+- `GET /api/courses`: Returns all courses unless audience parameter is specified.
+- Mobile API client (`packages/api-client/client.ts`): Supports `getCourses(audience)` and `getAcademyCourses(audience)`.
+
+### Image Sanitization (`lib/utils/cleanImageUrl.ts`)
+Handles raw image inputs from various databases or legacy content fields (e.g. Flickr HTML embeds like `<img src="..." width="..." />`).
+- Extracts pure `http(s)://` URLs via regex.
+- Strips quotes, escaped backslashes, and trailing HTML attributes.
+- Returns `/assets/Bravework_Studio-Logo-Color.png` as fallback for empty or invalid inputs.
+- Prevents Next.js `next/image` parse failures caused by malformed attributes or missing leading slashes.
+
+---
+
 ## AI Agent Guidelines
 
 If you are an AI agent working on this project:

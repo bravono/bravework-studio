@@ -27,11 +27,13 @@ import {
   X,
   Users,
   Pencil,
+  Gamepad2,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ExpandableText from "../../components/ExpandableText";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
@@ -89,16 +91,26 @@ function AcademyCoursesContent() {
   const fetchCourses = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/courses");
+      const res = await fetch("/api/courses?audience=adult");
       if (!res.ok) throw new Error("Failed to fetch courses");
       const data = await res.json();
-      setCourses(data);
+      const adultCourses = Array.isArray(data)
+        ? data.filter((c: any) => !c.isForKids)
+        : [];
+      setCourses(adultCourses);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const isKidsSearch = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return ["kid", "kids", "child", "children", "teen", "teens"].some((k) =>
+      query.includes(k),
+    );
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchCourses();
@@ -350,6 +362,32 @@ function AcademyCoursesContent() {
             </a>
           </div>
 
+          {/* Kids Section Cross-Promotion Banner */}
+          <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 border border-pink-200/60 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-pink-500/20">
+                <Gamepad2 size={24} />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 text-xs font-bold mb-1">
+                  Ages 7–16
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Looking for courses for kids and teens?
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Explore hands-on 3D animation, game making, and tech edutainment designed specifically for young minds in the Kids Hub.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/kids/courses"
+              className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-pink-600/20 shrink-0 flex items-center gap-2 text-sm"
+            >
+              Browse Kids Courses <ArrowRight size={16} />
+            </Link>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             <div className="flex flex-wrap gap-2">
               {categories.map((filter) => (
@@ -365,6 +403,12 @@ function AcademyCoursesContent() {
                   {filter}
                 </button>
               ))}
+              <Link
+                href="/kids/courses"
+                className="px-6 py-2.5 rounded-full font-bold text-sm transition-all bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100 flex items-center gap-1.5 shadow-sm"
+              >
+                Kids Hub <ArrowRight size={14} />
+              </Link>
             </div>
 
             <div className="relative w-full md:w-80">
@@ -379,6 +423,19 @@ function AcademyCoursesContent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all"
               />
+              {isKidsSearch && (
+                <div className="mt-3 p-3 rounded-xl bg-pink-50 border border-pink-200 text-xs text-pink-800 flex items-center justify-between gap-3 shadow-sm">
+                  <span>
+                    Looking for youth programs?
+                  </span>
+                  <Link
+                    href="/kids/courses"
+                    className="font-bold underline text-pink-900 hover:text-pink-950 shrink-0 flex items-center gap-1"
+                  >
+                    View Kids Courses <ArrowRight size={12} />
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
