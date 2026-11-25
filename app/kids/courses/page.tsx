@@ -243,13 +243,14 @@ export default function KidsCoursesPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredCourses.map((course) => {
                 const rawPrice = (course.price || 0) / KOBO_PER_NAIRA;
-                const convertedPrice = convertCurrency(
-                  rawPrice,
-                  "NGN",
-                  selectedCurrency,
-                  exchangeRates,
-                );
-                const currencySymbol = getCurrencySymbol(selectedCurrency);
+                const convertedPrice =
+                  exchangeRates && exchangeRates[selectedCurrency]
+                    ? convertCurrency(
+                        rawPrice,
+                        exchangeRates[selectedCurrency],
+                        getCurrencySymbol(selectedCurrency),
+                      )
+                    : `${getCurrencySymbol(selectedCurrency)}${rawPrice.toLocaleString()}`;
 
                 return (
                   <motion.div
@@ -299,7 +300,7 @@ export default function KidsCoursesPage() {
                             {rawPrice === 0 ? (
                               <span className="text-green-600">Free</span>
                             ) : (
-                              `${currencySymbol}${convertedPrice}`
+                              convertedPrice
                             )}
                           </span>
                         </div>
