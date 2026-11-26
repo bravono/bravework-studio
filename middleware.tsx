@@ -4,8 +4,11 @@ import { NextResponse } from "next/server";
 export default withAuth(
   // `withAuth` augments your `Request` with the user's token.
   function middleware(req) {
+    const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-request-id", requestId);
+
     const isLocalDev = req.nextUrl.hostname === "localhost";
-    console.log("Next URL Hostname", req.nextUrl.hostname);
     let token = req.nextauth?.token || {};
 
     if (isLocalDev) {
@@ -22,26 +25,24 @@ export default withAuth(
         exp: 1757850030,
         jti: "f45b1aef-7d9f-4e81-97fe-0106d9c07f49",
       };
-      console.log("Middleware Request", req.nextauth);
     }
 
-     // The token is NULL if the user is unauthenticated (and authorized: () => true)
-  if (!token) {
-    // Redirect unauthenticated users away from protected routes like /admin
-    if (req.nextUrl.pathname.startsWith("/admin")) {
+    // The token is NULL if the user is unauthenticated (and authorized: () => true)
+    if (!token) {
+      // Redirect unauthenticated users away from protected routes like /admin
+      if (req.nextUrl.pathname.startsWith("/admin")) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
+      }
+      // For other routes (if not matched by config.matcher) or if you want to allow
+      // access to unprotected pages, simply continue.
+      const res = NextResponse.next({ request: { headers: requestHeaders } });
+      res.headers.set("x-request-id", requestId);
+      return res;
     }
-    // For other routes (if not matched by config.matcher) or if you want to allow 
-    // access to unprotected pages, simply continue.
-    return NextResponse.next();
-    }
-    
-    console.log("Auth Token", token);
+
     const userRoles = Array.isArray((token as any)?.roles)
       ? (token as any).roles.map((role: string) => role.toLowerCase())
       : [];
-    
-    
 
     const includesAdmin = req.nextUrl.pathname.includes("/admin");
 
@@ -52,10 +53,10 @@ export default withAuth(
       );
     }
 
-    
-
     // If no specific authorization rule is met, continue to the next handler
-    return NextResponse.next();
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    res.headers.set("x-request-id", requestId);
+    return res;
   },
   {
     callbacks: {

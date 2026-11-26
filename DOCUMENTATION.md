@@ -252,6 +252,27 @@ Handles raw image inputs from various databases or legacy content fields (e.g. F
 
 ---
 
+## Centralized Logging & Observability
+
+Bravework Studio combines structured Pino logging with Sentry Logs, distributed request correlation, PII redaction, and real-time API metrics.
+
+### Architecture
+- **Sentry Logs & Error Tracking** (`sentry.server.config.ts`, `sentry.edge.config.ts`, `sentry.client.config.ts`): Configured with `enableLogs: true` and `Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] })`. Set `SENTRY_ENABLED=true` to test Sentry reporting in local development.
+- **Structured Logger** (`lib/logger.ts`): Pino logger configured with:
+  - Automatic `AsyncLocalStorage` context injection (`requestId`, `method`, `path`, `userId`).
+  - PII and secret redaction (`password`, `token`, `secret`, `apiKey`, `authorization`, `cookie`, `otp`, `mfaCode`, etc.) for both stdout logs and Sentry attributes.
+  - Sentry bridge forwarding `trace`/`debug`/`info`/`warn`/`error`/`fatal` logs to `Sentry.logger`, adding breadcrumbs, and capturing `Error` instances via `Sentry.captureException`.
+  - `createChildLogger(bindings)` helper for module-scoped logging.
+- **Request Correlation Context** (`lib/observability/context.ts`): `AsyncLocalStorage` store propagated through `withObservability` and `middleware.tsx` via the `x-request-id` header.
+- **API Route Wrapper** (`lib/observability/with-observability.ts`): Wraps App Router handlers to attach `x-request-id`, measure latency, record metrics, log 2xx/4xx/5xx outcomes, and catch unhandled errors cleanly.
+- **In-Memory API Metrics** (`lib/observability/metrics.ts`): Tracks request counts, 4xx/5xx error counts, error rate, average latency, p95 latency, and per-route summaries in a bounded 1,000-sample rolling window.
+
+### Health & Monitoring Endpoints
+- `GET /api/health`: Public liveness and database readiness probe returning `200` (`healthy`) or `503` (`unhealthy`) with DB ping latency.
+- `GET /api/monitor`: Admin-only observability endpoint returning server resource usage, database health, and live API metrics from `getApiMetricsSnapshot()`.
+
+---
+
 ## AI Agent Guidelines
 
 If you are an AI agent working on this project:

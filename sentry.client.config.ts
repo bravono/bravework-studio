@@ -2,7 +2,12 @@ import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  enabled: process.env.NODE_ENV !== "development",
+  enabled:
+    process.env.NODE_ENV !== "development" ||
+    process.env.SENTRY_ENABLED === "true",
+
+  // Enable Sentry structured Logs on the client
+  enableLogs: true,
 
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
@@ -18,6 +23,7 @@ Sentry.init({
 
   // You can remove this option if you're not planning to use the Sentry browser profiling integration:
   integrations: [
+    Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
     Sentry.replayIntegration({
       // Additional Replay configuration goes in here, for example:
       maskAllText: true,
