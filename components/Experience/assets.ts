@@ -46,7 +46,7 @@ export default [
       },
       {
         name: "bwsLogoTexture",
-        source: "/assets/BWS_Text-Logo.png",
+        source: "/assets/Bravework_Studio-Logo-White.png",
         type: "texture",
       },
 

@@ -66,5 +66,7 @@ This project is private and confidential property of Bravework Studio.
 The application uses official high-resolution logo variants located in `public/assets/`:
 - `Bravework_Studio-Logo-Color.png` (`logo-green.png`): Primary brand green logo for light backgrounds and the primary navigation header (`Navbar.tsx`).
 - `Bravework_Studio-Logo-Black.png` (`logo-black.png`): Monochrome black logo.
-- `Bravework_Studio-Logo-White.png` (`logo-white.png`): High-contrast white logo for dark surfaces and fallback avatars.
+- `Bravework_Studio-Logo-White.png` (`logo-white.png`): High-contrast white logo for dark surfaces, fallback avatars, and the interactive 3D virtual office texture (`BouncingLogo.ts`).
+- `BWS_Text-Logo.png`: Sourced from the white logo asset for legacy 3D texture compatibility.
+- 3D Virtual Office: `BouncingLogo.ts` uses geometry matching the natural 130:150 aspect ratio (`130/150` width to `1.0` height) with uniform scaling, eliminating texture stretching.
 - Favicon and SEO JSON-LD schema link directly to the updated brand color asset.
