@@ -26,6 +26,8 @@ import {
   FileText,
   Sparkles as SparklesIcon,
   Monitor,
+  BookOpen,
+  PlayCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
@@ -164,7 +166,15 @@ export default function Navbar() {
             { label: "Partner Hubs", href: "/academy/rentals/booking", icon: Users },
           ],
         },
-        { label: "Kids", href: "/kids", icon: Gamepad2 },
+        {
+          label: "Kids",
+          href: "/kids",
+          icon: Gamepad2,
+          items: [
+            { label: "Kids Courses", href: "/kids/courses", icon: BookOpen },
+            { label: "Fun Episodes", href: "/kids/episodes", icon: PlayCircle },
+          ],
+        },
       ],
     },
     {
