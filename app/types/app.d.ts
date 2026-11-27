@@ -229,6 +229,8 @@ interface Course {
   }>;
   sessionGroup: SessionOption[];
   instructor: string;
+  firstName?: string;
+  lastName?: string;
   bio: string;
   slug?: string;
   content?: string;

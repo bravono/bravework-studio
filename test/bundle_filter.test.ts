@@ -9,8 +9,37 @@ import {
 import { Course } from "@/app/types/app";
 
 describe("Bundle Filter Utilities", () => {
-  const mockCourseA: Course = {
-    id: 101,
+  const createMockCourse = (overrides: Partial<Course>): Course => ({
+    id: "1",
+    title: "Mock Course",
+    createdAt: new Date().toISOString(),
+    progress: 0,
+    lastAccessed: new Date().toISOString(),
+    paymentStatus: 0,
+    description: "Mock description",
+    price: 0,
+    isActive: true,
+    isPublished: true,
+    startDate: "",
+    endDate: "",
+    maxStudents: "20",
+    thumbnailUrl: "",
+    level: "Beginner",
+    language: "English",
+    category: "General",
+    content: "",
+    software: [{ id: 1, name: "Default Software" }],
+    sessions: [],
+    sessionGroup: [],
+    instructor: "Instructor",
+    bio: "",
+    isForKids: false,
+    tags: [],
+    ...overrides,
+  });
+
+  const mockCourseA: Course = createMockCourse({
+    id: "101",
     title: "Intro to 3D Modeling",
     description: "Learn foundational 3D modeling with Blender",
     category: "3D Animation",
@@ -20,14 +49,14 @@ describe("Bundle Filter Utilities", () => {
     isActive: true,
     startDate: "",
     endDate: "",
-    maxStudents: 20,
+    maxStudents: "20",
     thumbnailUrl: "",
     level: "Beginner",
     language: "English",
-  };
+  });
 
-  const mockCourseB: Course = {
-    id: 102,
+  const mockCourseB: Course = createMockCourse({
+    id: "102",
     title: "Advanced 3D Animation Workflows",
     description: "Master character animation and rendering",
     category: "3D Animation",
@@ -37,14 +66,14 @@ describe("Bundle Filter Utilities", () => {
     isActive: true,
     startDate: "",
     endDate: "",
-    maxStudents: 20,
+    maxStudents: "20",
     thumbnailUrl: "",
     level: "Intermediate",
     language: "English",
-  };
+  });
 
-  const mockCourseC: Course = {
-    id: 201,
+  const mockCourseC: Course = createMockCourse({
+    id: "201",
     title: "Full-Stack Web Development Foundations",
     description: "Modern JavaScript and React architecture",
     category: "Software Development",
@@ -54,14 +83,14 @@ describe("Bundle Filter Utilities", () => {
     isActive: true,
     startDate: "",
     endDate: "",
-    maxStudents: 20,
+    maxStudents: "20",
     thumbnailUrl: "",
     level: "Beginner",
     language: "English",
-  };
+  });
 
-  const mockCourseD: Course = {
-    id: 202,
+  const mockCourseD: Course = createMockCourse({
+    id: "202",
     title: "Backend API and Database Engineering",
     description: "Node.js, PostgreSQL and scalable server systems",
     category: "Software Development",
@@ -71,15 +100,15 @@ describe("Bundle Filter Utilities", () => {
     isActive: true,
     startDate: "",
     endDate: "",
-    maxStudents: 20,
+    maxStudents: "20",
     thumbnailUrl: "",
     level: "Advance",
     language: "English",
-  };
+  });
 
   const mockBundle3D: BundleWithCourses = {
     ...mockCourseA,
-    id: 1001,
+    id: "1001",
     title: "Complete 3D Animation Master Bundle",
     description: "Go from beginner to advanced 3D artist using Blender",
     category: "3D Animation",
@@ -89,7 +118,7 @@ describe("Bundle Filter Utilities", () => {
 
   const mockBundleWeb: BundleWithCourses = {
     ...mockCourseC,
-    id: 2001,
+    id: "2001",
     title: "Full-Stack SaaS Engineering Bundle",
     description: "Build, launch, and monetize web apps from scratch",
     category: "Software Development",
@@ -168,7 +197,7 @@ describe("Bundle Filter Utilities", () => {
     it("filters bundles by exact category", () => {
       const result = filterBundles(sampleBundles, { category: "3D Animation" });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(1001);
+      expect(result[0].id).toBe("1001");
     });
 
     it("ignores category filter when 'All' is selected", () => {
@@ -181,7 +210,7 @@ describe("Bundle Filter Utilities", () => {
         selectedTags: ["Blender"],
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(1001);
+      expect(result[0].id).toBe("1001");
     });
 
     it("filters bundles by multiple tags using logical AND", () => {
@@ -189,7 +218,7 @@ describe("Bundle Filter Utilities", () => {
         selectedTags: ["Blender", "Character Design"],
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(1001);
+      expect(result[0].id).toBe("1001");
 
       const nonMatching = filterBundles(sampleBundles, {
         selectedTags: ["Blender", "Full-Stack"],
@@ -202,7 +231,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "SaaS",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(2001);
+      expect(result[0].id).toBe("2001");
     });
 
     it("searches by category name in search box", () => {
@@ -210,7 +239,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "Software Development",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(2001);
+      expect(result[0].id).toBe("2001");
     });
 
     it("searches by tag name in search box", () => {
@@ -218,7 +247,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "Blender",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(1001);
+      expect(result[0].id).toBe("1001");
     });
 
     it("searches by child course title within bundle", () => {
@@ -226,7 +255,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "Database Engineering",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(2001);
+      expect(result[0].id).toBe("2001");
     });
 
     it("combines category, tag, and search query filters correctly", () => {
@@ -236,7 +265,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "SaaS",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(2001);
+      expect(result[0].id).toBe("2001");
     });
 
     it("returns empty array when search query matches nothing", () => {
@@ -251,7 +280,7 @@ describe("Bundle Filter Utilities", () => {
         searchQuery: "   blender   ",
       });
       expect(result.length).toBe(1);
-      expect(result[0].id).toBe(1001);
+      expect(result[0].id).toBe("1001");
     });
   });
 });
