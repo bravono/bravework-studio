@@ -1,4 +1,10 @@
 -- 1. Ensure categories exist and have accurate descriptions
+SELECT setval(
+  pg_get_serial_sequence('course_categories', 'category_id'),
+  COALESCE((SELECT MAX(category_id) FROM course_categories), 0) + 1,
+  false
+);
+
 INSERT INTO course_categories (category_name, description) VALUES
   ('Software Development', 'Learn to build modern software, web applications and scalable products'),
   ('3D Animation', 'Master 3D modeling, visualization, animation and visual effects'),
@@ -46,6 +52,12 @@ DELETE FROM course_tags;
 
 DELETE FROM tags 
 WHERE tag_name IN ('Doctors', 'Lawyers', 'Engineers', 'Fashion', 'Designers', 'Tailors', 'Chef', 'UiUx', 'Kids');
+
+SELECT setval(
+  pg_get_serial_sequence('tags', 'tag_id'),
+  COALESCE((SELECT MAX(tag_id) FROM tags), 0) + 1,
+  false
+);
 
 INSERT INTO tags (tag_name) VALUES
   ('3D Animation'),
