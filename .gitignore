@@ -30,7 +30,8 @@ out/
 build/
 dist/
 coverage/
-scripts/
+scripts/*
+!scripts/patch-next-font.js
 .vercel
 .env*.local
 .tsbuildinfo
