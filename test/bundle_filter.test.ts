@@ -73,7 +73,7 @@ describe("Bundle Filter Utilities", () => {
     endDate: "",
     maxStudents: 20,
     thumbnailUrl: "",
-    level: "Advanced",
+    level: "Advance",
     language: "English",
   };
 
