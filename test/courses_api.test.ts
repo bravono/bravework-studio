@@ -51,6 +51,29 @@ describe("Courses, Categories, Tags, and Tools Dynamic API Endpoints", () => {
       );
     });
 
+    it("should sanitize malformed thumbnail_url with HTML attributes", async () => {
+      const mockCourseWithDirtyImage = [
+        {
+          id: 5,
+          title: "Unreal Engine + AI Professional Production",
+          thumbnailUrl:
+            '"\\https://live.staticflickr.com/65535/55269372986_042d362ed0_b.jpg\\\\" width=\\1024\\ height=\\572\\ alt=\\Unreal Engine\\"',
+          tags: ["Unreal Engine"],
+        },
+      ];
+
+      (queryDatabase as jest.Mock).mockResolvedValueOnce(mockCourseWithDirtyImage);
+
+      const req = new Request("http://localhost/api/courses", { method: "GET" });
+      const res = await coursesGET(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data[0].thumbnailUrl).toBe(
+        "https://live.staticflickr.com/65535/55269372986_042d362ed0_b.jpg"
+      );
+    });
+
     it("should handle empty course results", async () => {
       (queryDatabase as jest.Mock).mockResolvedValueOnce([]);
 

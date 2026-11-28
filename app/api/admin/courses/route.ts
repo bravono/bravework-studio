@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../../lib/db";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 export const runtime = "nodejs";
 
@@ -218,26 +219,68 @@ export async function POST(request: Request) {
       );
     }
 
-    const instructorName = instructor.split(" ");
-    console.log("Instructor Name", instructorName);
-    if (instructorName.length < 2) {
-      throw new Error("Instructor name must include first and last name.");
+    let instructorToUse = instructor;
+    if (
+      !instructorToUse ||
+      typeof instructorToUse !== "string" ||
+      !instructorToUse.trim() ||
+      instructorToUse === "none"
+    ) {
+      const fallbackInstructor = await queryDatabase(
+        `SELECT instructor_id, first_name, last_name FROM instructors LIMIT 1`,
+      );
+      if (fallbackInstructor.length === 0) {
+        return NextResponse.json(
+          {
+            error:
+              "No instructor found in system. Please configure an instructor.",
+          },
+          { status: 400 },
+        );
+      }
+      instructorToUse = `${fallbackInstructor[0].first_name} ${fallbackInstructor[0].last_name}`;
     }
+
+    const trimmedInstructor = instructorToUse.trim();
+    const instructorParts = trimmedInstructor.split(/\s+/);
+    const firstName = instructorParts[0];
+    const lastName =
+      instructorParts.length > 1
+        ? instructorParts.slice(1).join(" ")
+        : instructorParts[0];
 
     return await withTransaction(async (client) => {
       console.log("Now in Transaction");
       const instructorResult = await client.query(
-        `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
-        [instructorName[0], instructorName[1]],
+        `SELECT instructor_id FROM instructors 
+         WHERE (first_name = $1 AND last_name = $2)
+            OR CONCAT_WS(' ', first_name, last_name) = $3
+            OR first_name = $3
+            OR last_name = $3
+            OR instructor_id::text = $3
+         LIMIT 1`,
+        [firstName, lastName, trimmedInstructor],
       );
-      const instructorId = instructorResult.rows[0]?.instructor_id;
+      let instructorId = instructorResult.rows[0]?.instructor_id;
+      if (!instructorId) {
+        const fallback = await client.query(
+          `SELECT instructor_id FROM instructors LIMIT 1`,
+        );
+        instructorId = fallback.rows[0]?.instructor_id;
+      }
       if (!instructorId) throw new Error("Instructor not found.");
 
       const categoryResult = await client.query(
-        `SELECT category_id FROM course_categories WHERE category_name = $1`,
+        `SELECT category_id FROM course_categories WHERE category_name = $1 OR category_id::text = $1 LIMIT 1`,
         [category],
       );
-      const categoryId = categoryResult.rows[0]?.category_id;
+      let categoryId = categoryResult.rows[0]?.category_id;
+      if (!categoryId) {
+        const fallbackCat = await client.query(
+          `SELECT category_id FROM course_categories LIMIT 1`,
+        );
+        categoryId = fallbackCat.rows[0]?.category_id;
+      }
       if (!categoryId) throw new Error("Category not found.");
 
       console.log("Inserting into courses table");
@@ -259,7 +302,7 @@ export async function POST(request: Request) {
         instructorId,
         isActive,
         maxStudents,
-        thumbnailUrl,
+        cleanImageUrl(thumbnailUrl),
         categoryId,
         level,
         language,

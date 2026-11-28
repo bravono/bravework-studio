@@ -203,6 +203,14 @@ export default function BundleDetailsPage() {
                     {Math.round(bundleDiscount * 100)}% Bundle Discount
                   </span>
                 )}
+                {bundleRootCourse.category && (
+                  <Link
+                    href={`/academy/bundles?category=${encodeURIComponent(bundleRootCourse.category)}`}
+                    className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                  >
+                    {bundleRootCourse.category}
+                  </Link>
+                )}
               </div>
 
               <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-tight">
@@ -213,6 +221,34 @@ export default function BundleDetailsPage() {
                 {bundleRootCourse.description ||
                   `Master the complete ${bundleRootCourse.title} pathway. This curated curriculum takes you step-by-step through foundational principles to advanced real-world execution.`}
               </p>
+
+              {/* Bundle Specialization Tags */}
+              {(() => {
+                const allBundleTags = Array.from(
+                  new Set(
+                    bundleCourses.flatMap((c) =>
+                      Array.isArray(c.tags) ? c.tags : [],
+                    ),
+                  ),
+                );
+                if (allBundleTags.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest mr-1">
+                      Tags:
+                    </span>
+                    {allBundleTags.map((t) => (
+                      <Link
+                        key={t}
+                        href={`/academy/bundles?tag=${encodeURIComponent(t)}`}
+                        className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-gray-600 border border-gray-200 hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm"
+                      >
+                        #{t}
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Pricing Display */}
               <div className="pt-2">

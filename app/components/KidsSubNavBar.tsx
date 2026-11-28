@@ -12,10 +12,17 @@ import {
   Users,
   Mail,
   MessageCircle,
+  BookOpen,
 } from "lucide-react";
 
 const kidsLinks = [
   { label: "Home", href: "/kids", icon: PlayCircle, color: "bg-pink-500" },
+  {
+    label: "Courses",
+    href: "/kids/courses",
+    icon: BookOpen,
+    color: "bg-indigo-500",
+  },
   { label: "About", href: "/kids/about", icon: Info, color: "bg-blue-500" },
   {
     label: "Episodes",

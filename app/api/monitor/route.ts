@@ -1,10 +1,15 @@
+import os from "os";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import logger from "@/lib/logger";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
+import {
+  getApiMetricsSnapshot,
+  ApiMetricsSnapshot,
+} from "@/lib/observability/metrics";
+import { withObservability } from "@/lib/observability/with-observability";
 
 export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 
 interface MonitoringData {
   timestamp: string;
@@ -24,11 +29,7 @@ interface MonitoringData {
     responseTime: number;
     connectionPoolStatus: string;
   };
-  api: {
-    responseTime: number;
-    requestCount: number;
-    errorRate: number;
-  };
+  api: ApiMetricsSnapshot;
 }
 
 async function checkDatabaseHealth(): Promise<{
@@ -38,9 +39,7 @@ async function checkDatabaseHealth(): Promise<{
 }> {
   try {
     const startTime = Date.now();
-
-    // Check database connection with a simple query
-    const result = await prisma.$queryRaw`SELECT 1 as health_check`;
+    await prisma.$queryRaw`SELECT 1 as health_check`;
     const responseTime = Date.now() - startTime;
 
     return {
@@ -49,6 +48,7 @@ async function checkDatabaseHealth(): Promise<{
       connectionPoolStatus: "active",
     };
   } catch (error) {
+    logger.error({ err: error }, "Database health check failed in monitor");
     return {
       status: "unhealthy",
       responseTime: 0,
@@ -59,36 +59,25 @@ async function checkDatabaseHealth(): Promise<{
 
 function getServerMetrics() {
   const uptime = process.uptime();
-  const memoryUsage = process.memoryUsage();
-  const totalMemory = require("os").totalmem();
-  const freeMemory = require("os").freemem();
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
   const usedMemory = totalMemory - freeMemory;
 
   return {
     uptime,
     memory: {
-      used: Math.round(usedMemory / 1024 / 1024), // MB
-      total: Math.round(totalMemory / 1024 / 1024), // MB
+      used: Math.round(usedMemory / 1024 / 1024),
+      total: Math.round(totalMemory / 1024 / 1024),
       percentage: Math.round((usedMemory / totalMemory) * 100),
     },
     cpu: {
-      usage: Math.round(process.cpuUsage().user / 1000000), // seconds
+      usage: Math.round(process.cpuUsage().user / 1000000),
     },
   };
 }
 
-function getAPIMetrics() {
-  // Simulated metrics - in production, integrate with APM tools
-  return {
-    responseTime: Math.floor(Math.random() * 100) + 20, // 20-120ms
-    requestCount: Math.floor(Math.random() * 10000) + 1000,
-    errorRate: Math.random() * 5, // 0-5%
-  };
-}
-
-export async function GET(req: NextRequest) {
+async function handleMonitor(req: NextRequest) {
   try {
-    // Verify admin access
     const authError = await verifyAdmin(req);
     if (authError) {
       return authError;
@@ -97,7 +86,7 @@ export async function GET(req: NextRequest) {
     const [dbHealth, serverMetrics, apiMetrics] = await Promise.all([
       checkDatabaseHealth(),
       Promise.resolve(getServerMetrics()),
-      Promise.resolve(getAPIMetrics()),
+      Promise.resolve(getApiMetricsSnapshot()),
     ]);
 
     const monitoringData: MonitoringData = {
@@ -109,12 +98,14 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(monitoringData);
   } catch (error) {
-    console.error("Monitoring endpoint error:", error);
+    logger.error({ err: error }, "Monitoring endpoint error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
+
+export const GET = withObservability(handleMonitor, {
+  routeName: "/api/monitor",
+});

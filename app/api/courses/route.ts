@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
         end_date AS "endDate",
         max_students AS "maxStudents",
         thumbnail_url AS "thumbnailUrl",
+        CONCAT_WS(' ', i.first_name, i.last_name) AS instructor,
         i.first_name AS "firstName",
         i.last_name AS "lastName",
         level,
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
 
     const result = courseResults.map((course: any) => ({
       ...course,
+      thumbnailUrl: cleanImageUrl(course.thumbnailUrl),
       tags:
         typeof course.tags === "string" ? JSON.parse(course.tags) : course.tags,
     }));

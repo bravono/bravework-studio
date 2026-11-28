@@ -39,9 +39,11 @@ Bravework Studio is a multi-faceted platform designed to empower creatives and b
 ### 🎓 2. Bravework Academy (LMS)
 
 - **Course Catalog**: Interactive list of courses with categories and tags, with pagination and direct course sharing.
-- **Curated Bundles**: Curated career paths with multi-course bundle pricing, paginated bundle browsing, course preview limits with expansion toggles, bundle sharing, and dedicated bundle details pages (`/academy/bundles/[bundleId]`) displaying comprehensive pathway syllabi, savings breakdowns, and hardware rental options.
+- **Curated Bundles**: Curated career paths with multi-course bundle pricing, paginated bundle browsing, course preview limits with expansion toggles, bundle sharing, dedicated bundle details pages (`/academy/bundles/[bundleId]`) displaying comprehensive pathway syllabi, savings breakdowns, and hardware rental options.
+- **Bundle Search and Discovery**: The dedicated bundle portal (`/academy/bundles`) features multi-facet filtering by category and standardized specialization/tool tags, keyword search matching both bundle titles and child course titles, live count indicators, and tag badges directly linking back to filtered queries. Utility functions and filtering logic are encapsulated in `lib/utils/bundleFilter.ts`.
+- **Course and Tag Taxonomy**: Standardized 41-tag taxonomy covering industry tools (Blender, Unity, Unreal Engine, Figma, Ollama), technical specializations, and cross-disciplinary domains, with database migrations (`prisma/migrations/20261012193000_update_categories_and_tags`) ensuring synchronized schemas and relations across development and production environments.
 - **Student Dashboard**: Track progress, access session recordings, and manage enrollments.
-- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing modal adapts to 90% screen width for configuring curriculum details, rich text content, and session schedules.
+- **Instructor Portal**: Manage courses, students, and sessions. Course creation and editing features a 4-step wizard (Basic Info, Schedule, Content, Sessions) with an optimal max-w-4xl container on desktop and adaptive compact step progress on mobile to eliminate long scrolling.
 - **Certificates**: Automated certificate generation for course completion.
 
 ### 🧒 3. Bravework Kids
@@ -223,6 +225,51 @@ Every generated course adheres to a strict four-part product ladder:
 - Agent Skill: `.agent/skills/course-architect/SKILL.md`
 - TypeScript Validation Engine: `lib/course-architect/`
 - Test Suite: `test/course_architect.test.ts`
+
+---
+
+## Course Audience Segregation & Image Sanitization
+
+### Architecture Overview
+Bravework Studio separates course offerings into two distinct audiences:
+1. **Professional / Adult Academy** (`/academy`, `/academy/courses` and `workspace-app`): Career-oriented technical training in 3D animation, development, and digital craft. Kids courses are excluded from this catalog.
+2. **Kids Academy** (`/kids`, `/kids/courses` and `kids-app`): Age-appropriate (ages 7-16) creative curriculum covering foundational animation, robotics, coding, and digital storytelling.
+
+Cross-navigation links and referral banners ensure users looking for kids courses inside the adult catalog are seamlessly directed to the Kids Hub without cluttering professional offerings.
+
+### API Specifications
+- `GET /api/courses?audience=kids`: Returns courses flagged with `is_for_kids = true`.
+- `GET /api/courses?audience=adult`: Returns courses flagged with `is_for_kids = false`.
+- `GET /api/courses`: Returns all courses unless audience parameter is specified.
+- Mobile API client (`packages/api-client/client.ts`): Supports `getCourses(audience)` and `getAcademyCourses(audience)`.
+
+### Image Sanitization (`lib/utils/cleanImageUrl.ts`)
+Handles raw image inputs from various databases or legacy content fields (e.g. Flickr HTML embeds like `<img src="..." width="..." />`).
+- Extracts pure `http(s)://` URLs via regex.
+- Strips quotes, escaped backslashes, and trailing HTML attributes.
+- Returns `/assets/Bravework_Studio-Logo-Color.png` as fallback for empty or invalid inputs.
+- Prevents Next.js `next/image` parse failures caused by malformed attributes or missing leading slashes.
+
+---
+
+## Centralized Logging & Observability
+
+Bravework Studio combines structured Pino logging with Sentry Logs, distributed request correlation, PII redaction, and real-time API metrics.
+
+### Architecture
+- **Sentry Logs & Error Tracking** (`sentry.server.config.ts`, `sentry.edge.config.ts`, `sentry.client.config.ts`): Configured with `enableLogs: true` and `Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] })`. Set `SENTRY_ENABLED=true` to test Sentry reporting in local development.
+- **Structured Logger** (`lib/logger.ts`): Pino logger configured with:
+  - Automatic `AsyncLocalStorage` context injection (`requestId`, `method`, `path`, `userId`).
+  - PII and secret redaction (`password`, `token`, `secret`, `apiKey`, `authorization`, `cookie`, `otp`, `mfaCode`, etc.) for both stdout logs and Sentry attributes.
+  - Sentry bridge forwarding `trace`/`debug`/`info`/`warn`/`error`/`fatal` logs to `Sentry.logger`, adding breadcrumbs, and capturing `Error` instances via `Sentry.captureException`.
+  - `createChildLogger(bindings)` helper for module-scoped logging.
+- **Request Correlation Context** (`lib/observability/context.ts`): `AsyncLocalStorage` store propagated through `withObservability` and `middleware.tsx` via the `x-request-id` header.
+- **API Route Wrapper** (`lib/observability/with-observability.ts`): Wraps App Router handlers to attach `x-request-id`, measure latency, record metrics, log 2xx/4xx/5xx outcomes, and catch unhandled errors cleanly.
+- **In-Memory API Metrics** (`lib/observability/metrics.ts`): Tracks request counts, 4xx/5xx error counts, error rate, average latency, p95 latency, and per-route summaries in a bounded 1,000-sample rolling window.
+
+### Health & Monitoring Endpoints
+- `GET /api/health`: Public liveness and database readiness probe returning `200` (`healthy`) or `503` (`unhealthy`) with DB ping latency.
+- `GET /api/monitor`: Admin-only observability endpoint returning server resource usage, database health, and live API metrics from `getApiMetricsSnapshot()`.
 
 ---
 

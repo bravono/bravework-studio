@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,10 +24,23 @@ export async function GET(
         c.end_date AS "endDate",
         c.price_in_kobo AS price,
         c.is_active AS "isActive",
+        c.is_published AS "isPublished",
+        c.max_students AS "maxStudents",
+        c.thumbnail_url AS "thumbnailUrl",
+        c.level,
+        c.language,
+        c.slug,
+        c.is_for_kids AS "isForKids",
+        c.parent_course_id AS "parentCourseId",
         c.early_bird_discount AS "discount",
         c.discount_start_date AS "discountStartDate",
         c.discount_end_date AS "discountEndDate",
         c.content,
+        c.excerpt,
+        CONCAT_WS(' ', i.first_name, i.last_name) AS instructor,
+        i.first_name AS "firstName",
+        i.last_name AS "lastName",
+        cc.category_name AS category,
         s.session_number AS "sessionOption",
         CASE s.session_number
           WHEN 1 THEN 'Morning'
@@ -38,7 +52,9 @@ export async function GET(
         (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds",
         c.duration
       FROM courses c
-      JOIN (
+      LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
+      LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
+      LEFT JOIN (
         SELECT
           course_id,
           session_number,
@@ -67,9 +83,14 @@ export async function GET(
     `;
     const result = await queryDatabase(queryText, [courseId]);
 
-    console.log("Course fetched:", result);
+    const sanitizedResult = result.map((course: any) => ({
+      ...course,
+      thumbnailUrl: cleanImageUrl(course.thumbnailUrl),
+    }));
 
-    return NextResponse.json(result, {
+    console.log("Course fetched:", sanitizedResult);
+
+    return NextResponse.json(sanitizedResult, {
       headers: {
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=59", // Cache for 60 seconds, allow stale for another 59s
       },

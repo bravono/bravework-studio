@@ -5,6 +5,18 @@ const nextConfig = {
   // Your existing next.config.js content (if any)
   reactStrictMode: true,
   optimizeFonts: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.staticflickr.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
   async headers() {
     return [
       {

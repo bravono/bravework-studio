@@ -22,16 +22,19 @@ import {
   Monitor,
   Tag,
   ShieldCheck,
+  ChevronLeft,
   ChevronRight,
   ArrowRight,
   X,
-  Users,
   Pencil,
+  Gamepad2,
+  SlidersHorizontal,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ExpandableText from "../../components/ExpandableText";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
@@ -65,6 +68,44 @@ function AcademyCoursesContent() {
   );
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const categoryScrollRef = React.useRef<HTMLDivElement>(null);
+  const headerSectionRef = React.useRef<HTMLElement>(null);
+  const [stickyTop, setStickyTop] = useState(144);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+
+  useEffect(() => {
+    const subNavEl = headerSectionRef.current?.previousElementSibling as HTMLElement | null;
+    if (!subNavEl) return;
+    const updateTop = () => {
+      setStickyTop(80 + subNavEl.offsetHeight);
+    };
+    updateTop();
+    const ro = new ResizeObserver(updateTop);
+    ro.observe(subNavEl);
+    return () => ro.disconnect();
+  }, []);
+
+  const updateScrollIndicators = useCallback(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    updateScrollIndicators();
+    el.addEventListener("scroll", updateScrollIndicators, { passive: true });
+    const ro = new ResizeObserver(updateScrollIndicators);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollIndicators);
+      ro.disconnect();
+    };
+  }, [updateScrollIndicators]);
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -89,16 +130,26 @@ function AcademyCoursesContent() {
   const fetchCourses = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/courses");
+      const res = await fetch("/api/courses?audience=adult");
       if (!res.ok) throw new Error("Failed to fetch courses");
       const data = await res.json();
-      setCourses(data);
+      const adultCourses = Array.isArray(data)
+        ? data.filter((c: any) => !c.isForKids)
+        : [];
+      setCourses(adultCourses);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const isKidsSearch = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return ["kid", "kids", "child", "children", "teen", "teens"].some((k) =>
+      query.includes(k),
+    );
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchCourses();
@@ -142,6 +193,19 @@ function AcademyCoursesContent() {
       ...Array.from(new Set(courses.map((c) => c.category).filter(Boolean))),
     ];
   }, [courses]);
+
+  useEffect(() => {
+    updateScrollIndicators();
+  }, [categories, updateScrollIndicators]);
+
+  const scrollCategories = (direction: "left" | "right") => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    el.scrollBy({
+      left: direction === "left" ? -220 : 220,
+      behavior: "smooth",
+    });
+  };
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
@@ -333,111 +397,224 @@ function AcademyCoursesContent() {
     <div className="bg-white min-h-screen">
       <AcademySubNavBar />
 
-      <section className="py-16 bg-gray-50 border-b border-gray-100">
+      <section ref={headerSectionRef} className="pt-8 pb-3 bg-gray-50/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <h1 className="text-4xl font-black text-gray-900">
-              Professional Courses
-            </h1>
-            <a
-              href={WHATSAPP_GROUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/20 transition-all text-sm shrink-0"
-            >
-              <Users size={18} />
-              Join Our Community
-            </a>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                Professional Courses
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                Industry-standard career tracks, certifications, and technical masterclasses
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-72">
+                <Search
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search courses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2.5 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all shrink-0 ${
+                  isFilterOpen || selectedTags.length > 0
+                    ? "bg-green-50 text-green-700 border-green-300 ring-2 ring-green-100"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+                aria-label="Toggle filters"
+              >
+                <SlidersHorizontal size={15} />
+                <span>Filters</span>
+                {selectedTags.length > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-green-600 text-white text-[11px] font-black flex items-center justify-center">
+                    {selectedTags.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div className="flex flex-wrap gap-2">
+          {isKidsSearch && (
+            <div className="mb-3 p-3 rounded-xl bg-pink-50 border border-pink-200 text-xs text-pink-800 flex items-center justify-between gap-3 shadow-sm">
+              <span>Looking for youth programs (Ages 7–16)?</span>
+              <Link
+                href="/kids/courses"
+                className="font-bold underline text-pink-900 hover:text-pink-950 shrink-0 flex items-center gap-1"
+              >
+                View Kids Courses <ArrowRight size={12} />
+              </Link>
+            </div>
+          )}
+
+          {/* Active Filter Chips when filter drawer is collapsed */}
+          {!isFilterOpen && selectedTags.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                Active:
+              </span>
+              {selectedTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-bold border border-green-200 hover:bg-green-100 transition-colors"
+                >
+                  <span>{tag}</span>
+                  <X size={12} />
+                </button>
+              ))}
+              <button
+                onClick={() => setSelectedTags([])}
+                className="text-xs font-bold text-gray-400 hover:text-gray-600 ml-1 underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {/* Collapsible Filter Panel (Tags & Currency) */}
+          {isFilterOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 pt-4 border-t border-gray-200/80 space-y-5"
+            >
+              {allTags.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-black text-gray-500 uppercase tracking-widest">
+                      Filter by Specialization
+                    </p>
+                    {selectedTags.length > 0 && (
+                      <button
+                        onClick={() => setSelectedTags([])}
+                        className="text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
+                      >
+                        Clear tags ({selectedTags.length})
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
+                    {allTags.map((tag) => {
+                      const isActive = selectedTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => toggleTag(tag)}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            isActive
+                              ? "bg-green-50 text-green-600 border-2 border-green-600 ring-2 ring-green-100"
+                              : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {tag}
+                          {isActive && (
+                            <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-green-600 text-white text-[9px]">
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-3 border-t border-gray-100">
+                <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">
+                  Select Currency
+                </p>
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onSelect={(currency) => updateSelectedCurrency(currency as any)}
+                />
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+      {/* Sticky One-Line Side-Scrolling Categories */}
+      <div
+        style={{ top: `${stickyTop}px` }}
+        className="sticky z-30 bg-gray-50/95 backdrop-blur-md border-b border-gray-200/80 py-2.5 shadow-sm"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative w-full">
+            {canScrollLeft && (
+              <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-gray-50 via-gray-50/90 to-transparent pr-4">
+                <button
+                  type="button"
+                  onClick={() => scrollCategories("left")}
+                  className="w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:text-green-700 hover:border-green-500 transition-all"
+                  aria-label="Scroll categories left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+              </div>
+            )}
+
+            <div
+              ref={categoryScrollRef}
+              className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               {categories.map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
+                  className={`shrink-0 whitespace-nowrap px-4 py-2 rounded-full font-bold text-xs md:text-sm transition-all ${
                     activeFilter === filter
-                      ? "bg-green-600 text-white shadow-lg shadow-green-500/30"
-                      : "bg-white text-gray-600 border border-gray-200 hover:border-green-500"
+                      ? "bg-green-600 text-white shadow-md shadow-green-600/30"
+                      : "bg-white text-gray-600 border border-gray-200 hover:border-green-500 hover:text-green-700"
                   }`}
                 >
                   {filter}
                 </button>
               ))}
+              <Link
+                href="/kids/courses"
+                className="shrink-0 whitespace-nowrap px-4 py-2 rounded-full font-bold text-xs md:text-sm transition-all bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100 flex items-center gap-1.5 shadow-sm"
+              >
+                Kids Hub <ArrowRight size={13} />
+              </Link>
             </div>
 
-            <div className="relative w-full md:w-80">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-              />
-            </div>
-          </div>
-
-          {allTags.length > 0 && (
-            <div className="mt-10 pt-8 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                  Filter by Specialization
-                </p>
-                {selectedTags.length > 0 && (
-                  <button
-                    onClick={() => setSelectedTags([])}
-                    className="text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
-                  >
-                    Clear all tags
-                  </button>
-                )}
+            {canScrollRight && (
+              <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-l from-gray-50 via-gray-50/90 to-transparent pl-6">
+                <button
+                  type="button"
+                  onClick={() => scrollCategories("right")}
+                  className="w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:text-green-700 hover:border-green-500 transition-all"
+                  aria-label="Scroll categories right"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => {
-                  const isActive = selectedTags.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => toggleTag(tag)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                        isActive
-                          ? "bg-green-50 text-green-600 border-2 border-green-600 ring-4 ring-green-50/50"
-                          : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:bg-gray-50/50"
-                      }`}
-                    >
-                      {tag}
-                      {isActive && (
-                        <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-600 text-white text-[10px]">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8 flex flex-col items-center md:items-start">
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Select Currency
-            </p>
-            <CurrencySelector
-              selectedCurrency={selectedCurrency}
-              onSelect={(currency) => updateSelectedCurrency(currency as any)}
-            />
+            )}
           </div>
-
-
         </div>
-      </section>
+      </div>
 
-      <section className="py-16">
+      <section className="pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="py-24">
@@ -833,6 +1010,38 @@ function AcademyCoursesContent() {
             </div>
           )}
 
+          {/* Kids Section Cross-Promotion Banner */}
+          {!isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-16 p-6 sm:p-8 rounded-[2.5rem] bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 border border-pink-200/70 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-pink-500/20">
+                  <Gamepad2 size={24} />
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 text-xs font-bold mb-1">
+                    Ages 7–16
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                    Looking for courses for kids and teens?
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-600 max-w-2xl mt-0.5">
+                    Explore hands-on 3D animation, game making, and tech edutainment designed specifically for young minds in the Kids Hub.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/kids/courses"
+                className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-pink-600/20 shrink-0 flex items-center gap-2 text-sm"
+              >
+                Browse Kids Courses <ArrowRight size={16} />
+              </Link>
+            </motion.div>
+          )}
+
           {/* Advertisements Grid */}
           {!isLoading && filteredCourses.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-16">
@@ -1103,6 +1312,7 @@ function AcademyCoursesContent() {
         <CourseModal
           existingCourse={editingCourse}
           userRole="admin"
+          currentInstructorName={session?.user?.name || ""}
           onClose={() => {
             setIsCourseModalOpen(false);
             setEditingCourse(null);

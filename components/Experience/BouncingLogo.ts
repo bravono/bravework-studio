@@ -3,6 +3,12 @@ import * as THREE from 'three'
 
 import Experience from './Experience'
 
+// TV screen visible boundary in local coordinates
+const SCREEN_BOUNDS = {
+    z: { min: -1.924, max: 2.302 },
+    y: { min: -1.235, max: 1.127 }
+}
+
 export default class BouncingLogo
 {
     constructor()
@@ -40,7 +46,9 @@ export default class BouncingLogo
         this.model.texture = this.resources.items.bwsLogoTexture
         this.model.texture.encoding = THREE.sRGBEncoding
 
-        this.model.geometry = new THREE.PlaneGeometry(4, 1, 1, 1)
+        // Logo aspect ratio is 130 width / 150 height to prevent stretching
+        const logoAspectRatio = 130 / 150
+        this.model.geometry = new THREE.PlaneGeometry(logoAspectRatio, 1, 1, 1)
         this.model.geometry.rotateY(- Math.PI * 0.5)
 
         this.model.material = new THREE.MeshBasicMaterial({
@@ -50,8 +58,8 @@ export default class BouncingLogo
         })
 
         this.model.mesh = new THREE.Mesh(this.model.geometry, this.model.material)
-        this.model.mesh.scale.y = 0.359
-        this.model.mesh.scale.z = 0.424
+        this.model.mesh.scale.y = 1.0
+        this.model.mesh.scale.z = 1.0
         this.model.group.add(this.model.mesh)
 
         // Debug
@@ -85,17 +93,35 @@ export default class BouncingLogo
                 this.model.mesh.scale,
                 'z',
                 {
-                    label: 'scaleZ', min: 0.001, max: 1, step: 0.001
+                    label: 'scaleZ', min: 0.1, max: 1.8, step: 0.01
                 }
-            )
+            ).on('change', () => this.updateLimits())
 
             this.debugFolder.addBinding(
                 this.model.mesh.scale,
                 'y',
                 {
-                    label: 'scaleY', min: 0.001, max: 1, step: 0.001
+                    label: 'scaleY', min: 0.1, max: 1.8, step: 0.01
                 }
-            )
+            ).on('change', () => this.updateLimits())
+        }
+    }
+
+    updateLimits()
+    {
+        const logoAspectRatio = 130 / 150
+        const halfWidthZ = (logoAspectRatio * this.model.mesh.scale.z) / 2
+        const halfHeightY = (1.0 * this.model.mesh.scale.y) / 2
+
+        this.animations.limits = {
+            z: {
+                min: SCREEN_BOUNDS.z.min + halfWidthZ,
+                max: SCREEN_BOUNDS.z.max - halfWidthZ
+            },
+            y: {
+                min: SCREEN_BOUNDS.y.min + halfHeightY,
+                max: SCREEN_BOUNDS.y.max - halfHeightY
+            }
         }
     }
 
@@ -106,9 +132,7 @@ export default class BouncingLogo
         this.animations.z = 0
         this.animations.y = 0
 
-        this.animations.limits = {}
-        this.animations.limits.z = { min: -1.076, max: 1.454 }
-        this.animations.limits.y = { min: -1.055, max: 0.947 }
+        this.updateLimits()
 
         this.animations.speed = {}
         this.animations.speed.z = 0.00061

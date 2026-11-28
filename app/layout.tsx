@@ -93,7 +93,7 @@ export default async function RootLayout({
           rel="icon"
           type="image/png"
           sizes="50x50"
-          href="assets/bws_white_logo_black_bg.png"
+          href="/assets/Bravework_Studio-Logo-Color.png"
         ></link>
         <link
           rel="stylesheet"
@@ -108,7 +108,7 @@ export default async function RootLayout({
               "@type": "Organization",
               name: "Bravework Studio",
               url: "https://braveworkstudio.com",
-              logo: "https://braveworkstudio.com/assets/bws_white_logo_black_bg.png",
+              logo: "https://braveworkstudio.com/assets/Bravework_Studio-Logo-Color.png",
               description:
                 "We are your one-stop shop for bringing your ideas to life, from stunning animation to seamless software development.",
               sameAs: [

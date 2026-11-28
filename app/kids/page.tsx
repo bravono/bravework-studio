@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Monitor,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 import KidsSubNavBar from "../components/KidsSubNavBar";
 
@@ -51,6 +52,13 @@ export default function KidsLandingPage() {
                 >
                   <Play fill="white" size={20} />
                   Watch Episodes
+                </Link>
+                <Link
+                  href="/kids/courses"
+                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 transition-all flex items-center gap-3"
+                >
+                  <BookOpen size={20} />
+                  Explore Kids Courses
                 </Link>
                 <Link
                   href="/kids/opportunities"

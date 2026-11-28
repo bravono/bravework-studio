@@ -414,6 +414,43 @@ export default function AcademyLandingPage() {
         </div>
       </section>
 
+      {/* Kids Academy Cross-Promotion */}
+      <section className="py-20 bg-indigo-50/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-indigo-900 to-purple-900 rounded-[3rem] p-8 sm:p-16 flex flex-col md:flex-row items-center justify-between gap-12 text-white relative overflow-hidden shadow-xl">
+            <div className="relative z-10 text-center md:text-left max-w-xl">
+              <span className="text-yellow-400 font-black text-xs uppercase tracking-widest mb-4 inline-block">
+                For Young Creators (Ages 7–16)
+              </span>
+              <h2 className="text-4xl sm:text-5xl font-black mb-6">
+                Looking for Kids Tech & 3D Courses?
+              </h2>
+              <p className="text-indigo-200 text-lg mb-8 leading-relaxed">
+                Empower your child with beginner-friendly animation, coding, and creative skills in our dedicated, kid-safe learning environment.
+              </p>
+              <Link
+                href="/kids/courses"
+                onClick={() => {
+                  pushCrossPromotionClick({
+                    to_section: "kids",
+                    promotion_type: "banner",
+                    clicked_item: "Explore Kids Courses",
+                  });
+                }}
+                className="px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black rounded-2xl transition-all inline-flex items-center gap-3 shadow-lg"
+              >
+                <BookOpen size={20} />
+                Explore Kids Courses <ArrowRight size={20} />
+              </Link>
+            </div>
+            <div className="relative z-10 w-48 h-48 bg-white/10 rounded-full flex items-center justify-center border border-white/20 shrink-0">
+              <Sparkles className="text-yellow-300 opacity-60" size={90} />
+            </div>
+            <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+          </div>
+        </div>
+      </section>
+
       {/* Studio Cross-Promotion */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

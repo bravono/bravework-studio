@@ -16,10 +16,19 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  Search,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Course } from "@/app/types/app";
+import {
+  BundleWithCourses,
+  getBundleTags,
+  getAllBundleTags,
+  getAllBundleCategories,
+  filterBundles,
+} from "@/lib/utils/bundleFilter";
 import { KOBO_PER_NAIRA } from "@/lib/constants";
 import Loader from "@/app/components/Loader";
 import Pagination from "@/app/components/Pagination";
@@ -37,8 +46,26 @@ function AcademyBundlesContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedBundles, setExpandedBundles] = useState<Record<string, boolean>>({});
 
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const searchParams = useSearchParams();
   const highlightedBundleId = searchParams?.get("bundleId");
+  const categoryParam = searchParams?.get("category");
+  const tagParam = searchParams?.get("tag");
+
+  useEffect(() => {
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [categoryParam]);
+
+  useEffect(() => {
+    if (tagParam) {
+      setSelectedTags([tagParam]);
+    }
+  }, [tagParam]);
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -87,8 +114,8 @@ function AcademyBundlesContent() {
     [],
   );
 
-  const presetBundles = useMemo(() => {
-    const bundles: (Course & { bundleCourses: Course[] })[] = [];
+  const presetBundles: BundleWithCourses[] = useMemo(() => {
+    const bundles: BundleWithCourses[] = [];
     courses.forEach((course) => {
       if (course.childCourseIds && course.childCourseIds.length > 0) {
         const descendants = getDescendants(course, courses);
@@ -103,11 +130,32 @@ function AcademyBundlesContent() {
     return bundles;
   }, [courses, getDescendants]);
 
+  const categories = useMemo(() => {
+    const rawCategories = getAllBundleCategories(presetBundles);
+    return ["All", ...rawCategories];
+  }, [presetBundles]);
+
+  const allTags = useMemo(() => {
+    return getAllBundleTags(presetBundles);
+  }, [presetBundles]);
+
+  const filteredBundles = useMemo(() => {
+    return filterBundles(presetBundles, {
+      category: activeCategory,
+      selectedTags,
+      searchQuery,
+    });
+  }, [presetBundles, activeCategory, selectedTags, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, selectedTags, searchQuery]);
+
   // Navigate to page containing target bundle if bundleId param is present
   useEffect(() => {
-    if (!highlightedBundleId || presetBundles.length === 0) return;
+    if (!highlightedBundleId || filteredBundles.length === 0) return;
 
-    const targetIndex = presetBundles.findIndex(
+    const targetIndex = filteredBundles.findIndex(
       (b) =>
         String(b.id) === highlightedBundleId ||
         `bundle-${b.id}` === highlightedBundleId,
@@ -126,14 +174,26 @@ function AcademyBundlesContent() {
         }
       }, 350);
     }
-  }, [highlightedBundleId, presetBundles]);
+  }, [highlightedBundleId, filteredBundles]);
 
-  const totalPages = Math.ceil(presetBundles.length / BUNDLES_PER_PAGE);
+  const totalPages = Math.ceil(filteredBundles.length / BUNDLES_PER_PAGE);
 
   const paginatedBundles = useMemo(() => {
     const startIndex = (currentPage - 1) * BUNDLES_PER_PAGE;
-    return presetBundles.slice(startIndex, startIndex + BUNDLES_PER_PAGE);
-  }, [presetBundles, currentPage]);
+    return filteredBundles.slice(startIndex, startIndex + BUNDLES_PER_PAGE);
+  }, [filteredBundles, currentPage]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
+
+  const resetFilters = () => {
+    setActiveCategory("All");
+    setSelectedTags([]);
+    setSearchQuery("");
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -250,14 +310,109 @@ function AcademyBundlesContent() {
             </motion.div>
           </div>
 
+          {/* Search, Category and Tag Filters */}
+          <div className="bg-white rounded-[2.5rem] border border-blue-100 p-6 md:p-8 shadow-lg shadow-blue-50/50 mb-14 space-y-6">
+            <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-center justify-between">
+              {/* Category Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                {categories.map((cat) => {
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setActiveCategory(cat)}
+                      className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                          : "bg-gray-50 text-gray-600 border border-gray-200 hover:border-blue-400 hover:bg-white"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search Query Input */}
+              <div className="relative w-full lg:w-80 shrink-0">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search by topic, tag, skill..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-10 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    title="Clear search"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Specialization Tags Filter */}
+            {allTags.length > 0 && (
+              <div className="pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Tag size={13} className="text-blue-500" /> Filter by Specialization &amp; Tools
+                  </p>
+                  {(selectedTags.length > 0 || activeCategory !== "All" || searchQuery) && (
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      Reset all filters
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allTags.map((tag) => {
+                    const isActive = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                          isActive
+                            ? "bg-blue-50 text-blue-700 border-2 border-blue-600 ring-2 ring-blue-100"
+                            : "bg-white text-gray-500 border border-gray-200 hover:border-blue-300 hover:bg-gray-50/70"
+                        }`}
+                      >
+                        {tag}
+                        {isActive && (
+                          <span className="ml-1.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-blue-600 text-white text-[9px]">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center gap-4 mb-12">
             <h4 className="text-sm font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
               Curated Career Paths
             </h4>
             <div className="h-px bg-gray-100 w-full"></div>
-            {presetBundles.length > 0 && (
+            {filteredBundles.length > 0 && (
               <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                Showing {Math.min(presetBundles.length, paginatedBundles.length)} of {presetBundles.length} bundles
+                Showing {Math.min(filteredBundles.length, paginatedBundles.length)} of {filteredBundles.length} bundles
               </span>
             )}
           </div>
@@ -277,6 +432,25 @@ function AcademyBundlesContent() {
               <p className="text-gray-500">
                 Check back soon for new curated paths or build your own!
               </p>
+            </div>
+          ) : filteredBundles.length === 0 ? (
+            <div className="py-24 text-center bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400">
+                <Search size={36} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                No matching bundles found
+              </h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-6 text-sm">
+                We couldn&apos;t find any bundles matching your search or tag filters. Try adjusting your search query or reset the filters.
+              </p>
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="px-6 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+              >
+                Reset All Filters
+              </button>
             </div>
           ) : (
             <>
@@ -360,12 +534,50 @@ function AcademyBundlesContent() {
                       </div>
 
                       <div className="p-10 flex flex-col flex-grow bg-gradient-to-b from-blue-50/30 to-white">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
                           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
                             <Tag size={16} />
                             Professional Bundle • {bundleCourses.length} Courses
                           </div>
+                          {bundle.category && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveCategory(bundle.category)}
+                              className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-[11px] font-bold rounded-full transition-colors"
+                              title={`Filter by category: ${bundle.category}`}
+                            >
+                              {bundle.category}
+                            </button>
+                          )}
                         </div>
+
+                        {/* Bundle Tags */}
+                        {(() => {
+                          const bundleTags = getBundleTags(bundle);
+                          if (bundleTags.length === 0) return null;
+                          return (
+                            <div className="flex flex-wrap gap-1.5 mb-6">
+                              {bundleTags.slice(0, 5).map((t) => {
+                                const isTagSelected = selectedTags.includes(t);
+                                return (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => toggleTag(t)}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                      isTagSelected
+                                        ? "bg-blue-600 text-white shadow-sm"
+                                        : "bg-white text-gray-600 border border-blue-100 hover:border-blue-400 hover:text-blue-600"
+                                    }`}
+                                    title={`Filter by tag: ${t}`}
+                                  >
+                                    #{t}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
 
                         {/* Courses list with preview limit */}
                         <div className="space-y-4 mb-6">

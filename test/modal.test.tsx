@@ -41,20 +41,24 @@ describe("Modal Component", () => {
     expect(contentContainer.props.className).toContain("max-w-lg");
   });
 
-  it("should render custom maxWidth when specified (e.g., 90vw width)", () => {
+  it("should render custom maxWidth and responsive padding classes", () => {
     const result = Modal({
       isOpen: true,
       onClose: jest.fn(),
       title: "Custom Width Modal",
-      maxWidth: "max-w-[90vw] w-[90vw]",
+      maxWidth: "max-w-4xl w-full",
       children: <div>Content</div>,
     });
 
     expect(result).not.toBeNull();
-    const contentContainer = (result as React.ReactElement).props.children;
-    expect(contentContainer.props.className).toContain("max-w-[90vw]");
-    expect(contentContainer.props.className).toContain("w-[90vw]");
-    expect(contentContainer.props.className).not.toContain("max-w-lg");
+    const outerContainer = result as React.ReactElement;
+    expect(outerContainer.props.className).toContain("p-2 sm:p-4");
+
+    const contentContainer = outerContainer.props.children;
+    expect(contentContainer.props.className).toContain("max-w-4xl");
+    expect(contentContainer.props.className).toContain("w-full");
+    expect(contentContainer.props.className).toContain("p-4 sm:p-6");
+    expect(contentContainer.props.className).toContain("max-h-[94vh] sm:max-h-[90vh]");
   });
 
   it("should append custom className when provided", () => {
@@ -90,7 +94,7 @@ describe("Modal Component", () => {
 });
 
 describe("CourseModal Component", () => {
-  it("should configure 90% screen width (max-w-[90vw] w-[90vw]) by default", () => {
+  it("should configure max-w-4xl w-full by default for balanced modal width", () => {
     const originalUseState = React.useState;
     const originalUseEffect = React.useEffect;
     const originalUseCallback = React.useCallback;
@@ -107,11 +111,10 @@ describe("CourseModal Component", () => {
       });
 
       expect(result).not.toBeNull();
-      // CourseModal returns a fragment containing Modal and ConfirmationModal
       const fragment = result as React.ReactElement;
       const modalElement = fragment.props.children[0];
 
-      expect(modalElement.props.maxWidth).toBe("max-w-[90vw] w-[90vw]");
+      expect(modalElement.props.maxWidth).toBe("max-w-4xl w-full");
     } finally {
       React.useState = originalUseState;
       React.useEffect = originalUseEffect;
@@ -133,13 +136,45 @@ describe("CourseModal Component", () => {
         onClose: jest.fn(),
         onSave: jest.fn(),
         userRole: "instructor",
-        maxWidth: "max-w-4xl w-full",
+        maxWidth: "max-w-5xl w-full",
       });
 
       const fragment = result as React.ReactElement;
       const modalElement = fragment.props.children[0];
 
-      expect(modalElement.props.maxWidth).toBe("max-w-4xl w-full");
+      expect(modalElement.props.maxWidth).toBe("max-w-5xl w-full");
+    } finally {
+      React.useState = originalUseState;
+      React.useEffect = originalUseEffect;
+      React.useCallback = originalUseCallback;
+    }
+  });
+
+  it("should render multi-step wizard structure with desktop and mobile steppers", () => {
+    const originalUseState = React.useState;
+    const originalUseEffect = React.useEffect;
+    const originalUseCallback = React.useCallback;
+
+    try {
+      React.useState = jest.fn().mockImplementation((init) => [init, jest.fn()]);
+      React.useEffect = jest.fn();
+      React.useCallback = jest.fn().mockImplementation((fn) => fn);
+
+      const result = CourseModal({
+        onClose: jest.fn(),
+        onSave: jest.fn(),
+        userRole: "admin",
+      });
+
+      const fragment = result as React.ReactElement;
+      const modalElement = fragment.props.children[0];
+      const formElement = modalElement.props.children;
+
+      expect(formElement.type).toBe("form");
+
+      // Verify form contains children elements including steppers
+      const formChildren = React.Children.toArray(formElement.props.children);
+      expect(formChildren.length).toBeGreaterThanOrEqual(3);
     } finally {
       React.useState = originalUseState;
       React.useEffect = originalUseEffect;

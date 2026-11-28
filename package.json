@@ -8,7 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/patch-next-font.js",
     "dev:staging": "env-cmd -f .env.staging.local next dev",
     "test": "jest"
   },

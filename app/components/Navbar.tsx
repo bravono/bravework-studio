@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
-import LogoColor from "../../public/assets/BWS-Color.svg";
+const LogoColor = "/assets/Bravework_Studio-Logo-Color.png";
 import {
   Menu,
   X,
@@ -26,6 +26,8 @@ import {
   FileText,
   Sparkles as SparklesIcon,
   Monitor,
+  BookOpen,
+  PlayCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { pushCrossPromotionClick, getSectionFromPath } from "@/lib/gtm";
@@ -164,7 +166,15 @@ export default function Navbar() {
             { label: "Partner Hubs", href: "/academy/rentals/booking", icon: Users },
           ],
         },
-        { label: "Kids", href: "/kids", icon: Gamepad2 },
+        {
+          label: "Kids",
+          href: "/kids",
+          icon: Gamepad2,
+          items: [
+            { label: "Kids Courses", href: "/kids/courses", icon: BookOpen },
+            { label: "Fun Episodes", href: "/kids/episodes", icon: PlayCircle },
+          ],
+        },
       ],
     },
     {
@@ -200,13 +210,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 relative group">
+          <Link href="/" className="flex-shrink-0 relative group flex items-center">
             <Image
               src={LogoColor}
-              alt="BWS Logo"
-              width={65}
-              height={65}
-              className="transition-transform duration-300 group-hover:scale-110"
+              alt="Bravework Studio Logo"
+              width={75}
+              height={75}
+              className="h-14 w-auto transition-transform duration-300 group-hover:scale-105 object-contain"
             />
           </Link>
 
@@ -538,8 +548,14 @@ export default function Navbar() {
             className="fixed inset-0 top-0 left-0 w-full h-screen bg-white z-[60] flex flex-col md:hidden"
           >
             <div className="p-6 flex justify-between items-center border-b border-gray-100">
-              <Link href="/" onClick={() => setIsMenuOpen(false)}>
-                <Image src={LogoColor} alt="BWS Logo" width={55} height={55} />
+              <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center">
+                <Image
+                  src={LogoColor}
+                  alt="Bravework Studio Logo"
+                  width={65}
+                  height={65}
+                  className="h-14 w-auto object-contain"
+                />
               </Link>
               <button
                 onClick={() => setIsMenuOpen(false)}

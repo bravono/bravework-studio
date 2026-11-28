@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/auth/admin-auth-guard";
 import { queryDatabase, withTransaction } from "@/lib/db";
+import { cleanImageUrl } from "@/lib/utils/cleanImageUrl";
 
 export const runtime = "nodejs";
 
@@ -200,27 +201,78 @@ export async function PATCH(
       );
     }
 
-    const instructorName = instructor.split(" ");
-    console.log("Instructors Name", instructorName);
-    if (instructorName.length < 2) {
-      throw new Error("Instructor name must include first and last name.");
-    }
-
     return await withTransaction(async (client) => {
-      // 1. Find Instructor and Category IDs (required for update)
-      const instructorResult = await client.query(
-        `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
-        [instructorName[0], instructorName[1]],
+      // 1. Fetch current course details for fallbacks
+      const existingCourseResult = await client.query(
+        `SELECT * FROM courses WHERE course_id = $1`,
+        [courseId],
       );
-      const instructorId = instructorResult.rows[0]?.instructor_id;
-      if (!instructorId) throw new Error("Instructor not found.");
+      if (existingCourseResult.rows.length === 0) {
+        throw new Error(`Course with ID ${courseId} not found.`);
+      }
+      const existingCourse = existingCourseResult.rows[0];
 
-      const categoryResult = await client.query(
-        `SELECT category_id FROM course_categories WHERE category_name = $1`,
-        [category],
+      // 2. Resolve Instructor ID defensively
+      let instructorId = existingCourse.instructor_id;
+      if (
+        instructor &&
+        typeof instructor === "string" &&
+        instructor.trim() &&
+        instructor !== "none"
+      ) {
+        const trimmedInstructor = instructor.trim();
+        const instructorParts = trimmedInstructor.split(/\s+/);
+        const firstName = instructorParts[0];
+        const lastName =
+          instructorParts.length > 1
+            ? instructorParts.slice(1).join(" ")
+            : instructorParts[0];
+
+        const instructorResult = await client.query(
+          `SELECT instructor_id FROM instructors 
+           WHERE (first_name = $1 AND last_name = $2)
+              OR CONCAT_WS(' ', first_name, last_name) = $3
+              OR first_name = $3
+              OR last_name = $3
+              OR instructor_id::text = $3
+           LIMIT 1`,
+          [firstName, lastName, trimmedInstructor],
+        );
+        if (instructorResult.rows.length > 0) {
+          instructorId = instructorResult.rows[0].instructor_id;
+        }
+      } else if (typeof instructor === "number") {
+        instructorId = instructor;
+      }
+
+      // If still no instructorId, fallback to any available instructor in system
+      if (!instructorId) {
+        const fallbackInstructor = await client.query(
+          `SELECT instructor_id FROM instructors LIMIT 1`,
+        );
+        instructorId = fallbackInstructor.rows[0]?.instructor_id || null;
+      }
+
+      // 3. Resolve Category ID defensively
+      let categoryId = existingCourse.course_category_id;
+      if (category && typeof category === "string" && category.trim()) {
+        const trimmedCategory = category.trim();
+        const categoryResult = await client.query(
+          `SELECT category_id FROM course_categories 
+           WHERE category_name = $1 OR category_id::text = $1 
+           LIMIT 1`,
+          [trimmedCategory],
+        );
+        if (categoryResult.rows.length > 0) {
+          categoryId = categoryResult.rows[0].category_id;
+        }
+      } else if (typeof category === "number") {
+        categoryId = category;
+      }
+
+      const cleanThumbnail = cleanImageUrl(
+        thumbnailUrl !== undefined ? thumbnailUrl : existingCourse.thumbnail_url,
       );
-      const categoryId = categoryResult.rows[0]?.category_id;
-      if (!categoryId) throw new Error("Category not found.");
 
       const updateCourseQuery = `
                 UPDATE courses SET
@@ -230,25 +282,25 @@ export async function PATCH(
                 WHERE course_id = $20;
             `;
       const courseParams = [
-        title,
-        price,
-        description,
-        startDate,
-        endDate,
+        title !== undefined ? title : existingCourse.title,
+        price !== undefined ? price : existingCourse.price_in_kobo,
+        description !== undefined ? description : existingCourse.description,
+        startDate !== undefined ? startDate : existingCourse.start_date,
+        endDate !== undefined ? endDate : existingCourse.end_date,
         instructorId,
-        isActive,
-        isPublished,
-        maxStudents,
-        thumbnailUrl,
+        isActive !== undefined ? isActive : existingCourse.is_active,
+        isPublished !== undefined ? isPublished : existingCourse.is_published,
+        maxStudents !== undefined ? maxStudents : existingCourse.max_students,
+        cleanThumbnail,
         categoryId,
-        level,
-        language,
-        slug,
-        content,
-        excerpt,
-        isForKids || false,
-        parentCourseId || null,
-        duration || null,
+        level !== undefined ? level : existingCourse.level,
+        language !== undefined ? language : existingCourse.language,
+        slug !== undefined ? slug : existingCourse.slug,
+        content !== undefined ? content : existingCourse.content,
+        excerpt !== undefined ? excerpt : existingCourse.excerpt,
+        isForKids !== undefined ? isForKids : existingCourse.is_for_kids || false,
+        parentCourseId !== undefined ? (parentCourseId || null) : existingCourse.parent_course_id,
+        duration !== undefined ? duration : existingCourse.duration,
         courseId,
       ];
 
