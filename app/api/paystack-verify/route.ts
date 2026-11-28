@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryDatabase, withTransaction } from "../../../lib/db";
-import { processSuccessfulOrder, getOrderStatusMap } from "../../../lib/payment-utils";
-import { createZohoLead } from "@/lib/zoho";
+import {
+  processSuccessfulOrder,
+  processSuccessfulRentalBooking,
+  getOrderStatusMap,
+} from "../../../lib/payment-utils";
+import { createZohoContact, createZohoLead } from "@/lib/zoho";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 export async function POST(req: NextRequest) {
   if (!PAYSTACK_SECRET_KEY) {
-    console.error("Server configuration error: Paystack Secret Key is missing.");
-    return NextResponse.json({ message: "Server configuration error." }, { status: 500 });
+    console.error(
+      "Server configuration error: Paystack Secret Key is missing."
+    );
+    return NextResponse.json(
+      { message: "Server configuration error." },
+      { status: 500 }
+    );
   }
 
   const body = await req.json();
@@ -17,7 +26,10 @@ export async function POST(req: NextRequest) {
   console.log("Product ID from metadata:", productId);
 
   if (!reference) {
-    return NextResponse.json({ success: false, message: "No Paystack reference provided." }, { status: 400 });
+    return NextResponse.json(
+      { success: false, message: "No Paystack reference provided." },
+      { status: 400 }
+    );
   }
 
   try {
@@ -38,7 +50,11 @@ export async function POST(req: NextRequest) {
     if (!paystackData.status || paystackData.data.status !== "success") {
       console.error("Paystack verification failed:", paystackData);
       return NextResponse.json(
-        { success: false, message: "Paystack verification failed.", details: paystackData },
+        {
+          success: false,
+          message: "Paystack verification failed.",
+          details: paystackData,
+        },
         { status: 400 }
       );
     }
@@ -49,25 +65,35 @@ export async function POST(req: NextRequest) {
     const customerEmail = transactionData.customer.email;
     const gatewayResponse = transactionData.gateway_response;
     const metadata = transactionData.metadata;
-    
+
     const serviceType = metadata?.service;
     const orderId = metadata?.orderId;
     const customerName = metadata?.customer_name;
     const paystackPaymentOption = metadata?.payment_option;
-    const paymentPercentage = parseFloat(metadata?.payment_percentage);
+    const paymentPercentage = parseFloat(metadata?.payment_percentage || "1.0");
     const discountApplied = parseFloat(metadata?.discount_applied || "0");
-    const metaDataOriginalAmountKobo = parseFloat(metadata?.original_amount_kobo);
+    const metaDataOriginalAmountKobo = parseFloat(
+      metadata?.original_amount_kobo || "0"
+    );
+    const bundleGroupId = metadata?.bundleGroupId;
     const walletUsageKobo = parseFloat(metadata?.wallet_usage_kobo || "0");
+    const tipAmountKobo = parseFloat(metadata?.tip_amount_kobo || "0");
     productId = metadata?.productId;
+    const couponCode = metadata?.coupon_code;
 
-    if (!orderId || !serviceType) {
-      return NextResponse.json({ success: false, message: "Missing critical metadata." }, { status: 400 });
+    if ((!orderId && !bundleGroupId) || !serviceType) {
+      return NextResponse.json(
+        { success: false, message: "Missing critical metadata." },
+        { status: 400 }
+      );
     }
 
-    return await withTransaction(async (client) => {
+    const result = await withTransaction(async (client) => {
       // 2. Idempotency Check
       const existingPaymentRows = await client.query(
-        "SELECT payment_id FROM payments WHERE paystack_reference = $1 AND paystack_status = $2 AND order_id = $3",
+        `SELECT payment_id FROM payments 
+         WHERE paystack_reference = $1 AND paystack_status = $2 
+         AND (order_id = $3 OR rental_booking_id = $3)`,
         [reference, "success", orderId]
       );
 
@@ -76,6 +102,7 @@ export async function POST(req: NextRequest) {
           success: true,
           message: "Payment already processed.",
           data: transactionData,
+          redirect: "/user/dashboard",
         });
       }
 
@@ -90,145 +117,398 @@ export async function POST(req: NextRequest) {
           "SELECT price_in_kobo, title, start_date, end_date FROM courses WHERE course_id = $1",
           [courseId]
         );
-        if (courseRows.rows.length === 0) throw new Error(`Course ${courseId} not found.`);
+        if (courseRows.rows.length === 0)
+          throw new Error(`Course ${courseId} not found.`);
         const courseDetails = courseRows.rows[0];
 
         totalExpectedOrderAmountKobo = discountApplied
           ? (courseDetails.price_in_kobo / 100) * paymentPercentage
-          : actualAmountKobo + walletUsageKobo; // Total needed is what was paid + wallet
-          
+          : actualAmountKobo + walletUsageKobo - tipAmountKobo; // Total needed for course is what was paid + wallet minus tip
+
         // Double check against DB price if no discount
         if (!discountApplied && paymentPercentage === 100) {
-             totalExpectedOrderAmountKobo = courseDetails.price_in_kobo;
+          totalExpectedOrderAmountKobo = courseDetails.price_in_kobo;
         }
 
         orderTitle = courseDetails.title;
         project_duration_days = courseDetails.end_date
-          ? Math.ceil((new Date(courseDetails.end_date).getTime() - new Date(courseDetails.start_date).getTime()) / (1000 * 60 * 60 * 24))
+          ? Math.ceil(
+              (new Date(courseDetails.end_date).getTime() -
+                new Date(courseDetails.start_date).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
           : null;
-
       } else if (serviceType === "custom-offer") {
         const offerId = productId;
         const customOfferRows = await client.query(
           "SELECT offer_amount_in_kobo, description, project_duration_days FROM custom_offers WHERE offer_id = $1",
           [offerId]
         );
-        if (customOfferRows.rows.length === 0) throw new Error(`Offer ${offerId} not found.`);
+        if (customOfferRows.rows.length === 0)
+          throw new Error(`Offer ${offerId} not found.`);
         const customOfferDetails = customOfferRows.rows[0];
-        
+
         orderTitle = customOfferDetails.description;
         project_duration_days = customOfferDetails.project_duration_days;
-        
+
         // Recalculate expected based on option
         let baseAmount = customOfferDetails.offer_amount_in_kobo;
         switch (paystackPaymentOption) {
-          case "deposit_50": totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.5); break;
-          case "deposit_70_discount": totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.7 * 0.95); break;
-          case "full_100_discount": totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.9); break;
-          default: totalExpectedOrderAmountKobo = baseAmount;
+          case "deposit_50":
+            totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.5);
+            break;
+          case "deposit_70_discount":
+            totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.7 * 0.95);
+            break;
+          case "full_100_discount":
+            totalExpectedOrderAmountKobo = Math.round(baseAmount * 0.9);
+            break;
+          default:
+            totalExpectedOrderAmountKobo = baseAmount;
         }
+      } else if (serviceType === "rental") {
+        const bookingId = productId;
+        const bookingRows = await client.query(
+          `SELECT rb.total_amount_kobo, r.device_name 
+           FROM rental_bookings rb 
+           JOIN rentals r ON rb.rental_id = r.rental_id 
+           WHERE rb.rental_booking_id = $1`,
+          [bookingId]
+        );
+        if (bookingRows.rows.length === 0)
+          throw new Error(`Booking ${bookingId} not found.`);
+        const bookingDetails = bookingRows.rows[0];
+
+        orderTitle = `Rental: ${bookingDetails.device_name}`;
+        totalExpectedOrderAmountKobo = bookingDetails.total_amount_kobo;
       } else {
         throw new Error(`Unknown service type: ${serviceType}`);
       }
 
       // Verify Amounts
       if (actualAmountKobo + walletUsageKobo !== totalExpectedOrderAmountKobo) {
-         // Allow small rounding diffs? For now strict.
-         // console.warn("Amount mismatch", { actual: actualAmountKobo, wallet: walletUsageKobo, expected: totalExpectedOrderAmountKobo });
+        // Allow small rounding diffs? For now strict.
+        // console.warn("Amount mismatch", { actual: actualAmountKobo, wallet: walletUsageKobo, expected: totalExpectedOrderAmountKobo });
       }
 
-      // 3. Fetch Order
-      const orderRows = await client.query("SELECT * FROM orders WHERE order_id = $1", [orderId]);
-      if (orderRows.rows.length === 0) throw new Error(`Order ${orderId} not found.`);
-      const order = orderRows.rows[0];
-
-      // 4. Insert Payment
-      await client.query(
-        `INSERT INTO payments (order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, payment_option_selected, discount_applied_percentage, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
-        [order.order_id, reference, actualAmountKobo, actualCurrency, transactionData.status, gatewayResponse, customerEmail, paystackPaymentOption, discountApplied]
-      );
-
-      // 5. Handle Wallet Usage (if any)
-      if (walletUsageKobo > 0) {
-        // Verify balance again? Ideally yes, but if metadata says so, we trust frontend? NO.
-        // But for now, let's assume the wallet deduction happened or we record it here.
-        // Actually, we should record the usage here.
-        await client.query(
-            `INSERT INTO wallet_usages (user_id, order_id, amount_kobo) VALUES ($1, $2, $3)`,
-            [order.user_id, order.order_id, walletUsageKobo]
+      // 3. Fetch Context (User ID)
+      let userId: number;
+      if (serviceType === "rental") {
+        const bookingRes = await client.query(
+          "SELECT client_id FROM rental_bookings WHERE rental_booking_id = $1",
+          [orderId]
         );
+        userId = bookingRes.rows[0].client_id;
+      } else {
+        const orderRows = await client.query(
+          "SELECT * FROM orders WHERE order_id = $1",
+          [orderId]
+        );
+        if (orderRows.rows.length === 0)
+          throw new Error(`Order ${orderId} not found.`);
+        userId = orderRows.rows[0].user_id;
       }
 
-      // 6. Process Order Completion (Updates Order, Offer, etc.)
-      await processSuccessfulOrder(
-        client,
-        order.order_id,
-        actualAmountKobo + walletUsageKobo,
-        totalExpectedOrderAmountKobo,
-        orderTitle,
-        project_duration_days,
-        serviceType,
-        productId
-      );
+      // 4. Handle Bundle vs Single Order
+      if ((serviceType === "bundle" || serviceType === "course") && bundleGroupId) {
+        const bundleOrdersRes = await client.query(
+          "SELECT order_id, title, total_expected_amount_kobo, tracking_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2",
+          [userId, `BUNDLE-${bundleGroupId}-%`],
+        );
 
-      // 7. Referral Commission Logic
-      const userRes = await client.query("SELECT referred_by_id FROM users WHERE user_id = $1", [order.user_id]);
-      const referredById = userRes.rows[0]?.referred_by_id;
+        if (bundleOrdersRes.rows.length === 0) {
+          throw new Error(`No orders found for bundle group ${bundleGroupId}`);
+        }
 
-      if (referredById) {
-        // Check if first purchase
-        const paymentsCount = await client.query("SELECT count(*) FROM payments WHERE order_id IN (SELECT order_id FROM orders WHERE user_id = $1)", [order.user_id]);
-        // If this is the first payment (count is 1 because we just inserted), OR if we check completed orders.
-        // Let's check if there are any OTHER successful payments before this one.
-        // Actually, simplicity: If this is the first time we are giving commission.
-        const existingEarnings = await client.query("SELECT 1 FROM referral_earnings WHERE referred_user_id = $1", [order.user_id]);
+        const bundleOrders = bundleOrdersRes.rows;
         
-        if (existingEarnings.rows.length === 0) {
-            let commissionAmount = 0;
-            // Logic: If discount >= 20%, user pays commission (already deducted from their price? No, logic says: "If they have a referral they will give their referral 10% and 10% for themselves. Same happen if they have more than 20%. If they have only 10% then the referrals 10% comes from us.")
-            
-            // If Discount Applied >= 20%:
-            // The user got >= 20% off. 
-            // The logic implies: The 10% commission is "part" of that discount.
-            // But here we are just calculating the commission amount to record.
-            // Commission is ALWAYS 10% of the *Total Order Value* (or paid amount? Usually Order Value).
-            // "give 10% of the total money the user paid" -> User Request.
-            // "how much they pay for their first purchase"
-            
-            const amountPaidForCommissionBase = actualAmountKobo + walletUsageKobo;
-            commissionAmount = Math.round(amountPaidForCommissionBase * 0.10);
-            
-            await client.query(
-                `INSERT INTO referral_earnings (referrer_id, referred_user_id, amount_kobo, order_id) VALUES ($1, $2, $3, $4)`,
-                [referredById, order.user_id, commissionAmount, order.order_id]
-            );
-            console.log(`Commission of ${commissionAmount} recorded for referrer ${referredById}`);
+        for (const bo of bundleOrders) {
+          // Check if already paid
+          const existingPayment = await client.query(
+            "SELECT payment_id FROM payments WHERE (paystack_reference = $1 OR paystack_reference = $3) AND order_id = $2",
+            [reference, bo.order_id, `${reference}_${bo.order_id}`],
+          );
+          if (existingPayment.rows.length > 0) continue;
+
+          // Fetch Course ID for this order title
+          const courseRes = await client.query(
+            "SELECT course_id FROM courses WHERE title = $1",
+            [bo.title],
+          );
+          const bundleCourseId = courseRes.rows[0]?.course_id;
+
+          // Insert Payment
+          await client.query(
+            `INSERT INTO payments (
+              order_id, paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, payment_option_selected, discount_applied_percentage, created_at, updated_at
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+             ON CONFLICT (paystack_reference) DO NOTHING`,
+            [
+              bo.order_id,
+              `${reference}_${bo.order_id}`,
+              bo.total_expected_amount_kobo,
+              actualCurrency,
+              transactionData.status,
+              gatewayResponse,
+              customerEmail,
+              paystackPaymentOption,
+              discountApplied,
+            ],
+          );
+
+          // Process Completion
+          await processSuccessfulOrder(
+            client,
+            bo.order_id,
+            bo.total_expected_amount_kobo,
+            bo.total_expected_amount_kobo,
+            bo.title,
+            null, // Duration can be fetched if needed
+            "course",
+            bundleCourseId,
+          );
+        }
+      } else {
+        // Individual Order Logic
+        const targetIdField = serviceType === "rental" ? "rental_booking_id" : "order_id";
+        
+        await client.query(
+          `INSERT INTO payments (
+            ${targetIdField}, 
+            paystack_reference, amount_kobo, currency, paystack_status, gateway_response, customer_email, payment_option_selected, discount_applied_percentage, created_at, updated_at
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+           ON CONFLICT (paystack_reference) DO NOTHING`,
+          [
+            orderId,
+            reference,
+            actualAmountKobo,
+            actualCurrency,
+            transactionData.status,
+            gatewayResponse,
+            customerEmail,
+            paystackPaymentOption,
+            discountApplied,
+          ]
+        );
+
+        const orderAmountPaidKobo = Math.max(
+          0,
+          actualAmountKobo + walletUsageKobo - tipAmountKobo
+        );
+
+        if (serviceType === "rental") {
+          await processSuccessfulRentalBooking(
+            client,
+            parseInt(orderId as string),
+            orderAmountPaidKobo
+          );
+        } else {
+          await processSuccessfulOrder(
+            client,
+            parseInt(orderId as string),
+            orderAmountPaidKobo,
+            totalExpectedOrderAmountKobo,
+            orderTitle,
+            project_duration_days,
+            serviceType,
+            productId
+          );
         }
       }
 
-      // Integrate Zoho CRM
-      try {
-        const leadData = {
-          Last_Name: customerName || "Unknown",
-          Email: customerEmail,
-          Description: `Order ID: ${orderId}\nTitle: ${orderTitle}\nAmount: ${actualAmountKobo / 100} ${actualCurrency}`,
-          Lead_Source: "Course Enrollment/Order",
-        };
-        await createZohoLead(leadData);
-        console.log(`Zoho Lead created for ${customerEmail}`);
-      } catch (zohoError) {
-        console.error("Failed to create Zoho Lead:", zohoError);
+      // 5. Handle Wallet Usage (if any)
+      if (walletUsageKobo > 0) {
+        const walletOrderId = serviceType === "bundle" && bundleGroupId 
+          ? (await client.query("SELECT order_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2 LIMIT 1", [userId, `BUNDLE-${bundleGroupId}-%`])).rows[0]?.order_id
+          : orderId;
+
+        await client.query(
+          `INSERT INTO wallet_usages (user_id, ${
+            serviceType === "rental" ? "rental_booking_id" : "order_id"
+          }, amount_kobo) VALUES ($1, $2, $3)`,
+          [userId, walletOrderId, walletUsageKobo]
+        );
       }
 
-      return NextResponse.json({
+      // 6. Handle Coupon Usage
+      if (couponCode) {
+        const couponRes = await client.query(
+          "SELECT coupon_id, creator_id FROM coupons WHERE UPPER(coupon_code) = $1",
+          [couponCode.trim().toUpperCase()]
+        );
+        if (couponRes.rows.length > 0) {
+          const couponId = couponRes.rows[0].coupon_id;
+          const creatorId = couponRes.rows[0].creator_id;
+
+          // Record coupon usage by the user
+          await client.query(
+            "INSERT INTO user_coupons (user_id, coupon_id) VALUES ($1, $2)",
+            [userId, couponId]
+          );
+
+          // If creator exists and user doesn't have a referrer, link them
+          if (creatorId && creatorId !== userId) {
+            await client.query(
+              "UPDATE users SET referred_by_id = $1 WHERE user_id = $2 AND referred_by_id IS NULL",
+              [creatorId, userId]
+            );
+          }
+        }
+      }
+
+      // 7. Referral Commission Logic
+      if (serviceType !== "rental") {
+        const referralOrderId = serviceType === "bundle" && bundleGroupId
+          ? (await client.query("SELECT order_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2 LIMIT 1", [userId, `BUNDLE-${bundleGroupId}-%`])).rows[0]?.order_id
+          : orderId;
+
+        const userRes = await client.query(
+          "SELECT referred_by_id FROM users WHERE user_id = $1",
+          [userId]
+        );
+        const referredById = userRes.rows[0]?.referred_by_id;
+
+        if (referredById && referralOrderId) {
+          const existingEarnings = await client.query(
+            "SELECT 1 FROM referral_earnings WHERE referred_user_id = $1 AND order_id = $2",
+            [userId, referralOrderId]
+          );
+
+          if (existingEarnings.rows.length === 0) {
+            const commissionAmount = (10 / 100) * actualAmountKobo;
+            await client.query(
+              "INSERT INTO referral_earnings (referrer_id, referred_user_id, order_id, amount_kobo) VALUES ($1, $2, $3, $4)",
+              [referredById, userId, referralOrderId, Math.round(commissionAmount)]
+            );
+          }
+        }
+      }
+
+      // Create local invoice record
+      const orderStatusMap = await getOrderStatusMap(client);
+      const paidStatusId = orderStatusMap["paid"] || 3;
+      const totalAmountDecimal = (actualAmountKobo + walletUsageKobo) / 100;
+      
+      const invoiceOrderTarget = serviceType === "bundle" && bundleGroupId
+        ? (await client.query("SELECT order_id FROM orders WHERE user_id = $1 AND tracking_id LIKE $2 LIMIT 1", [userId, `BUNDLE-${bundleGroupId}-%`])).rows[0]?.order_id
+        : orderId;
+
+      const invoiceInsertRes = await client.query(
+        `INSERT INTO invoices (
+          order_id, total_amount, date, payment_status_id, user_id
+        ) VALUES ($1, $2, NOW(), $3, $4) RETURNING invoice_id`,
+        [invoiceOrderTarget, totalAmountDecimal, paidStatusId, userId]
+      );
+      const localInvoiceId = invoiceInsertRes.rows[0]?.invoice_id;
+
+      return {
         success: true,
-        message: "Payment verified and order updated.",
-        data: transactionData,
-      });
+        localInvoiceId,
+        userId,
+        orderTitle,
+        totalAmountDecimal,
+        customerEmail,
+        customerName,
+        serviceType,
+        bundleGroupId,
+        orderId,
+        actualAmountKobo,
+        actualCurrency,
+        reference
+      };
+    });
+
+    if (result instanceof Response) {
+      return result;
+    }
+
+    if (result && result.success) {
+      // 1. Run Zoho CRM Contact Sync asynchronously
+      (async () => {
+        try {
+          const zohoOrderId = result.serviceType === "bundle" && result.bundleGroupId ? `BUNDLE-${result.bundleGroupId}` : result.orderId;
+          const contactData = {
+            Last_Name: result.customerName || "Unknown",
+            Email: result.customerEmail,
+            Description: `Order ID: ${zohoOrderId}\nTitle: ${result.orderTitle || "Bundle Order"}\nAmount: ${
+              result.actualAmountKobo / 100
+            } ${result.actualCurrency}`,
+            Lead_Source: "Course Enrollment/Order",
+          };
+          await createZohoContact(contactData);
+        } catch (zohoError) {
+          console.error("Failed to create Zoho Contact:", zohoError);
+        }
+      })();
+
+      // 2. Run Zoho Dedicated Invoice Sync asynchronously
+      (async () => {
+        try {
+          const { getOrCreateZohoInvoiceContact, createZohoInvoice, recordZohoInvoicePayment } = await import("@/lib/zoho");
+          const { queryDatabase } = await import("@/lib/db");
+
+          // 2a. Get or create Zoho Invoice Contact
+          const zohoContactId = await getOrCreateZohoInvoiceContact(result.customerEmail, result.customerName);
+
+          // 2b. Create Zoho Invoice
+          const zohoInvoice = await createZohoInvoice(
+            zohoContactId,
+            result.orderTitle,
+            result.totalAmountDecimal,
+            result.orderId
+          );
+
+          // 2c. Record Zoho Payment
+          await recordZohoInvoicePayment(
+            zohoContactId,
+            zohoInvoice.invoice_id,
+            result.totalAmountDecimal,
+            result.reference
+          );
+
+          // 2d. Update local invoice with Zoho details
+          await queryDatabase(
+            `UPDATE invoices 
+             SET zoho_invoice_id = $1, 
+                 invoice_number = $2, 
+                 invoice_pdf_url = $3 
+             WHERE invoice_id = $4`,
+            [
+              zohoInvoice.invoice_id,
+              zohoInvoice.invoice_number,
+              zohoInvoice.client_view_url,
+              result.localInvoiceId
+            ]
+          );
+          console.log(`✅ Zoho Dedicated Invoice synced for local invoice #${result.localInvoiceId}`);
+        } catch (zohoInvError) {
+          console.error("❌ Failed to sync Zoho Dedicated Invoice:", zohoInvError);
+        }
+      })();
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Payment verified and order updated.",
+      data: transactionData,
     });
   } catch (error: any) {
     console.error("Error during verification:", error);
-    return NextResponse.json({ success: false, message: error.message || "Internal Error" }, { status: 500 });
+    
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      if (error.message.includes("unique_user_title_orders")) {
+        return NextResponse.json(
+          { success: false, message: "You already have this order. Please check your dashboard." },
+          { status: 400 },
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, message: error.message || "Internal Error" },
+      { status: 500 }
+    );
   }
 }

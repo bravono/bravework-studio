@@ -3,19 +3,52 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import {
+  Trash2,
+  PlusCircle,
+  Video,
+  Calendar,
+  Image as ImageIcon,
+} from "lucide-react";
+
+import dynamic from "next/dynamic";
+
+import "react-quill/dist/quill.snow.css";
+
+import Modal from "@/app/components/Modal";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
+import {
   CourseSession,
   SessionOption,
   CourseModalProps,
   SessionFormProps,
   Tool,
+  Course,
 } from "@/app/types/app";
-import Modal from "@/app/components/Modal";
-import ConfirmationModal from "@/app/components/ConfirmationModal";
-import { Trash2, PlusCircle, FileUpIcon, Video, Calendar } from "lucide-react";
-import dynamic from "next/dynamic";
-import "react-quill/dist/quill.snow.css";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    ["link"],
+    ["clean"],
+  ],
+};
+
+const formats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "list",
+  "bullet",
+  "indent",
+  "link",
+];
 
 // Helper to generate a unique Jitsi link
 const generateJitsiLink = () => {
@@ -64,7 +97,7 @@ const generateGoogleCalendarLink = (
   datetime: string,
   duration: number,
   details: string,
-  location: string
+  location: string,
 ) => {
   if (!datetime) return "";
 
@@ -150,7 +183,7 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "label",
-                e.target.value
+                e.target.value,
               )
             }
             required
@@ -179,7 +212,7 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "duration",
-                parseInt(e.target.value || "0", 10)
+                parseInt(e.target.value || "0", 10),
               )
             }
             required
@@ -206,10 +239,9 @@ const SessionForm = ({
                 session.id,
                 option.optionNumber,
                 "datetime",
-                e.target.value
+                e.target.value,
               )
             }
-            required
             className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm"
           />
           {option.datetime && (
@@ -219,7 +251,7 @@ const SessionForm = ({
                 option.datetime,
                 option.duration,
                 `Join the session here: ${option.link}`,
-                option.link
+                option.link,
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -248,7 +280,7 @@ const SessionForm = ({
                   session.id,
                   option.optionNumber,
                   "link",
-                  e.target.value
+                  e.target.value,
                 )
               }
               placeholder="https://meet.jit.si/..."
@@ -261,7 +293,7 @@ const SessionForm = ({
                   session.id,
                   option.optionNumber,
                   "link",
-                  generateJitsiLink()
+                  generateJitsiLink(),
                 )
               }
               className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-indigo-600"
@@ -292,59 +324,61 @@ export default function CourseModal({
   userRole,
   currentInstructorName,
   currentInstructorId,
+  maxWidth = "max-w-[90vw] w-[90vw]",
 }: CourseModalProps) {
-  const KOBO_PER_NAIRA = 100;
   const labelStyle = "flex items-center text-sm font-medium text-gray-700 mb-1";
 
   // Existing state variables
   const [title, setTitle] = useState<string>(existingCourse?.title || "");
   const [price, setPrice] = useState<number>(existingCourse?.price || 0);
   const [description, setDescription] = useState<string>(
-    existingCourse?.description || ""
+    existingCourse?.description || "",
   );
   const [startDate, setStartDate] = useState<string>(
-    existingCourse?.startDate || ""
+    existingCourse?.startDate || "",
   );
   const [endDate, setEndDate] = useState<string>(existingCourse?.endDate || "");
   const initialInstructorName =
-    existingCourse?.instructor || currentInstructorName; // Use the logged-in instructor's name for instructor role
+    existingCourse?.instructor ||
+    (userRole === "admin" ? "none" : currentInstructorName); // Use "none" for admin to allow selection, instructor defaults to self
   const [instructor, setInstructor] = useState<string>(initialInstructorName);
   const [isActive, setIsActive] = useState<boolean>(
-    existingCourse?.isActive || false
+    existingCourse?.isActive || false,
+  );
+  const [isPublished, setIsPublished] = useState<boolean>(
+    existingCourse?.isPublished || false,
   );
   const [maxStudents, setMaxStudents] = useState<string>(
-    existingCourse?.maxStudents || "0"
+    existingCourse?.maxStudents || "0",
   );
   const [thumbnailUrl, setThumbnailUrl] = useState<string>(
-    existingCourse?.thumbnailUrl || ""
+    existingCourse?.thumbnailUrl || "",
   );
   const [category, setCategory] = useState<string>(
-    existingCourse?.category || ""
+    existingCourse?.category || "",
   );
   const [level, setLevel] = useState<string>(
-    existingCourse?.level || "Beginner"
+    existingCourse?.level || "Beginner",
   );
   const [language, setLanguage] = useState<string>(
-    existingCourse?.language || "English"
+    existingCourse?.language || "English",
   );
   const [slug, setSlug] = useState<string>(existingCourse?.slug || "");
   const [content, setContent] = useState<string>(existingCourse?.content || "");
   const [excerpt, setExcerpt] = useState<string>(existingCourse?.excerpt || "");
-  const [ageBracket, setAgeBracket] = useState<string>(
-    existingCourse?.ageBracket || ""
+  const [isForKids, setIsForKids] = useState<boolean>(
+    existingCourse?.isForKids || false,
+  );
+  const [tags, setTags] = useState<string[]>(existingCourse?.tags || []);
+  const [duration, setDuration] = useState<string>(
+    existingCourse?.duration || "",
   );
   const [selectedTools, setSelectedTools] = useState<number[]>(
-    existingCourse?.tools?.map((t) => t.id) || []
+    existingCourse?.tools?.map((t) => t.id) || [],
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [fileInfo, setFileInfo] = useState<{
-    fileName: string;
-    fileSize: string;
-    fileUrl: string;
-  } | null>(null);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
@@ -357,6 +391,18 @@ export default function CourseModal({
     Array<{ name: string }>
   >([]);
   const [availableTools, setAvailableTools] = useState<Tool[]>([]);
+  const [availableTags, setAvailableTags] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+
+  // NEW: State for Hierarchy
+  const [parentCourseId, setParentCourseId] = useState<number | "">(
+    existingCourse?.parentCourseId || "",
+  );
+  const [childCourseIds, setChildCourseIds] = useState<number[]>(
+    existingCourse?.childCourseIds || [],
+  );
 
   // NEW: State for Sessions
   const [sessions, setSessions] = useState<CourseSession[]>(
@@ -367,7 +413,7 @@ export default function CourseModal({
             ...opt,
           })),
         }))
-      : [createInitialSession()]
+      : [createInitialSession()],
   );
 
   // NEW: Session Management Functions
@@ -376,7 +422,7 @@ export default function CourseModal({
       sessionId: number,
       optionNumber: number,
       field: keyof SessionOption,
-      value: any
+      value: any,
     ) => {
       setSessions((prevSessions) =>
         prevSessions.map((session) => {
@@ -390,10 +436,10 @@ export default function CourseModal({
             return { ...session, options: newOptions };
           }
           return session;
-        })
+        }),
       );
     },
-    []
+    [],
   );
 
   const addSession = () => {
@@ -406,7 +452,7 @@ export default function CourseModal({
       return;
     }
     setSessions((prevSessions) =>
-      prevSessions.filter((session) => session.id !== sessionId)
+      prevSessions.filter((session) => session.id !== sessionId),
     );
   };
 
@@ -424,7 +470,7 @@ export default function CourseModal({
           };
         }
         return session;
-      })
+      }),
     );
   };
 
@@ -439,17 +485,23 @@ export default function CourseModal({
           return {
             ...session,
             options: session.options.filter(
-              (o) => o.optionNumber !== optionNumber
+              (o) => o.optionNumber !== optionNumber,
             ),
           };
         }
         return session;
-      })
+      }),
     );
   };
 
   useEffect(() => {
-    console.log("Existing Course Instructor", existingCourse?.instructor);
+    if (userRole === "instructor" && !existingCourse && currentInstructorName) {
+      setInstructor(currentInstructorName);
+    }
+  }, [userRole, existingCourse, currentInstructorName]);
+
+  useEffect(() => {
+    console.log("Existing Course", existingCourse);
   }, [existingCourse]);
 
   // Auto-generate slug from title
@@ -468,7 +520,7 @@ export default function CourseModal({
     if (content) {
       const plainText = content.replace(/<[^>]+>/g, "");
       setExcerpt(
-        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : "")
+        plainText.substring(0, 150) + (plainText.length > 150 ? "..." : ""),
       );
     }
   }, [content]);
@@ -488,6 +540,21 @@ export default function CourseModal({
         const toolsRes = await fetch("/api/tools");
         const toolsData = await toolsRes.json();
         setAvailableTools(toolsData);
+
+        const tagsRes = await fetch("/api/tags");
+        const tagsData = await tagsRes.json();
+        setAvailableTags(tagsData);
+
+        // Fetch courses for hierarchy, we can use the same route or /api/courses
+        // For admin/instructor it's better to fetch from their specific API, but /api/courses returns all active
+        // To be safe, we will fetch from /api/courses
+        const coursesRes = await fetch("/api/courses");
+        const coursesData = await coursesRes.json();
+        // Exclude current course from available courses to prevent circular dependency
+        const filteredCourses = existingCourse
+          ? coursesData.filter((c: Course) => c.id !== existingCourse.id)
+          : coursesData;
+        setAvailableCourses(filteredCourses);
       } catch (e) {
         console.error("Failed to fetch backend options:", e);
       }
@@ -501,20 +568,24 @@ export default function CourseModal({
       setTitle(existingCourse.title);
       setPrice(existingCourse.price / KOBO_PER_NAIRA);
       setInstructor(existingCourse.instructor);
-      setIsActive(existingCourse.isActive);
-      setMaxStudents(existingCourse.maxStudents);
       setThumbnailUrl(existingCourse.thumbnailUrl);
+      setIsActive(existingCourse.isActive);
+      setIsPublished(existingCourse.isPublished || false);
       setCategory(existingCourse.category);
       setLevel(existingCourse.level);
       setLanguage(existingCourse.language);
       setSlug(existingCourse.slug || "");
       setContent(existingCourse.content || "");
       setExcerpt(existingCourse.excerpt || "");
-      setAgeBracket(existingCourse.ageBracket || "");
+      setIsForKids(existingCourse.isForKids || false);
+      setTags(existingCourse.tags || []);
+      setDuration(existingCourse.duration || "");
       setSelectedTools(existingCourse.software?.map((t) => t.id) || []);
       setDescription(existingCourse.description);
       setStartDate(existingCourse.startDate);
       setEndDate(existingCourse.endDate);
+      setParentCourseId(existingCourse.parentCourseId || "");
+      setChildCourseIds(existingCourse.childCourseIds || []);
 
       if (existingCourse.sessions && existingCourse.sessions.length > 0) {
         setSessions(
@@ -522,9 +593,12 @@ export default function CourseModal({
             id: index + 1,
             options: s.options.map((opt: any) => ({
               ...opt,
-              datetime: opt.datetime || opt.time || "",
+              datetime:
+                formatDateTimeLocal(opt.datetime) ||
+                formatDateTimeLocal(opt.time) ||
+                "",
             })),
-          }))
+          })),
         );
       }
     }
@@ -537,14 +611,12 @@ export default function CourseModal({
     setSubmitStatus("idle");
     setIsConfirmationOpen(true);
 
-    // File upload logic remains the same (omitted for brevity, assume success updates fileInfo)
-
     // Prepare the body with the new sessions data
     const sessionsPayload = sessions.map((session) => ({
       options: session.options.map((option) => ({
         optionNumber: option.optionNumber,
         link: option.link,
-        time: option.datetime,
+        time: option.datetime || null,
         label: option.label,
         duration: option.duration, // Now a number (minutes)
       })),
@@ -563,10 +635,12 @@ export default function CourseModal({
           title,
           price_in_kobo: price * KOBO_PER_NAIRA,
           description,
-          start_date: startDate,
-          end_date: endDate,
-          instructor,
+          start_date: startDate || null,
+          end_date: endDate || null,
+          instructor:
+            instructor === "none" ? currentInstructorName : instructor,
           is_active: isActive,
+          is_published: isPublished,
           max_students: maxStudents,
           thumbnail_url: thumbnailUrl,
           course_category: category,
@@ -575,13 +649,17 @@ export default function CourseModal({
           slug,
           content,
           excerpt,
-          age_bracket: ageBracket,
+          is_for_kids: isForKids,
+          tags: tags,
+          duration: duration,
           tools: selectedTools,
           sessions: sessionsPayload, // NEW: Include the sessions data
+          parent_course_id: parentCourseId === "" ? null : parentCourseId,
+          child_course_ids: childCourseIds,
         }).map(([key, value]) => [
           key,
           typeof value === "string" ? value.trim() : value,
-        ])
+        ]),
       );
 
       console.log("Payload:", body); // Log the payload including sessions
@@ -593,15 +671,22 @@ export default function CourseModal({
         body: JSON.stringify(body),
       });
 
-      if (!res.ok)
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
         throw new Error(
-          `Failed to ${method === "PATCH" ? "update" : "create"} course.`
+          errorData.error ||
+            errorData.message ||
+            `Failed to ${method === "PATCH" ? "update" : "create"} course.`,
         );
+      }
+
+      const data = await res.json().catch(() => ({}));
+      const savedCourseId = data.courseId || existingCourse?.id;
 
       toast.success(
-        `Course ${existingCourse ? "updated" : "created"} successfully!`
+        `Course ${existingCourse ? "updated" : "created"} successfully!`,
       );
-      onSave?.();
+      onSave?.(savedCourseId ? String(savedCourseId) : undefined);
       onClose(); // Close the modal
     } catch (err: any) {
       console.error("Error saving course:", err.message);
@@ -609,28 +694,6 @@ export default function CourseModal({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Existing file change logic (omitted for brevity)
-    const selectedFile =
-      e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    setFile(selectedFile);
-
-    if (!selectedFile) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target && typeof event.target.result === "string") {
-        setFileInfo({
-          fileName: selectedFile.name,
-          fileSize: `${(selectedFile.size / 1024).toFixed(2)} KB`,
-          fileUrl: event.target.result,
-        });
-        toast.success(`File ${selectedFile.name} has been attached!`);
-      }
-    };
-    reader.readAsDataURL(selectedFile);
   };
 
   // --- Render ---
@@ -641,6 +704,7 @@ export default function CourseModal({
         isOpen={true}
         onClose={onClose}
         title={existingCourse ? "Edit Course" : "Create Course"}
+        maxWidth={maxWidth}
       >
         {
           <form onSubmit={handleSubmit} className="p-4 space-y-6">
@@ -714,6 +778,20 @@ export default function CourseModal({
               />
             </div>
 
+            <div>
+              <label htmlFor="duration" className={labelStyle}>
+                Duration (e.g., 4 Weeks, 3 Months)
+              </label>
+              <input
+                type="text"
+                id="duration"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="e.g. 8 Weeks"
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+
             {userRole === "admin" ? (
               // ADMIN VIEW: Show the Select dropdown for all instructors
               <div>
@@ -731,6 +809,7 @@ export default function CourseModal({
                   <option value="" disabled>
                     Select an instructor
                   </option>
+                  <option value="none">None (Assign to me)</option>
                   {availableInstructors.map((inst, ind) => (
                     <option key={ind + 1} value={inst.fullName}>
                       {inst.fullName}
@@ -754,16 +833,29 @@ export default function CourseModal({
               </div>
             )}
 
+            <div>
+              <label htmlFor="isActive" className={labelStyle}>
+                Is Active (Visible to students)
+              </label>
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+            </div>
+
             {userRole === "admin" && (
               <div>
-                <label htmlFor="isActive" className={labelStyle}>
-                  Is Active
+                <label htmlFor="isPublished" className={labelStyle}>
+                  Is Published (Admin Approval)
                 </label>
                 <input
                   type="checkbox"
-                  id="isActive"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
+                  id="isPublished"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
                   className="mt-1 block w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                 />
               </div>
@@ -822,17 +914,108 @@ export default function CourseModal({
             </select>
 
             <div>
-              <label htmlFor="ageBracket" className={labelStyle}>
-                Age Bracket
+              <label htmlFor="parentCourse" className={labelStyle}>
+                Parent Course (Prerequisite)
               </label>
-              <input
-                type="text"
-                id="ageBracket"
-                value={ageBracket}
-                onChange={(e) => setAgeBracket(e.target.value)}
-                placeholder="e.g. 18-25"
+              <select
+                id="parentCourse"
+                value={parentCourseId}
+                onChange={(e) =>
+                  setParentCourseId(
+                    e.target.value ? parseInt(e.target.value) : "",
+                  )
+                }
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="">None (Top Level)</option>
+                {availableCourses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title} ({course.level})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelStyle}>Child Courses (Next Levels)</label>
+              <div className="mt-1 grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableCourses
+                  .filter((c) => c.id !== parentCourseId.toString()) // Cannot be both parent and child
+                  .map((course) => (
+                    <div key={course.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`child-course-${course.id}`}
+                        value={course.id}
+                        checked={childCourseIds.includes(parseInt(course.id))}
+                        onChange={(e) => {
+                          const id = parseInt(e.target.value);
+                          if (e.target.checked) {
+                            setChildCourseIds([...childCourseIds, id]);
+                          } else {
+                            setChildCourseIds(
+                              childCourseIds.filter((cId) => cId !== id),
+                            );
+                          }
+                        }}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor={`child-course-${course.id}`}
+                        className="ml-2 block text-sm text-gray-900"
+                      >
+                        {course.title} ({course.level})
+                      </label>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isForKids"
+                checked={isForKids}
+                onChange={(e) => setIsForKids(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
+              <label
+                htmlFor="isForKids"
+                className="text-sm font-medium text-gray-700"
+              >
+                For Kids
+              </label>
+            </div>
+
+            <div>
+              <label className={labelStyle}>Tags</label>
+              <div className="mt-1 grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {availableTags.map((tag) => (
+                  <div key={tag.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`tag-${tag.id}`}
+                      value={tag.name}
+                      checked={tags.includes(tag.name)}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        if (e.target.checked) {
+                          setTags([...tags, name]);
+                        } else {
+                          setTags(tags.filter((t) => t !== name));
+                        }
+                      }}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor={`tag-${tag.id}`}
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      {tag.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -851,7 +1034,7 @@ export default function CourseModal({
                           setSelectedTools([...selectedTools, id]);
                         } else {
                           setSelectedTools(
-                            selectedTools.filter((tId) => tId !== id)
+                            selectedTools.filter((tId) => tId !== id),
                           );
                         }
                       }}
@@ -901,6 +1084,8 @@ export default function CourseModal({
                   theme="snow"
                   value={content}
                   onChange={setContent}
+                  modules={modules}
+                  formats={formats}
                   className="h-64 mb-12"
                 />
               </div>
@@ -919,30 +1104,35 @@ export default function CourseModal({
               ></textarea>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Upload Thumbnail
+              <label htmlFor="thumbnailUrl" className={labelStyle}>
+                Thumbnail URL
               </label>
-              <div className="relative border-2 border-dashed border-gray-300 rounded-md p-6 text-center transition-colors duration-200 hover:border-gray-400">
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  <ImageIcon className="h-4 w-4" />
+                </span>
                 <input
-                  type="file"
-                  id="resume"
-                  onChange={handleFileChange}
-                  accept=".webp,.jpg,.jpeg,.png" // Changed accepted formats to image files
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  type="url"
+                  id="thumbnailUrl"
+                  value={thumbnailUrl}
+                  onChange={(e) => setThumbnailUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1 block w-full py-2 px-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
-                <div className="flex flex-col items-center justify-center">
-                  <FileUpIcon />
-                  <p className="mt-2 text-gray-500">
-                    Drag and drop files here or{" "}
-                    <span className="text-blue-600 font-medium">
-                      click to browse
-                    </span>
-                  </p>
-                  <small className="mt-1 text-xs text-gray-400">
-                    Accepted formats: Webp, Jpeg, Png
-                  </small>
-                </div>
               </div>
+              {thumbnailUrl && (
+                <div className="mt-2 relative w-full h-40 border border-gray-200 rounded-md overflow-hidden bg-gray-50">
+                  <img
+                    src={thumbnailUrl}
+                    alt="Thumbnail preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "https://via.placeholder.com/400x225?text=Invalid+Image+URL";
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* NEW: Sessions Management Section */}

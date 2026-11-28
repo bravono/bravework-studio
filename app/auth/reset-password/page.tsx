@@ -70,7 +70,7 @@ function ResetPassword() {
         setIsFormDisabled(true); // Disable form after success
         setTimeout(() => router.push("/auth/login"), 3000);
       } else {
-        setMessage(data?.message || "Failed to reset. Please try again.");
+        setMessage(data?.error || "Failed to reset. Please try again.");
       }
     } catch (error) {
       console.error("Reset password error:", error);

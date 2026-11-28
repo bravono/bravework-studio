@@ -11,12 +11,6 @@ interface DataLayerEvent {
     [key: string]: any; // Allow other properties
 }
 
-// Define the dataLayer on the window object if it doesn't exist
-declare global {
-    interface Window {
-    dataLayer: DataLayerEvent[];
-    }
-}
 
 // Function to push pageview event
 const pageview = (url: string) => {

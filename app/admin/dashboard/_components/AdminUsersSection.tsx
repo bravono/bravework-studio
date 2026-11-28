@@ -5,32 +5,31 @@ import { toast } from "react-toastify";
 import { format } from "date-fns";
 import AssignRoleModal from "./AssignRoleModal";
 import { User } from "../../../types/app";
-import { UserPlus, Tag, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
-import Modal from "@/app/components/Modal";
+import { UserPlus, Tag, Trash2, Search } from "lucide-react";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
+import Pagination from "@/app/components/Pagination";
 
-// Reusable Loading Spinner component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center p-8 text-gray-500">
-    <div className="w-8 h-8 border-4 border-t-4 border-blue-500 border-opacity-25 rounded-full animate-spin"></div>
-    <span className="ml-3 font-semibold">Loading...</span>
-  </div>
-);
+interface AdminUsersSectionProps {
+  userIdToOpen?: string;
+}
 
-export default function AdminUsersSection() {
+export default function AdminUsersSection({
+  userIdToOpen,
+}: AdminUsersSectionProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
-    first_name: string,
-    last_name: string,
-    user_id: number,
-    email: string,
+    fullName: string;
+    id: number;
+    email: string;
   } | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(10);
+  const usersPerPage = 10;
 
   // State for the confirmation modal
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -71,13 +70,12 @@ export default function AdminUsersSection() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleAssignRole = (user) => {
-    console.log("User", user);
+  const handleAssignRole = (user: any) => {
     setSelectedUser(user);
     setIsAssignRoleModalOpen(true);
   };
 
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser = (user: any) => {
     setConfirmModalContent({
       title: "Confirm Deletion",
       message: `Are you sure you want to delete user ${user.fullName} (${user.email})? This action cannot be undone.`,
@@ -96,7 +94,7 @@ export default function AdminUsersSection() {
         } catch (err: any) {
           console.error("Error deleting user:", err);
           toast.error(
-            "Error deleting user: " + (err.message || "Unknown error.")
+            "Error deleting user: " + (err.message || "Unknown error."),
           );
         } finally {
           setLoading(false);
@@ -107,10 +105,14 @@ export default function AdminUsersSection() {
   };
 
   const handleApplyDiscount = (user: User) => {
-    if (user.roles.includes("client") || user.roles.includes("student")) {
+    const roles = Array.isArray(user.roles)
+      ? user.roles.map((r) => (typeof r === "string" ? r : r.roleName))
+      : [user.roles];
+
+    if (roles.includes("client") || roles.includes("student")) {
       setAlertModalContent({
         title: "Apply Discount",
-        message: `A discount is being applied for ${user.fullName} (${user.roles}). This would open a discount modal or trigger an API request.`,
+        message: `A discount is being applied for ${user.fullName} (${roles.join(", ")}). This would open a discount modal or trigger an API request.`,
       });
       setIsAlertModalOpen(true);
     } else {
@@ -122,206 +124,279 @@ export default function AdminUsersSection() {
     }
   };
 
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [users, searchQuery]);
+
   // Pagination logic
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = useMemo(
-    () => users.slice(indexOfFirstUser, indexOfLastUser),
-    [users, indexOfFirstUser, indexOfLastUser]
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const currentUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + usersPerPage,
   );
-  const totalPages = Math.ceil(users.length / usersPerPage);
-
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  const renderPaginationButtons = () => {
-    if (totalPages <= 1) return null;
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageNumbers.push(i);
-    }
-
-    return (
-      <nav className="flex justify-center mt-6">
-        <ul className="flex items-center space-x-2">
-          <li>
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={16} />
-            </button>
-          </li>
-          {pageNumbers.map((number) => (
-            <li key={number}>
-              <button
-                onClick={() => paginate(number)}
-                className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                  currentPage === number
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {number}
-              </button>
-            </li>
-          ))}
-          <li>
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </li>
-        </ul>
-      </nav>
-    );
-  };
-
-  if (loading) return <LoadingSpinner />;
-  if (error)
-    return (
-      <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg font-medium">
-        Error: {error}
-      </div>
-    );
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen font-sans">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-6 border-b-2 border-gray-200 pb-2">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           User Management
         </h2>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">All Users</h3>
-          {users.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Full Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Verified
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Member Since
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentUsers.map((user) => (
-                    <tr
-                      key={user.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.fullName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {Array.isArray(user.roles)
-                          ? user.roles
-                              .map((r) =>
-                                typeof r === "string"
-                                  ? r
-                                  : r?.roleName ?? JSON.stringify(r)
-                              )
-                              .join(", ")
-                          : user.roles ?? "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.emailVerified ? "Yes" : "No"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.createdAt
-                          ? format(new Date(user.createdAt), "MMM dd, yyyy")
-                          : "N/A"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleAssignRole(user)}
-                            className="p-2 text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-                            title="Assign Role"
-                          >
-                            <UserPlus size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleApplyDiscount(user)}
-                            className="p-2 text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
-                            title="Apply Discount"
-                          >
-                            <Tag size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user)}
-                            className="p-2 text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
-                            title="Delete User"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="p-4 text-center text-gray-500">No users found.</p>
-          )}
-          {renderPaginationButtons()}
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+          />
         </div>
       </div>
 
-      {/* Confirmation modal for user deletion */}
-      <Modal
-        title={confirmModalContent.title}
-        message={confirmModalContent.message}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1600px] text-left divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  User Info
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Bio / Intro
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Roles
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  KYC Verified
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  2FA Status
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Referral Code
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Lead Source
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Joined
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Updated
+                </th>
+                <th className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right sticky right-0 bg-gray-50 dark:bg-gray-900/90 shadow-sm">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td
+                      colSpan={14}
+                      className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"
+                    ></td>
+                  </tr>
+                ))
+              ) : currentUsers.length > 0 ? (
+                currentUsers.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <td className="px-5 py-4 text-xs font-mono font-bold text-gray-500">
+                      #{user.id}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        {user.profilePictureUrl ? (
+                          <img
+                            src={user.profilePictureUrl}
+                            alt={user.fullName}
+                            className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-xs">
+                            {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">
+                            {user.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.phone || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.companyName || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-600 dark:text-gray-400 max-w-[200px] truncate" title={user.bio || ""}>
+                      {user.bio || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(Array.isArray(user.roles)
+                          ? user.roles
+                          : [user.roles]
+                        ).map((r, idx) => {
+                          const roleName =
+                            typeof r === "string" ? r : (r?.roleName ?? "User");
+                          return (
+                            <span
+                              key={idx}
+                              className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+                            >
+                              {roleName}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          user.emailVerified
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                        }`}
+                      >
+                        {user.emailVerified ? "Verified" : "Unverified"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          user.isVerified
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            : user.verificationSubmittedAt
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {user.isVerified ? "Approved" : user.verificationSubmittedAt ? "Pending" : "None"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          user.twoFactorEnabled
+                            ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {user.twoFactorEnabled ? "2FA Enabled" : "2FA Off"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.referralCode || <span className="text-gray-400 italic">None</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {user.hearAboutUs || <span className="text-gray-400 italic">N/A</span>}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                      {user.createdAt
+                        ? format(new Date(user.createdAt), "MMM dd, yyyy")
+                        : "N/A"}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                      {user.updatedAt
+                        ? format(new Date(user.updatedAt), "MMM dd, yyyy")
+                        : "N/A"}
+                    </td>
+                    <td className="px-5 py-4 text-right sticky right-0 bg-white dark:bg-gray-800 shadow-sm">
+                      <div className="flex justify-end space-x-1.5">
+                        <button
+                          onClick={() => handleAssignRole(user)}
+                          className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+                          title="Assign Role"
+                        >
+                          <UserPlus size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleApplyDiscount(user)}
+                          className="p-1.5 text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg hover:bg-purple-100 transition-colors"
+                          title="Apply Discount"
+                        >
+                          <Tag size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user)}
+                          className="p-1.5 text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                          title="Delete User"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={14}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No users found matching the criteria.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
+      <ConfirmationModal
         isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
+        message={confirmModalContent.message}
         onConfirm={() => {
           confirmModalContent.onConfirm();
           setIsConfirmModalOpen(false);
         }}
-        isConfirm={true}
-        confirmText="Delete"
-        cancelText="Cancel"
-        children
+        onCancel={() => setIsConfirmModalOpen(false)}
       />
 
-      {/* Alert modal for other messages */}
-      <Modal
-        title={alertModalContent.title}
-        message={alertModalContent.message}
+      <ConfirmationModal
         isOpen={isAlertModalOpen}
-        onClose={() => setIsAlertModalOpen(false)}
-        onConfirm={() => {
-          confirmModalContent.onConfirm();
-          setIsConfirmModalOpen(false);
-        }}
-        children
+        message={`${alertModalContent.title}: ${alertModalContent.message}`}
+        onConfirm={() => setIsAlertModalOpen(false)}
+        onCancel={() => setIsAlertModalOpen(false)}
       />
 
       {isAssignRoleModalOpen && selectedUser && (

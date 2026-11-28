@@ -1,24 +1,37 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { ShowMore } from "@re-dev/react-truncate";
-import Link from "next/link";
+import ExpandableText from "../components/ExpandableText";
 import { Calendar, Award, Hourglass, DollarSign, Filter } from "lucide-react";
-import { Course } from "../types/app";
-import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
-import { convertCurrency } from "@/lib/utils/convertCurrency";
+
+import Link from "next/link";
+import { Outfit, Inter } from "next/font/google";
 
 import useExchangeRates from "@/hooks/useExchangeRates";
 import useSelectedCurrency from "@/hooks/useSelectedCurrency";
+
+import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
+import { convertCurrency } from "@/lib/utils/convertCurrency";
 import getWeeksBtwDates from "@/lib/utils/getWeeksBtwDays";
 
 import CurrencySelector from "../components/CurrencySelector";
 import Loader from "../components/Loader";
 import ArrowButton from "./ArrowButton";
 import CourseFilters from "./CourseFilters";
+import ShareButton from "./ShareButton";
+import { Course } from "../types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 export default function coursesPage({ page }) {
-  const KOBO_PER_NAIRA = 100;
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { exchangeRates, ratesError, ratesLoading } = useExchangeRates();
@@ -76,7 +89,7 @@ export default function coursesPage({ page }) {
 
   const coursesToDisplay = atHome ? courses.slice(0, 4) : filteredCourses;
 
-  const courseHeading = atHome ? `text-white` : `text-secondary-dark`;
+  const courseHeading = atHome ? `text-gray-900` : `text-secondary-dark`;
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories((prev) =>
@@ -122,17 +135,17 @@ export default function coursesPage({ page }) {
     <>
       <section
         className={`${
-          page === "home" ? "dark:bg-gray-900" : "mt-20"
-        } px-4 sm:px-6 lg:px-8`}
+          page === "home" ? "bg-white" : ""
+        } py-24 px-4 sm:px-6 lg:px-8 border-t border-gray-100`}
       >
         <div className="text-center mb-16">
           <h1
-            className={`${courseHeading} text-5xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900`}
+            className={`${courseHeading} text-5xl md:text-7xl font-black tracking-tight mb-6 ${outfit.className}`}
           >
             Available Courses
           </h1>
           <p
-            className={`${courseHeading} text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed`}
+            className={`${courseHeading} text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed ${inter.className}`}
           >
             Empowering young minds and professionals with technology education
             through fun and engaging courses.
@@ -140,7 +153,7 @@ export default function coursesPage({ page }) {
           {page === "home" && (
             <ArrowButton
               label={"Explore More"}
-              link={"/courses"}
+              link={"/academy/courses"}
               style={"my-4"}
             />
           )}
@@ -195,7 +208,6 @@ export default function coursesPage({ page }) {
                   <div
                     key={index}
                     className="group bg-white w-full max-w-lg mx-auto rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 border border-gray-100"
-                    // onClick={ () => router.push("/courses/" + course.id)}
                   >
                     <div className="relative overflow-hidden">
                       <img
@@ -234,17 +246,11 @@ export default function coursesPage({ page }) {
                         </div>
                       </div>
 
-                      <ShowMore
+                      <ExpandableText
+                        text={course.description || ""}
+                        maxChars={150}
                         className="text-gray-600 text-sm leading-relaxed mb-6"
-                        lines={3}
-                        more={
-                          <span className="text-primary font-medium cursor-pointer hover:underline ml-1">
-                            Read more
-                          </span>
-                        }
-                      >
-                        <div>{course.description}</div>
-                      </ShowMore>
+                      />
 
                       <div className="flex-grow space-y-3 mb-6">
                         <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -293,14 +299,11 @@ export default function coursesPage({ page }) {
                             <p className="font-bold text-lg text-gray-900">
                               {course.price === 0
                                 ? "Free"
-                                : `${getCurrencySymbol(selectedCurrency)}${
-                                    rateIsFetched &&
-                                    convertCurrency(
-                                      course.price / KOBO_PER_NAIRA,
-                                      exchangeRates[selectedCurrency],
-                                      getCurrencySymbol(selectedCurrency)
-                                    )
-                                  }`}
+                                : convertCurrency(
+                                    course.price / KOBO_PER_NAIRA,
+                                    exchangeRates[selectedCurrency],
+                                    getCurrencySymbol(selectedCurrency)
+                                  )}
                             </p>
                           </div>
                         </div>
@@ -357,12 +360,22 @@ export default function coursesPage({ page }) {
                             Get Notified
                           </Link>
                         )}
-                        <Link
-                          href={"/courses/" + course.id}
-                          className="flex w-full items-center justify-center px-6 py-3.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200"
-                        >
-                          View Details
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={"/academy/courses/" + course.id}
+                            className="flex-1 flex items-center justify-center px-4 py-3.5 text-sm font-bold rounded-xl text-gray-700 bg-gray-50 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200"
+                          >
+                            View Details
+                          </Link>
+                          <ShareButton
+                            type="course"
+                            title={course.title}
+                            text={course.description}
+                            url={`/academy/courses/${course.id}`}
+                            variant="outline"
+                            className="px-3.5 py-3.5"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

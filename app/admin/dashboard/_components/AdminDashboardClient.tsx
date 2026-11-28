@@ -12,9 +12,13 @@ import {
   Eye,
   Settings,
   LogOut,
+  ChevronLeft,
+  CalendarCheck,
+  RefreshCw,
+  ShieldCheck,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Session } from "next-auth";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -32,25 +36,75 @@ import AdminInvoicesSection from "./AdminInvoicesSection";
 import AdminCustomOffersSection from "./AdminCustomOfferSection";
 import AdminNotificationsSection from "./AdminNotificationsSection";
 import AdminCourseSection from "./AdminCourseSection";
+import AdminBookingsSection from "./AdminBookingsSection";
+import AdminVerificationReview from "./AdminVerificationReview";
+import AdminRentalsSection from "./AdminRentalsSection";
+import AdminAiCustomerServiceSection from "./AdminAiCustomerServiceSection";
+import { Monitor, BrainCircuit } from "lucide-react";
 
 interface AdminDashboardClientProps {
   initialSession: Session;
 }
 
+interface MonitoringData {
+  timestamp: string;
+  server: {
+    uptime: number;
+    memory: {
+      used: number;
+      total: number;
+      percentage: number;
+    };
+    cpu: {
+      usage: number;
+    };
+  };
+  database: {
+    status: "healthy" | "degraded" | "unhealthy";
+    responseTime: number;
+    connectionPoolStatus: string;
+  };
+  api: {
+    responseTime: number;
+    requestCount: number;
+    errorRate: number;
+  };
+}
+
 const navItems = [
-  { id: "overview", label: "Overview", icon: <Eye size={20} /> },
+  { id: "overview", label: "Users Overview", icon: <Eye size={20} /> },
   { id: "orders", label: "Orders & Projects", icon: <FileText size={20} /> },
   { id: "custom-offers", label: "Custom Offers", icon: <Gift size={20} /> },
   { id: "users", label: "Users Management", icon: <Users size={20} /> },
   { id: "courses", label: "Courses Management", icon: <Book size={20} /> },
   { id: "invoices", label: "Invoices & Payments", icon: <Wallet size={20} /> },
   {
+    id: "bookings",
+    label: "Bookings Management",
+    icon: <CalendarCheck size={20} />,
+  },
+  {
     id: "job-applications",
     label: "Job Applications",
     icon: <Briefcase size={20} />,
   },
-  { id: "notifications", label: "Notifications", icon: <Bell size={20} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+  {
+    id: "verifications",
+    label: "Verification Requests",
+    icon: <ShieldCheck size={20} />,
+  },
+  {
+    id: "hardware",
+    label: "Hardware Management",
+    icon: <Monitor size={20} />,
+  },
+  {
+    id: "ai-service",
+    label: "AI Customer Service",
+    icon: <BrainCircuit size={20} />,
+  },
+  { id: "notifications", label: "All Notifications", icon: <Bell size={20} /> },
+  { id: "settings", label: "Profile Settings", icon: <Settings size={20} /> },
 ];
 
 export default function AdminDashboardClient({
@@ -60,14 +114,10 @@ export default function AdminDashboardClient({
   const { data: session, status } = useSession();
 
   const [activeTab, setActiveTab] = useState<string>("overview"); // State to manage active tab
-
-  const [adminProfile, setAdminProfile] = useState<AdminProfile>({
-    id: (initialSession.user as any)?.id,
-    fullName: initialSession.user?.name,
-    email: initialSession.user?.email,
-    memberSince: "N/A", // This will be fetched from the backend
-  });
-
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const [loadingData, setLoadingData] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats>({
     totalOrders: 0,
     totalRevenue: 0,
@@ -78,10 +128,71 @@ export default function AdminDashboardClient({
     totalUnreadNotifications: 0,
   });
 
-  const [loadingData, setLoadingData] = useState(false);
-  const [dataError, setDataError] = useState<string | null>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile>({
+    id: (initialSession.user as any)?.id,
+    fullName: initialSession.user?.name,
+    email: initialSession.user?.email,
+    memberSince: "N/A", // This will be fetched from the backend
+  });
+
+  const [monitoringData, setMonitoringData] = useState<MonitoringData | null>(
+    null,
+  );
+  const [monitoringLoading, setMonitoringLoading] = useState(false);
+
+  // Effect for deep linking and scrolling to items
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const itemId =
+      searchParams.get("itemId") ||
+      searchParams.get("courseId") ||
+      searchParams.get("offerId") ||
+      searchParams.get("orderId");
+
+    if (tab) {
+      setActiveTab(tab);
+    }
+
+    if (itemId) {
+      // Delay slightly to allow the tab content to render
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`item-${itemId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("ring-2", "ring-indigo-500", "ring-offset-2");
+          setTimeout(() => {
+            element.classList.remove(
+              "ring-2",
+              "ring-indigo-500",
+              "ring-offset-2"
+            );
+          }, 3000);
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, loadingData]);
 
   const kobo = 100;
+
+  // Function to fetch monitoring data
+  const fetchMonitoringData = useCallback(async () => {
+    setMonitoringLoading(true);
+    try {
+      const res = await fetch("/api/monitor");
+      if (!res.ok) throw new Error("Failed to fetch monitoring data");
+      const data: MonitoringData = await res.json();
+      setMonitoringData(data);
+    } catch (err: any) {
+      console.error("Error fetching monitoring data:", err);
+    } finally {
+      setMonitoringLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMonitoringData();
+  }, [fetchMonitoringData]);
 
   // Function to fetch overall admin dashboard stats
   const fetchAdminStats = useCallback(async () => {
@@ -170,7 +281,7 @@ export default function AdminDashboardClient({
                     {stats.pendingJobApplications}
                   </span>
                   <span className="block text-sm text-gray-500 dark:text-gray-400">
-                    Pending Job Apps
+                    Job Applications
                   </span>
                 </div>
               </div>
@@ -212,6 +323,12 @@ export default function AdminDashboardClient({
                 >
                   Manage Invoices
                 </button>
+                <button
+                  className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  onClick={() => setActiveTab("bookings")}
+                >
+                  Manage Bookings
+                </button>
                 <Link
                   href="/admin/reports"
                   className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
@@ -229,33 +346,225 @@ export default function AdminDashboardClient({
 
             {/* System Health Card */}
             <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl flex flex-col">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                System Health
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Monitor server status, API performance, and database health.
-              </p>
-              <Link
-                href="/admin/system-health"
-                className="mt-auto self-start text-indigo-500 hover:text-indigo-600 font-semibold transition-colors"
-              >
-                View System Health
-              </Link>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  System Health
+                </h2>
+                <button
+                  onClick={fetchMonitoringData}
+                  disabled={monitoringLoading}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <RefreshCw
+                    size={18}
+                    className={`text-indigo-600 ${monitoringLoading ? "animate-spin" : ""}`}
+                  />
+                </button>
+              </div>
+
+              {monitoringData ? (
+                <>
+                  {/* Status Pills */}
+                  <div className="flex gap-3 mb-6 flex-wrap">
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.database.status === "healthy"
+                          ? "bg-green-50 dark:bg-green-950"
+                          : monitoringData.database.status === "degraded"
+                            ? "bg-yellow-50 dark:bg-yellow-950"
+                            : "bg-red-50 dark:bg-red-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.database.status === "healthy"
+                            ? "bg-green-500"
+                            : monitoringData.database.status === "degraded"
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.database.status === "healthy"
+                            ? "text-green-700 dark:text-green-300"
+                            : monitoringData.database.status === "degraded"
+                              ? "text-yellow-700 dark:text-yellow-300"
+                              : "text-red-700 dark:text-red-300"
+                        }`}
+                      >
+                        Database
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.api.responseTime < 100
+                          ? "bg-green-50 dark:bg-green-950"
+                          : "bg-yellow-50 dark:bg-yellow-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.api.responseTime < 100
+                            ? "bg-green-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.api.responseTime < 100
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-yellow-700 dark:text-yellow-300"
+                        }`}
+                      >
+                        API
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                        monitoringData.server.memory.percentage <= 80
+                          ? "bg-green-50 dark:bg-green-950"
+                          : "bg-yellow-50 dark:bg-yellow-950"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          monitoringData.server.memory.percentage <= 80
+                            ? "bg-green-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs font-semibold ${
+                          monitoringData.server.memory.percentage <= 80
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-yellow-700 dark:text-yellow-300"
+                        }`}
+                      >
+                        Server
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Metrics */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Uptime:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {Math.floor(monitoringData.server.uptime / 86400)}d{" "}
+                        {Math.floor(
+                          (monitoringData.server.uptime % 86400) / 3600,
+                        )}
+                        h
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Memory Usage:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.server.memory.percentage}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        API Response:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.api.responseTime}ms
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        DB Response:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {monitoringData.database.responseTime}ms
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* View Details Link */}
+                  <Link
+                    href="/admin/monitor"
+                    className="mt-auto text-indigo-500 hover:text-indigo-600 font-semibold transition-colors text-sm"
+                  >
+                    View Detailed Monitoring →
+                  </Link>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Loading system health...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
       case "orders":
-        return <AdminOrdersSection />;
+        return (
+          <AdminOrdersSection
+            orderIdToOpen={searchParams.get("orderId") || undefined}
+          />
+        );
       case "custom-offers":
-        return <AdminCustomOffersSection />;
+        return (
+          <AdminCustomOffersSection
+            offerIdToOpen={searchParams.get("offerId") || undefined}
+          />
+        );
       case "users":
-        return <AdminUsersSection />;
+        return (
+          <AdminUsersSection
+            userIdToOpen={searchParams.get("userId") || undefined}
+          />
+        );
       case "courses":
-        return <AdminCourseSection />;
+        return (
+          <AdminCourseSection
+            courseIdToOpen={searchParams.get("courseId") || undefined}
+          />
+        );
       case "invoices":
-        return <AdminInvoicesSection />;
+        return (
+          <AdminInvoicesSection
+            invoiceIdToOpen={searchParams.get("invoiceId") || undefined}
+          />
+        );
       case "job-applications":
-        return <AdminJobApplicationsSection />;
+        return (
+          <AdminJobApplicationsSection
+            applicationIdToOpen={searchParams.get("applicationId") || undefined}
+          />
+        );
+      case "bookings":
+        return (
+          <AdminBookingsSection
+            bookingIdToOpen={searchParams.get("bookingId") || undefined}
+          />
+        );
+      case "verifications":
+        return (
+          <AdminVerificationReview
+            verificationIdToOpen={
+              searchParams.get("verificationId") || undefined
+            }
+          />
+        );
+      case "hardware":
+        return (
+          <AdminRentalsSection
+            rentalIdToOpen={searchParams.get("rentalId") || undefined}
+          />
+        );
+      case "ai-service":
+        return <AdminAiCustomerServiceSection />;
       case "settings":
         return (
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
@@ -297,6 +606,12 @@ export default function AdminDashboardClient({
             >
               Change Admin Password
             </button>
+            <Link
+              href="/admin/settings/security"
+              className="ml-4 px-6 py-3 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:bg-green-600 transition-colors inline-block"
+            >
+              Security Settings (MFA)
+            </Link>
           </div>
         );
       case "notifications":
@@ -357,15 +672,47 @@ export default function AdminDashboardClient({
       {/* Sidebar Navigation */}
       <aside className="bg-white dark:bg-gray-800 w-full md:w-64 p-4 pt-10 mt-8 shadow-xl flex flex-col">
         <div className="flex items-center justify-center md:justify-start"></div>
+        {/* Role Switching Panel */}
+        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-750 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              Viewing Mode
+            </span>
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-250">
+              Admin Mode
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const newPath = pathname.replace("/admin", "/user");
+              const searchStr = searchParams.toString();
+              router.push(newPath + (searchStr ? `?${searchStr}` : ""));
+            }}
+            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 bg-indigo-600"
+          >
+            <span className="sr-only">Toggle Admin Mode</span>
+            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 translate-x-6" />
+          </button>
+        </div>
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === "notifications") {
+                  router.push("/user/dashboard/notifications");
+                } else {
+                  setActiveTab(item.id);
+                  // Update URL without full page reload
+                  router.push(`/admin/dashboard?tab=${item.id}`, {
+                    scroll: false,
+                  });
+                }
+              }}
               className={cn(
                 "flex items-center w-full px-4 py-3 rounded-xl text-left text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors duration-200 relative",
                 activeTab === item.id &&
-                  "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+                  "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
               )}
             >
               <span
@@ -373,7 +720,7 @@ export default function AdminDashboardClient({
                   "mr-3",
                   activeTab === item.id
                     ? "text-white"
-                    : "text-gray-400 dark:text-gray-500"
+                    : "text-gray-400 dark:text-gray-500",
                 )}
               >
                 {item.icon}
@@ -384,7 +731,7 @@ export default function AdminDashboardClient({
                   "font-medium",
                   activeTab === item.id
                     ? "text-white"
-                    : "text-gray-800 dark:text-gray-200"
+                    : "text-gray-800 dark:text-gray-200",
                 )}
               >
                 {item.label}
@@ -393,6 +740,12 @@ export default function AdminDashboardClient({
                 stats.totalUnreadNotifications > 0 && (
                   <span className="absolute top-1 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
                     {stats.totalUnreadNotifications}
+                  </span>
+                )}
+              {item.id === "hardware" &&
+                stats.pendingRentalsCount !== undefined && stats.pendingRentalsCount > 0 && (
+                  <span className="absolute top-1 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                    {stats.pendingRentalsCount}
                   </span>
                 )}
             </button>
@@ -416,7 +769,19 @@ export default function AdminDashboardClient({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
+        {activeTab !== "overview" && (
+          <button
+            onClick={() => {
+              setActiveTab("overview");
+              router.push("/admin/dashboard?tab=overview", { scroll: false });
+            }}
+            className="fixed bottom-8 right-8 z-[100] flex items-center gap-2 px-6 py-3 text-white bg-indigo-600 dark:bg-indigo-500 rounded-full shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all hover:scale-105"
+          >
+            <ChevronLeft size={20} />
+            Back to Overview
+          </button>
+        )}
         <div className="w-full">{renderContent()}</div>
       </main>
     </div>

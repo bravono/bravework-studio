@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     console.error("Authentication Error:", e);
     return NextResponse.json(
       { error: "Unauthorized or Invalid Session" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -67,10 +67,13 @@ export async function GET(request: Request) {
                 c.title,
                 c.description,
                 c.is_active AS "isActive",
+                c.is_published AS "isPublished",
                 c.start_date AS "startDate",
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
                 c.max_students AS "maxStudents",
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.level,
                 c.language,
                 c.price_in_kobo AS price,
@@ -143,7 +146,7 @@ export async function GET(request: Request) {
     console.error("Error fetching instructor's courses:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -159,7 +162,7 @@ export async function POST(request: Request) {
   } catch (e) {
     return NextResponse.json(
       { error: "Unauthorized or Invalid Session" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -182,6 +185,8 @@ export async function POST(request: Request) {
       level,
       language,
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
     } = body;
 
     // ... (Input Validation and Session Structure Validation remains the same) ...
@@ -195,7 +200,7 @@ export async function POST(request: Request) {
     // We DO NOT need to look up the instructor's name, as we have the ID directly.
     const categoryResult = await queryDatabase(
       `SELECT category_id FROM course_categories WHERE category_name = $1`,
-      [category]
+      [category],
     );
     console.log("Category ID:", categoryResult);
     const categoryId = categoryResult[0]?.category_id;
@@ -207,10 +212,10 @@ export async function POST(request: Request) {
       const insertCourseQuery = `
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
-                    instructor_id, is_active, max_students, thumbnail_url, 
-                    course_category_id, level, language, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
-                RETURNING course_id;
+                    instructor_id, is_active, is_published, max_students, thumbnail_url, 
+                    course_category_id, level, language, parent_course_id, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+                RETURNING course_id, title;
             `;
       const courseParams = [
         title,
@@ -219,14 +224,14 @@ export async function POST(request: Request) {
         startDate,
         endDate,
         instructorId, // <<<< KEY CHANGE: Use the ID from the session guard
-        // NOTE: Instructors often set isActive to FALSE/Draft status by default
-        // You may want to force `false` here if only Admin can publish.
         isActive,
+        false, // is_published: instructors cannot publish their own courses
         maxStudents,
         thumbnailUrl,
         categoryId,
         level,
         language,
+        parentCourseId || null,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -235,6 +240,14 @@ export async function POST(request: Request) {
       console.log("Course ID", courseId);
       if (!courseId) {
         throw new Error("Failed to create course.");
+      }
+
+      // Update child courses
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2)`,
+          [courseId, childCourseIds]
+        );
       }
 
       // 4. Insert Sessions (Session insertion logic remains the same)
@@ -261,25 +274,57 @@ export async function POST(request: Request) {
             option.duration,
             option.link,
             option.time,
-            option.label
+            option.label,
           );
           const result = await client.query(sessionInsertQuery, sessionParams);
           console.log("Final Result:", result);
         }
         console.log("Finished");
+      }
 
+      // 5. Notify Admins
+      try {
+        const adminUsers = await client.query(`
+          SELECT u.user_id 
+          FROM users u
+          JOIN user_roles ur ON u.user_id = ur.user_id
+          JOIN roles r ON ur.role_id = r.role_id
+          WHERE r.role_name = 'admin'
+        `);
+
+        if (adminUsers.rows.length > 0) {
+          const courseTitle = courseResult.rows[0].title;
+          const notificationTitle = "New Course for Approval";
+          const notificationMessage = `New course created: "${courseTitle}". Please review and approve.`;
+          const notificationLink = `/admin/dashboard?tab=courses&courseId=${courseId}`;
+
+          for (const admin of adminUsers.rows) {
+            await client.query(
+              `INSERT INTO notifications (user_id, title, message, link, created_at) VALUES ($1, $2, $3, $4, NOW())`,
+              [
+                admin.user_id,
+                notificationTitle,
+                notificationMessage,
+                notificationLink,
+              ],
+            );
+          }
+        }
+      } catch (notifyError) {
+        console.error("Error sending admin notifications:", notifyError);
+        // We don't throw here to avoid rolling back the course creation if notification fails
       }
 
       return NextResponse.json(
         { courseId, message: "Course and sessions created successfully" },
-        { status: 201 }
+        { status: 201 },
       );
     });
   } catch (error: any) {
     console.error("Error creating course:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -2,14 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-
 import { toast } from "react-toastify";
-import { format } from "date-fns";
-
 import {
   Bell,
   CheckCircle,
@@ -18,10 +11,18 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
+
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
+import { format } from "date-fns";
+
 import { Notification } from "../../../types/app";
 import RejectReasonModal from "../_components/RejectReasonModal";
 import { getCurrencySymbol } from "@/lib/utils/getCurrencySymbol";
 import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 // Custom Hooks
 import useExchangeRates from "@/hooks/useExchangeRates";
@@ -30,7 +31,6 @@ import useSelectedCurrency from "@/hooks/useSelectedCurrency";
 export default function NotificationsPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
-  const KOBO_PER_NAIRA = 100;
   const DOLLAR_PER_NAIRA = 0.00065;
 
   const { selectedCurrency, updateSelectedCurrency } = useSelectedCurrency();
@@ -341,13 +341,17 @@ export default function NotificationsPage() {
                           <Wallet className="w-4 h-4 text-gray-500" />
                           <strong>Amount:</strong>{" "}
                           <span className="text-gray-900 font-bold">
-                            {getCurrencySymbol(selectedCurrency)}
-                            {convertCurrency(
-                              (notification.offerAmount / KOBO_PER_NAIRA) *
-                                DOLLAR_PER_NAIRA,
-                              exchangeRates?.[selectedCurrency],
-                              getCurrencySymbol(selectedCurrency)
-                            ).toLocaleString()}
+                            {exchangeRates && exchangeRates[selectedCurrency]
+                              ? convertCurrency(
+                                  (notification.offerAmount / KOBO_PER_NAIRA) *
+                                    DOLLAR_PER_NAIRA,
+                                  exchangeRates[selectedCurrency],
+                                  getCurrencySymbol(selectedCurrency)
+                                ).toLocaleString()
+                              : `${getCurrencySymbol(selectedCurrency)} ${(
+                                  (notification.offerAmount / KOBO_PER_NAIRA) *
+                                  DOLLAR_PER_NAIRA
+                                ).toLocaleString()}`}
                           </span>
                         </p>
                         <span
@@ -416,10 +420,21 @@ export default function NotificationsPage() {
                       ) : null}
                       {notification.link && (
                         <Link
-                          href={{
-                            pathname: "/user/dashboard",
-                            query: { tab: "custom-offers" },
-                          }}
+                          href={
+                            notification.link.includes(
+                              "/user/dashboard/courses/"
+                            )
+                              ? `/user/dashboard?tab=academy&courseId=${notification.link.split("/").pop()}`
+                              : notification.link.includes(
+                                  "/user/dashboard/orders/"
+                                )
+                              ? `/user/dashboard?tab=orders&orderId=${notification.link.split("/").pop()}`
+                              : notification.link.includes(
+                                  "/user/dashboard/custom-offers/"
+                                )
+                              ? `/user/dashboard?tab=custom-offers&offerId=${notification.link.split("/").pop()}`
+                              : notification.link
+                          }
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                         >
                           View Full Offer Details{" "}
@@ -431,7 +446,19 @@ export default function NotificationsPage() {
 
                   {!isOfferNotification && notification.link && (
                     <Link
-                      href={notification.link}
+                      href={
+                        notification.link.includes("/user/dashboard/courses/")
+                          ? `/user/dashboard?tab=academy&courseId=${notification.link.split("/").pop()}`
+                          : notification.link.includes(
+                              "/user/dashboard/orders/"
+                            )
+                          ? `/user/dashboard?tab=orders&orderId=${notification.link.split("/").pop()}`
+                          : notification.link.includes(
+                              "/user/dashboard/custom-offers/"
+                            )
+                          ? `/user/dashboard?tab=custom-offers&offerId=${notification.link.split("/").pop()}`
+                          : notification.link
+                      }
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm mt-3 flex items-center gap-1"
                     >
                       View Details <ExternalLink className="w-4 h-4" />

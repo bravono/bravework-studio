@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import PaystackPop from "@paystack/inline-js";
 import { toast } from "react-toastify";
 import {
   CreditCard,
@@ -12,9 +9,18 @@ import {
   Loader2,
   CheckCircle,
   Wallet,
+  Heart,
 } from "lucide-react";
+
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+
+import PaystackPop from "@paystack/inline-js";
+
 import useExchangeRates from "@/hooks/useExchangeRates";
+
 import { convertCurrency } from "@/lib/utils/convertCurrency";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 interface Course {
   id: number;
@@ -23,6 +29,8 @@ interface Course {
   description: string;
   startDate: string;
   endDate: string;
+  category?: string;
+  level?: string;
 }
 
 interface CustomOffer {
@@ -31,6 +39,17 @@ interface CustomOffer {
   amount: number; // in Kobo
   status: string;
   projectDurationDays: number;
+}
+
+interface RentalBooking {
+  id: number;
+  title: string;
+  amount: number; // in Kobo
+  description: string;
+  status: string;
+  deviceName?: string;
+  rentalType?: string;
+  hourlyRate?: number;
 }
 
 export default function PaymentContent() {
@@ -47,15 +66,17 @@ export default function PaymentContent() {
 
   const offerId = searchParams.get("offerId");
   const courseId = searchParams.get("courseId");
-  const KOBO_PER_NAIRA = 100;
+  const bookingId = searchParams.get("bookingId");
+  const bundleIds = searchParams.get("bundle");
 
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderData, setOrderData] = useState<{
-    type: "course" | "custom-offer";
-    data: Course | CustomOffer;
-    orderId: number;
+    type: "course" | "custom-offer" | "rental" | "bundle";
+    data: any;
+    orderId?: number;
+    bundleGroupId?: string;
   } | null>(null);
 
   const [paymentOption, setPaymentOption] = useState<
@@ -65,6 +86,44 @@ export default function PaymentContent() {
   // Wallet State
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [useWallet, setUseWallet] = useState(false);
+
+  // Tip State
+  const [tipOption, setTipOption] = useState<"none" | "5" | "10" | "15" | "custom">("none");
+  const [customTipAmount, setCustomTipAmount] = useState<string>("");
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    setCouponSuccess(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to validate coupon");
+      }
+      setCouponDiscount(data.discountPercentage);
+      setCouponSuccess(`Coupon applied! ${data.discountPercentage}% discount.`);
+      toast.success("Coupon applied successfully!");
+    } catch (err: any) {
+      setCouponDiscount(0);
+      setCouponError(err.message || "Invalid coupon.");
+      toast.error(err.message || "Invalid coupon.");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -81,6 +140,10 @@ export default function PaymentContent() {
           url = `/api/user/custom-offers/${offerId}/payment-details`;
         } else if (courseId) {
           url = `/api/courses/${courseId}/payment-details`;
+        } else if (bookingId) {
+          url = `/api/user/bookings/${bookingId}/payment-details`;
+        } else if (bundleIds) {
+          url = `/api/courses/bundle/payment-details?ids=${bundleIds}`;
         } else {
           setError("Invalid payment link.");
           setLoading(false);
@@ -109,7 +172,40 @@ export default function PaymentContent() {
     } else if (sessionStatus === "unauthenticated") {
       router.push(`/auth/login`);
     }
-  }, [sessionStatus, offerId, courseId, router]);
+  }, [sessionStatus, offerId, courseId, bookingId, bundleIds, router]);
+
+  useEffect(() => {
+    if (orderData?.type === "course") {
+      const course = orderData.data as Course;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "academy_enroll_start",
+        course_name: course.title,
+        course_category: course.category || "Academy",
+        course_level: course.level || "N/A",
+        price: course.price,
+        currency: "NGN",
+        course_id: course.id,
+        page: window.location.pathname,
+      });
+    }
+  }, [orderData]);
+
+  useEffect(() => {
+    if (orderData?.type === "rental") {
+      const rental = orderData.data as RentalBooking;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "rental_booking_start",
+        item_name: rental.title,
+        item_category: rental.rentalType || "Rental",
+        item_id: rental.id,
+        price: rental.amount / 100,
+        currency: "NGN",
+        page: window.location.pathname,
+      });
+    }
+  }, [orderData]);
 
   const paymentDetails = useMemo(() => {
     if (!orderData) return null;
@@ -117,7 +213,11 @@ export default function PaymentContent() {
     const baseAmount =
       orderData.type === "course"
         ? (orderData.data as Course).price
-        : (orderData.data as CustomOffer).amount;
+        : orderData.type === "rental"
+          ? (orderData.data as RentalBooking).amount
+          : orderData.type === "bundle"
+            ? (orderData as any).totalAmount
+            : (orderData.data as CustomOffer).amount;
 
     let amountToPay = baseAmount;
     let discount = 0;
@@ -142,24 +242,49 @@ export default function PaymentContent() {
       }
     }
 
+    // Apply Coupon Discount
+    if (couponDiscount > 0) {
+      amountToPay = Math.round(amountToPay * (1 - couponDiscount / 100));
+    }
+
+    // Tip Calculation
+    let tipAmount = 0;
+    if (tipOption === "5") {
+      tipAmount = Math.round(amountToPay * 0.05);
+    } else if (tipOption === "10") {
+      tipAmount = Math.round(amountToPay * 0.10);
+    } else if (tipOption === "15") {
+      tipAmount = Math.round(amountToPay * 0.15);
+    } else if (tipOption === "custom") {
+      const parsedCustom = parseFloat(customTipAmount);
+      if (!isNaN(parsedCustom) && parsedCustom > 0) {
+        tipAmount = Math.round(parsedCustom * KOBO_PER_NAIRA);
+      }
+    }
+
+    const totalWithTip = amountToPay + tipAmount;
+
     // Wallet Logic
     let walletDeduction = 0;
-    let finalPaystackAmount = amountToPay;
+    let finalPaystackAmount = totalWithTip;
 
     if (useWallet) {
-      walletDeduction = Math.min(walletBalance, amountToPay);
-      finalPaystackAmount = amountToPay - walletDeduction;
+      walletDeduction = Math.min(walletBalance, totalWithTip);
+      finalPaystackAmount = totalWithTip - walletDeduction;
     }
 
     return {
       baseAmount,
-      amountToPay, // Total expected for this transaction
-      discount,
+      amountToPay, // Total item price after discounts for this transaction
+      tipAmount,
+      totalWithTip,
+      discount: discount + couponDiscount,
+      couponDiscountApplied: couponDiscount,
       label,
       walletDeduction,
       finalPaystackAmount,
     };
-  }, [orderData, paymentOption, useWallet, walletBalance]);
+  }, [orderData, paymentOption, useWallet, walletBalance, couponDiscount, tipOption, customTipAmount]);
 
   const handlePayment = async () => {
     if (!orderData || !paymentDetails || !session?.user?.email) return;
@@ -173,19 +298,33 @@ export default function PaymentContent() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            orderId: orderData.orderId,
+            orderId:
+              orderData.type === "bundle"
+                ? (orderData as any).orders[0].orderId
+                : orderData.orderId,
             amountKobo: paymentDetails.walletDeduction,
+            tipAmountKobo: paymentDetails.tipAmount,
             serviceType: orderData.type,
-            productId: orderData.data.id,
+            productId:
+              orderData.type === "bundle"
+                ? (orderData as any).courses[0].id
+                : orderData.data?.id,
             orderTitle:
-              orderData.type === "course"
-                ? (orderData.data as Course).title
-                : (orderData.data as CustomOffer).description,
+              orderData.type === "bundle"
+                ? `Bundle: ${(orderData as any).courses
+                    .map((c: any) => c.title)
+                    .join(", ")}`
+                : orderData.type === "course"
+                  ? (orderData.data as Course).title
+                  : orderData.type === "rental"
+                    ? (orderData.data as RentalBooking).title
+                    : (orderData.data as CustomOffer).description,
             projectDurationDays:
               orderData.type === "custom-offer"
                 ? (orderData.data as CustomOffer).projectDurationDays
                 : null,
             totalExpectedAmount: paymentDetails.amountToPay,
+            couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
           }),
         });
 
@@ -193,7 +332,7 @@ export default function PaymentContent() {
         if (!res.ok) throw new Error(data.error || "Wallet payment failed");
 
         toast.success("Payment successful!");
-        router.push("/user/dashboard?tab=orders");
+        router.push("/user/dashboard");
         return;
       }
 
@@ -206,29 +345,32 @@ export default function PaymentContent() {
         currency: "NGN",
         ref: `BW_${Math.floor(Math.random() * 1000000000 + 1)}`,
         metadata: {
-          service: orderData.type,
-          orderId: orderData.orderId,
-          productId: orderData.data.id,
+          service: orderData.type === "bundle" ? "course" : orderData.type,
+          orderId: orderData.type === "bundle" ? (orderData as any).orders[0].orderId : (orderData.orderId as number),
+          bundleGroupId: orderData.bundleGroupId,
+          productId: orderData.data?.id || (orderData.type === "bundle" ? (orderData as any).courses[0].id : undefined),
           customer_name: session.user.name,
           payment_option:
             orderData.type === "custom-offer"
               ? paymentOption === "deposit_70"
                 ? "deposit_70_discount"
                 : paymentOption === "full"
-                ? "full_100_discount"
-                : paymentOption
+                  ? "full_100_discount"
+                  : paymentOption
               : "full",
           payment_percentage:
             orderData.type === "custom-offer"
               ? paymentOption === "deposit_50"
                 ? 0.5
                 : paymentOption === "deposit_70"
-                ? 0.7
-                : 1.0
+                  ? 0.7
+                  : 1.0
               : 1.0,
           discount_applied: paymentDetails.discount.toString(),
           original_amount_kobo: paymentDetails.baseAmount.toString(),
           wallet_usage_kobo: paymentDetails.walletDeduction.toString(),
+          tip_amount_kobo: paymentDetails.tipAmount.toString(),
+          coupon_code: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
         },
         onSuccess: async (transaction: any) => {
           try {
@@ -241,13 +383,40 @@ export default function PaymentContent() {
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               toast.success("Payment successful!");
-              router.push("/user/dashboard?tab=orders");
+              if (verifyData.redirect) {
+                router.push(verifyData.redirect);
+              } else {
+                const productId =
+                  orderData.type === "bundle"
+                    ? (orderData as any).courses?.[0]?.id
+                    : orderData.data?.id;
+
+                router.push(
+                  `/user/dashboard/payment/success?reference=${transaction.reference}&id=${productId}&type=${orderData.type}`,
+                );
+              }
             } else {
               toast.error("Payment verification failed: " + verifyData.message);
+              window.dataLayer = window.dataLayer || [];
+              window.dataLayer.push({
+                event: "error_occurred",
+                error_type: "payment_failed",
+                error_message: verifyData.message || "Payment verification failed",
+                error_location: "paystack_checkout",
+                page: window.location.pathname,
+              });
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Verification error:", err);
             toast.error("Error verifying payment.");
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "error_occurred",
+              error_type: "payment_failed",
+              error_message: err?.message || "Error verifying payment",
+              error_location: "paystack_checkout",
+              page: window.location.pathname,
+            });
           }
         },
         onCancel: () => {
@@ -259,6 +428,14 @@ export default function PaymentContent() {
       console.error("Payment initialization error:", err);
       toast.error(err.message || "Failed to initialize payment.");
       setProcessingPayment(false);
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "payment_failed",
+        error_message: err?.message || "Unknown payment error",
+        error_location: "paystack_checkout",
+        page: window.location.pathname,
+      });
     }
   };
 
@@ -308,12 +485,20 @@ export default function PaymentContent() {
                     <h3 className="font-bold text-gray-900 text-lg">
                       {orderData.type === "course"
                         ? (orderData.data as Course).title
-                        : "Custom Project Offer"}
+                        : orderData.type === "rental"
+                          ? (orderData.data as RentalBooking).title
+                          : orderData.type === "bundle"
+                            ? `Bundle: ${(orderData as any).courses.map((c: any) => c.title).join(", ")}`
+                            : "Custom Project Offer"}
                     </h3>
                     <p className="text-gray-500 text-sm mt-1">
                       {orderData.type === "course"
                         ? "Course Enrollment"
-                        : (orderData.data as CustomOffer).description}
+                        : orderData.type === "rental"
+                          ? "Rental Booking"
+                          : orderData.type === "bundle"
+                            ? `${(orderData as any).courses.length} Courses Included`
+                            : (orderData.data as CustomOffer).description}
                     </p>
                   </div>
                   <div className="text-right">
@@ -321,8 +506,11 @@ export default function PaymentContent() {
                       {convertAmount(
                         orderData.type === "course"
                           ? (orderData.data as Course).price / KOBO_PER_NAIRA
-                          : (orderData.data as CustomOffer).amount /
-                              KOBO_PER_NAIRA
+                          : orderData.type === "bundle"
+                            ? (orderData as any).totalAmount / KOBO_PER_NAIRA
+                            : orderData.type === "rental"
+                              ? (orderData.data as RentalBooking).amount / KOBO_PER_NAIRA
+                              : (orderData.data as CustomOffer).amount / KOBO_PER_NAIRA,
                       )}
                     </p>
                   </div>
@@ -384,6 +572,127 @@ export default function PaymentContent() {
               </div>
             )}
 
+             {/* Coupon Code Section */}
+             <div className="mb-8">
+               <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                 Promo Code / Coupon
+               </h2>
+               <div className="flex gap-3">
+                 <input
+                   type="text"
+                   placeholder="Enter coupon code"
+                   value={couponCode}
+                   onChange={(e) => setCouponCode(e.target.value)}
+                   disabled={couponDiscount > 0 || validatingCoupon}
+                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 font-bold uppercase tracking-wider text-gray-700"
+                 />
+                 {couponDiscount > 0 ? (
+                   <button
+                     onClick={() => {
+                       setCouponCode("");
+                       setCouponDiscount(0);
+                       setCouponSuccess(null);
+                       setCouponError(null);
+                     }}
+                     className="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-all"
+                   >
+                     Remove
+                   </button>
+                 ) : (
+                   <button
+                     onClick={handleApplyCoupon}
+                     disabled={validatingCoupon || !couponCode.trim()}
+                     className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all disabled:opacity-50"
+                   >
+                     {validatingCoupon ? "Applying..." : "Apply"}
+                   </button>
+                 )}
+               </div>
+               {couponError && (
+                 <p className="text-sm text-red-600 font-medium mt-2">{couponError}</p>
+               )}
+               {couponSuccess && (
+                 <p className="text-sm text-green-600 font-medium mt-2">{couponSuccess}</p>
+               )}
+             </div>
+
+             {/* Tip the Team Section */}
+             <div className="mb-8">
+               <div className="flex items-center gap-2 mb-2">
+                 <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                 <h2 className="text-lg font-semibold text-gray-800">
+                   Add a Tip for the Team
+                 </h2>
+               </div>
+               <p className="text-sm text-gray-500 mb-4">
+                 Show support for the instructors and creators building Bravework Studio.
+               </p>
+
+               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                 {[
+                   { id: "none", label: "No Tip", desc: "₦0" },
+                   {
+                     id: "5",
+                     label: "5%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.05) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   {
+                     id: "10",
+                     label: "10%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.1) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   {
+                     id: "15",
+                     label: "15%",
+                     desc: convertAmount(
+                       Math.round((paymentDetails?.amountToPay || 0) * 0.15) /
+                         KOBO_PER_NAIRA,
+                     ),
+                   },
+                   { id: "custom", label: "Custom", desc: "Any amount" },
+                 ].map((opt) => (
+                   <button
+                     key={opt.id}
+                     type="button"
+                     onClick={() => setTipOption(opt.id as any)}
+                     className={`p-3 rounded-xl border-2 text-center transition-all ${
+                       tipOption === opt.id
+                         ? "border-green-600 bg-green-50 text-green-700 font-bold"
+                         : "border-gray-200 text-gray-700 hover:border-green-200"
+                     }`}
+                   >
+                     <div className="font-bold text-sm">{opt.label}</div>
+                     <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
+                   </button>
+                 ))}
+               </div>
+
+               {tipOption === "custom" && (
+                 <div className="mt-3">
+                   <div className="relative">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                       ₦
+                     </span>
+                     <input
+                       type="number"
+                       min="0"
+                       step="100"
+                       placeholder="Enter custom tip amount in Naira"
+                       value={customTipAmount}
+                       onChange={(e) => setCustomTipAmount(e.target.value)}
+                       className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium"
+                     />
+                   </div>
+                 </div>
+               )}
+             </div>
+
             {/* Wallet Option */}
             {walletBalance > 0 && (
               <div className="mb-8">
@@ -430,15 +739,46 @@ export default function PaymentContent() {
 
             {/* Total & Pay Button */}
             <div className="border-t border-gray-100 pt-8">
+              {/* Order Calculation Breakdown */}
+              <div className="space-y-2 mb-6 text-sm text-gray-600 border-b border-gray-100 pb-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>
+                    {convertAmount(
+                      (paymentDetails?.amountToPay || 0) / KOBO_PER_NAIRA,
+                    )}
+                  </span>
+                </div>
+                {paymentDetails && paymentDetails.tipAmount > 0 && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                      Team Tip
+                    </span>
+                    <span>
+                      +{convertAmount(paymentDetails.tipAmount / KOBO_PER_NAIRA)}
+                    </span>
+                  </div>
+                )}
+                {paymentDetails && paymentDetails.walletDeduction > 0 && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span>Wallet Balance Applied</span>
+                    <span>
+                      -{convertAmount(paymentDetails.walletDeduction / KOBO_PER_NAIRA)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-between items-center mb-6">
-                <span className="text-gray-600">Total to Pay</span>
+                <span className="text-gray-600 font-medium">Total to Pay</span>
                 <div className="text-right">
                   <span className="text-3xl font-bold text-gray-900">
                     {paymentDetails?.finalPaystackAmount === 0
                       ? "₦0.00"
                       : convertAmount(
                           paymentDetails?.finalPaystackAmount /
-                            KOBO_PER_NAIRA || 0
+                            KOBO_PER_NAIRA || 0,
                         )}
                   </span>
                   {paymentDetails?.discount! > 0 && (

@@ -30,6 +30,7 @@ export async function GET(request: Request) {
     SELECT
       c.course_id AS id,
       c.title,
+      c.parent_course_id AS "parentCourseId",
       c.description,
       c.created_at AS date,
       c.price_in_kobo AS price,
@@ -38,13 +39,19 @@ export async function GET(request: Request) {
       c.discount_end_date AS "discountEndDate",
       ce.payment_status AS "paymentStatus",
       ce.preferred_session_id AS "preferredSession",
+      ce.intro_video_watched AS "introVideoWatched",
       csbp.session_option AS "sessionOption",
       csbp.session_label AS "sessionLabel",
-      csbp.sessions AS "sessionGroup"
+      csbp.sessions AS "sessionGroup",
+      o.tracking_id AS "trackingId",
+      cc.category_name AS category
     FROM course_enrollments ce
     JOIN courses c ON c.course_id = ce.course_id
+    LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
     LEFT JOIN course_sessions_by_preference csbp
       ON csbp.course_id = ce.course_id AND csbp.user_id = ce.user_id
+    LEFT JOIN orders o 
+      ON o.user_id = ce.user_id AND o.title = c.title
     WHERE ce.user_id = $1
     ORDER BY c.created_at;
     `;

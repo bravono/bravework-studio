@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: { courseId: string } },
 ) {
   console.log("Received GET request for courseId:", params.courseId);
   try {
@@ -26,7 +26,6 @@ export async function GET(
         c.early_bird_discount AS "discount",
         c.discount_start_date AS "discountStartDate",
         c.discount_end_date AS "discountEndDate",
-        c.age_bracket AS "ageBracket",
         c.content,
         s.session_number AS "sessionOption",
         CASE s.session_number
@@ -35,7 +34,9 @@ export async function GET(
           ELSE 'Unknown'
         END AS "sessionLabel",
         s.sessions,
-        ct_agg.tools AS software
+        ct_agg.tools AS software,
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds",
+        c.duration
       FROM courses c
       JOIN (
         SELECT
@@ -77,7 +78,7 @@ export async function GET(
     console.error("Error fetching course:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

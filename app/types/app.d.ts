@@ -44,13 +44,25 @@ interface Order {
 
 // New: User interface for User Management
 interface User {
-  id: string;
+  id: string | number;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  roles: string; // e.g., 'user', 'admin', 'client', 'student'
+  phone?: string;
+  companyName?: string;
+  bio?: string;
+  profilePictureUrl?: string;
+  roles: any;
   emailVerified: boolean;
-  createdAt: string; // When they joined
-  // Add other relevant user details for admin view
+  isVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  referralCode?: string;
+  hearAboutUs?: string;
+  createdAt: string;
+  updatedAt?: string;
+  verificationSubmittedAt?: string | null;
+  idType?: string;
 }
 
 // New: Job Application interface
@@ -62,7 +74,6 @@ interface JobApplication {
   status: "Pending" | "Reviewed" | "Interviewing" | "Rejected" | "Hired";
   appliedDate: string;
   resumeUrl?: string; // Link to resume
-  coverLetter?: string; // Text of cover letter
 }
 
 // New: Custom Offer interface
@@ -88,6 +99,7 @@ interface CustomOffer {
 // New: Invoice interface (expanded)
 interface Invoice {
   id: string;
+  invoice_number?: string;
   orderId?: string; // Link to associated order
   userId: string;
   clientName?: string; // For admin view
@@ -120,6 +132,8 @@ interface AdminStats {
   activeCoupons: number;
   totalUsers: number;
   pendingJobApplications: number;
+  totalUnreadNotifications: number;
+  pendingRentalsCount?: number;
 }
 
 interface Notification {
@@ -159,6 +173,13 @@ interface UserProfile {
   memberSince: string; // Date string or actual Date object
   referrals: number;
   coupons: string[]; // Array of coupon codes
+  isVerified: boolean;
+  verificationSubmittedAt?: string | null;
+  idType?: string | null;
+  idCardFrontUrl?: string | null;
+  idCardBackUrl?: string | null;
+  selfieWithIdUrl?: string | null;
+  hardwareDiscountExpiry?: string | null;
   // Add other fields you might have, like user ID
   id?: string;
 }
@@ -166,20 +187,29 @@ interface UserProfile {
 interface Course {
   id: string;
   title: string;
+  createdAt: string;
   progress: number; // Percentage
   lastAccessed: string; // Date string
   paymentStatus: number; // e.g., 1 = pending, 2 = completed, etc.
   description: string;
   price: number; // Stored in kobo, convert to currency unit for display
   isActive: boolean;
+  isPublished: boolean;
   startDate: string;
   endDate: string;
   maxStudents: string;
   thumbnailUrl: string;
+  duration?: string;
+  enrollmentCount?: number;
   level: "Beginner" | "Intermediate" | "Advance";
+  parentCourseId?: number;
+  childCourseIds?: number[];
   language: string;
   category: string;
-  discount?: number; // Early bird discount percentage
+  early_bird_discount?: number; // Early bird discount percentage
+  discount_start_date?: string;
+  discount_end_date?: string;
+  discount?: number; // Legacy field
   discountStartDate?: string;
   discountEndDate?: string;
   content: string;
@@ -203,9 +233,58 @@ interface Course {
   slug?: string;
   content?: string;
   excerpt?: string;
-  ageBracket?: string;
+  isForKids: boolean;
   tools?: Tool[];
   tags?: string[];
+  trackingId?: string;
+  introVideoWatched?: boolean;
+}
+
+interface Rental {
+  id: number;
+  userId: number;
+  deviceType: string;
+  deviceName: string;
+  description: string;
+  specs: string;
+  ram?: string;
+  storage?: string;
+  processor?: string;
+  systemType?: string;
+  hourlyRate: number;
+  locationCity: string;
+  locationAddress: string;
+  locationLat: string;
+  locationLng: string;
+  hasInternet: boolean;
+  hasBackupPower: boolean;
+  status: string;
+  createdAt: string;
+  imagesArray: string[];
+  isPartner: boolean;
+  isOffice: boolean;
+  rentalType: string;
+}
+
+interface Booking {
+  id: number;
+  rentalId: number;
+  deviceName: string;
+  deviceImage: string; // Assuming we might join this or it's part of rental details
+  startTime: string;
+  endTime: string;
+  amount: number;
+  status: "pending" | "accepted" | "declined" | "cancelled" | "completed";
+  paymentStatus?: string;
+  paymentStatusId?: number;
+  createdAt: string;
+  renterName?: string; // For owner view
+  ownerName?: string; // For renter view
+  rejectionReason?: string;
+  cancellationReason?: string;
+  escrowReleased?: boolean;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
 }
 
 interface CourseSession {
@@ -222,7 +301,7 @@ interface SessionFormProps {
     sessionId: number,
     optionNumber: number,
     field: keyof SessionOption,
-    value: any
+    value: any,
   ) => void;
   addOption: (sessionId: number) => void;
   removeOption: (sessionId: number, optionNumber: number) => void;
@@ -262,27 +341,34 @@ interface AdminStats {
   totalUsers: number;
   pendingJobApplications: number;
   totalUnreadNotifications: number;
+  pendingRentalsCount?: number;
 }
 
 interface CourseModalProps {
   onClose: () => void;
   existingCourse?: Course;
-  onSave: () => void;
+  onSave: (courseId?: string) => void;
   userRole: "admin" | "instructor";
   currentInstructorName?: string;
   currentInstructorId?: number;
+  maxWidth?: string;
 }
 
 interface CustomOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
-  offer: CustomOffer | null;
+  offer?: CustomOffer | null;
   onSave: (data: any) => void;
   orders: Order[];
+  initialOrderId?: string | number;
 }
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+}
+
+interface UserBookingsSectionProps {
+  handleInitiatePayment?: (id: any, type?: "invoice" | "booking") => void;
 }

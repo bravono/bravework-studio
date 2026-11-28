@@ -4,10 +4,10 @@ export async function fetchExchangeRates() {
   try {
     const result = await getCurrency(1); // Get rates for 1 naira
     return {
-      NGN: result.rates.NGN ?? 0,
-      USD: result.rates.USD,
-      GBP: result.rates.GBP,
-      EUR: result.rates.EUR,
+      NGN: result.rates?.NGN ?? 1,
+      USD: result.rates?.USD ?? 0.00065,
+      GBP: result.rates?.GBP ?? 0.00053,
+      EUR: result.rates?.EUR ?? 0.00061,
     };
   } catch (error) {
     console.error("Error fetching exchange rates:", error);

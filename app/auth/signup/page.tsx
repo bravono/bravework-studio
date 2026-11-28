@@ -7,9 +7,6 @@ import React, {
   Suspense,
   useCallback,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Joi from "joi";
 import {
   User,
   Mail,
@@ -18,8 +15,15 @@ import {
   Clock,
   Building,
   Handshake,
+  Megaphone,
 } from "lucide-react";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+
+import Joi from "joi";
 import { Course } from "@/app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 // Joi Schemas
 const baseSignupSchema = Joi.object({
@@ -44,6 +48,7 @@ const baseSignupSchema = Joi.object({
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
   companyName: Joi.string().max(100).allow("").optional().label("Company Name"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
 });
 
 const enrollmentSchema = Joi.object({
@@ -68,8 +73,11 @@ const enrollmentSchema = Joi.object({
     .label("Confirm Password")
     .messages({ "any.only": "Passwords do not match." }),
   preferredSessionTime: Joi.string().required().label("Preferred Session Time"),
-  courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
-});
+  courseId: Joi.number().optional().label("Course Id"),
+  bundle: Joi.string().allow(null, "").optional().label("Bundle"),
+  includeHardware: Joi.boolean().optional().label("Include Hardware"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
+}).or("courseId", "bundle");
 
 const enrollExistingUserSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required().label("First Name"),
@@ -77,21 +85,27 @@ const enrollExistingUserSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required().label("Email"),
   phone: Joi.string().allow("").optional().label("Phone"),
   preferredSessionTime: Joi.string().required().label("Preferred Session Time"),
-  courseId: Joi.number().required().label("Course Id"), // Use Joi.number() since course IDs are numbers
-});
+  courseId: Joi.number().optional().label("Course Id"),
+  bundle: Joi.string().allow(null, "").optional().label("Bundle"),
+  includeHardware: Joi.boolean().optional().label("Include Hardware"),
+  referralCode: Joi.string().allow("").optional().length(8).label("Referral"),
+  hearAboutUs: Joi.string().max(100).allow("").optional().label("How did you hear about us"),
+}).or("courseId", "bundle");
 
 function Signup() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEnrollmentPage = searchParams.get("enroll") === "true";
   const courseId = searchParams.get("courseId");
-  const KOBO_PER_NAIRA = 100;
+  const bundleParam = searchParams.get("bundle") || "";
+  const hardwareParam = searchParams.get("hardware") === "true";
   const { data: session } = useSession();
   const user = session?.user;
   const firstName = user?.name ? user.name.split(" ")[0] : "";
   const lastName = user?.name ? user.name.split(" ").slice(1).join(" ") : "";
   const email = user?.email || "";
-  const senderAPIKey = process.env.SENDER_API_KEY;
+
+  
 
   const [form, setForm] = useState({
     firstName: "",
@@ -103,8 +117,10 @@ function Signup() {
     confirmPassword: "",
     companyName: "",
     preferredSessionTime: "",
+    hearAboutUs: "",
   });
   const [course, setCourse] = useState<Course>();
+  const [bundleCourses, setBundleCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -123,15 +139,28 @@ function Signup() {
     }
   }, [course]);
 
+  
+
+  
+
   useEffect(() => {
-    if (isEnrollmentPage && courseId) {
-      if (course?.id && courseId !== course?.id) {
-        setMessage("Invalid course selected. Please go back.");
+    if (isEnrollmentPage) {
+      if (courseId) {
+        fetchCourse();
+      } else if (bundleParam) {
+        const ids = bundleParam.split(",");
+        Promise.all(ids.map(id => fetch(`/api/courses/${id}`).then(r => r.json())))
+          .then(results => {
+            const courses = results.map(r => r[0]);
+            setBundleCourses(courses);
+            if (courses.length > 0) {
+              setCourse(courses[0]);
+            }
+          })
+          .catch(err => console.error("Error fetching bundle courses:", err));
       }
-      setMessage("");
-      fetchCourse();
     }
-  }, [isEnrollmentPage, courseId]);
+  }, [isEnrollmentPage, courseId, bundleParam]);
 
   useEffect(() => {
     const referralCode = searchParams.get("ref");
@@ -144,11 +173,12 @@ function Signup() {
 
   const schemaToValidate = useMemo(() => {
     if (!isEnrollmentPage) return baseSignupSchema;
+    // For bundles, we relax the courseId requirement in Joi if bundle is present
     return !user ? enrollmentSchema : enrollExistingUserSchema;
-  }, [isEnrollmentPage]);
+  }, [isEnrollmentPage, user]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -176,7 +206,10 @@ function Signup() {
         email,
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForValidation = {
@@ -187,8 +220,11 @@ function Signup() {
         password: form.password,
         confirmPassword: form.confirmPassword, // Included for frontend validation
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForApi = {
@@ -197,8 +233,11 @@ function Signup() {
         email,
         phone: form.phone,
         preferredSessionTime: form.preferredSessionTime,
-        courseId: Number(courseId),
+        courseId: courseId ? Number(courseId) : undefined,
+        bundle: bundleParam,
+        includeHardware: hardwareParam,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       if (!user) {
@@ -214,6 +253,7 @@ function Signup() {
         confirmPassword: form.confirmPassword, // Included for frontend validation
         companyName: form.companyName,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
 
       payloadForApi = {
@@ -224,6 +264,7 @@ function Signup() {
         password: form.password, // Only send the password to the backend
         companyName: form.companyName,
         referralCode: form.referralCode,
+        hearAboutUs: form.hearAboutUs,
       };
     }
 
@@ -232,10 +273,19 @@ function Signup() {
       !user ? payloadForValidation : payloadExistingUser,
       {
         abortEarly: false,
-      }
+      },
     );
     if (error) {
-      setMessage(error.details.map((d) => d.message).join(" "));
+      const errorMsg = error.details.map((d) => d.message).join(" ");
+      setMessage(errorMsg);
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "form_validation",
+        error_message: errorMsg,
+        error_location: isEnrollmentPage ? "academy_enroll_form" : "signup_form",
+        page: window.location.pathname,
+      });
       return;
     }
 
@@ -250,35 +300,35 @@ function Signup() {
 
       const data = await res.json();
       if (res.ok) {
+        // GTM Tracking: Successful Signup
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "auth_event",
+          auth_event: "signup",
+          user_role: user?.roles?.join("+") || "user",
+          user_id: data.userId || user?.id,
+          page: window.location.pathname,
+        });
+
         if (isEnrollmentPage && course) {
-          fetch("https://api.sender.net/v2/subscribers", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${senderAPIKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: form.email,
-              name: `${form.firstName}  ${form.lastName}`,
-              tags: ["student"],
-            }),
-          });
+          // Relocated to backend signup route for security and reliability
         }
 
         if (!user?.email) {
           if (isEnrollmentPage) {
             setMessage(
-              "Signup successful! Please check your email to verify your account and proceed with your enrollment."
+              "Signup successful! Please check your email to verify your account and proceed with your enrollment.",
             );
           }
           setMessage(
-            "Signup successful! Please check your email to verify your account and log in."
+            "Signup successful! Please check your email to verify your account and log in.",
           );
         } else {
           const paymentPrompt =
-            course.price > 0 ? " Please proceed to payment." : "";
+            (course?.price || bundleCourses.some(c => c.price > 0)) ? " Please proceed to payment." : "";
+          const displayTitle = course?.title || `${bundleCourses.length} courses`;
           setMessage(
-            `Enrollment successful! You have been enrolled in ${course.title}.${paymentPrompt}`
+            `Enrollment successful! You have been enrolled in ${displayTitle}.${paymentPrompt}`,
           );
         }
 
@@ -293,6 +343,7 @@ function Signup() {
           phone: "",
           referralCode: "",
           preferredSessionTime: "",
+          hearAboutUs: "",
         });
         // Redirect to verification page after a short delay
         setTimeout(() => {
@@ -302,9 +353,25 @@ function Signup() {
         }, 1000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "error_occurred",
+          error_type: "api_error",
+          error_message: data.message || "Signup failed",
+          error_location: isEnrollmentPage ? "academy_enroll_api" : "signup_api",
+          page: window.location.pathname,
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       setMessage("Signup failed. Please try again.");
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "error_occurred",
+        error_type: "network_error",
+        error_message: error?.message || "Unknown error",
+        error_location: isEnrollmentPage ? "academy_enroll_api" : "signup_api",
+        page: window.location.pathname,
+      });
     } finally {
       setLoading(false);
     }
@@ -322,37 +389,33 @@ function Signup() {
           </p>
         </div>
 
-        {isEnrollmentPage && course && (
+        {isEnrollmentPage && (course || bundleCourses.length > 0) && (
           <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              <span className="inline-flex items-center gap-2"></span>
-
               <p className="text-lg text-gray-600 font-semibold mb-1">
-                Enroll in: {course.title}
+                {bundleCourses.length > 0 
+                  ? `Enroll in Bundle: ${bundleCourses.map(c => c.title).join(", ")}`
+                  : `Enroll in: ${course?.title}`}
               </p>
             </h3>
 
+            {hardwareParam && (
+              <div className="flex items-center gap-2 text-blue-600 font-bold mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <Building className="w-5 h-5" />
+                <span>+ Hardware Rental Included (10% Discount Active)</span>
+              </div>
+            )}
+
             <p className="text-2xl font-bold text-green-600">
-              {course.discount &&
-              course.discount > 0 &&
-              Date.now() < new Date(course.discountEndDate).getTime() ? (
-                <>
-                  <span className="line-through text-gray-400 mr-2">
-                    ₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}
-                  </span>
-                  ₦
-                  {(
-                    (course.price * (1 - course.discount / 100)) /
-                    KOBO_PER_NAIRA
-                  ).toLocaleString()}
-                  <span className="ml-2 text-sm text-green-500 font-semibold">
-                    ({course.discount}% off)
-                  </span>
-                </>
-              ) : (
-                <>₦{(course.price / KOBO_PER_NAIRA).toLocaleString()}</>
-              )}
+              {bundleCourses.length > 1 
+                ? `${bundleCourses.length === 2 ? "10%" : "20%"} Bundle Discount Applied` 
+                : "Course Enrollment Ready"}
             </p>
+            {course?.early_bird_discount && (
+               <p className="text-sm text-blue-600 font-medium mt-1">
+                 * Includes Stacking Early Bird Discount
+               </p>
+            )}
           </div>
         )}
 
@@ -486,7 +549,7 @@ function Signup() {
                     const durationHours = session.duration || 2; // default to 2 hours if not provided
 
                     const endDate = new Date(
-                      date.getTime() + durationHours * 60 * 60 * 1000
+                      date.getTime() + durationHours * 60 * 60 * 1000,
                     );
 
                     const startTime = date.toLocaleTimeString("en-US", {
@@ -601,9 +664,54 @@ function Signup() {
             </div>
           )}
 
+          {/* How did you hear about us */}
+          {!user && (
+            <div className="relative">
+              <label htmlFor="hearAboutUs" className="sr-only">
+                How did you hear about us?
+              </label>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Megaphone className="w-5 h-5 text-gray-400" />
+              </div>
+              <select
+                id="hearAboutUs"
+                name="hearAboutUs"
+                className="w-full py-3 pl-10 pr-10 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 appearance-none bg-white text-gray-700"
+                value={form.hearAboutUs}
+                onChange={handleChange}
+              >
+                <option value="">How did you hear about us? (Optional)</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="YouTube">YouTube</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Twitter / X">Twitter / X</option>
+                <option value="Google Search">Google Search</option>
+                <option value="Friends and family">Friends and family</option>
+                <option value="Other">Other</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          )}
+
           {message && (
             <div
-              className={`p-3 rounded-lg text-sm text-center ${
+              className={`p-3 rounded-lg text-sm text-center w-96 ${
                 message.includes("successful")
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
@@ -623,12 +731,12 @@ function Signup() {
             {loading
               ? "Processing..."
               : isEnrollmentPage
-              ? "Enroll"
-              : "Sign Up"}
+                ? "Enroll"
+                : "Sign Up"}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        {!isEnrollmentPage && user && <div className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
           <a
             href="/auth/login"
@@ -636,7 +744,7 @@ function Signup() {
           >
             Log in
           </a>
-        </div>
+        </div>}
       </div>
     </div>
   );

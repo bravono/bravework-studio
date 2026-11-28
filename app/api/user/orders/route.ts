@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       console.error("Session user ID is missing when fetching orders.");
       return NextResponse.json(
         { error: "User ID not found in session" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         pc.category_name AS "serviceName"
       FROM orders o
       LEFT JOIN product_categories pc ON o.category_id = pc.category_id
-      LEFT JOIN order_statuses os ON o.order_status_id = os.order_status_id
+      LEFT JOIN payment_statuses os ON o.payment_status_id = os.payment_status_id
       WHERE user_id = $1
       ORDER BY created_at DESC;
     `;
@@ -60,14 +60,30 @@ export async function GET(request: Request) {
     console.error("Error fetching user orders:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("multipart/form-data") &&
+      !contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
     const formData = await request.formData();
+    console.log("Order Form Data Content Type", contentType);
     const fields = [
       "serviceId",
       "firstName",
@@ -109,19 +125,19 @@ export async function POST(request: Request) {
     return await withTransaction(async (client) => {
       const serviceResult = await client.query(
         "SELECT category_name FROM product_categories WHERE category_id = $1",
-        [serviceId]
+        [serviceId],
       );
 
       const serviceType = serviceResult.rows[0]?.category_name;
 
       const trackingId = createTrackingId(
-        typeof serviceType === "string" ? serviceType : ""
+        typeof serviceType === "string" ? serviceType : "",
       );
 
       // Check if user with the given email already exists
       const existingUserResult = await client.query(
         "SELECT * FROM users WHERE email = $1",
-        [email]
+        [email],
       );
 
       let userId: number;
@@ -132,20 +148,20 @@ export async function POST(request: Request) {
         // User does not exist, insert new user
         const userResult = await client.query(
           "INSERT INTO users (first_name, last_name, email, phone, company_name) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-          [firstName, lastName, email, phone, companyName]
+          [firstName, lastName, email, phone, companyName],
         );
         userId = userResult.rows[0].user_id;
       }
 
       const orderStatus = await client.query(
-        "SELECT order_status_id FROM order_statuses WHERE name = $1",
-        ["pending"]
+        "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
+        ["pending"],
       );
 
-      const orderStatusId = orderStatus.rows[0]?.order_status_id;
+      const orderStatusId = orderStatus.rows[0]?.payment_status_id;
 
       const orderResult = await client.query(
-        "INSERT INTO orders (project_description, order_status_id, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING order_id, budget_range",
+        "INSERT INTO orders (project_description, payment_status_id, budget_range, timeline, user_id, category_id, tracking_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING order_id, budget_range",
         [
           projectDescription,
           orderStatusId,
@@ -154,7 +170,7 @@ export async function POST(request: Request) {
           userId,
           serviceId,
           trackingId,
-        ]
+        ],
       );
       const newOrderId = orderResult.rows[0].order_id;
       const newOrderBudget = orderResult.rows[0].budget_range;
@@ -168,7 +184,7 @@ export async function POST(request: Request) {
         `INSERT INTO notifications (
     user_id, title, message, link
   ) VALUES ($1, $2, $3, $4)`,
-        [userId, notificationTitle, notificationMessage, notificationLink]
+        [userId, notificationTitle, notificationMessage, notificationLink],
       );
 
       if (Array.isArray(files) && files.length > 0) {
@@ -176,7 +192,7 @@ export async function POST(request: Request) {
           const { fileName, fileSize, fileUrl } = file;
           await client.query(
             "INSERT INTO order_files (order_id, file_name, file_size, file_url) VALUES ($1, $2, $3, $4)",
-            [newOrderId, fileName, fileSize, fileUrl]
+            [newOrderId, fileName, fileSize, fileUrl],
           );
         }
       }
@@ -207,13 +223,33 @@ export async function POST(request: Request) {
         console.error("Failed to create Zoho Lead:", zohoError);
       }
 
+      // Automatically trigger AI Agent Fleet proposal generation in background
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      fetch(`${baseUrl}/api/admin/orders/${newOrderId}/ai-proposal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-system-trigger": "internal-auto-trigger",
+        },
+      }).catch((aiErr) => {
+        console.error(`Background AI Agent Fleet trigger failed for order ${newOrderId}:`, aiErr);
+      });
+
       return NextResponse.json(newOrderId, { status: 201 });
     });
   } catch (error) {
     console.error("Error creating order:", error);
+    
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      return NextResponse.json(
+        { message: "You already have an order for this category. Please check your dashboard." },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { message: "Error creating order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

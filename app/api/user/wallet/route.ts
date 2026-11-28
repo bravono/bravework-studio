@@ -10,8 +10,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    const earningsRes = await queryDatabase(
+    const referralEarningsRes = await queryDatabase(
       "SELECT SUM(amount_kobo) as total FROM referral_earnings WHERE referrer_id = $1",
+      [session.user.id]
+    );
+    const rentalEarningsRes = await queryDatabase(
+      "SELECT SUM(amount_kobo) as total FROM rental_earnings WHERE user_id = $1",
       [session.user.id]
     );
     const usagesRes = await queryDatabase(
@@ -19,11 +23,20 @@ export async function GET(req: Request) {
       [session.user.id]
     );
 
-    const totalEarnings = Number(earningsRes[0]?.total || 0);
+    const totalEarnings =
+      Number(referralEarningsRes[0]?.total || 0) +
+      Number(rentalEarningsRes[0]?.total || 0);
     const totalUsed = Number(usagesRes[0]?.total || 0);
     const balance = totalEarnings - totalUsed;
 
-    return NextResponse.json({ balance });
+    return NextResponse.json({
+      balance,
+      breakdown: {
+        referral: Number(referralEarningsRes[0]?.total || 0),
+        rental: Number(rentalEarningsRes[0]?.total || 0),
+        used: totalUsed,
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }

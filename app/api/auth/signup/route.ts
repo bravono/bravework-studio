@@ -6,7 +6,9 @@ import { createTrackingId } from "@/lib/utils/tracking";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { sendOrderReceivedEmail, sendVerificationEmail } from "@/lib/mailer";
+import { createZohoLead } from "@/lib/zoho";
 import Joi from "joi";
+import logger from "@/lib/logger";
 
 // Define Joi schemas
 const baseSignupSchema = Joi.object({
@@ -19,11 +21,14 @@ const baseSignupSchema = Joi.object({
     .required()
     .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
     .message(
-      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)",
     ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
+  role: Joi.string().allow("").optional(),
+  isMobile: Joi.boolean().optional(),
 });
 
 const enrollmentSchema = Joi.object({
@@ -36,12 +41,15 @@ const enrollmentSchema = Joi.object({
     .required()
     .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*?~])"))
     .message(
-      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)"
+      "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*?~)",
     ),
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
-  preferredSessionTime: Joi.string().required(),
-  courseId: Joi.number().required(),
+  courseId: Joi.number().optional(),
+  bundle: Joi.string().allow("").optional(),
+  includeHardware: Joi.boolean().optional(),
+  referralCode: Joi.string().allow("").optional(),
+  hearAboutUs: Joi.string().max(100).allow("").optional(),
 });
 
 const enrollExistingUserSchema = Joi.object({
@@ -51,7 +59,9 @@ const enrollExistingUserSchema = Joi.object({
   companyName: Joi.string().max(100).allow("").optional(),
   phone: Joi.string().allow("").optional(),
   preferredSessionTime: Joi.string().required(),
-  courseId: Joi.number().required(),
+  courseId: Joi.number().optional(),
+  bundle: Joi.string().allow("").optional(),
+  includeHardware: Joi.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -62,8 +72,8 @@ export async function POST(req: Request) {
 
     let validationResult;
     // Determine the correct schema based on the request body and session status
-    if (body.courseId) {
-      console.log("Session", session);
+    if (body.courseId || body.bundle) {
+      logger.debug({ session }, "Signup session check");
       if (session && session.user) {
         validationResult = enrollExistingUserSchema.validate(body);
       } else {
@@ -76,7 +86,7 @@ export async function POST(req: Request) {
     if (validationResult.error) {
       return NextResponse.json(
         { message: validationResult.error.details[0].message },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -89,13 +99,17 @@ export async function POST(req: Request) {
       phone,
       preferredSessionTime,
       courseId,
+      bundle,
+      includeHardware,
       referralCode,
+      hearAboutUs,
     } = body;
 
     // Use a database transaction to ensure data integrity
     const result = await withTransaction(async (client) => {
       let userId;
       let orderId;
+      let orderIds = [];
       let course;
       const name = `${firstName} ${lastName}`;
 
@@ -103,20 +117,20 @@ export async function POST(req: Request) {
       if (session && session.user) {
         const existingUserResult = await client.query(
           "SELECT user_id FROM users WHERE email = $1",
-          [email]
+          [email],
         );
 
         userId = existingUserResult.rows[0].user_id;
-        if (existingUserResult.length === 0) {
+        if (existingUserResult.rows.length === 0) {
           // This case should ideally not happen if the session is valid, but we handle it
           throw new Error("User not found for the current session.");
         }
-        console.log("Enrolling existing user with ID:", userId);
+        logger.info({ userId }, "Enrolling existing user");
       } else {
         // Scenario 2: New user signing up, potentially with a course enrollment
         const existingUserResult = await client.query(
           "SELECT user_id FROM users WHERE email = $1",
-          [email]
+          [email],
         );
 
         if (existingUserResult.rows.length > 0) {
@@ -128,8 +142,8 @@ export async function POST(req: Request) {
         // Insert new user
         const insertUserResult = await client.query(
           `INSERT INTO users
-          (first_name, last_name, email, password, company_name, phone)
-          VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`,
+          (first_name, last_name, email, password, company_name, phone, hear_about_us)
+          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
           [
             firstName,
             lastName,
@@ -137,7 +151,8 @@ export async function POST(req: Request) {
             hashedPassword,
             companyName || null,
             phone || null,
-          ]
+            hearAboutUs || null,
+          ],
         );
 
         userId = insertUserResult.rows[0].user_id;
@@ -146,172 +161,244 @@ export async function POST(req: Request) {
         if (referralCode) {
           const referrerResult = await client.query(
             "SELECT user_id FROM users WHERE referral_code = $1",
-            [referralCode]
+            [referralCode],
           );
-          console.log("Referrer Result", referrerResult);
+          logger.debug({ referrerResult }, "Referrer result");
           if (referrerResult.rows.length > 0) {
             const referrerId = referrerResult.rows[0].user_id;
             await client.query(
               "UPDATE users SET referred_by_id = $1 WHERE user_id = $2",
-              [referrerId, userId]
+              [referrerId, userId],
             );
-            console.log(`User ${userId} referred by ${referrerId}`);
+            logger.info({ userId, referrerId }, "User referred");
           }
         }
-        console.log("New user created with ID:", userId);
+        logger.info({ userId }, "New user created");
 
         // Assign 'user' role
         const roleResult = await client.query(
           "SELECT role_id FROM roles WHERE role_name = 'user'",
-          []
+          [],
         );
         const roleId = roleResult.rows[0].role_id;
         await client.query(
           "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)",
-          [userId, roleId]
+          [userId, roleId],
         );
 
-        // Send verification email
+        // Send verification email & generate 6-digit OTP for instant mobile/web verification
         const verificationToken = uuidv4();
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expires = new Date();
         expires.setHours(expires.getHours() + 24);
+
         await client.query(
           'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
-          [userId, verificationToken, expires, "email_verification"]
+          [userId, verificationToken, expires, "email_verification"],
         );
+
+        await client.query(
+          'INSERT INTO verification_tokens ("user_id", token, expires, type) VALUES ($1, $2, $3, $4)',
+          [userId, otpCode, expires, "mobile_otp"],
+        );
+
+        logger.info({ email, otpCode }, "Generated mobile OTP verification code");
 
         try {
           await sendVerificationEmail(email, verificationToken, name, course);
-          console.log(`Verification email sent to ${email}`);
+          logger.info({ email }, "Verification email sent");
+
+          // Add to Sender.net Marketing List
+          const senderApiKey = process.env.SENDER_API_KEY;
+          if (senderApiKey) {
+            fetch("https://api.sender.net/v2/subscribers", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${senderApiKey}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                email,
+                firstname: firstName,
+                lastname: lastName,
+                // Automatically add to "marketing" list plus their specific role/course group
+                groups: courseId
+                  ? ["marketing", "student"]
+                  : ["marketing", "user"],
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) =>
+                logger.info({ data }, "Sender marketing subscription result"),
+              )
+              .catch((err) =>
+                logger.error({ err: err.message }, "Sender subscription error"),
+              );
+          }
         } catch (mailError) {
-          console.error("Failed to send verification email:", mailError);
-          // Don't fail the entire transaction for a mailer error
+          logger.error({ err: mailError }, "Failed to send verification email");
         }
       }
 
-      // Logic for course enrollment and order creation (if courseId exists)
-      if (courseId) {
+      const hasHardware = includeHardware === true;
+      if (hasHardware) {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        await client.query(
+          "UPDATE users SET hardware_discount_expiry = $1 WHERE user_id = $2",
+          [expiryDate, userId],
+        );
+      }
+
+      // Logic for course enrollment and order creation (if courseId or bundle exists)
+      if (courseId || bundle) {
+        const courseIds = bundle
+          ? bundle.split(",").map((id) => Number(id.trim()))
+          : [Number(courseId)];
+
+        const bundleSize = courseIds.length;
+        const bundleDiscount =
+          bundleSize === 2 ? 0.1 : bundleSize >= 3 ? 0.2 : 0;
+        const bundleGroupId = uuidv4().split("-")[0].toUpperCase();
+
         // Get 'student' role
         const studentRoleResult = await client.query(
           "SELECT role_id FROM roles WHERE role_name = 'student'",
-          []
+          [],
         );
 
         const studentRoleId = studentRoleResult.rows[0].role_id;
-        // Assign 'student' role to the user, this also handles the case for a logged-in user
         await client.query(
           "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT (user_id, role_id) DO NOTHING",
-          [userId, studentRoleId]
+          [userId, studentRoleId],
         );
-
-        // Fetch course details
-        const courseResult = await client.query(
-          "SELECT title, description, price_in_kobo, start_date, end_date FROM courses WHERE course_id = $1",
-          [courseId]
-        );
-        if (courseResult.length === 0) {
-          throw new Error("Course not found.");
-        }
-        const {
-          title: courseTitle,
-          description: courseDescription,
-          price_in_kobo: price,
-          start_date: startDate,
-          end_date: endDate,
-        } = courseResult.rows[0];
-
-        course = courseTitle;
-
-        // Fetch session ID
-        const sessionResult = await client.query(
-          `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
-          [courseId, Number(preferredSessionTime)]
-        );
-        if (sessionResult.length === 0) {
-          throw new Error("No session found for the selected time.");
-        }
-
-        const { session_id: sessionId, session_number: sessionNumber } =
-          sessionResult.rows[0];
-        console.log("Session Id", sessionId);
-
-        const paymentStatus = price === 0 ? "paid" : "pending";
-
-        // Fetch 'pending' order status
-        const paymentStatusResult = await client.query(
-          "SELECT order_status_id FROM order_statuses WHERE name = $1",
-          [paymentStatus]
-        );
-
-        const paymentStatusId = paymentStatusResult.rows[0].order_status_id;
-
-        const existingCourse = await client.query(
-          "SELECT * FROM course_enrollments WHERE user_id = $1 AND course_id = $2",
-          [userId, courseId]
-        );
-
-        console.log("Existing Course", existingCourse);
-        if (existingCourse.rows.length > 0)
-          return NextResponse.json({
-            message: "You are already enrolled in this course",
-          });
-
-        // Insert into course_enrollments, preventing duplicates with ON CONFLICT
-        const enrollmentResult = await client.query(
-          `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
-          VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING RETURNING user_id`,
-          [userId, courseId, sessionId]
-        );
-
-        if (enrollmentResult.rows.length === 0) {
-          return NextResponse.json({
-            message: "You are already enrolled in this course",
-          });
-        }
 
         const categoryResult = await client.query(
           `SELECT category_id FROM product_categories WHERE category_name = $1`,
-          ["Course"]
+          ["Course"],
         );
-
         const categoryId = categoryResult.rows[0].category_id;
-        // Insert into orders table
-        const trackingId = createTrackingId(courseTitle);
 
-        const orderResult = await client.query(
-          `INSERT INTO orders 
-          (user_id, category_id, title, project_description, start_date, end_date, order_status_id, total_expected_amount_kobo, tracking_id) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING order_id`,
-          [
-            userId,
-            categoryId,
-            courseTitle,
-            courseDescription,
-            startDate,
-            endDate,
-            paymentStatusId,
-            price,
-            trackingId,
-          ]
-        );
+        for (const cId of courseIds) {
+          const courseResult = await client.query(
+            `SELECT title, description, price_in_kobo, start_date, end_date, 
+                    early_bird_discount, discount_start_date, discount_end_date 
+             FROM courses WHERE course_id = $1`,
+            [cId],
+          );
+          if (courseResult.rows.length === 0) continue;
 
-        console.log("Order Result", orderResult);
-        if (orderResult.rows.length === 0)
-          return NextResponse.json({ message: "Now order was inserted" });
+          const {
+            title: courseTitle,
+            description: courseDescription,
+            price_in_kobo: originalPrice,
+            start_date: startDate,
+            end_date: endDate,
+            early_bird_discount: ebDiscount,
+            discount_start_date: ebStart,
+            discount_end_date: ebEnd,
+          } = courseResult.rows[0];
 
-        orderId = orderResult.rows[0].order_id;
-        console.log("Course order ID:", orderId);
+          // Calculate Price with stacking discounts
+          let currentPrice = originalPrice;
+          const now = new Date();
+          const isEarlyBirdActive =
+            ebDiscount &&
+            ebStart &&
+            ebEnd &&
+            now >= new Date(ebStart) &&
+            now <= new Date(ebEnd);
 
-        return { userId, isNewUser: !session };
-      }
+          if (isEarlyBirdActive) {
+            currentPrice = Math.round(currentPrice * (1 - ebDiscount / 100));
+          }
 
-      if (orderId) {
-        try {
-          await sendOrderReceivedEmail(email, name, orderId, course);
-          console.log(`Course order email sent to ${email}`);
-        } catch (mailError) {
-          console.error("Failed to send course order email:", mailError);
+          const discountedPrice = Math.round(
+            currentPrice * (1 - bundleDiscount),
+          );
+
+          const sessionResult = await client.query(
+            `SELECT session_id, session_number FROM sessions WHERE course_id = $1 AND session_number = $2`,
+            [cId, Number(preferredSessionTime)],
+          );
+
+          let sessionId = null;
+          if (sessionResult.rows.length > 0) {
+            sessionId = sessionResult.rows[0].session_id;
+          } else {
+            // Fallback to first session if preferred not found for this course in bundle
+            const fallbackSession = await client.query(
+              `SELECT session_id FROM sessions WHERE course_id = $1 LIMIT 1`,
+              [cId],
+            );
+            sessionId = fallbackSession.rows[0]?.session_id;
+          }
+
+          const paymentStatus = discountedPrice === 0 ? "paid" : "pending";
+
+          const paymentStatusResult = await client.query(
+            "SELECT payment_status_id FROM payment_statuses WHERE name = $1",
+            [paymentStatus],
+          );
+          const paymentStatusId =
+            paymentStatusResult.rows[0]?.payment_status_id;
+
+          // Insert into course_enrollments
+          await client.query(
+            `INSERT INTO course_enrollments (user_id, course_id, preferred_session_id, enrollment_date) 
+            VALUES ($1, $2, $3, NOW()) ON CONFLICT (user_id, course_id) DO NOTHING`,
+            [userId, cId, sessionId],
+          );
+
+          // Insert into orders table
+          const bundlePrefix = bundleSize > 1 ? `BUNDLE-${bundleGroupId}-` : "";
+          const trackingId = `${bundlePrefix}${createTrackingId(courseTitle)}`;
+
+          const projectDescription =
+            bundleSize > 1
+              ? `${courseDescription}\n\n[Bundle Order - Group ${bundleGroupId}]`
+              : courseDescription;
+
+          const orderResult = await client.query(
+            `INSERT INTO orders 
+             (user_id, category_id, title, project_description, start_date, end_date, payment_status_id, total_expected_amount_kobo, tracking_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (user_id, title) DO UPDATE SET
+               total_expected_amount_kobo = EXCLUDED.total_expected_amount_kobo,
+               tracking_id = EXCLUDED.tracking_id,
+               project_description = EXCLUDED.project_description,
+               payment_status_id = CASE 
+                 WHEN orders.payment_status_id = 1 THEN orders.payment_status_id -- if already paid, keep paid
+                 ELSE EXCLUDED.payment_status_id 
+               END
+             RETURNING order_id`,
+            [
+              userId,
+              categoryId,
+              courseTitle,
+              projectDescription,
+              startDate,
+              endDate,
+              paymentStatusId || 3, // Default to pending (3) if id not found
+              discountedPrice,
+              trackingId,
+            ],
+          );
+
+          if (orderResult.rows.length > 0) {
+            orderId = orderResult.rows[0].order_id;
+            orderIds.push(orderResult.rows[0].order_id);
+          }
         }
+
+        // Integrate Zoho CRM for Free Courses
+        if (bundleSize === 1) {
+          // For simplicity, only do automated tracking for single courses or first course if free
+          // We can expand this later to loop through orderIds if needed
+        }
+
+        return { userId, isNewUser: !session, orderIds };
       }
 
       return { userId, isNewUser: !session };
@@ -321,11 +408,14 @@ export async function POST(req: Request) {
     if (result.isNewUser) {
       return NextResponse.json(
         {
+          success: true,
           message:
-            "User created successfully! Please check your email to verify your account.",
+            "User created successfully! Please enter your 6-digit OTP verification code to activate your account.",
           userId: result.userId,
+          email: email,
+          otpRequired: true,
         },
-        { status: 201 }
+        { status: 201 },
       );
     } else {
       return NextResponse.json(
@@ -333,16 +423,25 @@ export async function POST(req: Request) {
           message: "Course enrollment created successfully!",
           userId: result.userId,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
   } catch (error) {
-    console.error("Error during signup/enrollment:", error);
+    logger.error({ err: error }, "Error during signup/enrollment");
 
     let message = "Failed to process request.";
     let status = 500;
 
     if (error instanceof Error && error.message.includes("duplicate key")) {
+      if (error.message.includes("unique_user_title_orders")) {
+        return NextResponse.json(
+          {
+            message:
+              "You already have this order. Please check your dashboard.",
+          },
+          { status: 400 },
+        );
+      }
       // Redirect to dashboard if already enrolled
       return NextResponse.redirect(new URL("/user/dashboard", req.url));
     } else if (error instanceof Error && error.message.includes("not found")) {

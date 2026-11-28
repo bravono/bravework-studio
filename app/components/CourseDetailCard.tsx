@@ -15,15 +15,21 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import VideoModal from "./VideoModal";
+import ExpandableText from "./ExpandableText";
 
 interface CourseDetailCardProps {
   course: Course;
+  allCourses?: Course[];
+  userCourses?: Course[];
   selectedCurrency: string;
   exchangeRates: ExchangeRates | null;
 }
 
 export default function CourseDetailCard({
   course,
+  allCourses,
+  userCourses,
   selectedCurrency,
   exchangeRates,
 }: CourseDetailCardProps) {
@@ -34,6 +40,8 @@ export default function CourseDetailCard({
   const [loading, setLoading] = useState(true);
   const [certificateLoading, setCertificateLoading] = useState(false);
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
+  const [introWatched, setIntroWatched] = useState(course.introVideoWatched || false);
+  const [playingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
   // Fetch progress on mount
   useEffect(() => {
@@ -56,23 +64,37 @@ export default function CourseDetailCard({
     fetchProgress();
   }, [course.id]);
 
-  const toggleSession = async (sessionId: number) => {
-    // Optimistic update
-    const isCompleted = completedSessions.has(sessionId);
+  const toggleSession = async (sessionId: number | string) => {
+    if (sessionId === "intro-video") {
+      if (introWatched) return;
+      setIntroWatched(true);
+      try {
+        const res = await fetch(`/api/user/courses/${course.id}/intro-watched`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watched: true })
+        });
+        if (!res.ok) throw new Error("Failed to update intro video status");
+        toast.success("Intro video marked as watched!");
+      } catch (error) {
+        setIntroWatched(false);
+        toast.error("Failed to mark video as watched");
+      }
+      return;
+    }
+
+    // Optimistic update for regular sessions
+    const numSessionId = sessionId as number;
+    const isCompleted = completedSessions.has(numSessionId);
     const newCompletedSessions = new Set(completedSessions);
     
     if (isCompleted) {
         // If already completed, we don't allow un-completing via this UI for now 
         // or we can allow it if the API supports it. 
-        // Assuming the API is a toggle or we only support "complete".
-        // The user requirement said "mark sessions as complete".
-        // Let's assume we can only mark as complete for now, or check API.
-        // History says: "POST /api/user/sessions/[sessionId]/complete".
-        // Usually "complete" implies one-way, but let's see.
         return; 
     }
 
-    newCompletedSessions.add(sessionId);
+    newCompletedSessions.add(numSessionId);
     setCompletedSessions(newCompletedSessions);
 
     // Calculate new progress locally
@@ -84,7 +106,7 @@ export default function CourseDetailCard({
     }
 
     try {
-      const res = await fetch(`/api/user/sessions/${sessionId}/complete`, {
+      const res = await fetch(`/api/user/sessions/${numSessionId}/complete`, {
         method: "POST",
       });
 
@@ -137,18 +159,56 @@ export default function CourseDetailCard({
     }
   };
 
-  const sessions = course.sessionGroup || [];
+  let sessions: any[] = [...(course.sessionGroup || [])];
+  
+  if (course.category && course.category.includes("3D")) {
+    sessions.unshift({
+      id: "intro-video",
+      label: "Blender Installation & Interface Walkthrough",
+      datetime: course.startDate || new Date().toISOString(),
+      link: "https://www.youtube.com/embed/4U0ONHj3_hw?autoplay=1",
+      duration: 0,
+    });
+  }
+
+  const getRecommendations = () => {
+    const currentLevel = course.level;
+    const recommendations: { level: string; course: Course | null }[] = [];
+
+    if (currentLevel === "Intermediate") {
+      recommendations.push({ level: "Beginner", course: allCourses.find(c => c.level === "Beginner") || null });
+      recommendations.push({ level: "Advance", course: allCourses.find(c => c.level === "Advance") || null });
+    } else if (currentLevel === "Beginner") {
+      recommendations.push({ level: "Intermediate", course: allCourses.find(c => c.level === "Intermediate") || null });
+    } else if (currentLevel === "Advance") {
+      recommendations.push({ level: "Intermediate", course: allCourses.find(c => c.level === "Intermediate") || null });
+    }
+
+    // Filter out recommendations that the user is already enrolled in
+    return recommendations.filter(rec => 
+      rec.course && !userCourses.some(uc => uc.id === rec.course?.id)
+    );
+  };
+
+  const recommendedCourses = getRecommendations();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 transition-all hover:shadow-md">
+    <div id={`item-${course.id}`} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 transition-all hover:shadow-md">
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">{course.title}</h3>
-            <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-              {course.description}
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-xl font-bold text-gray-900">{course.title}</h3>
+              <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded-md border border-blue-100">
+                {course.level}
+              </span>
+            </div>
+            <ExpandableText
+              text={course.description || ""}
+              maxChars={120}
+              className="text-gray-500 text-sm"
+            />
           </div>
           
           {/* Progress Section */}
@@ -172,6 +232,38 @@ export default function CourseDetailCard({
             )}
           </div>
         </div>
+
+        {recommendedCourses.length > 0 && (
+          <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">
+              Recommended Path
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {recommendedCourses.map((rec, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-white p-2 pr-3 rounded-lg border border-blue-100 shadow-sm">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-md flex items-center justify-center font-black text-xs">
+                    {rec.level[0]}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">
+                      {rec.level}
+                    </p>
+                    <p className="text-xs font-bold text-gray-900 line-clamp-1 max-w-[150px]">
+                      {rec.course?.title}
+                    </p>
+                  </div>
+                  <a
+                    href={`/academy/courses/${rec.course?.id}`}
+                    className="ml-2 p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all"
+                    title="Enroll Now"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sessions List */}
@@ -184,7 +276,8 @@ export default function CourseDetailCard({
         {sessions.length > 0 ? (
           <div className="space-y-3">
             {sessions.map((session, index) => {
-              const isCompleted = session.id ? completedSessions.has(session.id) : false;
+              const isIntro = session.id === "intro-video";
+              const isCompleted = isIntro ? introWatched : (session.id ? completedSessions.has(session.id) : false);
               const isPast = new Date(session.datetime) < new Date();
               
               return (
@@ -242,7 +335,15 @@ export default function CourseDetailCard({
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto pl-10 sm:pl-0">
-                    {session.link && !session.recordingLink && (
+                    {isIntro ? (
+                      <button
+                        onClick={() => setPlayingVideoUrl(session.link)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-md hover:bg-emerald-100 transition-colors"
+                      >
+                        <Video className="w-4 h-4" />
+                        Play Video
+                      </button>
+                    ) : session.link && !session.recordingLink && (
                       <a
                         href={session.link}
                         target="_blank"
@@ -293,6 +394,12 @@ export default function CourseDetailCard({
           {certificateLoading ? "Generating..." : "Download Certificate"}
         </button>
       </div>
+
+      <VideoModal
+        isOpen={!!playingVideoUrl}
+        onClose={() => setPlayingVideoUrl(null)}
+        videoUrl={playingVideoUrl || ""}
+      />
     </div>
   );
 }

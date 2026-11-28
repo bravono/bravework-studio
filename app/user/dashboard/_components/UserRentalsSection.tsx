@@ -1,0 +1,263 @@
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Monitor, Cpu, HardDrive, Layers } from "lucide-react";
+import { toast } from "react-toastify";
+
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
+import EditRentalModal from "./EditRentalModal";
+import CreateRentalModal from "./CreateRentalModal";
+
+import { Rental } from "@/app/types/app";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
+
+export default function UserRentalsSection({
+  isVerified,
+}: {
+  isVerified?: boolean;
+}) {
+  const { data: session } = useSession();
+  const [isEditRentalModalOpen, setIsEditRentalModalOpen] = useState(false);
+  const [rentalToEdit, setRentalToEdit] = useState(null);
+  const [isCreateRentalModalOpen, setIsCreateRentalModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [error, setError] = useState();
+
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const fetchRentals = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/user/rentals");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.message || "Failed to load rentals.");
+      }
+      const data: Rental[] = await res.json();
+      setRentals(data);
+      setCurrentPage(1); // Reset to the first page when new data is fetched
+    } catch (err: any) {
+      console.error("Error fetching rentals:", err);
+      setError(err.message || "Failed to load rentals.");
+      toast.error(err.message || "Failed to load rentals.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRentals();
+  }, [fetchRentals]);
+
+  return (
+    <div className="bg-gray-100 min-h-screen p-4 mt-10 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 p-6 bg-white rounded-xl shadow-lg">
+          <h1 className="text-3xl font-bold text-gray-800">My Listing</h1>
+          <button
+            onClick={() => {
+              setIsCreateRentalModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold transition duration-150 shadow-md bg-green-600 hover:bg-green-700"
+          >
+            <Plus size={20} />
+            List New Device
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {rentals.length > 0 ? (
+            rentals.map((rental) => (
+              <div
+                key={rental.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">
+                        {rental.deviceName}
+                      </h3>
+                      <span className="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full mt-1">
+                        {rental.deviceType}
+                      </span>
+                      {isVerified && (
+                        <span className="ml-2 inline-block px-2 py-1 text-[10px] font-black bg-blue-50 text-blue-600 rounded-full border border-blue-100 uppercase tracking-tighter">
+                          Verified Listing
+                        </span>
+                      )}
+                      {rental.isPartner && (
+                        <span className="ml-2 inline-block px-2 py-1 text-[10px] font-black bg-green-50 text-green-600 rounded-full border border-green-100 uppercase tracking-tighter">
+                          Official Partner
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-lg font-bold text-green-600">
+                      ₦
+                      {rental.rentalType === "hub" && rental.isPartner
+                        ? "500"
+                        : Number(
+                            rental.hourlyRate / KOBO_PER_NAIRA,
+                          ).toLocaleString()}
+                      /hr
+                    </span>
+                  </div>
+                  <div className="flex gap-2 mb-4">
+                    <span className="inline-block px-2 py-1 text-[10px] font-bold bg-gray-100 text-gray-600 rounded-md uppercase">
+                      {rental.rentalType === "hub"
+                        ? "Hub Location"
+                        : "P2P Device"}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {rental.description}
+                  </p>
+                  <div className="space-y-2 mb-4">
+                    {rental.processor || rental.ram || rental.storage ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {rental.processor && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Cpu size={12} className="text-blue-500 shrink-0" />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.processor}
+                            </span>
+                          </div>
+                        )}
+                        {rental.ram && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Layers
+                              size={12}
+                              className="text-purple-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.ram}
+                            </span>
+                          </div>
+                        )}
+                        {rental.storage && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <HardDrive
+                              size={12}
+                              className="text-amber-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.storage}
+                            </span>
+                          </div>
+                        )}
+                        {rental.systemType && rental.systemType !== "N/A" && (
+                          <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-100">
+                            <Monitor
+                              size={12}
+                              className="text-green-500 shrink-0"
+                            />
+                            <span className="text-[10px] font-bold text-gray-600 truncate">
+                              {rental.systemType}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Monitor size={14} />
+                        <span className="truncate">{rental.specs}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                    <span
+                      className={`text-sm font-medium ${
+                        rental.status === "active"
+                          ? "text-green-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {rental.status === "active" ? "In Use" : "Not In Use"}
+                    </span>
+                    {session?.user?.id === rental.userId && (
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => {
+                            setRentalToEdit(rental);
+                            setIsEditRentalModalOpen(true);
+                          }}
+                          className="text-blue-600 hover:underline text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch(
+                              `/api/user/rentals/${rental.id}`,
+                              { method: "DELETE" },
+                            );
+                            if (res.ok) {
+                              toast.success("Rental deleted");
+                              fetchRentals();
+                            } else {
+                              const err = await res.json().catch(() => ({}));
+                              toast.error(
+                                err.error || err.message || "Failed to delete",
+                              );
+                            }
+                          }}
+                          className="text-red-600 hover:underline text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                    <Link
+                      href={`academy/rentals/inventory/${rental.id}`}
+                      className="text-blue-600 hover:underline text-sm font-medium"
+                    >
+                      View Details
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm">
+              <Monitor className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No rentals listed
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by listing your first device for rent.
+              </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => setIsCreateRentalModalOpen(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                  List Device
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <CreateRentalModal
+        isOpen={isCreateRentalModalOpen}
+        onClose={() => setIsCreateRentalModalOpen(false)}
+        onSuccess={fetchRentals}
+      />
+      {rentalToEdit && (
+        <EditRentalModal
+          isOpen={isEditRentalModalOpen}
+          onClose={() => {
+            setIsEditRentalModalOpen(false);
+            setRentalToEdit(null);
+          }}
+          rental={rentalToEdit}
+          onSuccess={fetchRentals}
+        />
+      )}
+    </div>
+  );
+}

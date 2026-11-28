@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { queryDatabase } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function GET(request: Request) {
   try {
     const courseResults = await queryDatabase(`SELECT 
         c.course_id AS id,
         title,
         c.description,
+        c.created_at AS "createdAt",
         is_active AS "isActive",
         start_Date AS "startDate",
         end_date AS "endDate",
@@ -15,6 +19,7 @@ export async function GET(request: Request) {
         i.first_name AS "firstName",
         i.last_name AS "lastName",
         level,
+        parent_course_id AS "parentCourseId",
         language,
         price_in_kobo AS price,
         early_bird_discount AS "discount",
@@ -22,7 +27,10 @@ export async function GET(request: Request) {
         discount_end_date AS "discountEndDate",
         i.bio,
         cc.category_name AS category,
-        COALESCE(t_agg.tags, '[]') AS tags
+        COALESCE(t_agg.tags, '[]') AS tags,
+        (SELECT json_agg(course_id) FROM courses WHERE parent_course_id = c.course_id) AS "childCourseIds",
+        c.duration,
+        (SELECT COUNT(*) FROM course_enrollments WHERE course_id = c.course_id) AS "enrollmentCount"
         FROM courses c
         LEFT JOIN (
         SELECT
@@ -44,14 +52,27 @@ export async function GET(request: Request) {
           FROM course_tags ct
           JOIN tags t ON ct.tag_id = t.tag_id
           GROUP BY ct.course_id
-        ) t_agg ON c.course_id = t_agg.course_id`);
+        ) t_agg ON c.course_id = t_agg.course_id
+        WHERE c.is_published = true
+        ORDER BY c.created_at DESC`);
 
-    return NextResponse.json(courseResults, { status: 200 });
+    const result = courseResults.map((course: any) => ({
+      ...course,
+      tags:
+        typeof course.tags === "string" ? JSON.parse(course.tags) : course.tags,
+    }));
+
+    return NextResponse.json(result, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { message: "Error fetching courses" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

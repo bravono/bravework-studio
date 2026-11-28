@@ -2,21 +2,25 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-
-import { format } from "date-fns";
 import {
   PlusCircle,
   Edit,
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
+
+import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 import Loader from "@/app/components/Loader";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CourseModal from "@/app/components/CourseModal";
+import CoursePreviewModal from "@/app/components/CoursePreviewModal";
 import { Course } from "@/app/types/app";
 import { cn } from "@/lib/utils/cn";
+import { KOBO_PER_NAIRA } from "@/lib/constants";
 
 // Main InstructorCoursePage component
 export default function InstructorCoursePage() {
@@ -25,10 +29,31 @@ export default function InstructorCoursePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
+  // State for preview modal
+  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  const { data: session } = useSession();
+  const [instructorProfile, setInstructorProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          setInstructorProfile(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch profile", e);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
-  const KOBO_PER_NAIRA = 100;
 
   // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -45,12 +70,27 @@ export default function InstructorCoursePage() {
       }
       const data = await res.json();
       setCourses(data);
+      return data;
     } catch (error: any) {
       toast.error(error.message);
+      return [];
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const handleSaveCourse = async (savedCourseId?: string) => {
+    const updatedCourses = await fetchCourses();
+    if (savedCourseId && updatedCourses) {
+      const course = updatedCourses.find(
+        (c: Course) => String(c.id) === String(savedCourseId),
+      );
+      if (course) {
+        setPreviewCourse(course);
+        setIsPreviewModalOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -61,7 +101,7 @@ export default function InstructorCoursePage() {
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
   const currentCourses = useMemo(
     () => courses.slice(indexOfFirstCourse, indexOfLastCourse),
-    [courses, indexOfFirstCourse, indexOfLastCourse]
+    [courses, indexOfFirstCourse, indexOfLastCourse],
   );
   const totalPages = Math.ceil(courses.length / coursesPerPage);
 
@@ -110,7 +150,7 @@ export default function InstructorCoursePage() {
   };
 
   if (isLoading) {
-    return <Loader user={'user'}/>;
+    return <Loader user={"user"} />;
   }
 
   return (
@@ -144,6 +184,9 @@ export default function InstructorCoursePage() {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tags
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Approval
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Language
@@ -181,6 +224,17 @@ export default function InstructorCoursePage() {
                     {/* Display Category/Tags */}
                     {course.category || "-"}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-xs font-bold">
+                    <span
+                      className={`px-2 py-1 rounded-full ${
+                        course.isPublished
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {course.isPublished ? "Approved" : "Pending"}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {course.language ?? "-"}
                   </td>
@@ -194,6 +248,16 @@ export default function InstructorCoursePage() {
                     {format(new Date(course.endDate), "dd MMM yyyy")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => {
+                        setPreviewCourse(course);
+                        setIsPreviewModalOpen(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900 transition-colors mr-3"
+                      title="Preview Course"
+                    >
+                      <Eye size={18} />
+                    </button>
                     <button
                       onClick={() => handleEditCourse(course)}
                       className="text-blue-600 hover:text-blue-900 transition-colors mr-3"
@@ -246,7 +310,7 @@ export default function InstructorCoursePage() {
                 "px-4 py-2 rounded-md font-semibold transition-colors",
                 currentPage === index + 1
                   ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
+                  : "bg-white text-gray-700 hover:bg-gray-100",
               )}
             >
               {index + 1}
@@ -267,8 +331,10 @@ export default function InstructorCoursePage() {
         <CourseModal
           onClose={() => setIsModalOpen(false)}
           existingCourse={selectedCourse}
-          onSave={fetchCourses}
+          onSave={handleSaveCourse}
           userRole="instructor" // Changed from "admin" for instructor access
+          currentInstructorName={instructorProfile?.fullName}
+          currentInstructorId={session?.user?.id as any}
         />
       )}
       <ConfirmationModal
@@ -277,6 +343,20 @@ export default function InstructorCoursePage() {
         onConfirm={handleDeleteCourseConfirm}
         message={`Are you sure you want to delete course ID: ${courseToDelete}? This action cannot be undone.`}
       />
+      {isPreviewModalOpen && (
+        <CoursePreviewModal
+          course={previewCourse}
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          onEdit={() => {
+            setIsPreviewModalOpen(false);
+            if (previewCourse) {
+              setSelectedCourse(previewCourse);
+              setIsModalOpen(true);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

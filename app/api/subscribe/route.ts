@@ -1,49 +1,91 @@
 import { NextResponse as Response } from "next/server";
+import { subscriptionSchema } from "@/lib/schemas";
+import { queryDatabase } from "@/lib/db";
+import { getOrCreateSenderGroup, subscribeToSender } from "@/lib/sender";
 
 export async function POST(request: Request) {
   try {
-    const { email, name, isActive } = await request.json();
+    const body = await request.json();
 
-    console.log("Received subscription request:", { email, name, isActive });
-    if (!email || !name) {
+    const { error, value } = subscriptionSchema.validate(body);
+    if (error) {
       return Response.json(
-        { message: "Email and name are required." },
-        { status: 400 }
-      );
-    }
-    const group = isActive === "true" ? "active-course" : "waitlist";
-    const senderApiKey = process.env.SENDER_API_KEY;
-
-    if (!senderApiKey) {
-      return Response.json(
-        { message: "Sender API key is not configured." },
-        { status: 500 }
+        { message: error.details[0].message },
+        { status: 400 },
       );
     }
 
-    const response = await fetch("https://api.sender.net/v2/subscribers", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${senderApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        name,
-        groups: [group],
-      }),
+    const { email, name, isActive, courseId } = value;
+
+    console.log("Received subscription request:", {
+      email,
+      name,
+      isActive,
+      courseId,
     });
 
-    if (response.ok) {
+    let groupIds: string[] = [];
+
+    // 1. Handle Course Logic if courseId is present
+    if (courseId) {
+      try {
+        const courseRes = await queryDatabase(
+          "SELECT title FROM courses WHERE course_id = $1",
+          [courseId],
+        );
+        if (courseRes.length > 0) {
+          const courseTitle = courseRes[0].title;
+          const groupId = await getOrCreateSenderGroup(courseTitle);
+          if (groupId) {
+            groupIds.push(groupId);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching course for subscription:", err);
+      }
+    }
+
+    // 2. Handle Default/Legacy Logic
+    const isActiveBool = String(isActive) === "true" || isActive === true;
+
+    // If it's a "Waitlist" request (isActive=false) and we have a course,
+    // we might want a specific "Course Name - Waitlist" group?
+    // The prompt says: "use the courseId in the params to look for the title and use the title as the group name."
+    // It implies identifying the course interest.
+
+    // If no course specific group was found/created, or additionally:
+    if (isActiveBool) {
+      const activeGroup = await getOrCreateSenderGroup(
+        "Active Course Students",
+      );
+      if (activeGroup) groupIds.push(activeGroup);
+    } else {
+      // General notification/waitlist
+      const waitlistGroup = await getOrCreateSenderGroup("General Waitlist");
+      if (waitlistGroup) groupIds.push(waitlistGroup);
+    }
+
+    // fallback to test group if nothing else? existing code had testGroup="enJGQ4"
+    if (groupIds.length === 0) {
+      // Only if we really want to fallback.
+      // For now, let's trust the getOrCreateSenderGroup works or we log error.
+    }
+
+    const success = await subscribeToSender(email, name, groupIds);
+
+    if (success) {
       return Response.json({ message: "Thanks for subscribing!" });
     } else {
-      return Response.json({ message: "Subscription failed." }, { status: 500 });
+      return Response.json(
+        { message: "Subscription failed." },
+        { status: 500 },
+      );
     }
   } catch (error) {
     console.error("Error in subscription handler:", error);
     return Response.json(
       { message: "An unexpected error occurred." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

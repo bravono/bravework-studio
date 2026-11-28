@@ -6,10 +6,10 @@ export const CourseNotFound = ({ courseId }) => (
       broken.
     </p>
     <a
-      href="/courses"
+      href="/academy/courses"
       onClick={(e) => {
         e.preventDefault();
-        window.location.href = "/courses";
+        window.location.href = "/academy/courses";
       }}
       className="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-full shadow-md hover:bg-blue-700 transition duration-150"
     >

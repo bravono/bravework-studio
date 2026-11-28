@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Loader2, Mail, Lock } from "lucide-react";
@@ -10,9 +10,11 @@ function LoginForm() {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    mfaCode: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const verified = searchParams.get("verified");
@@ -62,25 +64,52 @@ function LoginForm() {
       redirect: false,
       email: form.email,
       password: form.password,
+      mfaCode: mfaRequired ? form.mfaCode : undefined,
     });
 
     if (result?.error) {
+      console.log("Login Error:", result.error);
+      const errorMsg = result.error.toUpperCase();
+
       if (result.error === "Please verify your email first.") {
         setMessage(
-          `Your email address is not verified. Please check your inbox for a verification link or`
+          `Your email address is not verified. Please check your inbox for a verification link or`,
         );
+      } else if (errorMsg === "MFA_REQUIRED") {
+        setMfaRequired(true);
+        setMessage("Please enter your MFA code.");
+      } else if (result.error === "Invalid MFA code") {
+        setMessage("Invalid MFA code. Please try again.");
+      } else if (result.error.includes("Incorrect")) {
+        setMessage("Email or Password is Incorrect, please try again");
       } else {
-        setMessage("Something went wrong, please try again");
+        // Show the actual error message from the server if it exists
+        setMessage(result.error);
       }
+
       setLoading(false);
     } else {
-      // Login successful, now attempt to claim guest orders
+      // Attempt to claim guest orders
       try {
         await fetch("/api/auth/claim-guest-orders", { method: "POST" });
         console.log("Attempted to claim guest orders.");
       } catch (claimError) {
         console.error("Failed to claim guest orders:", claimError);
       }
+
+      // GTM Tracking: Successful Login
+      const session = await getSession();
+      if (session?.user) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "auth_event",
+          auth_event: "login",
+          user_role: session.user.roles?.join("+") || "user",
+          user_id: session.user.id,
+          page: window.location.pathname,
+        });
+      }
+
       // Redirect to the homepage after successful login and guest order claim attempt
       router.push("/");
     }
@@ -103,12 +132,13 @@ function LoginForm() {
               type="email"
               id="email"
               name="email"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              className={`w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 ${mfaRequired ? "bg-gray-100 cursor-not-allowed opacity-75" : ""}`}
               placeholder="Email *"
               value={form.email}
               onChange={handleChange}
               autoComplete="email"
               required
+              disabled={mfaRequired}
             />
           </div>
           <div className="relative">
@@ -123,14 +153,51 @@ function LoginForm() {
               type="password"
               id="password"
               name="password"
-              className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200"
+              className={`w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 ${mfaRequired ? "bg-gray-100 cursor-not-allowed opacity-75" : ""}`}
               placeholder="Password *"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"
               required
+              disabled={mfaRequired}
             />
           </div>
+
+          {mfaRequired && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="relative">
+                <label htmlFor="mfaCode" className="sr-only">
+                  MFA Code
+                </label>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="mfaCode"
+                  name="mfaCode"
+                  className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 transition-colors duration-200 bg-white"
+                  placeholder="6-digit MFA Code"
+                  value={form.mfaCode}
+                  onChange={handleChange}
+                  autoFocus
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaRequired(false);
+                  setMessage(null);
+                  setForm((prev) => ({ ...prev, mfaCode: "" }));
+                }}
+                className="text-sm text-green-600 hover:text-green-800 font-medium transition-colors"
+              >
+                &larr; Back to login
+              </button>
+            </div>
+          )}
+
           {message && (
             <div
               className={`p-3 text-sm rounded-lg ${
@@ -163,8 +230,10 @@ function LoginForm() {
             {loading ? (
               <span className="flex items-center justify-center">
                 <Loader2 className="animate-spin h-5 w-5 mr-3" />
-                Logging in...
+                {mfaRequired ? "Verifying..." : "Logging in..."}
               </span>
+            ) : mfaRequired ? (
+              "Verify Code"
             ) : (
               "Login"
             )}

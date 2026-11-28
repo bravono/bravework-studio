@@ -40,9 +40,9 @@ export async function GET(request: Request) {
         cos.name AS "offerStatus", -- Get the name of the offer status
         co.expires_at AS "offerExpiresAt"
       FROM notifications n
-      LEFT JOIN custom_offers co ON n.link LIKE '/user/dashboard/notifications/' || co.offer_id || '%'
+      LEFT JOIN custom_offers co ON n.link LIKE '%' || co.offer_id || '%' AND n.link LIKE '/user/dashboard/notifications/%'
       LEFT JOIN custom_offer_statuses cos ON co.status_id = cos.offer_status_id
-      WHERE n.user_id = $1 AND n.link LIKE '/user/dashboard/notifications/%'
+      WHERE n.user_id = $1
       ORDER BY n.created_at DESC;
     `;
 

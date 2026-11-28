@@ -27,7 +27,7 @@ function groupSessionOptions(sessionRows: any[]) {
     });
 
     // Every two options form a complete session group
-    if (sessionGroup.length === 2) {
+    if (sessionGroup.length >= 1) {
       sessions.push({
         // We use a temporary ID (like a hash or a counter) since the DB doesn't have a group ID
         id: sessions.length + 1,
@@ -52,10 +52,13 @@ export async function GET(request: Request) {
                 c.title,
                 c.description,
                 c.is_active AS "isActive",
+                c.is_published AS "isPublished",
                 c.start_date AS "startDate",
                 c.end_date AS "endDate",
                 CONCAT(i.first_name, ' ', i.last_name) AS instructor,
                 c.max_students AS "maxStudents",
+                c.parent_course_id AS "parentCourseId",
+                COALESCE((SELECT json_agg(child.course_id) FROM courses child WHERE child.parent_course_id = c.course_id), '[]'::json) AS "childCourseIds",
                 c.level,
                 c.language,
                 c.price_in_kobo AS price,
@@ -63,12 +66,14 @@ export async function GET(request: Request) {
                 c.thumbnail_url AS "thumbnailUrl",
                  c.content,
                 c.excerpt,
-                c.age_bracket AS "ageBracket",
+                c.is_for_kids AS "isForKids",
                 ct_agg.tools AS software,
-                c.slug
+                (SELECT json_agg(t.tag_name) FROM course_tags ct JOIN tags t ON ct.tag_id = t.tag_id WHERE ct.course_id = c.course_id) AS tags,
+                c.slug,
+                c.duration
             FROM courses c
-            JOIN instructors i ON c.instructor_id = i.instructor_id
-            JOIN course_categories cc ON c.course_category_id = cc.category_id
+            LEFT JOIN instructors i ON c.instructor_id = i.instructor_id
+            LEFT JOIN course_categories cc ON c.course_category_id = cc.category_id
             LEFT JOIN (
               SELECT
                 ct.course_id,
@@ -123,13 +128,13 @@ export async function GET(request: Request) {
       return course;
     });
 
-    console.log("Courses", serializableCourses);
+    console.log("Courses Serialized", serializableCourses);
     return NextResponse.json(serializableCourses);
   } catch (error: any) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -151,6 +156,7 @@ export async function POST(request: Request) {
       end_date: endDate,
       instructor,
       is_active: isActive,
+      is_published: isPublished,
       max_students: maxStudents,
       thumbnail_url: thumbnailUrl,
       course_category: category,
@@ -159,9 +165,13 @@ export async function POST(request: Request) {
       slug,
       content,
       excerpt,
-      age_bracket: ageBracket,
+      is_for_kids: isForKids,
+      tags, // Array of tag names
       tools, // Array of tool IDs
       sessions, // Array of session groups
+      parent_course_id: parentCourseId,
+      child_course_ids: childCourseIds,
+      duration,
     } = body;
 
     // Input Validation (Simplified for brevity, assuming external schema validation)
@@ -178,11 +188,12 @@ export async function POST(request: Request) {
           error:
             "Missing required fields: title, description, instructor, or sessions array.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Validate sessions structure: must have two options, and each option must contain duration, link, time, and label.
+    // Validate sessions structure: must have options, each with valid duration, link, label, and optionNumber.
+    // 'time' is now optional.
     const hasInvalidSession = sessions.some(
       (sessionGroup: any) =>
         !sessionGroup.options ||
@@ -191,10 +202,9 @@ export async function POST(request: Request) {
           (option: any) =>
             !option.duration ||
             isNaN(parseInt(option.duration)) || // Ensure duration is a valid number
-            !option.time ||
             !option.label ||
-            !option.optionNumber
-        )
+            !option.optionNumber,
+        ),
     );
 
     console.log("Has Invalid Session", hasInvalidSession);
@@ -202,9 +212,9 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Each course must have sessions, and each session group must contain exactly two options (1 and 2), each with valid duration, link, time, and label.",
+            "Each course must have sessions, and each session group must contain valid duration, link, and label.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -218,14 +228,14 @@ export async function POST(request: Request) {
       console.log("Now in Transaction");
       const instructorResult = await client.query(
         `SELECT instructor_id FROM instructors WHERE first_name = $1 AND last_name = $2`,
-        [instructorName[0], instructorName[1]]
+        [instructorName[0], instructorName[1]],
       );
       const instructorId = instructorResult.rows[0]?.instructor_id;
       if (!instructorId) throw new Error("Instructor not found.");
 
       const categoryResult = await client.query(
         `SELECT category_id FROM course_categories WHERE category_name = $1`,
-        [category]
+        [category],
       );
       const categoryId = categoryResult.rows[0]?.category_id;
       if (!categoryId) throw new Error("Category not found.");
@@ -236,8 +246,8 @@ export async function POST(request: Request) {
                 INSERT INTO courses (
                     title, price_in_kobo, description, start_date, end_date, 
                     instructor_id, is_active, max_students, thumbnail_url, 
-                    course_category_id, level, language, slug, content, excerpt, age_bracket, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+                    course_category_id, level, language, slug, content, excerpt, is_for_kids, parent_course_id, duration, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
                 RETURNING course_id;
             `;
       const courseParams = [
@@ -256,7 +266,9 @@ export async function POST(request: Request) {
         slug,
         content,
         excerpt,
-        ageBracket,
+        isForKids || false,
+        parentCourseId || null,
+        duration || null,
       ];
 
       const courseResult = await client.query(insertCourseQuery, courseParams);
@@ -271,9 +283,33 @@ export async function POST(request: Request) {
         for (const toolId of tools) {
           await client.query(
             `INSERT INTO course_tools (course_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [courseId, toolId]
+            [courseId, toolId],
           );
         }
+      }
+
+      // 3.1 Insert Tags (if any)
+      if (tags && tags.length > 0) {
+        for (const tagName of tags) {
+          // Upsert tag
+          const tagResult = await client.query(
+            `INSERT INTO tags (tag_name) VALUES ($1) ON CONFLICT (tag_name) DO UPDATE SET tag_name = EXCLUDED.tag_name RETURNING tag_id`,
+            [tagName],
+          );
+          const tagId = tagResult.rows[0].tag_id;
+          await client.query(
+            `INSERT INTO course_tags (course_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [courseId, tagId],
+          );
+        }
+      }
+
+      // Update child courses
+      if (childCourseIds && childCourseIds.length > 0) {
+        await client.query(
+          `UPDATE courses SET parent_course_id = $1 WHERE course_id = ANY($2)`,
+          [courseId, childCourseIds],
+        );
       }
 
       // 4. Insert Sessions (two flat records per session group)
@@ -304,14 +340,14 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         { courseId, message: "Course and sessions created successfully" },
-        { status: 201 }
+        { status: 201 },
       );
     });
   } catch (error: any) {
     console.error("Error creating course:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

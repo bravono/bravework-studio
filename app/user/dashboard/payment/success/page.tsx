@@ -10,6 +10,10 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [course, setCourse] = useState<any>(null);
+  const [rental, setRental] = useState<any>(null);
+  const type = searchParams.get("type");
+  const productId = searchParams.get("id");
 
   useEffect(() => {
     if (reference) {
@@ -18,10 +22,34 @@ function PaymentSuccessContent() {
           // Simulate fetching order details
           setOrderId(`BW-ORD-${reference.substring(reference.length - 6)}`);
           toast.success("Your payment was successfully processed!");
+
+          // If it's a course, fetch actual course details for GTM
+          if (type === "course" && productId) {
+            const res = await fetch(`/api/courses/${productId}`);
+            if (res.ok) {
+              const data = await res.json();
+              setCourse(data[0]);
+            }
+          }
+
+          // If it's a rental, fetch actual rental details for GTM
+          if (type === "rental" && productId) {
+            const res = await fetch(`/api/user/bookings/${productId}`);
+            if (res.ok) {
+              const data = await res.json();
+              // Map booking data to the format expected by the GTM logic
+              setRental({
+                deviceName: data.deviceName,
+                rentalType: data.deviceType,
+                id: data.id,
+                hourlyRate: data.amount / 100, // converting kobo to NGN for GTM
+              });
+            }
+          }
         } catch (error) {
           console.error("Error fetching order details on success page:", error);
           toast.error(
-            "There was an issue loading order details. Please check your email."
+            "There was an issue loading order details. Please check your email.",
           );
         }
       };
@@ -29,7 +57,41 @@ function PaymentSuccessContent() {
     } else {
       toast.info("Payment successful. Thank you!");
     }
-  }, [reference, router]);
+  }, [reference, type, productId]);
+
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+
+    if (type === "course" && course) {
+      window.dataLayer.push({
+        event: "academy_enroll_complete",
+        course_name: course.title,
+        course_category: course.category,
+        course_level: course.level,
+        price: course.price,
+        currency: "NGN",
+        course_id: course.id,
+        course_slug: course.slug || "",
+        transaction_id: "ENR-" + (reference || Date.now()), // unique ID
+        value: course.price, // for revenue
+        page: window.location.pathname,
+      });
+    }
+    
+    if (!rental) return; // replace "rental" with your actual rental data variable
+    
+    window.dataLayer.push({
+      event: "purchase",
+      item_name: rental.deviceName,
+      item_category: rental.rentalType,
+      item_id: rental.id,
+      price: rental.hourlyRate,
+      currency: "NGN",
+      transaction_id: "REN-" + (reference || Date.now()), // unique ID
+      value: rental.price, // for revenue
+      page: window.location.pathname,
+    });
+  }, [course, type, reference, rental]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-gray-100 p-4">

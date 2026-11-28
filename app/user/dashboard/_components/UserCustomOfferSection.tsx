@@ -33,7 +33,7 @@ const CustomOfferModal = ({
 }) => {
   const [formData, setFormData] = useState({
     order_id: offer?.orderId || "",
-    offer_amount_in_kobo: offer?.offerAmount || 0,
+    offer_amount_in_kobo: offer?.offerAmount ? offer.offerAmount / 100 : 0,
     description: offer?.description || "",
     expires_at: offer?.expiresAt
       ? format(new Date(offer.expiresAt), "yyyy-MM-dd")
@@ -45,13 +45,13 @@ const CustomOfferModal = ({
   useEffect(() => {
     if (offer) {
       setFormData({
-        order_id: offer.orderId,
-        offer_amount_in_kobo: offer.offerAmount,
+        order_id: String(offer.orderId),
+        offer_amount_in_kobo: offer.offerAmount ? offer.offerAmount / 100 : 0,
         description: offer.description,
         expires_at: offer.expiresAt
           ? format(new Date(offer.expiresAt), "yyyy-MM-dd")
           : "",
-        user_id: offer.userId,
+        user_id: String(offer.userId),
       });
     } else {
       setFormData({
@@ -76,7 +76,10 @@ const CustomOfferModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await onSave(formData);
+    await onSave({
+      ...formData,
+      offer_amount_in_kobo: Math.round(Number(formData.offer_amount_in_kobo) * 100),
+    });
     setIsLoading(false);
   };
 
@@ -96,7 +99,7 @@ const CustomOfferModal = ({
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="text-gray-700">Order</span>
+            <span className="text-gray-700 font-medium">Order</span>
             <select
               name="order_id"
               value={formData.order_id}
@@ -108,21 +111,29 @@ const CustomOfferModal = ({
               <option value="">Select an Order</option>
               {orders.map((order) => (
                 <option key={order.id} value={order.id}>
-                  {order.description} (ID: {order.id})
+                  {order.description || order.serviceName} (ID: #{order.id})
                 </option>
               ))}
             </select>
           </label>
           <label className="block">
-            <span className="text-gray-700">Offer Amount (in kobo)</span>
-            <input
-              type="number"
-              name="offer_amount_in_kobo"
-              value={formData.offer_amount_in_kobo}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-2"
-            />
+            <span className="text-gray-700 font-medium">Offer Amount in USD ($)</span>
+            <div className="relative mt-1">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold">
+                $
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                name="offer_amount_in_kobo"
+                value={formData.offer_amount_in_kobo || ""}
+                onChange={handleChange}
+                required
+                className="pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-2"
+              />
+            </div>
           </label>
           <label className="block">
             <span className="text-gray-700">Description</span>
@@ -174,7 +185,13 @@ const CustomOfferModal = ({
 };
 
 // Main CustomOffersTab component
-export default function UserCustomOffersSection() {
+interface UserCustomOffersSectionProps {
+  offerIdToOpen?: string;
+}
+
+export default function UserCustomOffersSection({
+  offerIdToOpen,
+}: UserCustomOffersSectionProps) {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -222,6 +239,17 @@ export default function UserCustomOffersSection() {
     fetchOffers();
     fetchOrders();
   }, [fetchOffers, fetchOrders]);
+
+  // Handle deep linking to open offer modal
+  useEffect(() => {
+    if (offerIdToOpen && offers.length > 0) {
+      const offer = offers.find((o) => o.id === offerIdToOpen);
+      if (offer) {
+        setSelectedOffer(offer);
+        setIsModalOpen(true);
+      }
+    }
+  }, [offerIdToOpen, offers]);
 
   // Pagination logic
   const indexOfLastOffer = currentPage * offersPerPage;
@@ -307,7 +335,7 @@ export default function UserCustomOffersSection() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
+    <div className="space-y-6 p-6 mt-10 md:p-6 lg:p-8 bg-gray-100 rounded-xl shadow-lg">
       <div className="flex justify-between items-center pb-4 border-b border-gray-200">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Custom Offers Management
@@ -353,6 +381,7 @@ export default function UserCustomOffersSection() {
               currentOffers.map((offer) => (
                 <tr
                   key={offer.id}
+                  id={`item-${offer.id}`}
                   className="hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -361,8 +390,8 @@ export default function UserCustomOffersSection() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {offer.orderId}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ₦{(offer.offerAmount / 100).toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">
+                    ${(offer.offerAmount / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span

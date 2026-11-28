@@ -1,0 +1,158 @@
+import { NextResponse } from "next/server";
+import { withTransaction, queryDatabase } from "@/lib/db";
+import { jobApplicationSchema } from "@/lib/schemas";
+import logger from "@/lib/logger";
+
+export async function POST(request: Request) {
+  try {
+    const contentType = request.headers.get("content-type") || "";
+
+    if (
+      !contentType.includes("multipart/form-data") &&
+      !contentType.includes("application/x-www-form-urlencoded")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid Content-Type. Expected multipart/form-data or application/x-www-form-urlencoded",
+        },
+        { status: 400 },
+      );
+    }
+
+    const formData = await request.formData();
+
+    logger.debug(
+      { formData: Array.from(formData.entries()) },
+      "Form Data received",
+    );
+
+    // Extract fields
+    const payload = {
+      role: formData.get("role") as string,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string,
+      portfolio: formData.get("portfolio") as string,
+      experience: formData.get("experience") as string,
+      availability: formData.get("availability") as string,
+      message: formData.get("message") as string,
+    };
+
+    logger.debug({ payload }, "Extracted payload");
+
+    // Validate payload
+    const { error, value } = jobApplicationSchema.validate(payload);
+    if (error) {
+      return NextResponse.json(
+        { error: error.details[0].message },
+        { status: 400 },
+      );
+    }
+
+    const {
+      role,
+      firstName,
+      lastName,
+      email,
+      phone,
+      portfolio,
+      experience,
+      availability,
+      message,
+    } = value;
+
+    // Check if the user has already applied for this role
+    const checkQuery = `
+      SELECT job_application_id 
+      FROM job_applications 
+      WHERE email = $1 AND role = $2
+    `;
+    const existingApps = await queryDatabase(checkQuery, [email, role]);
+
+    if (existingApps.length > 0) {
+      return NextResponse.json(
+        { error: "You have already applied for this role." },
+        { status: 409 },
+      );
+    }
+
+    const fileString = formData.get("file") as string;
+    let fileInfo: {
+      fileName: string;
+      fileSize: string;
+      fileUrl: string;
+    } | null = null;
+
+    if (fileString) {
+      try {
+        fileInfo = JSON.parse(fileString);
+      } catch (e) {
+        logger.error({ err: (e as Error).message }, "Error parsing file info");
+      }
+    }
+
+    await withTransaction(async (client: any) => {
+      // 1. Insert Job Application
+      const insertAppQuery = `
+            INSERT INTO job_applications 
+            (role, first_name, last_name, email, phone, portfolio, experience, availability, cover_letter, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+            RETURNING job_application_id
+        `;
+      const appValues = [
+        role,
+        firstName,
+        lastName,
+        email,
+        phone || null,
+        portfolio || null,
+        experience,
+        availability,
+        message || null,
+      ];
+      const appResult = await client.query(insertAppQuery, appValues);
+      const jobApplicationId = appResult.rows[0].job_application_id;
+
+      // 2. Insert File (if exists)
+      if (fileInfo && fileInfo.fileUrl) {
+        const insertFileQuery = `
+                INSERT INTO job_application_files
+                (file_name, file_size, file_url, created_at)
+                VALUES ($1, $2, $3, NOW())
+                RETURNING application_file_id
+            `;
+        const fileValues = [
+          fileInfo.fileName,
+          fileInfo.fileSize,
+          fileInfo.fileUrl,
+        ];
+        const fileResult = await client.query(insertFileQuery, fileValues);
+        const applicationFileId = fileResult.rows[0].application_file_id;
+
+        // 3. Link in Junction Table
+        const insertJunctionQuery = `
+                INSERT INTO job_app_app_files
+                (job_application_id, application_file_id)
+                VALUES ($1, $2)
+            `;
+        await client.query(insertJunctionQuery, [
+          jobApplicationId,
+          applicationFileId,
+        ]);
+      }
+    });
+
+    return NextResponse.json(
+      { success: true, message: "Application submitted successfully" },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    logger.error({ err: error }, "Error submitting job application");
+    return NextResponse.json(
+      { error: "Failed to submit application" },
+      { status: 500 },
+    );
+  }
+}

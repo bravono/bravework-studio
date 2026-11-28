@@ -59,7 +59,6 @@ export default function CustomerOfferDetailsPage() {
   const params = useParams();
   const offerId = params.offerId as string;
   const { data: session, status: sessionStatus } = useSession();
-  const KOBO_PER_NAIRA = 100;
 
   const { exchangeRates, ratesLoading, ratesError } = useExchangeRates();
 
